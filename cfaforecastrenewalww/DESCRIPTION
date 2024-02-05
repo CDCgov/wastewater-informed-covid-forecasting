@@ -1,0 +1,75 @@
+Package: cfaforecastrenewalww
+Title: Wastewater informed COVID-19 hospital admissions forecasting
+Version: 0.2.3.2000
+Authors@R:
+  c(person(given = "Kaitlyn",
+           family = "Johnson",
+           role = c("aut", "cre"),
+           email = "uox1@cdc.gov"),
+  person(given = "Sam Abbott",
+           role = c("aut"),
+           email = "contact@samabbott.co.uk",
+           comment = c(ORCID = "0000-0001-8057-8037")),
+  person(given = "Zachary",
+           family = "Susswein",
+           role = c("aut"),
+           email = "utb2@cdc.gov"),
+  person(given = "Andrew",
+           family = "Magee",
+           role = c("aut"),
+           email = "rzg0@cdc.gov"),
+  person(given = "Dylan",
+           family = "Morris",
+           role = c("aut"),
+           email = "dylan@dylanhmorris.com"),
+  person(given = "Scott",
+           family = "Olesen",
+           role = c("aut"),
+           email = "ulp7@cdc.gov"))
+Description: Put something here
+License: Apache 2.0 LICENSE
+URL: https://github.com/cdcgov/wastewater-informed-covid-forecasting/
+BugReports: https://github.com/cdcgov/wastewater-informed-covid-forecasting/issues/
+Depends:
+    R (>= 4.3.0)
+Imports:
+    dplyr,
+    here,
+    yaml,
+    tidybayes,
+    cmdstanr (>= 0.7.1),
+    zoo,
+    lubridate,
+    ggplot2,
+    boot,
+    cli,
+    scales,
+    tibble,
+    soql,
+    parallel,
+    data.table,
+    readr,
+    fs,
+    glue,
+    arrow,
+    jsonlite,
+    posterior,
+    scoringutils,
+    tidyr,
+    targets,
+    tarchetypes,
+    gridExtra,
+    rlang
+VignetteBuilder:
+    knitr
+Suggests:
+    rmarkdown,
+    covidcast,
+    httr,
+    knitr
+Additional_repositories: https://mc-stan.org/r-packages/
+SystemRequirements: CmdStan (>=2.34.1)
+RoxygenNote: 7.3.1
+Encoding: UTF-8
+LazyData: true
+Config/testthat/edition: 3

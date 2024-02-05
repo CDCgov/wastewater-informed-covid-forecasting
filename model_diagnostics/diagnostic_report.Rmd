@@ -1,0 +1,61 @@
+---
+title: "Diagnostic report"
+author: "Kaitlyn Johnson"
+output: html_document
+---
+
+```{r}
+library(targets)
+tar_read(full_diagnostics_df)
+tar_read(hub_submission_df)
+
+summary_list <- get_summary_stats(full_diagnostics_df)
+```
+# Number of states/territories
+```{r, echo = FALSE}
+message(
+  "Number of states/territories in diagnostics dataframe:",
+  length(unique(full_diagnostics_df$location))
+)
+message(
+  "Number of states/territories in hub submission dataframe:",
+  length(unique(hub_submission_df$location))
+)
+```
+# Wastewater data flags
+```{r, echo = FALSE}
+print("States without wastewater data: ")
+print((summary_list$states_w_no_ww_data))
+
+print("States with insufficient wastewater data: ")
+print(summary_list$states_w_insufficient_ww_data)
+
+print("States with delayed wastewater data: ")
+print(summary_list$states_w_delayed_ww_data)
+
+print("States with data below LOD or flat: ")
+print(summary_list$states_w_data_below_LOD_or_flat)
+
+print("States with wastewater data that is suspiciously low: ")
+print(summary_list$states_low_ww)
+
+print("States with wastewater data that we would flag for Hub submission: ")
+print(summary_list$states_to_flag_for_hub)
+```
+# Hospital admissions data flags
+```{r, echo = FALSE}
+print("States with low hospital admissions: ")
+print(summary_list$states_w_low_hosp_admissions)
+```
+# Model convergence flags
+```{r, echo = FALSE}
+print("States divergent transitions issues: ")
+print(summary_list$states_w_too_many_divergences)
+print("States with many draws hitting max tree depth: ")
+print(summary_list$states_high_tree_depth)
+print("States with other model issues:")
+print(unique(c(
+  summary_list$states_w_low_EBMFI,
+  summary_list$states_w_high_rhat
+)))
+```

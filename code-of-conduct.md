@@ -1,4 +1,6 @@
-# Creating a Culture of Innovation
+# Code of Conduct
+
+## Introduction
 We aspire to create a culture where people work joyfully, communicate openly
 about things that matter, and provide great services globally. We would like our
 team and communities (both government and private sector) to reflect on
