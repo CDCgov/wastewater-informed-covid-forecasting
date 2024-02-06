@@ -299,7 +299,7 @@ We use informative priors for parameters that have been well characterized in th
 The discrete generation interval probability mass function $g(\tau)$ approximates a log-normal distribution[^Park2023] with log-mean 2.9 and log-standard deviation of 1.64.
 To approximate the double censoring process necessary to discretize the continuous log-normal distribution, we use a simulation-based approach as recommended by Park et al.[^Park2024].
 This assumes that the primary event is uniformly distributed (this ignores the influence of the growth rate within the primary interval but is a good approximation in most settings). The secondary event is then a sum of this primary interval and the continuous distribution and is observed within a day (see Figure 9 in [^Park2024]).
-As the renewal process is not defined if there is probability mass on day zero we further left truncation this distribution.
+As the renewal process is not defined if there is probability mass on day zero we further left truncate this distribution.
 For more details refer to [^Park2024].
 
 We derive the distribution $\delta(\tau)$ of the delay from infection to hospital admission as the sum of the incubation period (delay from infection to symptom onset) and the period from symptom onset to hospital admission.
@@ -333,7 +333,7 @@ This resulting infection to hospital admission delay distribution has a mean of 
 
 ## Implementation
 
-Our framework is an extension of the widely used [^CDCRtestimates] [^CDCtechnicalblog], semi-mechanistic renewal framework `{EpiNow2}` [^epinow2], using a Bayesian latent variable approach implemented in the probabilistic programming language Stan [^stan] using [^cmdstanr] to interface with R.
+Our framework is an extension of the widely used [^CDCRtestimates] [^CDCtechnicalblog], semi-mechanistic renewal framework `{EpiNow2}` [^epinow2paper][^EpiNow2], using a Bayesian latent variable approach implemented in the probabilistic programming language Stan [^stan] using [^cmdstanr] to interface with R.
 For submission to the [COVID-19 Forecast Hub](https://github.com/reichlab/covid19-forecast-hub/tree/master), the model is run on Saturday to generate forecasts each Monday.
 For each location, we run 4 chains for 250 warm-up iterations and 500 sampling iterations, with a target average acceptance probability of 99% and a maximum tree depth of 12.
 To generate forecasts per the hub submission guidelines, we calculate the necessary quantiles from the 2,000 draws from the posterior of the expected observed hospital admissions 28 days ahead of the Monday forecast date.
@@ -344,7 +344,7 @@ The notation $X \sim \mathrm{Distribution}$ indicates that a random variable $X$
 
 We parameterize Normal distributions in terms of their mean and standard deviation: $\mathrm{Normal}(\mathrm{mean, standard\ deviation})$.
 
-We parameterize Negative Binomial distributions in terms of their mean and their positive-constained dispersion parameter (often denoted $\phi$): $\mathrm{NegBinom}(\mathrm{mean, dispersion})$. As the dispersion parameter goes to 0, a Negative Binomial distribution becomes increasingly over-dispersed. As it goes to positive infinity, the Negative Binomial approximates a Poisson distribution with the same mean.
+We parameterize Negative Binomial distributions in terms of their mean and their positive-constrained dispersion parameter (often denoted $\phi$): $\mathrm{NegBinom}(\mathrm{mean, dispersion})$. As the dispersion parameter goes to 0, a Negative Binomial distribution becomes increasingly over-dispersed. As it goes to positive infinity, the Negative Binomial approximates a Poisson distribution with the same mean.
 
 We write $\mathrm{logit}(x)$ to refer to the logistic transform: $\mathrm{logit}(x) \equiv \log(x) - \log(1 - x)$.
 
@@ -392,7 +392,7 @@ Often these implausible observations are due to reporting errors, such as a hosp
 
 ## References
 
-[^epinow2]: Abbott S, Hellewell J, Thompson RN et al. Estimating the time-varying reproduction number of SARS-CoV-2 using national and subnational case counts [version 2; peer review: 1 approved, 1 approved with reservations]. Wellcome Open Res 2020, 5:112 (https://doi.org/10.12688/wellcomeopenres.16006.2)
+[^epinow2paper]: Abbott S, Hellewell J, Thompson RN et al. Estimating the time-varying reproduction number of SARS-CoV-2 using national and subnational case counts [version 2; peer review: 1 approved, 1 approved with reservations]. Wellcome Open Res 2020, 5:112 (https://doi.org/10.12688/wellcomeopenres.16006.2)
 [^Asher2018]: Jason Asher. Forecasting Ebola with a regression transmission model. Epidemics 2018, Volume 22, Pages 50-55, ISSN 1755-4365, (https://doi.org/10.1016/j.epidem.2017.02.009)
 [^stan]: Stan Development Team. 2023. Stan Modeling Language Users Guide and Reference Manual, VERSION. https://mc-stan.org
 [^CDCRtestimates]: https://www.cdc.gov/forecast-outbreak-analytics/about/rt-estimates.html
