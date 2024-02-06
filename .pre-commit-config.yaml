@@ -1,0 +1,27 @@
+repos:
+#####
+# Basic file cleanliness
+-   repo: https://github.com/pre-commit/pre-commit-hooks
+    rev: v4.5.0
+    hooks:
+    -   id: check-added-large-files
+    -   id: check-yaml
+    -   id: check-toml
+    -   id: end-of-file-fixer
+    -   id: mixed-line-ending
+    -   id: trailing-whitespace
+#####
+# R
+-   repo: https://github.com/lorenzwalthert/precommit
+    rev: v0.3.2.9023
+    hooks:
+    -   id: style-files
+    -   id: lintr
+#####
+# Secrets
+-   repo: https://github.com/Yelp/detect-secrets
+    rev: v1.4.0
+    hooks:
+    -   id: detect-secrets
+        args: ['--baseline', '.secrets.baseline']
+        exclude: package.lock.json
