@@ -1,0 +1,53 @@
+location	additional_notes
+AK	None
+AL	None
+AR	None
+AZ	None
+CA	None
+CO	Hospital admissions only model was run due to either issues with input data or model
+CT	None
+DC	Wastewater data is unavailable for recent time-points, forecast not likely to be informed by wastewater
+DE	None
+FL	None
+GA	None
+HI	None
+IA	None
+ID	None
+IL	None
+IN	None
+KS	None
+KY	No wastewater data available
+LA	Wastewater data is too sparse, forecast not likely to be informed by wastewater
+MA	None
+MD	None
+ME	None
+MI	None
+MN	None
+MO	None
+MS	No wastewater data available
+MT	None
+NC	None
+ND	No wastewater data available
+NE	Wastewater data is unavailable for recent time-points, forecast not likely to be informed by wastewater
+NH	None
+NJ	None
+NM	Wastewater data is unavailable for recent time-points, forecast not likely to be informed by wastewater
+NV	None
+NY	None
+OH	Hospital admissions only model was run due to either issues with input data or model
+OK	None
+OR	None
+PA	None
+PR	No wastewater data available
+RI	None
+SC	None
+SD	None
+TN	None
+TX	Hospital admissions only model was run due to either issues with input data or model
+UT	None
+VA	None
+VT	No wastewater data available
+WA	Wastewater data is unavailable for recent time-points, forecast not likely to be informed by wastewater
+WI	None
+WV	None
+WY	None

@@ -8,6 +8,7 @@ For an example of how to fit the model to simulated data, we recommend the [toy 
 
 ## Data sources
 
+
 We use two data sources as input to the model: wastewater viral concentrations and hospital admissions data. We describe each of these data sources in detail below.
 
 ### Wastewater viral concentration data
@@ -213,6 +214,12 @@ The site-level $\mathcal{R}_{i}(t)$ is also subject to the infection feedback de
 
 From $\mathcal{R}_{i}(t)$, we generate estimates of site-level _expected_ latent incident infections per capita $I_i(t)$ using the renewal process described in [the infection component](#infection-component).
 
+We infer the site level initial per capita incidence $I_i(0)$ hierarchically. Specifically, we treat $\mathrm{logit}[I_i(0)]$ as Normally distributed about the corresponding state-level value $\mathrm{logit}[I(0)]$, with an estimated standard deviation $\sigma_{i0}$:
+
+$$
+\mathrm{logit}[I_i(0)] \sim \mathrm{Normal}(\mathrm{logit}[I(0)], \sigma_{i0})
+$$
+
 ### Wastewater
 
 We model site-specific wastewater viral concentrations $C_i(t)$ independently for each site $i$ using the same model as described in [the wastewater component](#wastewater-viral-concentration-component)
@@ -278,11 +285,12 @@ We use informative priors for parameters that have been well characterized in th
 
 | Parameter | Prior distribution | Source |
 |---|---|---|
-| Initial hospitalization probability | $\mathrm{logit}[p_{\mathrm{hosp}}(t_0)] \sim \mathrm{Normal}(\mathrm{logit}[0.031], 0.3)$ | Perez-Guzman et al. 2023 [^Perez] |
+| Initial hospitalization probability | $\mathrm{logit}[p_{\mathrm{hosp}}(t_0)] \sim \mathrm{Normal}(\mathrm{logit}[0.01], 0.3)$ | Perez-Guzman et al. 2023 [^Perez] |
 | Time to peak fecal shedding |  $\tau_\mathrm{peak} \sim \mathrm{Normal}(5 \text{ days}, 1 \text{ day})$ | Russell et al. 2023 [^Russell], Huisman et al. 2022 [^Huisman], Cavany et al. 2022 [^Cavany] |
 | Peak viral shedding $V_\mathrm{peak}$| $\log_{10}[V_\mathrm{peak}] \sim \mathrm{Normal}(5.1, 0.5)$ | Miura et al. 2021 [^Muira] |
 | Duration of shedding | $\tau_\mathrm{shed} \sim \mathrm{Normal}(17 \text{ days}, 3 \text{ days})$  | Cevik et al. 2021 [^Cevik], Russell et al. 2023 [^Russell]   |
 | Total genomes shed per infected individual | $\log_{10}[G] \sim \mathrm{Normal}(9, 2)$ | Watson et al 2023[^Watson]   |
+| Initial infections per capita $I_0$ | $I_0 \sim \mathrm{Beta}(1 + k i_\mathrm{est}, 1 + k (1-i_\mathrm{est}))$ | where $i_\mathrm{est}$ is the sum of the last 7 days of hospital admissions, divided by state population, and divided by the prior mode for $p_\mathrm{hosp}$, and $k = 5$ is a parameter governing the informativeness ("certainty") of the Beta distribution |
 | Initial exponential growth rate | $r \sim \mathrm{Normal}(0, 0.01)$ | Chosen to assume flat dynamics prior to observations |
 
 ### Scalar parameters
@@ -292,7 +300,6 @@ We use informative priors for parameters that have been well characterized in th
 | Maximum generation interval | $T_g = 15$ days | |
 | Maximum infection to hospital admissions delay | $T_d = 55$ days| |
 | Wastewater produced per person-day | $\alpha=$ 378,500 mL per person-day | Ortiz 2024[^Ortiz] |
-| Initial infections per capita $I_0$ | Sum of the last 7 days of hospital admissions, divided by state population, and divided by $p_\mathrm{hosp}$ |
 
 ### Distributional parameters
 
@@ -344,6 +351,8 @@ The notation $X \sim \mathrm{Distribution}$ indicates that a random variable $X$
 
 We parameterize Normal distributions in terms of their mean and standard deviation: $\mathrm{Normal}(\mathrm{mean, standard\ deviation})$.
 
+We parameterize Beta distributions in terms of their two standard shape parameters $\alpha$ and $\beta$, which can be [interpreted in terms of the counts of observed successes and failures](https://stats.stackexchange.com/questions/47771/what-is-the-intuition-behind-beta-distribution), respectively, in a Binomial experiment to infer a probability: $\mathrm{Beta}(\alpha, \beta)$.
+
 We parameterize Negative Binomial distributions in terms of their mean and their positive-constrained dispersion parameter (often denoted $\phi$): $\mathrm{NegBinom}(\mathrm{mean, dispersion})$. As the dispersion parameter goes to 0, a Negative Binomial distribution becomes increasingly over-dispersed. As it goes to positive infinity, the Negative Binomial approximates a Poisson distribution with the same mean.
 
 We write $\mathrm{logit}(x)$ to refer to the logistic transform: $\mathrm{logit}(x) \equiv \log(x) - \log(1 - x)$.
@@ -392,26 +401,26 @@ Often these implausible observations are due to reporting errors, such as a hosp
 
 ## References
 
-[^epinow2paper]: Abbott S, Hellewell J, Thompson RN et al. Estimating the time-varying reproduction number of SARS-CoV-2 using national and subnational case counts [version 2; peer review: 1 approved, 1 approved with reservations]. Wellcome Open Res 2020, 5:112 (https://doi.org/10.12688/wellcomeopenres.16006.2)
-[^Asher2018]: Jason Asher. Forecasting Ebola with a regression transmission model. Epidemics 2018, Volume 22, Pages 50-55, ISSN 1755-4365, (https://doi.org/10.1016/j.epidem.2017.02.009)
-[^stan]: Stan Development Team. 2023. Stan Modeling Language Users Guide and Reference Manual, VERSION. https://mc-stan.org
-[^CDCRtestimates]: https://www.cdc.gov/forecast-outbreak-analytics/about/rt-estimates.html
-[^CDCtechnicalblog]: https://www.cdc.gov/forecast-outbreak-analytics/about/technical-blog-rt.html
-[^Park2023]: Park SW, Sun K, Abbott S, Sender R, Bar-On YM, Weitz JS, Funk S, Grenfell BT, Backer JA, Wallinga J, Viboud C, Dushoff J. Inferring the differences in incubation-period and generation-interval distributions of the Delta and Omicron variants of SARS-CoV-2. Proc Natl Acad Sci U S A. 2023 May 30;120(22):e2221887120. doi: 10.1073/pnas.2221887120. Epub 2023 May 22. PMID: 37216529; PMCID: PMC10235974.
-[^Danache2022]: Dananché C, Elias C, Hénaff L, Amour S, Kuczewski E, Gustin MP, Escuret V, Saadatian-Elahi M, Vanhems P. Baseline clinical features of COVID-19 patients, delay of hospital admission and clinical outcome: A complex relationship. PLoS One. 2022 Jan 7;17(1):e0261428. doi: 10.1371/journal.pone.0261428. PMID: 34995292; PMCID: PMC8741026.
-[^Perez]: Perez-Guzman, P.N., Knock, E., Imai, N. et al. Epidemiological drivers of transmissibility and severity of SARS-CoV-2 in England. Nat Commun 14, 4279 (2023). https://doi.org/10.1038/s41467-023-39661-5
-[^Muira]: Miura F, Kitajima M, Omori R. Duration of SARS-CoV-2 viral shedding in faeces as a parameter for wastewater-based epidemiology: Re-analysis of patient data using a shedding dynamics model. Sci Total Environ. 2021 May 15;769:144549. doi: 10.1016/j.scitotenv.2020.144549. Epub 2021 Jan 4. PMID: 33477053; PMCID: PMC7833251.
-[^Huisman]: Jana S Huisman, Jérémie Scire, Daniel C Angst, Jinzhou Li, Richard A Neher, Marloes H Maathuis, Sebastian Bonhoeffer, Tanja Stadler (2022) Estimation and worldwide monitoring of the effective reproductive number of SARS-CoV-2 eLife 11:e71345. https://doi.org/10.7554/eLife.71345
-[^Cavany]: Cavany S, Bivins A, Wu Z, North D, Bibby K, Perkins TA. Inferring SARS-CoV-2 RNA shedding into wastewater relative to the time of infection. Epidemiology and Infection. 2022;150:e21. doi:10.1017/S0950268821002752
-[^Russell]: Russell TW, Townsley H, Abbott S, Hellewell J, Carr EJ, Chapman L, Pung R, Quilty BJ, Hodgson D, Fowler AS, Adams L, Bailey C, Mears HV, Harvey R, Clayton B, O'Reilly N, Ngai Y, Nicod J, Gamblin S, Williams B, Gandhi S, Swanton C, Beale R, Bauer DL, Wall EC, Kucharski A. Within-host SARS-CoV-2 viral kinetics informed by complex life course exposures reveals different intrinsic properties of Omicron and Delta variants. medRxiv [Preprint]. 2023 May 24:2023.05.17.23290105. doi: 10.1101/2023.05.17.23290105. PMID: 37292842; PMCID: PMC10246130.
-[^Cevik]: Cevik M, Tate M, Lloyd O, Maraolo AE, Schafers J, Ho A. SARS-CoV-2, SARS-CoV, and MERS-CoV viral load dynamics, duration of viral shedding, and infectiousness: a systematic review and meta-analysis. Lancet Microbe. 2021 Jan;2(1):e13-e22. doi: 10.1016/S2666-5247(20)30172-5. Epub 2020 Nov 19. PMID: 33521734; PMCID: PMC7837230.
-[^Watson]: Leighton M. Watson, Michael J. Plank, Bridget A. Armstrong, Joanne R. Chapman, Joanne Hewitt, Helen Morris, Alvaro Orsi, Michael Bunce, Christl A. Donnelly, Nicholas Steyn. Improving estimates of epidemiological quantities by combining reported cases with wastewater data: a statistical framework with applications to COVID-19 in Aotearoa New Zealand. medRxiv 2023.08.14.23294060; doi: https://doi.org/10.1101/2023.08.14.23294060
-[^Ortiz]: Ortiz Pete. Wastewater facts - statistics and household data in 2024. https://housegrail.com/wastewater-facts-statistics/
-[^Larremore2021]: Larremore DB, Wilder B, Lester E, et al. Test sensitivity is secondary to frequency and turnaround time for COVID-19 screening. Science Advances. 2021. doi: 10.1126/sciadv.abd5393
-[^Cori]: Cori, A., Ferguson, N. M., Fraser, C., & Cauchemez, S. (2013). A new framework and software to estimate time-varying reproduction numbers during epidemics. Am. J. Epidemiol., 178(9), 1505–1512. https://doi.org/10.1093/aje/kwt133
-[^EpiNow2]: Abbott, S., Hellewell, J., Sherratt, K., Gostic, K., Hickson, J., Badr, H. S., DeWitt, M., Thompson, R., EpiForecasts, & Funk, S. (2020). EpiNow2: Estimate real-time case counts and time-varying epidemiological parameters. https://doi.org/10.5281/zenodo.3957489
-[^Epidemia]: Fraser, C. (2007). Estimating individual and household reproduction numbers in an emerging epidemic. PLoS One, 2(8), e758. https://doi.org/10.1371/journal.pone.0000758
-[^cmdstanr]: CmdStanR: the R interface to CmdStan. 2024. https://mc-stan.org/cmdstanr/index.html
-[^Park2024]: Estimating epidemiological delay distributions for infectious diseases. Sang Woo Park, Andrei R. Akhmetzhanov, Kelly Charniga, Anne Cori, Nicholas G. Davies, Jonathan Dushoff, Sebastian Funk, Katie Gostic, Bryan Grenfell, Natalie M. Linton, Marc Lipsitch, Adrian Lison, Christopher E. Overton, Thomas Ward, Sam Abbott
-medRxiv 2024.01.12.24301247; doi: https://doi.org/10.1101/2024.01.12.24301247
-[^Gostic2020]: Gostic, Katelyn M., Lauren McGough, Edward B. Baskerville, Sam Abbott, Keya Joshi, Christine Tedijanto, Rebecca Kahn, et al. 10-Dec-2020. “Practical Considerations for Measuring the Effective Reproductive Number, Rt.” PLoS Computational Biology 16 (12): e1008409.
+[^epinow2paper]: Abbott, S. et al. Estimating the time-varying reproduction number of SARS-CoV-2 using national and subnational case counts. _Wellcome Open Res_. 5:112 (2020). https://doi.org/10.12688/wellcomeopenres.16006.2
+[^Asher2018]: Asher, J. Forecasting Ebola with a regression transmission model. _Epidemics._ **22**, 50-55 (2018). https://doi.org/10.1016/j.epidem.2017.02.009
+[^stan]: Stan Development Team. _Stan Modeling Language Users Guide and Reference Manual_. (2023). https://mc-stan.org
+[^CDCRtestimates]: US Centers for Disease Control and Prevention. _Current Epidemic Growth Status (Based on Rt) for States and Territories_. https://www.cdc.gov/forecast-outbreak-analytics/about/rt-estimates.html (2024).
+[^CDCtechnicalblog]: US Centers for Disease Control and Prevention. _Technical Blog: Improving CDC’s Tools for Assessing Epidemic Growth_ (2024). https://www.cdc.gov/forecast-outbreak-analytics/about/technical-blog-rt.html
+[^Park2023]: Park, S.W. et al. Inferring the differences in incubation-period and generation-interval distributions of the Delta and Omicron variants of SARS-CoV-2. _Proc Natl Acad Sci U S A_. 120(22):e2221887120 (2023). https://doi.org/10.1073/pnas.2221887120
+[^Danache2022]: Danaché, C. et al. Baseline clinical features of COVID-19 patients, delay of hospital admission and clinical outcome: A complex relationship. _PLoS One_ 17(1):e0261428 (2022). https://doi.org/10.1371/journal.pone.0261428
+[^Perez]: Perez-Guzman, P.N. et al. Epidemiological drivers of transmissibility and severity of SARS-CoV-2 in England. _Nat Commun_ 14, 4279 (2023). https://doi.org/10.1038/s41467-023-39661-5
+[^Muira]: Miura F, Kitajima M, Omori R. Duration of SARS-CoV-2 viral shedding in faeces as a parameter for wastewater-based epidemiology: Re-analysis of patient data using a shedding dynamics model. _Sci Total Environ_ 769:144549 (2021). https://doi.org/10.1016/j.scitotenv.2020.144549
+[^Huisman]: Huisman, J.S. et al. Estimation and worldwide monitoring of the effective reproductive number of SARS-CoV-2 _eLife_ 11:e71345 (2022). https://doi.org/10.7554/eLife.71345
+[^Cavany]: Cavany S, et al. Inferring SARS-CoV-2 RNA shedding into wastewater relative to the time of infection. _Epidemiology and Infection_ 150:e21 (2022). https://doi.org/10.1017/S0950268821002752
+[^Russell]: Russell, T.W. et al. Within-host SARS-CoV-2 viral kinetics informed by complex life course exposures reveals different intrinsic properties of Omicron and Delta variants. _medRxiv_ (2023).  https://doi.org/10.1101/2023.05.17.23290105
+[^Cevik]: Cevik, M. et al. SARS-CoV-2, SARS-CoV, and MERS-CoV viral load dynamics, duration of viral shedding, and infectiousness: a systematic review and meta-analysis. _Lancet Microbe_ **2(1)**,e13-e22 (2021). https://doi.org/10.1016/S2666-5247(20)30172-5
+[^Watson]: Leighton, M. et al. Improving estimates of epidemiological quantities by combining reported cases with wastewater data: a statistical framework with applications to COVID-19 in Aotearoa New Zealand. _medRxiv_ (2023). https://doi.org/10.1101/2023.08.14.23294060
+[^Ortiz]: Ortiz, P. _Wastewater facts - statistics and household data in 2024_. https://housegrail.com/wastewater-facts-statistics/
+[^Larremore2021]: Larremore, D.B. et al. Test sensitivity is secondary to frequency and turnaround time for COVID-19 screening. _Science Advances_ (2021). https://doi.org/10.1126/sciadv.abd5393
+[^Cori]: Cori, A., Ferguson, N. M., Fraser, C., & Cauchemez, S. A new framework and software to estimate time-varying reproduction numbers during epidemics. _Am. J. Epidemiol._ **178**, 1505-1512 (2013). https://doi.org/10.1093/aje/kwt133
+[^EpiNow2]: Abbott, S. et al. _EpiNow2: Estimate real-time case counts and time-varying epidemiological parameters._ https://doi.org/10.5281/zenodo.3957489
+[^Epidemia]: Fraser, C. (2007). Estimating individual and household reproduction numbers in an emerging epidemic. _PLoS One_, **2**(8), e758 (2007). https://doi.org/10.1371/journal.pone.0000758
+[^cmdstanr]: _CmdStanR: the R interface to CmdStan_. (2024). https://mc-stan.org/cmdstanr/index.html
+[^Park2024]: Park, S.W. et al. Estimating epidemiological delay distributions for infectious diseases.
+_medRxiv_ (2024). https://doi.org/10.1101/2024.01.12.24301247
+[^Gostic2020]: Gostic, K.M. et al. Practical Considerations for Measuring the Effective Reproductive Number, Rt. _PLoS Comput Biol_. **16**(12) (2020). https://doi.org/10.1371/journal.pcbi.1008409

@@ -95,14 +95,27 @@ write_config <- function(run_id,
   # Assign the dates and locations for hospital admissions to be manually
   # removed
   dates_for_hosp_removal <- c(seq(
-    from = lubridate::ymd("2024-01-23"),
-    to = lubridate::ymd("2024-01-26"),
+    from = lubridate::ymd("2024-01-30"),
+    to = lubridate::ymd("2024-02-02"),
     by = "days"
   ))
 
   states_for_hosp_removal <- c(rep(
-    "PA",
+    "TX",
     4
+  ))
+
+  # Assign the dates and locations for wastewater data to be removed manually
+  first_date <- forecast_date - lubridate::days(calibration_time) - hosp_reporting_delay
+  dates_for_ww_removal <- c(seq(
+    from = first_date,
+    to = lubridate::ymd("2023-12-31"),
+    by = "days"
+  ))
+
+  states_for_ww_removal <- c(rep(
+    "MN",
+    length(dates_for_ww_removal)
   ))
 
 
@@ -165,8 +178,10 @@ write_config <- function(run_id,
     ww_geo_type = ww_geo_type,
     pull_from_local = pull_from_local,
     model_type = model_type,
-    vector_of_dates = dates_for_hosp_removal,
-    vector_of_states = states_for_hosp_removal,
+    dates_for_hosp_removal = as.character(lubridate::ymd(dates_for_hosp_removal)),
+    states_for_hosp_removal = states_for_hosp_removal,
+    dates_for_ww_removal = as.character(lubridate::ymd(dates_for_ww_removal)),
+    states_for_ww_removal = states_for_ww_removal,
     generation_interval = generation_interval,
     infection_feedback_pmf = generation_interval,
     inf_to_hosp = inf_to_hosp,

@@ -4,10 +4,13 @@
 \alias{get_site_county_map}
 \title{Get site county mapp}
 \usage{
-get_site_county_map(nwss)
+get_site_county_map(nwss, county_site_map_path)
 }
 \arguments{
 \item{nwss}{wastewater data}
+
+\item{county_site_map_path}{path to a county site map CSV file;
+if it exists, it will be used, otherwise the file will be created and placed here}
 }
 \value{
 a mapping from the unique county fips in the ww data to the major county

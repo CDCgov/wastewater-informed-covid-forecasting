@@ -12,4 +12,3 @@ the initialization function
 \description{
 Get initialization function for stan for aggregated model
 }
-\keyword{internal}

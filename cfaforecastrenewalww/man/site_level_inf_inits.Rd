@@ -12,4 +12,3 @@ the initialization function
 \description{
 Get initialization function for stan for site-level infection model
 }
-\keyword{internal}

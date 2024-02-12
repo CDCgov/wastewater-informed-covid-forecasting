@@ -57,7 +57,6 @@ cfaforecastrenewalww::setup_secrets(here::here("secrets.yaml"))
 # source("cfaforecastrenewalww/R/plots.R") #nolint
 # source("cfaforecastrenewalww/R/delay_distribs.R") #nolint
 # source("cfaforecastrenewalww/R/process_model_outputs.R") #nolint
-# source("cfaforecastrenewalww/R/render_diagnostic_report.R") #nolint
 # source("cfaforecastrenewalww/R/forecasttools.R") #nolint
 
 # Targets list:
@@ -757,7 +756,7 @@ list(
   ),
   tar_target(
     name = repo_file_path,
-    command = get_repo_forecast_file_path(forecast_date),
+    command = get_relative_forecast_dir(forecast_date),
     deployment = "main"
   ),
   tar_target(
@@ -810,6 +809,7 @@ list(
       get_pipeline_metadata,
       c(
         us_run = us_run_complete,
+        root_dir = fs::path_wd(),
         config_vars_id
       )
     ),

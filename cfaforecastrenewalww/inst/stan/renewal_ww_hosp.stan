@@ -10,75 +10,75 @@ functions {
 
 // The fixed input data
 data {
-  int gt_max;
-  int hosp_delay_max;
-  vector[hosp_delay_max] inf_to_hosp;
-  int dur_inf; // duration people are infectious (number of days)
-  real mwpd; // mL of WW produced per person per day
-  int if_l; // length of infection feedback pmf
+  int<lower=1> gt_max;
+  int<lower=1> hosp_delay_max;
+  vector<lower=0,upper=1>[hosp_delay_max] inf_to_hosp;
+  int<lower=0> dur_inf; // duration people are infectious (number of days)
+  real<lower=0> mwpd; // mL of WW produced per person per day
+  int<lower=1> if_l; // length of infection feedback pmf
   vector[if_l] infection_feedback_pmf; // infection feedback pmf
-  int ot; // total time span where we have hospital admissions
-  int oht; // number of days with observed hospital admissions
-  int owt; // number of days of observed WW (should be roughly ot/7)
-  int uot; // unobserved time before we observe hospital admissions/ WW
-  int ht; // horizon time (nowcast + forecast time)
-  int n_weeks; // number of weeks for weekly random walk on R(t)
-  matrix[ot + ht, n_weeks] ind_m; // matrix needed to transform R(t) from weekly to daily
-  int tot_weeks; // number of weeks for the weekly random walk on IHR (includes unobserved time)
-  matrix[uot + ot + ht, tot_weeks] p_hosp_m ; // matrix needed to convert p_hosp RW from weekly to daily
-  vector<lower=0>[gt_max] generation_interval; // generation interval distribution
-  vector<lower=0>[gt_max] ts; // time series
+  int<lower=0> ot; // total time span where we have hospital admissions
+  int<lower=0> oht; // number of days with observed hospital admissions
+  int<lower=0> owt; // number of days of observed WW (should be roughly ot/7)
+  int<lower=0> uot; // unobserved time before we observe hospital admissions/ WW
+  int<lower=0> ht; // horizon time (nowcast + forecast time)
+  int<lower=0> n_weeks; // number of weeks for weekly random walk on R(t)
+  matrix<lower=0>[ot + ht, n_weeks] ind_m; // matrix needed to transform R(t) from weekly to daily
+  int<lower=0> tot_weeks; // number of weeks for the weekly random walk on IHR (includes unobserved time)
+  matrix<lower=0>[uot + ot + ht, tot_weeks] p_hosp_m ; // matrix needed to convert p_hosp RW from weekly to daily
+  vector<lower=0,upper=1>[gt_max] generation_interval; // generation interval distribution
   real<lower=1e-20> n; // population size
-  array[owt] int ww_sampled_times; // the days on which WW is sampled relative
+  array[owt] int<lower=1,upper=ot + ht> ww_sampled_times; // the days on which WW is sampled relative
                                    // to the days with which hospital admissions observed
-  array[oht] int hosp_times; // the days on which hospital admissions are observed
-  array[oht] int hosp; // observed hospital admissions
-  array[ot + ht] int day_of_week; // integer vector with 1-7 corresponding to the weekday
+  array[oht] int<lower=1, upper=ot> hosp_times; // the days on which hospital admissions are observed
+  array[oht] int<lower=0> hosp; // observed hospital admissions
+  array[ot + ht] int<lower=1,upper=7> day_of_week; // integer vector with 1-7 corresponding to the weekday
   vector[owt] log_conc; // log(genome copies/mL)
-  int compute_likelihood; // 1= use data to compute likelihood
-  int include_ww; // 1= include wastewater data in likelihood calculation
-  int include_hosp; // 1 = fit to hosp, 0 = only fit wastewater model
+  int<lower=0,upper=1> compute_likelihood; // 1= use data to compute likelihood
+  int<lower=0,upper=1> include_ww; // 1= include wastewater data in likelihood calculation
+  int<lower=0,upper=1> include_hosp; // 1 = fit to hosp, 0 = only fit wastewater model
 
   // Priors
   vector[6] viral_shedding_pars; // tpeak, viral peak, shedding duration mean and sd
-  real autoreg_rt_a;
-  real autoreg_rt_b;
+  real<lower=0> autoreg_rt_a;
+  real<lower=0> autoreg_rt_b;
   real inv_sqrt_phi_prior_mean;
-  real inv_sqrt_phi_prior_sd;
+  real<lower=0> inv_sqrt_phi_prior_sd;
   real r_prior_mean;
-  real r_prior_sd;
+  real<lower=0> r_prior_sd;
   real log10_g_prior_mean;
-  real log10_g_prior_sd;
-  real log_i0_prior_mean;
-  real log_i0_prior_sd;
+  real<lower=0> log10_g_prior_sd;
+
+  real<lower=0> i0_over_n_prior_a;
+  real<lower=0> i0_over_n_prior_b;
   real wday_effect_prior_mean;
-  real wday_effect_prior_sd;
+  real<lower=0> wday_effect_prior_sd;
   real initial_growth_prior_mean;
-  real initial_growth_prior_sd;
+  real<lower=0> initial_growth_prior_sd;
   real sigma_ww_prior_mean;
-  real eta_sd_sd;
+  real<lower=0> eta_sd_sd;
   real p_hosp_mean;
-  real p_hosp_sd_logit;
-  real p_hosp_w_sd_sd;
+  real<lower=0> p_hosp_sd_logit;
+  real<lower=0> p_hosp_w_sd_sd;
   real infection_feedback_prior_mean;
-  real infection_feedback_prior_sd;
+  real<lower=0> infection_feedback_prior_sd;
 }
 
 transformed data {
   // viral shedding parameters
   real t_peak_mean = viral_shedding_pars[1];
-  real t_peak_sd = viral_shedding_pars[2];
+  real<lower=0> t_peak_sd = viral_shedding_pars[2];
   real viral_peak_mean = viral_shedding_pars[3];
-  real viral_peak_sd = viral_shedding_pars[4];
+  real<lower=0> viral_peak_sd = viral_shedding_pars[4];
   real dur_shed_mean = viral_shedding_pars[5];
-  real dur_shed_sd = viral_shedding_pars[6];
+  real<lower=0> dur_shed_sd = viral_shedding_pars[6];
   // natural scale -> lognormal parameters
   // https://en.wikipedia.org/wiki/Log-normal_distribution
   real r_logmean = convert_to_logmean(r_prior_mean, r_prior_sd);
-  real r_logsd = convert_to_logsd(r_prior_mean, r_prior_sd);
+  real<lower=0> r_logsd = convert_to_logsd(r_prior_mean, r_prior_sd);
   // reversed generation interval
-  vector[gt_max] gt_rev_pmf = reverse(generation_interval);
-  vector[if_l] infection_feedback_rev_pmf = reverse(infection_feedback_pmf);
+  vector<lower=0,upper=1>[gt_max] gt_rev_pmf = reverse(generation_interval);
+  vector<lower=0,upper=1>[if_l] infection_feedback_rev_pmf = reverse(infection_feedback_pmf);
 }
 
 // The parameters accepted by the model.
@@ -87,7 +87,8 @@ parameters {
   real<lower=0> eta_sd; // step size of random walk
   real<lower = 0, upper=1> autoreg_rt;// coefficient on AR process in R(t)
   real<upper=log(10)> log_r; // baseline reproduction number estimate (log)
-  real<upper=log(1)> log_i0_over_n; // log of number of incident infections /n  on day -uot before first observation day
+  real<lower=0,upper=1> i0_over_n; // Per capita incident infections
+  // on day -uot before first observation day
   real<lower=-1, upper=1> initial_growth; // initial growth from I0 to first observed time
   real<lower=1/sqrt(5000)> inv_sqrt_phi_h;
   real<lower=0> sigma_ww;
@@ -117,7 +118,7 @@ transformed parameters {
   real<lower=0> phi_h = inv_square(inv_sqrt_phi_h); // previouslt inv_square(inv_sqrt_phi_h)
   vector<lower=0>[ot + ht] unadj_r; // R(t)
   vector<lower=0>[ot + ht] rt; // R(t)
-  real<lower=0> i0 = exp(log_i0_over_n) * n; // Initial infections
+  real<lower=0> i0 = i0_over_n * n; // Absolute initial incident infections
   vector[n_weeks] log_rt_weeks; // log R(t) in weeks for autocorrelated RW
 
 
@@ -130,9 +131,14 @@ transformed parameters {
   // Expected daily number of new infections (per capita), using EpiNow2 assumptions re pre and post observation time
   // Using pop = 1 so that damping is normalized to per capita
   (new_i, rt) = generate_infections(
-    unadj_r, uot, gt_rev_pmf, log_i0_over_n, initial_growth, ht,
-    infection_feedback, infection_feedback_rev_pmf
-  );
+    unadj_r,
+    uot,
+    gt_rev_pmf,
+    log(i0_over_n),
+    initial_growth,
+    ht,
+    infection_feedback,
+    infection_feedback_rev_pmf);
 
   // Expected hospitalizations:
   // generates all hospitalizations, across unobserved time, observed time, and forecast time
@@ -171,7 +177,7 @@ model {
   eta_sd ~ normal(0, eta_sd_sd);
   autoreg_rt ~ beta(autoreg_rt_a, autoreg_rt_b);
   log_r ~ normal(r_logmean, r_logsd);
-  log_i0_over_n ~ normal(log_i0_prior_mean, log_i0_prior_sd);
+  i0_over_n ~ beta(i0_over_n_prior_a, i0_over_n_prior_b);
   initial_growth ~ normal(initial_growth_prior_mean, initial_growth_prior_sd);
   inv_sqrt_phi_h ~ normal(inv_sqrt_phi_prior_mean, inv_sqrt_phi_prior_sd);
   sigma_ww ~ normal(0, sigma_ww_prior_mean);
