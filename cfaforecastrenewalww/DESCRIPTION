@@ -26,7 +26,8 @@ Authors@R:
            family = "Olesen",
            role = c("aut"),
            email = "ulp7@cdc.gov"))
-Description: Put something here
+Description: Semi-mechanistic renewal approach jointly calibrating to state-level
+    hospital admissions and site-level wastewater concentrations
 License: Apache 2.0 LICENSE
 URL: https://github.com/cdcgov/wastewater-informed-covid-forecasting/
 BugReports: https://github.com/cdcgov/wastewater-informed-covid-forecasting/issues/

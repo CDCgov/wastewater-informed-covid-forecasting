@@ -196,6 +196,7 @@ get_metadata_yaml <- function(full_diagnostics_df,
 #' @param model_type
 #' @param location
 #' @param output_file_path
+#' @param root_dir root directory where pipeline is being run, used to make absolute filepaths
 #' @param ...
 #' @return the metadata
 #' @export
@@ -209,6 +210,7 @@ get_pipeline_metadata <- function(us_run,
                                   model_type,
                                   location,
                                   output_file_path,
+                                  root_dir,
                                   ...) {
   git_hash <- system("git log --pretty=format:'%h' -n 1", intern = TRUE)
 
@@ -246,9 +248,9 @@ get_pipeline_metadata <- function(us_run,
     relative_output_path = output_file_path,
     relative_hosp_path = relative_hosp_path,
     relative_ww_path = ww_data_path,
-    full_output_path = here::here(output_file_path),
-    full_ww_path = here::here(ww_data_path),
-    full_hosp_path = here::here(relative_hosp_path),
+    full_output_path = fs::path(root_dir, output_file_path),
+    full_ww_path = fs::path(root_dir, ww_data_path),
+    full_hosp_path = fs::path(root_dir, relative_hosp_path),
     date_run = date_run,
     prod_run = prod_run,
     run_id = run_id,

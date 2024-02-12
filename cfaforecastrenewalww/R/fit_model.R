@@ -432,7 +432,8 @@ fit_model <- function(train_data, params,
 #' @export
 #'
 #' @examples
-fit_site_level_model <- function(train_data, params,
+fit_site_level_model <- function(train_data,
+                                 params,
                                  model_file,
                                  forecast_date,
                                  run_id,

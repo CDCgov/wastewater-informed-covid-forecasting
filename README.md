@@ -187,9 +187,10 @@ NHSN_API_KEY_SECRET: {key}
 nwss_data_token: {token}
 data_rid: {rid}
 ```
-Directions to obtain the covidcast api are found [here](https://cmu-delphi.github.io/delphi-epidata/api/covidcast_clients.html).
+Directions to obtain the covidcast API are found [here](https://cmu-delphi.github.io/delphi-epidata/api/covidcast_clients.html).
 
-Directions to obtain an NHSN key are described in the `forecasttools` repo [here](https://potential-engine-5mz851o.pages.github.io/articles/pullnhsn.html).
+To request an NHSN token, navigate to [HealthData.gov’s developer settings page](https://healthdata.gov/login).
+You may be prompted to log in. If you have HHS AMS credentials, you should use those. Otherwise, you can sign up for an account with Tyler Data and Insights (which manages HealthData.gov). Once logged in and on the developer settings page, click the "Create new API key" button and follow the prompts.
 
 Note that you will need to have access to the dataset on DCIPHER to obtain the credentials stored as `nwss_data_token` and `data_rid`.
 Once you have DCIPHER access, you will need to go [here](https://dcipher.cdc.gov/workspace/settings/tokens) to create a new token.

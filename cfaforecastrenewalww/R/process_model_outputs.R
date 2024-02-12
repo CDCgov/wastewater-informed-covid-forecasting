@@ -1105,7 +1105,7 @@ get_pdf_file_path <- function(output_file_path,
   return(fp)
 }
 
-#' Get the filepath to save the forecasts within this repo
+#' Get the relative path to directory to save the forecasts within the repo
 #'
 #' @param forecast_date date of forecast
 #'
@@ -1113,9 +1113,9 @@ get_pdf_file_path <- function(output_file_path,
 #' @export
 #'
 #' @examples
-get_repo_forecast_file_path <- function(forecast_date) {
-  fp <- file.path(
-    "output", "forecasts",
+get_relative_forecast_dir <- function(forecast_date) {
+  fp <- fs::path(
+    "forecasts",
     glue::glue("{forecast_date}")
   )
 

@@ -8,7 +8,17 @@ targets.log
 .DS_Store
 *.Rproj
 *.swp
+
+# default secrets file
+secrets.yaml
+
+# all yaml ignored by default
 *.yaml
+
+# rendered documents ignored by default
+*.html
+*.pdf
+*.docx
 
 # Don't track compiled model executable
 
@@ -19,13 +29,20 @@ cfaforecastrenewalww/inst/stan/renewal_ww_hosp_site_level_phi_varying_C
 cfaforecastrenewalww/inst/stan/renewal_ww_hosp_hierarchical
 cfaforecastrenewalww/inst/stan/renewal_ww_hosp_site_level_inf_dynamics
 
-# Don't track data!
-diagnostic_report.html
-repo_data
-input
-output
+# Don't track data by default
+repo_data/
+input/*
+output/*
 
-scratch/EDA.html
+# Do track certain static data
+!input/saved_pmfs
+!input/locations.csv
+
+# Do track the output/forecasts folder,
+# including .yaml within it
+!output/forecasts
+!output/forecasts/*.yaml
+
 # compiled test executables
 test/test_expgamma_lpdf
 
