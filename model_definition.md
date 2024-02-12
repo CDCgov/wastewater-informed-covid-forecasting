@@ -423,3 +423,4 @@ Often these implausible observations are due to reporting errors, such as a hosp
 [^Park2024]: Park, S.W. et al. Estimating epidemiological delay distributions for infectious diseases.
 _medRxiv_ (2024). https://doi.org/10.1101/2024.01.12.24301247
 [^Gostic2020]: Gostic, K.M. et al. Practical Considerations for Measuring the Effective Reproductive Number, Rt. _PLoS Comput Biol_. **16**(12) (2020). https://doi.org/10.1371/journal.pcbi.1008409
+
