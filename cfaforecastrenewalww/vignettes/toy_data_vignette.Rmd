@@ -98,15 +98,25 @@ ggplot(example_df) +
 ```
 
 # Format data for inference in stan
-The model expects input data in a certain format, we will use a built in function
-that requires a few other pieces of information that can be derived directly
-from the input data set. We pre-specify the priors in the `get_params()`
-function. Priors can be adjusted by directly modifying the value in the `params`
-dataframe or by directly modifying the `stan_data` list (or alternatively, by
-directly editing the stan file but this isn't recommended as the current
-workflow keeps parameters consistent across the related models).
+The model expects input data in a certain format. The `cfaforecastrenewalww`
+R package provides helper functions to facilitate preparing data for ingestion by the model.
+
+Hyperparameters for prior distributions and other fixed quantites should be specified in a `.toml` file, which the function `get_params()` reads and validates. We have provided an example parameter file, `example_params.toml`, with the package.
+
+We'll read it in and examine it here:
+
 ```{r}
-params <- get_params()
+params <- get_params(
+  system.file("extdata", "example_params.toml",
+    package = "cfaforecastrenewalww"
+  )
+)
+params
+```
+
+The example values in `example_params.toml` are the same as those stored in `cfaforecastrenewalww::param_df` and used (via prior predictive simulation to generate the simulated data in `cfaforecastrenewalww::example_df`.
+
+```{r}
 forecast_date <- example_df %>%
   pull(forecast_date) %>%
   unique()
@@ -296,7 +306,7 @@ static_params <- c(
   "eta_sd", "autoreg_rt",
   "autoreg_rt_site",
   "log_r_mu_intercept",
-  "log_i0_over_n", "initial_growth",
+  "i0_over_n", "initial_growth",
   "inv_sqrt_phi_h", "sigma_ww_site_mean", "sigma_ww_site_sd",
   "p_hosp_int", "p_hosp_w_sd", "t_peak", "viral_peak",
   "dur_shed", "log10_g", "ww_site_mod_sd",

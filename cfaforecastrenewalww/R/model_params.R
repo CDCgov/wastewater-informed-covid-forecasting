@@ -71,7 +71,7 @@ get_model_param_df <- function(x) {
     stop("This model has been deprecated.")
     static_params <- c(
       "eta_sd", "autoreg_rt", "autoreg_conc", "log_R",
-      "sigma_log_conc", "log_i0_over_n", "initial_growth", "inv_sqrt_phi_h",
+      "sigma_log_conc", "i0_over_n", "initial_growth", "inv_sqrt_phi_h",
       "sigma_ww_site_mean", "sigma_ww_site_sd", "p_hosp_int", "p_hosp_w_sd",
       "t_peak", "viral_peak", "dur_shed", "log10_g",
       "ww_site_mod_sd", "infection_feedback"
@@ -94,7 +94,7 @@ get_model_param_df <- function(x) {
   )) {
     static_params <- c(
       "eta_sd", "autoreg_rt", "log_r_mu_intercept", "sigma_rt",
-      "autoreg_rt_site", "log_i0_over_n", "sigma_i0", "sigma_growth",
+      "autoreg_rt_site", "i0_over_n", "sigma_i0", "sigma_growth",
       "initial_growth", "inv_sqrt_phi_h", "sigma_ww_site_mean", "sigma_ww_site_sd",
       "p_hosp_w_sd", "t_peak", "dur_shed", "ww_site_mod_sd",
       "infection_feedback"
@@ -110,8 +110,22 @@ get_model_param_df <- function(x) {
 
     daily_gq <- c("pred_hosp")
     lab_site_daily_gq <- c("pred_ww")
-  } else if (model == "renewal_ww_hosp") {
-    stop("Not yet implemented.")
+  } else if (model %in% c(
+    "renewal_ww_hosp",
+    "hospital admissions only"
+  )) {
+    static_params <- c(
+      "eta_sd", "autoreg_rt", "log_r",
+      "i0_over_n",
+      "initial_growth", "inv_sqrt_phi_h", "sigma_ww",
+      "p_hosp_w_sd", "t_peak", "dur_shed",
+      "infection_feedback"
+    )
+    daily_params <- c("rt", "new_i", "p_hosp")
+    weekly_params <- c("w", "p_hosp_w")
+    day_of_week_params <- c("hosp_wday_effect")
+
+    daily_gq <- c("pred_hosp", "pred_conc")
   } else if (model == "renewal_ww_hosp_hierarchical_w_dispersion") {
     stop("Not yet implemented.")
   } else {

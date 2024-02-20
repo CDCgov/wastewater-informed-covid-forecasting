@@ -10,7 +10,10 @@ test_that("Make sure we can read hospitalization data from covidcast API.", {
     !!{
       hosp_df <- get_state_level_hosp_data(
         hosp_data_source = "covidcast",
-        hosp_data_dir = tf
+        forecast_date = lubridate::today(),
+        hosp_data_dir = tf,
+        population_data_path =
+          system.file("testdata", "locations.csv", package = "cfaforecastrenewalww")
       )
     }
   )

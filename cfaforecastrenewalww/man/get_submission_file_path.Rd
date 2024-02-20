@@ -4,9 +4,9 @@
 \alias{get_submission_file_path}
 \title{Get the submission file path fior hub csv}
 \usage{
-get_submission_file_path(output_file_path, forecast_date, date_run)
+get_submission_file_path(output_dir, forecast_date, date_run)
 
-get_submission_file_path(output_file_path, forecast_date, date_run)
+get_submission_file_path(output_dir, forecast_date, date_run)
 }
 \arguments{
 \item{date_run}{}

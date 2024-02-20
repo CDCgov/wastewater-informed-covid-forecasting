@@ -64,50 +64,32 @@ Model outputs are written to individual folders after each model is run, and the
 		+-- {forecast_date}.tsv
 		+-- metadata.yaml
 		+-- wastewater_metdata_table.tsv
-    +-- raw
-        +-- {individual_state}
-            +-- {model_type}
-                    +-- draws
-                        +-- {forecast_date}
-                            +-- run-on-{date_of_run}-{run_id}-draws.parquet
-                    +-- quantiles
-                        +-- {forecast_date}
-                            +-- run-on-{date_of_run}-{run_id}-quantiles.parquet
-                    +-- parameters
-                        +-- {forecast_date}
-                            +-- run-on-{date_of_run}-{run_id}-parameters.parquet
-                    +-- future_hosp_draws
-                        +-- {forecast_date}
-                            +-- run-on-{date_of_run}-{run_id}-future_hops_draws.parquet
-                    +-- stan_objects
-                        +--{forecast_date}
-                            +-- run-on-{date_of_run}-{run_id}-{model_name}-{time_stamp}-{unique_id}.csv
-                    +-- diagnostics
-                        +-- {forecast_date}
-                            +--run-on-{date_of_run}-{run_id}-diagnostics.csv
-    +-- figures
-        +-- {forecast_date}-run-on-{date-run}
-                +--{individual state}
-                    +-- {individual plots of generated quantities + data for all models}
-    +-- cleaned
-        +-- {forecast_date}-run-on-{date_run}
-            +-- external
-                +-- {submitted/test}_forecasts
-                    +-- {forecast_date}-CDC_CFA-renewal_ww.csv
-                +-- {submitted/test}_metadata
-                    +--metadata-CDC_CFA-renewal_ww.yaml
-            +-- internal
-                +-- combined quantiles + data for GQ Kate and Eric want
-                +-- diagnostic_report.html
-                +-- pdfs of combined quantiles forecasts, hospital admissions forecasts for mult models, wastewater estimates, R(t), etc.v
-   +-- pipeline_run_metadata
-        +-- test
-            +--{forecast_date}-run-on-{date_run}
-                    +--{run_id}
-        +-- prod
-            +--{forecast_date}-run-on-{date_run}
-                    +--{run_id}
-
++-- {forecast_date}
+	+-- run-on-{date_of_run}-{run_id}
+    		+-- raw
+			+-- {individual_state}
+				+-- {model_type}
+                    			+-- draws.parquet
+					+-- quantiles.parquet
+					+-- parameters.parquet
+					+-- future_hosp_draws.parquet
+					+-- diagnostics.csv
+					+-- stan_objects
+						+-- {model_name}-{timestamp}-{chain}.csv
+    		+-- figures
+                	+--{individual state}
+                    		+-- individual plots of generated quantities + data for all models
+    		+-- cleaned
+			+-- external
+				+-- pdf of hub submissions
+            		+-- internal
+                		+-- diagnostic_report.html
+				+-- pdfs of combined quantiles forecasts, hospital admissions forecasts for mult models, wastewater estimates, R(t), etc.
+			+-- {submitted/test}_forecasts
+                   			 +-- {forecast_date}-CDC_CFA-renewal_ww.csv
+  		 +-- pipeline_run_metadata
+        		+-- {test/prod}
+                   		 +-- {run_id}.yaml
 ```
 
 # Forecasting pipeline
@@ -187,9 +169,10 @@ NHSN_API_KEY_SECRET: {key}
 nwss_data_token: {token}
 data_rid: {rid}
 ```
-Directions to obtain the covidcast api are found [here](https://cmu-delphi.github.io/delphi-epidata/api/covidcast_clients.html).
+Directions to obtain the covidcast API are found [here](https://cmu-delphi.github.io/delphi-epidata/api/covidcast_clients.html).
 
-Directions to obtain an NHSN key are described in the `forecasttools` repo [here](https://potential-engine-5mz851o.pages.github.io/articles/pullnhsn.html).
+To request an NHSN token, navigate to [HealthData.gov’s developer settings page](https://healthdata.gov/login).
+You may be prompted to log in. If you have HHS AMS credentials, you should use those. Otherwise, you can sign up for an account with Tyler Data and Insights (which manages HealthData.gov). Once logged in and on the developer settings page, click the "Create new API key" button and follow the prompts.
 
 Note that you will need to have access to the dataset on DCIPHER to obtain the credentials stored as `nwss_data_token` and `data_rid`.
 Once you have DCIPHER access, you will need to go [here](https://dcipher.cdc.gov/workspace/settings/tokens) to create a new token.

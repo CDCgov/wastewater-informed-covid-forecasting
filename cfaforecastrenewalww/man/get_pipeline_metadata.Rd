@@ -15,12 +15,15 @@ get_pipeline_metadata(
   prod_run,
   model_type,
   location,
-  output_file_path,
+  output_dir,
+  root_dir,
   ...
 )
 }
 \arguments{
 \item{us_run}{US run?}
+
+\item{root_dir}{root directory where pipeline is being run, used to make absolute filepaths}
 }
 \value{
 the metadata

@@ -26,7 +26,8 @@ Authors@R:
            family = "Olesen",
            role = c("aut"),
            email = "ulp7@cdc.gov"))
-Description: Put something here
+Description: Semi-mechanistic renewal approach jointly calibrating to state-level
+    hospital admissions and site-level wastewater concentrations
 License: Apache 2.0 LICENSE
 URL: https://github.com/cdcgov/wastewater-informed-covid-forecasting/
 BugReports: https://github.com/cdcgov/wastewater-informed-covid-forecasting/issues/
@@ -59,14 +60,17 @@ Imports:
     targets,
     tarchetypes,
     gridExtra,
-    rlang
+    rlang,
+    RcppTOML,
+    RcppEigen
 VignetteBuilder:
     knitr
 Suggests:
     rmarkdown,
     covidcast,
     httr,
-    knitr
+    knitr,
+    withr
 Additional_repositories: https://mc-stan.org/r-packages/
 SystemRequirements: CmdStan (>=2.34.1)
 RoxygenNote: 7.3.1

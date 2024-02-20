@@ -21,47 +21,38 @@ get_config_vals <- function(path_to_config) {
 
 #' Get the figure file path
 #'
-#' @param output_file_path
-#' @param forecast_date
-#' @param date_run
+#' @param output_dir
 #'
 #' @return
 #' @export
 #'
 #' @examples
-get_figure_file_path <- function(output_file_path,
-                                 forecast_date, date_run) {
+get_figure_file_path <- function(output_dir) {
   fp <- file.path(
-    output_file_path, "figures",
-    glue::glue("{forecast_date}-run-on-{date_run}")
+    output_dir, "figures"
   )
   return(fp)
 }
 
 #' get the cleaned pdf filepath
 #'
-#' @param output_file_path
-#' @param forecast_date
-#' @param date_run
+#' @param output_dir
 #'
 #' @return
 #' @export
 #'
 #' @examples
-get_pdf_file_path <- function(output_file_path,
-                              forecast_date,
-                              date_run) {
+get_pdf_file_path <- function(output_dir) {
   fp <- file.path(
-    output_file_path,
-    "cleaned",
-    glue::glue("{forecast_date}-run-on-{date_run}")
+    output_dir,
+    "cleaned"
   )
   return(fp)
 }
 
 #' Get the submission file path fior hub csv
 #'
-#' @param output_file_path
+#' @param output_dir
 #' @param forecast_date
 #' @param date_run
 #'
@@ -69,11 +60,11 @@ get_pdf_file_path <- function(output_file_path,
 #' @export
 #'
 #' @examples
-get_submission_file_path <- function(output_file_path,
+get_submission_file_path <- function(output_dir,
                                      forecast_date,
                                      date_run) {
   fp <- file.path(
-    output_file_path,
+    output_dir,
     "cleaned",
     glue::glue("{forecast_date}-run-on-{date_run}"),
     "external"
@@ -195,7 +186,8 @@ get_metadata_yaml <- function(full_diagnostics_df,
 #' @param prod_run
 #' @param model_type
 #' @param location
-#' @param output_file_path
+#' @param output_dir
+#' @param root_dir root directory where pipeline is being run, used to make absolute filepaths
 #' @param ...
 #' @return the metadata
 #' @export
@@ -208,7 +200,8 @@ get_pipeline_metadata <- function(us_run,
                                   prod_run,
                                   model_type,
                                   location,
-                                  output_file_path,
+                                  output_dir,
+                                  root_dir,
                                   ...) {
   git_hash <- system("git log --pretty=format:'%h' -n 1", intern = TRUE)
 
@@ -243,12 +236,12 @@ get_pipeline_metadata <- function(us_run,
 
   pipeline_metadata <- list(
     git_hash = git_hash,
-    relative_output_path = output_file_path,
+    relative_output_path = output_dir,
     relative_hosp_path = relative_hosp_path,
     relative_ww_path = ww_data_path,
-    full_output_path = here::here(output_file_path),
-    full_ww_path = here::here(ww_data_path),
-    full_hosp_path = here::here(relative_hosp_path),
+    full_output_path = fs::path(root_dir, output_dir),
+    full_ww_path = fs::path(root_dir, ww_data_path),
+    full_hosp_path = fs::path(root_dir, relative_hosp_path),
     date_run = date_run,
     prod_run = prod_run,
     run_id = run_id,

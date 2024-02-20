@@ -64,43 +64,42 @@ ww_model <- function(model,
 
 #' Get dataframe of filepaths
 #'
+#' @param output_dir
+#' @param forecast_date
 #' @param location
 #' @param model_type
-#' @param forecast_date
-#' @param date_run
-#' @param run_id
-#' @param output_file_path
 #'
 #' @return
 #' @export
 #'
 #' @examples
-get_df_of_filepaths <- function(location, model_type,
+get_df_of_filepaths <- function(output_dir,
                                 forecast_date,
-                                date_run,
-                                run_id,
-                                output_file_path) {
+                                location, model_type) {
   # Specify the filepaths for each output type
   model_draws_file_path <- file.path(
-    output_file_path, "raw", location, model_type, "draws", forecast_date,
-    glue::glue("run-on-{date_run}-{run_id}-draws.parquet")
+    output_dir, "raw", location, model_type,
+    glue::glue("draws.parquet")
   )
   quantiles_file_path <- file.path(
-    output_file_path, "raw", location, model_type, "quantiles", forecast_date,
-    glue::glue("run-on-{date_run}-{run_id}-quantiles.parquet")
+    output_dir, "raw", location, model_type,
+    glue::glue("quantiles.parquet")
   )
   parameters_file_path <- file.path(
-    output_file_path, "raw", location, model_type, "parameters", forecast_date,
-    glue::glue("run-on-{date_run}-{run_id}-parameters.parquet")
+    output_dir, "raw", location, model_type,
+    glue::glue("parameters.parquet")
   )
   future_hosp_draws_file_path <- file.path(
-    output_file_path, "raw", location, model_type, "future_hosp_draws",
-    forecast_date,
-    glue::glue("run-on-{date_run}-{run_id}-future_hosp_draws.parquet")
+    output_dir, "raw", location, model_type,
+    glue::glue("future_hosp_draws.parquet")
   )
   diagnostics_file_path <- file.path(
-    output_file_path, "raw", location, model_type, "diagnostics", forecast_date,
-    glue::glue("run-on-{date_run}-{run_id}-diagnostics.csv")
+    output_dir, "raw", location, model_type,
+    glue::glue("diagnostics.csv")
+  )
+  model_flags_file_path <- file.path(
+    output_dir, "raw", location, model_type,
+    glue::glue("model_flags.csv")
   )
 
   df <- data.frame(
@@ -108,7 +107,8 @@ get_df_of_filepaths <- function(location, model_type,
     model_draws_file_path, quantiles_file_path,
     future_hosp_draws_file_path,
     parameters_file_path,
-    diagnostics_file_path
+    diagnostics_file_path,
+    model_flags_file_path
   )
   return(df)
 }
@@ -145,27 +145,28 @@ get_df_of_filepaths <- function(location, model_type,
 #' @export
 #'
 #' @examples
-fit_model <- function(train_data, params,
-                      model_file,
-                      forecast_date,
-                      run_id,
-                      date_run,
-                      forecast_time,
-                      model_type,
-                      generation_interval,
-                      inf_to_hosp,
-                      infection_feedback_pmf,
-                      include_hosp,
-                      compute_likelihood,
-                      n_draws, n_chains,
-                      iter_sampling,
-                      iter_warmup,
-                      n_parallel_chains,
-                      adapt_delta,
-                      max_treedepth,
-                      output_file_path,
-                      write_files = TRUE,
-                      ...) {
+fit_aggregated_model <- function(train_data, params,
+                                 model_file,
+                                 forecast_date,
+                                 run_id,
+                                 date_run,
+                                 forecast_time,
+                                 model_type,
+                                 generation_interval,
+                                 inf_to_hosp,
+                                 infection_feedback_pmf,
+                                 include_hosp,
+                                 compute_likelihood,
+                                 n_draws, n_chains,
+                                 iter_sampling,
+                                 iter_warmup,
+                                 n_parallel_chains,
+                                 adapt_delta,
+                                 max_treedepth,
+                                 seed,
+                                 output_dir,
+                                 write_files = TRUE,
+                                 ...) {
   # This will act on training data for a single location
 
   # Need to get all the components we need for the stan model
@@ -198,9 +199,9 @@ fit_model <- function(train_data, params,
     "hospital admissions only"
   )
   df_of_filepaths <- get_df_of_filepaths(
-    location, model_type, forecast_date,
-    date_run, run_id,
-    output_file_path
+    output_dir,
+    forecast_date,
+    location, model_type
   )
 
   if (all(is.na(train_data$ww)) && include_ww == 1) {
@@ -213,9 +214,9 @@ fit_model <- function(train_data, params,
     model_type <- "hospital admissions only"
 
     df <- get_df_of_filepaths(
-      location, model_type, forecast_date,
-      date_run, run_id,
-      output_file_path
+      output_dir,
+      forecast_date,
+      location, forecast_date
     )
   } else { # fit the model
 
@@ -233,14 +234,14 @@ fit_model <- function(train_data, params,
 
       fit_dynamic_rt <- model_file$sample(
         data = stan_data,
-        seed = 123,
+        seed = seed,
         init = init_fun,
         iter_sampling = iter_sampling,
         iter_warmup = iter_warmup,
         chains = n_chains,
         parallel_chains = n_parallel_chains,
         adapt_delta = adapt_delta,
-        max_treedepth = max_treedepth,
+        max_treedepth = max_treedepth
       )
 
       # get model draws for all parameters
@@ -351,37 +352,22 @@ fit_model <- function(train_data, params,
         fit_dynamic_rt, train_data, location,
         model_type, forecast_date
       )
+      model_run_diagnostics <- get_model_run_diagnostics(
+        fit_dynamic_rt, n_chains
+      )
 
       # Make a 1 row dataframe that contains the metadata combined with the
       # filepath where the dataframes of draws, quantiles, and parquets are saved
       df <- df_of_filepaths
 
       if (isTRUE(write_files)) {
-        # Need to create each of these new folders
+        # Need to create new folder
         create_dir(file.path(
-          output_file_path, "raw", location, model_type,
-          "future_hosp_draws", forecast_date
+          output_dir, "raw", location, model_type
         ))
         create_dir(file.path(
-          output_file_path, "raw", location, model_type,
-          "draws", forecast_date
-        ))
-        create_dir(file.path(
-          output_file_path, "raw", location, model_type,
-          "quantiles", forecast_date
-        ))
-        create_dir(file.path(
-          output_file_path, "raw", location, model_type,
-          "parameters", forecast_date
-        ))
-        create_dir(file.path(
-          output_file_path, "raw", location, model_type,
-          "diagnostics", forecast_date
-        ))
-        create_dir(file.path(
-          output_file_path, "raw", location, model_type,
-          "stan_objects", forecast_date,
-          glue::glue("run-on-{date_run}-{run_id}")
+          output_dir, "raw", location, model_type,
+          "stan_objects"
         ))
 
         arrow::write_parquet(
@@ -403,12 +389,17 @@ fit_model <- function(train_data, params,
         readr::write_csv(
           diagnostics, df$diagnostics_file_path
         )
+        if (nrow(model_run_diagnostics) > 0) {
+          readr::write_csv(
+            model_run_diagnostics, df$model_flags_file_path
+          )
+        }
+
 
         fit_dynamic_rt$save_output_files(
           dir = file.path(
-            output_file_path, "raw", location, model_type,
-            "stan_objects", forecast_date,
-            glue::glue("run-on-{date_run}-{run_id}")
+            output_dir, "raw", location, model_type,
+            "stan_objects"
           )
         )
       }
@@ -432,7 +423,8 @@ fit_model <- function(train_data, params,
 #' @export
 #'
 #' @examples
-fit_site_level_model <- function(train_data, params,
+fit_site_level_model <- function(train_data,
+                                 params,
                                  model_file,
                                  forecast_date,
                                  run_id,
@@ -442,7 +434,10 @@ fit_site_level_model <- function(train_data, params,
                                  inf_to_hosp,
                                  infection_feedback_pmf,
                                  model_type,
-                                 output_file_path,
+                                 output_dir,
+                                 adapt_delta,
+                                 max_treedepth,
+                                 seed,
                                  include_hosp = 1,
                                  compute_likelihood = 1,
                                  n_draws = 100,
@@ -484,9 +479,9 @@ fit_site_level_model <- function(train_data, params,
     model_type <- "hospital admissions only"
 
     df_of_filepaths <- get_df_of_filepaths(
-      location, model_type, forecast_date,
-      date_run, run_id,
-      output_file_path
+      output_dir,
+      forecast_date,
+      location, model_type
     )
     # Still make the dataframe to be returned, but point it to the hospital
     # admissions only output
@@ -494,9 +489,9 @@ fit_site_level_model <- function(train_data, params,
   } else { # Otherwise, do everything else
 
     df_of_filepaths <- get_df_of_filepaths(
-      location, model_type, forecast_date,
-      date_run, run_id,
-      output_file_path
+      output_dir,
+      forecast_date,
+      location, model_type
     )
 
     if (file.exists(df_of_filepaths$model_draws_file_path)) {
@@ -538,12 +533,13 @@ fit_site_level_model <- function(train_data, params,
 
       fit_dynamic_rt <- model_file$sample(
         data = stan_data,
-        seed = 123,
+        seed = seed,
         init = init_fun,
         iter_sampling = iter_sampling,
         iter_warmup = iter_warmup,
         chains = n_chains,
-        adapt_delta = 0.99,
+        adapt_delta = adapt_delta,
+        max_treedepth = max_treedepth,
         parallel_chains = n_parallel_chains
       )
       print("Model ran")
@@ -761,6 +757,9 @@ fit_site_level_model <- function(train_data, params,
         fit_dynamic_rt, train_data, location,
         model_type_to_save, forecast_date
       )
+      model_run_diagnostics <- get_model_run_diagnostics(
+        fit_dynamic_rt, n_chains
+      )
 
       # Make a 1 row dataframe that contains the metadata combined with the
       # filepath where the dataframes of draws, quantiles, and parquets are saved
@@ -769,29 +768,11 @@ fit_site_level_model <- function(train_data, params,
       if (isTRUE(write_files)) {
         # Need to create each of these new folders
         create_dir(file.path(
-          output_file_path, "raw", location, model_type,
-          "future_hosp_draws", forecast_date
+          output_dir, "raw", location, model_type
         ))
         create_dir(file.path(
-          output_file_path, "raw", location, model_type,
-          "draws", forecast_date
-        ))
-        create_dir(file.path(
-          output_file_path, "raw", location, model_type,
-          "quantiles", forecast_date
-        ))
-        create_dir(file.path(
-          output_file_path, "raw", location, model_type,
-          "parameters", forecast_date
-        ))
-        create_dir(file.path(
-          output_file_path, "raw", location, model_type,
-          "diagnostics", forecast_date
-        ))
-        create_dir(file.path(
-          output_file_path, "raw", location, model_type,
-          "stan_objects", forecast_date,
-          glue::glue("run-on-{date_run}-{run_id}")
+          output_dir, "raw", location, model_type,
+          "stan_objects"
         ))
 
         arrow::write_parquet(
@@ -813,12 +794,16 @@ fit_site_level_model <- function(train_data, params,
         readr::write_csv(
           diagnostics, df$diagnostics_file_path
         )
+        if (nrow(model_run_diagnostics) > 0) {
+          readr::write_csv(
+            model_run_diagnostics, df$model_flags_file_path
+          )
+        }
 
         fit_dynamic_rt$save_output_files(
           dir = file.path(
-            output_file_path, "raw", location, model_type,
-            "stan_objects", forecast_date,
-            glue::glue("run-on-{date_run}-{run_id}")
+            output_dir, "raw", location, model_type,
+            "stan_objects"
           )
         )
       }

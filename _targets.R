@@ -57,7 +57,6 @@ cfaforecastrenewalww::setup_secrets(here::here("secrets.yaml"))
 # source("cfaforecastrenewalww/R/plots.R") #nolint
 # source("cfaforecastrenewalww/R/delay_distribs.R") #nolint
 # source("cfaforecastrenewalww/R/process_model_outputs.R") #nolint
-# source("cfaforecastrenewalww/R/render_diagnostic_report.R") #nolint
 # source("cfaforecastrenewalww/R/forecasttools.R") #nolint
 
 # Targets list:
@@ -176,22 +175,20 @@ list(
     deployment = "main"
   ),
   tar_target(
-    name = output_file_path_ho,
-    command = config_vars_ho$output_file_path,
+    name = output_dir_ho,
+    command = config_vars_ho$output_dir,
     deployment = "main"
   ),
   tar_target(
     name = figure_file_path,
     command = get_figure_file_path(
-      output_file_path_ho,
-      forecast_date,
-      date_run
+      output_dir_ho
     ),
     deployment = "main"
   ),
   tar_target(
     name = create_output_dir_ho,
-    command = create_dir(output_file_path_ho),
+    command = create_dir(output_dir_ho),
     deployment = "main"
   ),
   tar_target(
@@ -237,8 +234,13 @@ list(
     deployment = "main"
   ),
   tar_target(
+    name = param_file_path_ho,
+    command = config_vars_ho$param_file_path,
+    format = "file"
+  ),
+  tar_target(
     name = params_ho,
-    command = get_params(),
+    command = get_params(param_file_path_ho),
     deployment = "main"
   ),
 
@@ -248,7 +250,7 @@ list(
   # generated quantities and the parameters
   tar_target(
     name = df_of_filepaths_ho,
-    command = do.call(fit_model, c(list(train_data = grouped_data),
+    command = do.call(fit_aggregated_model, c(list(train_data = grouped_data),
       list(params = params_ho),
       model_file = model_file_ho,
       config_vars_ho
@@ -304,13 +306,13 @@ list(
     deployment = "main"
   ),
   tar_target(
-    name = output_file_path_sa,
-    command = config_vars_sa$output_file_path,
+    name = output_dir_sa,
+    command = config_vars_sa$output_dir,
     deployment = "main"
   ),
   tar_target(
     name = create_output_dir_sa,
-    command = create_dir(output_file_path_sa),
+    command = create_dir(output_dir_sa),
     deployment = "main"
   ),
   tar_target(
@@ -363,8 +365,13 @@ list(
     deployment = "main"
   ),
   tar_target(
+    name = param_file_path_sa,
+    command = config_vars_sa$param_file_path,
+    format = "file"
+  ),
+  tar_target(
     name = params_sa,
-    command = get_params(),
+    command = get_params(param_file_path_sa),
     deployment = "main"
   ),
 
@@ -374,7 +381,7 @@ list(
   # generated quantities and the parameters
   tar_target(
     name = df_of_filepaths_sa,
-    command = do.call(fit_model, c(list(train_data = grouped_data_sa),
+    command = do.call(fit_aggregated_model, c(list(train_data = grouped_data_sa),
       list(params = params_sa),
       model_file = model_file_sa,
       config_vars_sa
@@ -453,13 +460,13 @@ list(
     deployment = "main"
   ),
   tar_target(
-    name = output_file_path_id,
-    command = config_vars_id$output_file_path,
+    name = output_dir_id,
+    command = config_vars_id$output_dir,
     deployment = "main"
   ),
   tar_target(
     name = create_output_dir_id,
-    command = create_dir(output_file_path_id),
+    command = create_dir(output_dir_id),
     deployment = "main"
   ),
   tar_target(
@@ -505,8 +512,13 @@ list(
     deployment = "main"
   ),
   tar_target(
+    name = param_file_path_id,
+    command = config_vars_id$param_file_path,
+    format = "file"
+  ),
+  tar_target(
     name = params_id,
-    command = get_params(),
+    command = get_params(param_file_path_id),
     deployment = "main"
   ),
 
@@ -667,8 +679,7 @@ list(
   tar_target(
     name = pdf_file_path,
     command = get_pdf_file_path(
-      output_file_path_id,
-      forecast_date, date_run
+      output_dir_id
     ),
     deployment = "main"
   ),
@@ -749,15 +760,13 @@ list(
   tar_target(
     name = submission_file_path,
     command = get_submission_file_path(
-      output_file_path_id,
-      forecast_date,
-      date_run
+      output_dir_id
     ),
     deployment = "main"
   ),
   tar_target(
     name = repo_file_path,
-    command = get_repo_forecast_file_path(forecast_date),
+    command = get_relative_forecast_dir(forecast_date),
     deployment = "main"
   ),
   tar_target(
@@ -810,6 +819,7 @@ list(
       get_pipeline_metadata,
       c(
         us_run = us_run_complete,
+        root_dir = fs::path_wd(),
         config_vars_id
       )
     ),

@@ -1,138 +1,3 @@
-## Get model parameters (priors and set params of set distributions)------------
-#' @title Get parameters for model run
-#'
-#' @return a dataframe with numeric values for parameter values passed to the
-#'  model
-#' @export
-#'
-#' @examples
-get_params <- function() {
-  ml_of_ww_per_person_day <- 22.7e4
-
-  # Time to estimate back to for i0
-  uot <- 50
-
-  # Generation Interval
-  # From: Park, Sang Woo, et al. "Inferring the differences in incubation-period
-  # and generation-interval distributions of the Delta and Omicron variants of
-  # SARS-CoV-2." Proceedings of the National Academy of Sciences 120.22 (2023):
-  # e2221887120.
-  # from the object in Fig 4F corresponding to between household transmission
-  # in Omicron https://github.com/parksw3/omicron-generation/blob/d36d4568bfd3b3d389b30282758b9c322cfe2b9f/figure/compare.R#L175 #nolint
-  # Mean of 2.9 days
-  mu_gi <- 0.92877
-  sigma_gi <- 0.526 # (using lognormal CDF and Park CIs of 2.7 and 3.2)
-
-  # Incubation period parameters
-  # From: Park, Sang Woo, et al. "Inferring the differences in incubation-period
-  # and generation-interval distributions of the Delta and Omicron variants of
-  # SARS-CoV-2." Proceedings of the National Academy of Sciences 120.22 (2023):
-  # e2221887120.
-  r <- 0.15
-  backward_shape <- 1.5
-  backward_scale <- 3.6
-
-  # Symptom onset to hospital admission delay parameters
-  # From Danache et al
-  # https://journals.plos.org/plosone/article?id=10.1371/journal.pone.0261428#:~:text=Multiple%20analysis%20with%20correction%20for%20multiple%20testing%20showed,a%20long%20delay%20%28aOR%3A%201.84%2095%25%20CI%20%281.32%E2%80%932.55%29%29. #nolint
-  # That Zack fit and described in cfa-parameter-estimates github repo
-  neg_binom_mu <- 6.98665
-  neg_binom_size <- 2.490848
-
-
-  gt_max <- 15
-  dur_inf <- 7 # used for drift calculation of number currently infected
-
-  # Hospitalization parameters (informative priors)
-  # IHR estimate from: https://www.nature.com/articles/s41467-023-39661-5
-  p_hosp_mean <- 0.031 # mean =3.1%, 0.031
-  p_hosp_sd <- 0.0015 # CI = 2.7-3.3%, 0.027, 0.031, so 1.96*sd = 0.003
-
-  # Infection feedback priors
-  infection_feedback_prior_mean <- 500
-  infection_feedback_prior_sd <- 200
-
-  # Wastewater skedding kinetics (informative priors)
-  t_peak_mean <- 5 # Pretend we know this with uncertainty
-  t_peak_sd <- 1
-  viral_peak_mean <- 5.1
-  viral_peak_sd <- 0.5
-  duration_shedding_mean <- 17
-  duration_shedding_sd <- 3
-
-  # Uninformed priors
-  inv_sqrt_phi_prior_mean <- 1 / sqrt(100)
-  inv_sqrt_phi_prior_sd <- 1 / sqrt(50)
-  phi_w_prior_mean <- 100
-  phi_w_prior_sd <- 30
-  sigma_ww_site_prior_mean_mean <- 0.5
-  sigma_ww_site_prior_mean_sd <- 1
-  sigma_ww_site_prior_sd_mean <- 0
-  sigma_ww_site_prior_sd_sd <- 1
-  r_prior_mean <- 1
-  r_prior_sd <- 1
-  sigma_rt_prior <- 0.3
-  log10_g_prior_mean <- 12
-  log10_g_prior_sd <- 2
-  log_g_prior_mean <- 12 * log(10)
-  log_g_prior_sd <- 2 * log(10)
-  wday_effect_prior_mean <- 1 / 7
-  wday_effect_prior_sd <- 0.05
-  initial_growth_prior_mean <- 0
-  initial_growth_prior_sd <- 0.01
-  autoreg_rt_a <- 2 # shape1 parameter of autoreg term on Rt trend
-  autoreg_rt_b <- 40 # shape2 parameter of autoreg on Rt trend
-  autoreg_conc_a <- 1 # shape1 parameter of autoreg term on Ct trend
-  autoreg_conc_b <- 2 # shape 2 parameter of autoreg term on Ct trend
-  # mean = a/(a+b) = 0.05, stdv = sqrt(a)/b = sqrt(2)/40 = 0.035
-  eta_sd_sd <- 0.01
-  p_hosp_sd_logit <- 0.3
-  p_hosp_w_sd_sd <- 0.01
-  ww_site_mod_sd_sd <- 0.25
-  log_phi_g_prior_mean <- log(0.1) # prior mean in individual level dispersion
-  # in fecal shedding
-  log_phi_g_prior_sd <- 5 # wide std
-
-  # Priors for initial growth and drift term (which we will eventually fit)
-  drift <- 1
-  initial_growth <- 0
-
-  params <- data.frame(
-    ml_of_ww_per_person_day, uot, mu_gi, sigma_gi,
-    r, backward_shape, backward_scale,
-    neg_binom_mu, neg_binom_size,
-    gt_max, p_hosp_mean, p_hosp_sd,
-    t_peak_mean, t_peak_sd, viral_peak_mean, viral_peak_sd,
-    duration_shedding_mean, duration_shedding_sd,
-    inv_sqrt_phi_prior_mean, inv_sqrt_phi_prior_sd,
-    phi_w_prior_mean, phi_w_prior_sd,
-    r_prior_mean, r_prior_sd, log10_g_prior_mean,
-    log10_g_prior_sd, log_g_prior_mean,
-    log_g_prior_sd,
-    wday_effect_prior_mean,
-    wday_effect_prior_sd, initial_growth_prior_mean, initial_growth_prior_sd,
-    drift, initial_growth, dur_inf,
-    autoreg_rt_a, autoreg_rt_b,
-    autoreg_conc_a, autoreg_conc_b,
-    sigma_ww_site_prior_mean_mean,
-    sigma_ww_site_prior_mean_sd,
-    sigma_ww_site_prior_sd_mean,
-    sigma_ww_site_prior_sd_sd,
-    eta_sd_sd,
-    p_hosp_sd_logit,
-    p_hosp_w_sd_sd,
-    ww_site_mod_sd_sd,
-    sigma_rt_prior,
-    log_phi_g_prior_mean,
-    log_phi_g_prior_sd,
-    infection_feedback_prior_mean,
-    infection_feedback_prior_sd
-  )
-
-  return(params)
-}
-
-
 ## Get stan data for the different models -------------------------------------
 
 #' @title Get stan data
@@ -162,12 +27,16 @@ get_params <- function() {
 #' @export
 #'
 #' @examples
-get_stan_data <- function(train_data, params, forecast_date,
-                          forecast_time, include_hosp,
+get_stan_data <- function(train_data,
+                          params,
+                          forecast_date,
+                          forecast_time,
+                          include_hosp,
                           compute_likelihood,
                           generation_interval,
                           inf_to_hosp,
-                          infection_feedback_pmf, ...) {
+                          infection_feedback_pmf,
+                          ...) {
   # Assign parmeter names
   par_names <- colnames(params)
   for (i in seq_along(par_names)) {
@@ -301,8 +170,8 @@ get_stan_data <- function(train_data, params, forecast_date,
     r_prior_sd = r_prior_sd,
     log10_g_prior_mean = log10_g_prior_mean,
     log10_g_prior_sd = log10_g_prior_sd,
-    log_i0_prior_mean = log(i0 / pop),
-    log_i0_prior_sd = 1,
+    i0_over_n_prior_a = 1 + i0_certainty * (i0 / pop),
+    i0_over_n_prior_b = 1 + i0_certainty * (1 - (i0 / pop)),
     wday_effect_prior_mean = wday_effect_prior_mean,
     wday_effect_prior_sd = wday_effect_prior_sd,
     initial_growth_prior_mean = initial_growth_prior_mean,
@@ -348,7 +217,9 @@ get_stan_data <- function(train_data, params, forecast_date,
 #' @export
 #'
 #' @examples
-get_stan_data_site_level_model <- function(train_data, params, forecast_date,
+get_stan_data_site_level_model <- function(train_data,
+                                           params,
+                                           forecast_date,
                                            forecast_time,
                                            model_type,
                                            generation_interval,
@@ -524,8 +395,6 @@ get_stan_data_site_level_model <- function(train_data, params, forecast_date,
   # Estimate of number of initial infections
   i0 <- mean(train_data$daily_hosp_admits[1:7], na.rm = TRUE) / p_hosp_mean
 
-
-
   # package up parameters for stan data object
   viral_shedding_pars <- c(
     t_peak_mean, t_peak_sd, viral_peak_mean, viral_peak_sd,
@@ -570,7 +439,6 @@ get_stan_data_site_level_model <- function(train_data, params, forecast_date,
     ww_log_lod = log(ww_lod),
     ww_censored = ww_censored,
     ww_uncensored = ww_uncensored,
-    ww_pops = pop_ww,
     hosp = hosp_train$daily_hosp_admits,
     day_of_week = day_of_week,
     log_conc = as.numeric(log(ww_train$ww + 1e-8)),
@@ -590,8 +458,8 @@ get_stan_data_site_level_model <- function(train_data, params, forecast_date,
     r_prior_sd = r_prior_sd,
     log10_g_prior_mean = log10_g_prior_mean,
     log10_g_prior_sd = log10_g_prior_sd,
-    log_i0_prior_mean = log(i0 / pop),
-    log_i0_prior_sd = 1,
+    i0_over_n_prior_a = 1 + i0_certainty * (i0 / pop),
+    i0_over_n_prior_b = 1 + i0_certainty * (1 - (i0 / pop)),
     wday_effect_prior_mean = wday_effect_prior_mean,
     wday_effect_prior_sd = wday_effect_prior_sd,
     initial_growth_prior_mean = initial_growth_prior_mean,
@@ -601,6 +469,8 @@ get_stan_data_site_level_model <- function(train_data, params, forecast_date,
     sigma_ww_site_prior_sd_mean = sigma_ww_site_prior_sd_mean,
     sigma_ww_site_prior_sd_sd = sigma_ww_site_prior_sd_sd,
     eta_sd_sd = eta_sd_sd,
+    sigma_i0_prior_mode = sigma_i0_prior_mode,
+    sigma_i0_prior_sd = sigma_i0_prior_sd,
     p_hosp_mean = p_hosp_mean,
     p_hosp_sd_logit = p_hosp_sd_logit,
     p_hosp_w_sd_sd = p_hosp_w_sd_sd,
@@ -639,7 +509,7 @@ get_stan_data_site_level_model <- function(train_data, params, forecast_date,
 #' @param params
 #' @param stan_data
 #' @return the initialization function
-#' @keywords internal
+#' @export
 state_agg_inits <- function(train_data, params, stan_data) {
   # Assign parmeter names
   par_names <- colnames(params)
@@ -668,7 +538,7 @@ state_agg_inits <- function(train_data, params, stan_data) {
     eta_sd = abs(rnorm(1, 0, 0.01)),
     autoreg_rt = abs(rnorm(1, autoreg_rt_a / (autoreg_rt_a + autoreg_rt_b), 0.05)),
     log_r = rnorm(1, convert_to_logmean(1, 0.1), convert_to_logsd(1, 0.1)),
-    log_i0_over_n = rnorm(1, log(i0 / pop), 0.05),
+    i0_over_n = plogis(rnorm(1, qlogis(i0 / pop), 0.05)),
     initial_growth = rnorm(1, 0, 0.001),
     inv_sqrt_phi_h = 1 / (sqrt(200)) + rnorm(1, 1 / 10000, 1 / 10000),
     sigma_ww = abs(rnorm(1, 0, 0.5)),
@@ -722,7 +592,7 @@ time_varying_conc_inits <- function(train_data, params, stan_data) {
     autoreg_rt = abs(rnorm(1, autoreg_rt_a / (autoreg_rt_a + autoreg_rt_b), 0.05)),
     autoreg_conc = abs(rnorm(1, autoreg_conc_a / (autoreg_conc_a + autoreg_conc_b), 0.05)),
     log_r = rnorm(1, convert_to_logmean(1, 0.1), convert_to_logsd(1, 0.1)),
-    log_i0_over_n = rnorm(1, log(i0 / pop), 0.05),
+    i0_over_n = plogis(rnorm(1, qlogis(i0 / pop), 0.05)),
     initial_growth = rnorm(1, 0, 0.001),
     inv_sqrt_phi_h = 1 / sqrt(200) + rnorm(1, 1 / 10000, 1 / 10000),
     sigma_ww_site_mean = abs(rnorm(
@@ -787,7 +657,7 @@ site_level_obs_inits <- function(train_data, params, stan_data) {
     eta_sd = abs(rnorm(1, 0, 0.01)),
     autoreg_rt = abs(rnorm(1, autoreg_rt_a / (autoreg_rt_a + autoreg_rt_b), 0.05)),
     log_r = rnorm(1, convert_to_logmean(1, 0.1), convert_to_logsd(1, 0.1)),
-    log_i0_over_n = rnorm(1, log(i0 / pop), 0.05),
+    i0_over_n = plogis(rnorm(1, qlogis(i0 / pop), 0.05)),
     initial_growth = rnorm(1, 0, 0.001),
     inv_sqrt_phi_h = 1 / sqrt(200) + rnorm(1, 1 / 10000, 1 / 10000),
     sigma_ww_site_mean = abs(rnorm(
@@ -821,7 +691,7 @@ site_level_obs_inits <- function(train_data, params, stan_data) {
 #' @param params
 #' @param stan_data
 #' @return the initialization function
-#' @keywords internal
+#' @export
 site_level_inf_inits <- function(train_data, params, stan_data) {
   # Assign parmeter names
   par_names <- colnames(params)
@@ -862,7 +732,7 @@ site_level_inf_inits <- function(train_data, params, stan_data) {
     ),
     autoreg_rt_site = abs(rnorm(1, 0.5, 0.05)),
     sigma_rt = abs(rnorm(1, 0, 0.01)),
-    log_i0_over_n = rnorm(1, log(i0 / pop), 0.05),
+    i0_over_n = plogis(rnorm(1, qlogis(i0 / pop), 0.05)),
     initial_growth = rnorm(1, 0, 0.001),
     inv_sqrt_phi_h = 1 / sqrt(200) + rnorm(1, 1 / 10000, 1 / 10000),
     sigma_ww_site_mean = abs(rnorm(

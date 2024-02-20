@@ -1099,7 +1099,10 @@ get_state_level_summary <- function(nwss_by_week) {
 #'
 #' @examples
 get_ww_data <- function(ww_data_source, geo_type, ww_data_type,
-                        ww_target_type, ww_geo_type, ww_data_path, ...) {
+                        ww_target_type, ww_geo_type, ww_data_path,
+                        dates_for_ww_removal = c(),
+                        states_for_ww_removal = c(),
+                        ...) {
   if (
     ww_data_source == "biobot" &&
       geo_type == "region" &&
@@ -1145,6 +1148,19 @@ get_ww_data <- function(ww_data_source, geo_type, ww_data_type,
         date, location, ww, site, lab, lab_wwtp_unique_id, ww_pop,
         below_LOD, lod_sewage
       )
+
+
+    for (i in seq_along(dates_for_ww_removal)) {
+      to_remove <- (
+        ww_data$location == states_for_ww_removal[i] &
+          ww_data$date == lubridate::ymd(dates_for_ww_removal[i])
+      )
+      ww_data$ww[to_remove] <- NA
+    }
+    # Remove rows where ww data is NA
+    ww_data <- ww_data %>% filter(!is.na(ww))
+
+
 
     # Duplicate all ww data with the location labeled US so it gets aggregated
     ww_data_usa <- ww_data %>%
@@ -1272,9 +1288,9 @@ flag_ww_outliers <- function(ww_data, rho_threshold = 2,
 #'
 #' @param train_data original training dataset
 #' with hopsitalizations in tact
-#' @param vector_of_states states in the order
+#' @param states_for_hosp_removal states in the order
 #' of the corresponding dates we want to remove
-#' @param vector_of_dates dates lining up with the
+#' @param dates_for_hosp_removal dates lining up with the
 #' states we want to remove from
 #'
 #' @return revised train data with hospital admissions removed
@@ -1282,15 +1298,15 @@ flag_ww_outliers <- function(ww_data, rho_threshold = 2,
 #'
 #' @examples
 manual_removal_of_hosp_data <- function(train_data,
-                                        vector_of_states,
-                                        vector_of_dates,
+                                        states_for_hosp_removal,
+                                        dates_for_hosp_removal,
                                         ...) {
   ## Iterate through each location and each date
   ## and remove if both date and state present
-  for (i in seq_along(vector_of_dates)) {
+  for (i in seq_along(dates_for_hosp_removal)) {
     to_remove <- (
-      train_data$location == vector_of_states[i] &
-        train_data$date == vector_of_dates[i]
+      train_data$location == states_for_hosp_removal[i] &
+        train_data$date == dates_for_hosp_removal[i]
     )
     train_data$daily_hosp_admits[to_remove] <- NA
   }
@@ -1369,27 +1385,22 @@ aggregate_ww <- function(ww_data_raw, forecast_date, calibration_time,
 #' Get site county mapp
 #'
 #' @param nwss wastewater data
+#' @param county_site_map_path path to a county site map CSV file;
+#' if it exists, it will be used, otherwise the file will be created and placed here
 #'
 #' @return a mapping from the unique county fips in the ww data to the major county
 #' @export
 #'
 #' @examples
-get_site_county_map <- function(nwss) {
-  if (file.exists(file.path(
-    "data",
-    "ww_data",
-    "county_site_map.csv"
-  ))) {
-    site_county_map <- readr::read_csv(
-      file.path(
-        "data",
-        "ww_data",
-        "county_site_map.csv"
-      )
-    )
+get_site_county_map <- function(nwss,
+                                county_site_map_path) {
+  if (fs::file_exists(county_site_map_path)) {
+    site_county_map <- readr::read_csv(county_site_map_path)
     cli::cli_inform("Reading in existing site county map")
   } else {
+    dir_path <- fs::path_dir(county_site_map_path)
     create_dir(file.path("data", "ww_data"))
+
     county_state_fips_path <- paste0(
       "https://raw.githubusercontent.com/",
       "kjhealy/fips-codes/master/",
@@ -1409,7 +1420,7 @@ get_site_county_map <- function(nwss) {
       )
 
     readr::write_csv(
-      site_county_map, file.path("data", "ww_data", "county_site_map.csv")
+      site_county_map, county_site_map_path
     )
 
     message("Writing site-county map")

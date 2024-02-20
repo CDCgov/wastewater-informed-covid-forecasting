@@ -10,95 +10,95 @@ functions {
 
 // The fixed input data
 data {
-  int gt_max;
-  int hosp_delay_max;
-  vector[hosp_delay_max] inf_to_hosp; // delay distribution from infecion to hospital admission
-  int dur_inf; // duration people are infectious (number of days)
-  real mwpd; // mL of ww produced per person per day
-  int if_l; // length of infection feedback pmf
-  vector[if_l] infection_feedback_pmf; // infection feedback pmf
-  int ot; // number of days of observed hospital admissions
-  int oht; // number of days with observed hospital admissions
-  int n_ww_sites; // number of WW sites
-  int n_ww_lab_sites; // number of unique ww-lab combos
-  int n_censored; // numer of observed WW data points that are below the LOD
-  int n_uncensored; //number not below LOD
-  int owt; // number of days of observed WW (should be roughly ot/7)
-  int uot; // unobserved time before we observe hospital admissions/ WW
-  int ht; // horizon time (nowcast + forecast time)
-  int n_weeks; // number of weeks for weekly random walk on R(t)
-  matrix [ot+ht, n_weeks] ind_m; // matrix to convert R(t) from weekly to daily
-  int tot_weeks; // number of weeks for the weekly random walk on IHR (includes unobserved time)
-  matrix [uot+ot+ht, tot_weeks] p_hosp_m; // matrix to convert p_hosp from weekly to daily
-  vector<lower=0>[gt_max] generation_interval; // generation interval distribution
-  vector<lower=0>[gt_max] ts; // time series
+  int<lower=1> gt_max;
+  int<lower=1> hosp_delay_max;
+  vector<lower=0,upper=1>[hosp_delay_max] inf_to_hosp; // delay distribution from infecion to hospital admission
+  real<lower=0> mwpd; // mL of ww produced per person per day
+  int<lower=1> if_l; // length of infection feedback pmf
+  vector<lower=0,upper=1>[if_l] infection_feedback_pmf; // infection feedback pmf
+  int<lower=0> ot; // number of days of observed hospital admissions
+  int<lower=0> oht; // number of days with observed hospital admissions
+  int<lower=0> n_ww_sites; // number of WW sites
+  int<lower=0> n_ww_lab_sites; // number of unique ww-lab combos
+  int<lower=0> n_censored; // numer of observed WW data points that are below the LOD
+  int<lower=0> n_uncensored; //number not below LOD
+  int<lower=0> owt; // number of days of observed WW (should be roughly ot/7)
+  int<lower=0> uot; // unobserved time before we observe hospital admissions/ WW
+  int<lower=0> ht; // horizon time (nowcast + forecast time)
+  int<lower=0> n_weeks; // number of weeks for weekly random walk on R(t)
+  matrix<lower=0> [ot+ht, n_weeks] ind_m; // matrix to convert R(t) from weekly to daily
+  int<lower=0> tot_weeks; // number of weeks for the weekly random walk on IHR (includes unobserved time)
+  matrix<lower=0> [uot+ot+ht, tot_weeks] p_hosp_m; // matrix to convert p_hosp from weekly to daily
+  vector<lower=0,upper=1>[gt_max] generation_interval; // generation interval distribution
   real<lower = 1e-20> n; // population size
-  array[owt] int ww_sampled_times; // a list of all of the days on which WW is sampled
+  array[owt] int<lower=1,upper=ot + ht> ww_sampled_times; // a list of all of the days on which WW is sampled
                                    // will be mapped to the corresponding sites (ww_sampled_sites)
-  array[oht] int hosp_times; // the days on which hospital admissions are observed
-  array[owt] int ww_sampled_sites; // vector of unique sites in order of the sampled times
-  array[owt] int ww_sampled_lab_sites; // vector of unique lab-site combos in order of the sampled times
-  array[n_censored] int ww_censored; // times that the WW data is below the LOD
-  array[n_uncensored] int ww_uncensored; // time that WW data is above LOD
+  array[oht] int<lower=1, upper=ot> hosp_times; // the days on which hospital admissions are observed
+  array[owt] int<lower=1,upper=n_ww_sites> ww_sampled_sites; // vector of unique sites in order of the sampled times
+  array[owt] int<lower=1,upper=n_ww_lab_sites> ww_sampled_lab_sites; // vector of unique lab-site combos i
+   	     // n order of the sampled times
+  array[n_censored] int<lower=1,upper=owt> ww_censored; // times that the WW data is below the LOD
+  array[n_uncensored] int<lower=1,upper=owt> ww_uncensored; // time that WW data is above LOD
   vector[owt] ww_log_lod; // The limit of detection in that site at that time point
-  array[n_ww_lab_sites] int lab_site_to_site_map; // which lab sites correspond to which sites
-  array[n_ww_sites] int ww_pops; // population size of each site as reporte dby NWSS
-  array[oht] int hosp; // observed hospital admissions
-  array[ot + ht] int day_of_week; // integer vector with 1-7 corresponding to the weekday
+  array[n_ww_lab_sites] int<lower=1,upper=n_ww_sites> lab_site_to_site_map; // which lab sites correspond to which sites
+  array[oht] int<lower=0> hosp; // observed hospital admissions
+  array[ot + ht] int<lower=1,upper=7> day_of_week; // integer vector with 1-7 corresponding to the weekday
   vector[owt] log_conc; // observed concentration of viral genomes in WW
-  int compute_likelihood; // 1= use data to compute likelihood
-  int include_ww; // 1= include wastewater data in likelihood calculation
-  int include_hosp; // 1 = fit to hosp, 0 = only fit wastewater model
+  int<lower=0,upper=1> compute_likelihood; // 1= use data to compute likelihood
+  int<lower=0,upper=1> include_ww; // 1= include wastewater data in likelihood calculation
+  int<lower=0,upper=1> include_hosp; // 1 = fit to hosp, 0 = only fit wastewater model
 
   // Priors
   vector[6] viral_shedding_pars;// tpeak, viral peak, shedding duration mean and sd
-  real autoreg_rt_a;
-  real autoreg_rt_b;
+  real<lower=0> autoreg_rt_a;
+  real<lower=0> autoreg_rt_b;
   real inv_sqrt_phi_prior_mean;
-  real inv_sqrt_phi_prior_sd;
+  real<lower=0> inv_sqrt_phi_prior_sd;
   real r_prior_mean;
-  real r_prior_sd;
+  real<lower=0> r_prior_sd;
   real log10_g_prior_mean;
-  real log10_g_prior_sd;
-  real log_i0_prior_mean;
-  real log_i0_prior_sd;
+  real<lower=0> log10_g_prior_sd;
+  real<lower=0> i0_over_n_prior_a;
+  real<lower=0> i0_over_n_prior_b;
+  real sigma_i0_prior_mode;
+  real<lower=0> sigma_i0_prior_sd;
   real wday_effect_prior_mean;
-  real wday_effect_prior_sd;
+  real<lower=0> wday_effect_prior_sd;
   real initial_growth_prior_mean;
-  real initial_growth_prior_sd;
+  real<lower=0> initial_growth_prior_sd;
   real sigma_ww_site_prior_mean_mean;
-  real sigma_ww_site_prior_mean_sd;
+  real<lower=0> sigma_ww_site_prior_mean_sd;
   real sigma_ww_site_prior_sd_mean;
-  real sigma_ww_site_prior_sd_sd;
-  real eta_sd_sd;
+  real<lower=0> sigma_ww_site_prior_sd_sd;
+  real<lower=0> eta_sd_sd;
   real p_hosp_mean;
-  real p_hosp_sd_logit;
-  real p_hosp_w_sd_sd;
-  real ww_site_mod_sd_sd;
-  real sigma_rt_prior;
+  real<lower=0> p_hosp_sd_logit;
+  real<lower=0> p_hosp_w_sd_sd;
+  real<lower=0> ww_site_mod_sd_sd;
+  real<lower=0> sigma_rt_prior;
   real log_phi_g_prior_mean;
-  real log_phi_g_prior_sd;
+  real<lower=0> log_phi_g_prior_sd;
   real infection_feedback_prior_mean;
-  real infection_feedback_prior_sd;
+  real<lower=0> infection_feedback_prior_sd;
 }
 
 // The transformed data
 transformed data {
   // viral shedding parameters
   real t_peak_mean = viral_shedding_pars[1];
-  real t_peak_sd = viral_shedding_pars[2];
+  real<lower=0> t_peak_sd = viral_shedding_pars[2];
   real viral_peak_mean = viral_shedding_pars[3];
-  real viral_peak_sd = viral_shedding_pars[4];
+  real<lower=0> viral_peak_sd = viral_shedding_pars[4];
   real dur_shed_mean = viral_shedding_pars[5];
-  real dur_shed_sd = viral_shedding_pars[6];
+  real<lower=0> dur_shed_sd = viral_shedding_pars[6];
 
   // natural scale -> lognormal parameters
   // https://en.wikipedia.org/wiki/Log-normal_distribution
   real r_logmean = convert_to_logmean(r_prior_mean, r_prior_sd);
-  real r_logsd = convert_to_logsd(r_prior_mean, r_prior_sd);
+  real<lower=0> r_logsd = convert_to_logsd(r_prior_mean, r_prior_sd);
   // reversed generation interval
-  vector[gt_max] gt_rev_pmf = reverse(generation_interval);
-  vector[if_l] infection_feedback_rev_pmf = reverse(infection_feedback_pmf);
+  vector<lower=0,upper=1>[gt_max] gt_rev_pmf = reverse(generation_interval);
+  vector<lower=0,upper=1>[if_l] infection_feedback_rev_pmf = reverse(infection_feedback_pmf);
 }
 
 // The parameters accepted by the model.
@@ -110,9 +110,12 @@ parameters {
   real<lower=0> sigma_rt; // magnitude of site level variation from state level
   real<lower=0, upper=1> autoreg_rt_site;
   matrix[n_ww_sites, n_weeks] error_site; // matrix of w_sites
-  real<upper=log(1)> log_i0_over_n; // log of number of incident infections /n  on day -uot before first observation day
-  vector[n_ww_sites] eta_i0;
-  real<lower=0> sigma_i0; // stdev between state and site initial infections
+  real<lower=0,upper=1> i0_over_n; // initial per capita
+  // infection incidence
+  vector[n_ww_sites] eta_i0; // z-score on logit scale of state
+  // initial per capita infection incidence relative to state value
+  real<lower=0> sigma_i0; // stdev between logit state and site initial
+  // per capita infection incidence
   vector[n_ww_sites] eta_growth;
   real<lower=0> sigma_growth;
   real<lower=-1, upper=1> initial_growth; // initial growth from I0 to first observed time
@@ -158,8 +161,9 @@ transformed parameters {
   row_vector[ot + uot + ht] new_i_site; // site level incident infections
   matrix[n_ww_sites, ot + ht] model_log_v_ot; // expected observed viral genomes/mL at all observed and forecasted times
   real<lower=0> g = pow(log10_g, 10); // Estimated genomes shed per infected individual
-  real<lower=0> i0 = exp(log_i0_over_n) * n; // Initial infections
-  vector<upper=log(1)>[n_ww_sites] log_i0_site_over_n; // site level initial infections
+  real<lower=0> i0 = i0_over_n * n; // Initial absolute infection incidence
+  vector[n_ww_sites] i0_site_over_n; // site-level initial
+  // per capita infection incidence
   vector[n_ww_sites] growth_site;
 
   // AR + RW implementation:
@@ -171,9 +175,14 @@ transformed parameters {
   // Expected daily number of new infections (per capita), using EpiNow2 assumptions re pre and post observation time
   // Using pop = 1 so that damping is normalized to per capita
   (new_i, rt) = generate_infections(
-    unadj_r, uot, gt_rev_pmf, log_i0_over_n, initial_growth, ht,
-    infection_feedback, infection_feedback_rev_pmf
-  );
+    	  unadj_r,
+	  uot,
+	  gt_rev_pmf,
+	  log(i0_over_n),
+	  initial_growth,
+	  ht,
+    	  infection_feedback,
+	  infection_feedback_rev_pmf);
 
   // Assemble a daily vector of p_hosp from the initial value, random walk increments, and scaling SD
   p_hosp = assemble_p_hosp(p_hosp_m, p_hosp_int, p_hosp_w_sd, p_hosp_w);
@@ -188,14 +197,16 @@ transformed parameters {
   exp_obs_hosp_no_wday_effect = model_hosp[uot + 1 : uot + ot];
   // apply the weekday effect so these are distributed with fewer admits on Sat & Sun
   // multiply by n because data must be integer so need this to be in actual numbers not proportions
-  exp_obs_hosp = n * day_of_week_effect(exp_obs_hosp_no_wday_effect[hosp_times],
-                                        day_of_week[hosp_times], hosp_wday_effect);
+  exp_obs_hosp = n * day_of_week_effect(
+  	       exp_obs_hosp_no_wday_effect[hosp_times],
+	       day_of_week[hosp_times],
+	       hosp_wday_effect);
 
   // Shedding kinetics trajectory
   s = get_vl_trajectory(t_peak, viral_peak, dur_shed, gt_max);
 
   // Site level disease dynamic estimates!
-  log_i0_site_over_n = log_i0_over_n + eta_i0 * sigma_i0; // Get the site level I0/n
+  i0_site_over_n = inv_logit(logit(i0_over_n) + eta_i0 * sigma_i0);
   growth_site = initial_growth + eta_growth * sigma_growth; // site level growth rate
   for (i in 1:n_ww_sites) {
     // Let site-level R(t) vary around the hierarchical mean R(t)
@@ -211,8 +222,14 @@ transformed parameters {
     {
       tuple(vector[num_elements(new_i)], vector[num_elements(unadj_r)]) output;
       output = generate_infections(
-        to_vector(unadj_r_site_t), uot, gt_rev_pmf, log_i0_site_over_n[i], growth_site[i], ht,
-        infection_feedback, infection_feedback_rev_pmf
+        to_vector(unadj_r_site_t),
+	uot,
+	gt_rev_pmf,
+	log(i0_site_over_n[i]),
+	growth_site[i],
+	ht,
+        infection_feedback,
+	infection_feedback_rev_pmf
       );
       new_i_site = to_row_vector(output.1);
       r_site_t[i] =  to_row_vector(output.2);
@@ -256,8 +273,10 @@ model {
   log_r_mu_intercept ~ normal(r_logmean, r_logsd);
   to_vector(error_site) ~ std_normal();
   sigma_rt ~ normal(0, sigma_rt_prior);
-  log_i0_over_n ~ normal(log_i0_prior_mean, log_i0_prior_sd);
-  sigma_i0 ~ normal(0, 0.5);
+  i0_over_n ~ beta(i0_over_n_prior_a,
+                   i0_over_n_prior_b);
+  sigma_i0 ~ normal(sigma_i0_prior_mode,
+		    sigma_i0_prior_sd);
   eta_i0 ~ std_normal();
   sigma_growth ~ normal(0, 0.05);
   eta_growth ~ std_normal();
@@ -307,7 +326,8 @@ generated quantities {
   vector [n_ww_sites] site_i0_over_n_start;
 
   for(i in 1:n_ww_sites) {
-    site_i0_over_n_start[i] = exp(log_i0_site_over_n[i]) * exp(growth_site[i] * uot);
+    site_i0_over_n_start[i] = i0_site_over_n[i] *
+    exp(growth_site[i] * uot);
   }
 
   pred_hosp = neg_binomial_2_rng(n * day_of_week_effect(model_hosp[uot + 1 :
