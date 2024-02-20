@@ -60,14 +60,17 @@ Imports:
     targets,
     tarchetypes,
     gridExtra,
-    rlang
+    rlang,
+    RcppTOML,
+    RcppEigen
 VignetteBuilder:
     knitr
 Suggests:
     rmarkdown,
     covidcast,
     httr,
-    knitr
+    knitr,
+    withr
 Additional_repositories: https://mc-stan.org/r-packages/
 SystemRequirements: CmdStan (>=2.34.1)
 RoxygenNote: 7.3.1

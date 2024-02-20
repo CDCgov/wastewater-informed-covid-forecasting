@@ -12,8 +12,10 @@ test_that("Make sure we can read hospitalization data from NHSN API.", {
     !!{
       hosp_df <- get_state_level_hosp_data(
         hosp_data_source = "NHSN",
+        forecast_date = lubridate::today(),
         hosp_data_dir = tf,
-        population_data_path = tf
+        population_data_path =
+          system.file("testdata", "locations.csv", package = "cfaforecastrenewalww")
       )
     }
   )

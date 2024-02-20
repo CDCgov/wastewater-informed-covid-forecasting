@@ -64,50 +64,32 @@ Model outputs are written to individual folders after each model is run, and the
 		+-- {forecast_date}.tsv
 		+-- metadata.yaml
 		+-- wastewater_metdata_table.tsv
-    +-- raw
-        +-- {individual_state}
-            +-- {model_type}
-                    +-- draws
-                        +-- {forecast_date}
-                            +-- run-on-{date_of_run}-{run_id}-draws.parquet
-                    +-- quantiles
-                        +-- {forecast_date}
-                            +-- run-on-{date_of_run}-{run_id}-quantiles.parquet
-                    +-- parameters
-                        +-- {forecast_date}
-                            +-- run-on-{date_of_run}-{run_id}-parameters.parquet
-                    +-- future_hosp_draws
-                        +-- {forecast_date}
-                            +-- run-on-{date_of_run}-{run_id}-future_hops_draws.parquet
-                    +-- stan_objects
-                        +--{forecast_date}
-                            +-- run-on-{date_of_run}-{run_id}-{model_name}-{time_stamp}-{unique_id}.csv
-                    +-- diagnostics
-                        +-- {forecast_date}
-                            +--run-on-{date_of_run}-{run_id}-diagnostics.csv
-    +-- figures
-        +-- {forecast_date}-run-on-{date-run}
-                +--{individual state}
-                    +-- {individual plots of generated quantities + data for all models}
-    +-- cleaned
-        +-- {forecast_date}-run-on-{date_run}
-            +-- external
-                +-- {submitted/test}_forecasts
-                    +-- {forecast_date}-CDC_CFA-renewal_ww.csv
-                +-- {submitted/test}_metadata
-                    +--metadata-CDC_CFA-renewal_ww.yaml
-            +-- internal
-                +-- combined quantiles + data for GQ Kate and Eric want
-                +-- diagnostic_report.html
-                +-- pdfs of combined quantiles forecasts, hospital admissions forecasts for mult models, wastewater estimates, R(t), etc.v
-   +-- pipeline_run_metadata
-        +-- test
-            +--{forecast_date}-run-on-{date_run}
-                    +--{run_id}
-        +-- prod
-            +--{forecast_date}-run-on-{date_run}
-                    +--{run_id}
-
++-- {forecast_date}
+	+-- run-on-{date_of_run}-{run_id}
+    		+-- raw
+			+-- {individual_state}
+				+-- {model_type}
+                    			+-- draws.parquet
+					+-- quantiles.parquet
+					+-- parameters.parquet
+					+-- future_hosp_draws.parquet
+					+-- diagnostics.csv
+					+-- stan_objects
+						+-- {model_name}-{timestamp}-{chain}.csv
+    		+-- figures
+                	+--{individual state}
+                    		+-- individual plots of generated quantities + data for all models
+    		+-- cleaned
+			+-- external
+				+-- pdf of hub submissions
+            		+-- internal
+                		+-- diagnostic_report.html
+				+-- pdfs of combined quantiles forecasts, hospital admissions forecasts for mult models, wastewater estimates, R(t), etc.
+			+-- {submitted/test}_forecasts
+                   			 +-- {forecast_date}-CDC_CFA-renewal_ww.csv
+  		 +-- pipeline_run_metadata
+        		+-- {test/prod}
+                   		 +-- {run_id}.yaml
 ```
 
 # Forecasting pipeline

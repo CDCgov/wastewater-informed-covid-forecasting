@@ -33,7 +33,7 @@
 #' lab level multiplier determining how much variation there is systematically
 #' in site-labs from the state mean
 #' @param mean_obs_error_in_ww_lab_site mean day to day variation in observed
-#' wastewater concentraitons across all lab-sites
+#' wastewater concentrations across all lab-sites
 #' @param mean_reporting_freq mean frequency of wastewater measurements across
 #'  sites in per day (e.g. 1/7 is once per week)
 #' @param sd_reporting_freq standard deviation in the frequency of wastewater
@@ -105,8 +105,6 @@ generate_simulated_data <- function(site_level_inf_dynamics = TRUE,
     n_lab_sites <- n_sites
     map_site_to_lab <- 1:n_sites
   }
-
-
 
   # Expose the stan functions (can use any of the models here)
   model <- cmdstan_model(
@@ -373,9 +371,13 @@ generate_simulated_data <- function(site_level_inf_dynamics = TRUE,
       ),
       by = c("lab_wwtp_unique_id" = "lab_site")
     ) %>%
-    dplyr::mutate(below_LOD = ifelse(log_conc >= lod_sewage, 0, 1))
+    dplyr::mutate(below_LOD = ifelse(log_conc >= lod_sewage, 0, 1)) %>%
+    dplyr::mutate(lod_sewage = case_when(
+      is.na(log_conc) ~ NA,
+      !is.na(log_conc) ~ lod_sewage
+    ))
 
-  # Make a hospital admissiosn dataframe to bind to
+  # Make a hospital admissions dataframe to bind to
   df_hosp <- data.frame(
     t = 1:(ot + ht),
     daily_hosp_admits = c(exp_obs_hosp[1:ot], rep(NA, ht)),

@@ -1,4 +1,20 @@
 test_that("Make sure we can find and load files we need for other tests.", {
+  testthat::expect_true(
+    exists("toy_stan_data_id")
+  )
+
+  testthat::expect_true(
+    exists("toy_stan_fit_last_draw_id")
+  )
+
+  testthat::expect_true(
+    exists("toy_stan_data_ho")
+  )
+
+  testthat::expect_true(
+    exists("toy_stan_fit_last_draw_ho")
+  )
+
   # Compiled model object should exist in the workspace, with functions exposed
   testthat::expect_true(
     exists("compiled_site_inf_model")

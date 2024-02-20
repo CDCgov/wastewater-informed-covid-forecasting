@@ -15,7 +15,7 @@ get_pipeline_metadata(
   prod_run,
   model_type,
   location,
-  output_file_path,
+  output_dir,
   root_dir,
   ...
 )

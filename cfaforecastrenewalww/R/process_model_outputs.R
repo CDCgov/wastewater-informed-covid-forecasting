@@ -400,6 +400,48 @@ get_wastewater_diagnostic <- function(calib_data,
   return(wastewater_diagnostic)
 }
 
+#' Get the parameters that were flagged for diagnostics for the model run
+#'
+#' @param stan_fit_object CmdstanR object
+#' @param n_chains Number of chains in MCMC
+#' @param rhat_threshold Max acceptable Rhat, above this number we flag that
+#' parameter
+#' @param ess_threshold this number times n chains is the minimum effective
+#' sample size before we flag
+#'
+#' @return model_flags: a dataframe containing all the parameters that
+#' are flagged for havign either high Rhat or low effective sample size
+#' @export
+#'
+#' @examples
+get_model_run_diagnostics <- function(stan_fit_object, n_chains,
+                                      rhat_threshold = 1.05,
+                                      ess_threshold = 100) {
+  summary <- stan_fit_object$summary()
+  high_rhats <- summary |>
+    dplyr::filter(rhat > rhat_threshold) |>
+    arrange(-rhat) |>
+    mutate(
+      flag = "high_rhat"
+    )
+  low_ess_bulk <- summary |>
+    dplyr::filter(ess_bulk < ess_threshold * n_chains) |>
+    arrange(ess_bulk) |>
+    mutate(
+      flag = "low_ess_bulk"
+    )
+  low_ess_tail <- summary |>
+    dplyr::filter(ess_tail < ess_threshold * n_chains) |>
+    arrange(ess_tail) |>
+    mutate(
+      flag = "low_ess_tail"
+    )
+
+  model_flags <- rbind(high_rhats, low_ess_bulk, low_ess_tail)
+
+  return(model_flags)
+}
+
 #' Get a joint dataframe of data and model fit diagnostics
 #'
 #' @description
@@ -466,18 +508,57 @@ get_diagnostics <- function(stan_fit_object, train_data, location,
   )
 
   diagnostics <- stan_fit_object$diagnostic_summary(quiet = TRUE)
+
+  # Summary is a large dataframe with diagnostics for each parameters
+  summary <- stan_fit_object$summary()
+  max_rhat <- summary |>
+    select(rhat) |>
+    max(na.rm = TRUE)
+  param_max_rhat <- summary |>
+    dplyr::filter(rhat == max_rhat) |>
+    pull(variable) |>
+    paste(collapse = ",")
+
+  min_ess_bulk <- summary |>
+    select(ess_bulk) |>
+    min(na.rm = TRUE)
+  param_min_ess_bulk <- summary |>
+    dplyr::filter(ess_bulk == min_ess_bulk) |>
+    pull(variable) |>
+    paste(collapse = ",")
+
+  min_ess_tail <- summary |>
+    select(ess_tail) |>
+    min(na.rm = TRUE)
+  param_min_ess_tail <- summary |>
+    dplyr::filter(ess_tail == min_ess_tail) |>
+    pull(variable) |>
+    paste(collapse = ",")
+
   diagnostic_df <- tibble(
     diagnostic = c(
       "n_divergent",
       "n_max_treedepth",
       "mean_ebfmi",
-      "p_high_rhat"
+      "p_high_rhat",
+      "max_rhat",
+      "param_max_rhat",
+      "min_ess_bulk",
+      "param_min_ess_bulk",
+      "min_ess_tail",
+      "param_min_ess_tail"
     ),
     value = c(
       sum(diagnostics$num_divergent),
       sum(diagnostics$num_max_treedepth),
       mean(diagnostics$ebfmi),
-      as.numeric(mean(stan_fit_object$summary()[, "rhat"]$rhat > 1.05, na.rm = TRUE))
+      as.numeric(mean(stan_fit_object$summary()[, "rhat"]$rhat > 1.05, na.rm = TRUE)),
+      max_rhat,
+      param_max_rhat,
+      min_ess_bulk,
+      param_min_ess_bulk,
+      min_ess_tail,
+      param_min_ess_tail
     ),
     "location" = location,
     "forecast_date" = forecast_date,
@@ -534,22 +615,22 @@ get_summary_stats <- function(df,
                               p_high_rhat_tolerance = 0.05,
                               n_max_tree_depth_tol = 20) {
   states_w_no_ww_data <- df %>%
-    filter(diagnostic == "no_wastewater_data_flag", value == 1) %>%
-    pull(location)
+    dplyr::filter(diagnostic == "no_wastewater_data_flag", as.logical(value)) %>%
+    dplyr::pull(location)
 
   states_w_insufficient_ww_data <- df %>%
-    filter(diagnostic == "insufficient_ww_data_flag", value == 1) %>%
+    filter(diagnostic == "insufficient_ww_data_flag", as.logical(value)) %>%
     pull(location)
 
   states_w_delayed_ww_data <- df %>%
-    filter(diagnostic == "delayed_wastewater_data_flag", value == 1) %>%
+    filter(diagnostic == "delayed_wastewater_data_flag", as.logical(value)) %>%
     pull(location)
 
   # states with any data below LOD, or flat
   states_below_lod_or_flat <- df %>%
     filter(
       diagnostic %in% c("most_below_lod", "most_flat"),
-      value == 1
+      as.logical(value)
     ) %>%
     pull(location)
 
@@ -557,7 +638,7 @@ get_summary_stats <- function(df,
   states_low_ww <- df %>%
     filter(
       diagnostic %in% c("wastewater_values_too_low"),
-      value == 1
+      as.logical(value)
     ) %>%
     pull(location)
 
@@ -1067,43 +1148,7 @@ get_submission_filepath_df <- function(prod_model_type,
 
 #' Hardcoded figure filepath for figures per the read me
 #'
-#' @param output_file_path
-#' @param forecast_date
-#' @param date_run
-#'
-#' @return
-#' @export
-#'
-#' @examples
-get_figure_file_path <- function(
-    output_file_path,
-    forecast_date,
-    date_run) {
-  fp <- file.path(
-    output_file_path, "figures",
-    glue::glue("{forecast_date}-run-on-{date_run}")
-  )
-  return(fp)
-}
-#' Get the hardcoded file path for pdfs per the read me
-#'
-#' @param output_file_path
-#' @param forecast_date
-#' @param date_run
-#'
-#' @return
-#' @export
-#'
-#' @examples
-get_pdf_file_path <- function(output_file_path,
-                              forecast_date,
-                              date_run) {
-  fp <- file.path(
-    output_file_path, "cleaned",
-    glue::glue("{forecast_date}-run-on-{date_run}")
-  )
-  return(fp)
-}
+#' @param output_dir
 
 #' Get the relative path to directory to save the forecasts within the repo
 #'
@@ -1115,7 +1160,7 @@ get_pdf_file_path <- function(output_file_path,
 #' @examples
 get_relative_forecast_dir <- function(forecast_date) {
   fp <- fs::path(
-    "forecasts",
+    "output", "forecasts",
     glue::glue("{forecast_date}")
   )
 
@@ -1124,7 +1169,7 @@ get_relative_forecast_dir <- function(forecast_date) {
 
 #' Get the hardcoded submission file path
 #'
-#' @param output_file_path
+#' @param output_dir
 #' @param forecast_date
 #' @param date_run
 #' @param prod_run
@@ -1134,12 +1179,11 @@ get_relative_forecast_dir <- function(forecast_date) {
 #' @export
 #'
 #' @examples
-get_submission_file_path <- function(output_file_path,
+get_submission_file_path <- function(output_dir,
                                      forecast_date,
                                      date_run) {
   fp <- file.path(
-    output_file_path, "cleaned",
-    glue::glue("{forecast_date}-run-on-{date_run}")
+    output_dir, "cleaned"
   )
 
   return(fp)
@@ -1343,7 +1387,7 @@ get_all_quantiles <- function(model_draws) {
 #' Reads in the quantiles and summarizes scores by the grouping variables specified
 #'
 #' @param quantiles
-#' @param output_file_path
+#' @param output_dir
 #' @param grouping_vars
 #' @param write_files
 #'
@@ -1351,7 +1395,7 @@ get_all_quantiles <- function(model_draws) {
 #' @export
 #'
 #' @examples
-get_scores <- function(quantiles, output_file_path,
+get_scores <- function(quantiles, output_dir,
                        scores_file_path = file.path("summaries", "scores"),
                        grouping_vars = c(
                          "hosp_reporting_delay",
@@ -1414,12 +1458,12 @@ get_scores <- function(quantiles, output_file_path,
     left_join(log_wis_scores, by = c({{ grouping_vars }}))
 
   if (isTRUE(write_files)) {
-    create_dir(file.path(output_file_path, scores_file_path))
+    create_dir(file.path(output_dir, scores_file_path))
 
     arrow::write_parquet(
       x = scores_summary,
       sink = file.path(
-        output_file_path, scores_file_path,
+        output_dir, scores_file_path,
         "scores_summary.parquet"
       )
     )
@@ -1554,7 +1598,7 @@ get_quantiles_on_site_level_ww <- function(draws) {
 #' @param type_of_output what the pdf is a plot of
 #' @param n_row number of rows of figures on a page
 #' @param n_col number of columns of figures on a page
-#' @param output_file_path where to save the output
+#' @param output_dir where to save the output
 #' @param forecast_date date of forecast
 #' @param model_type which model we are running
 #' @param ...

@@ -34,10 +34,7 @@ write_config <- function(run_id,
                            "input",
                            "locations.csv"
                          ),
-                         path_to_save_metadata =
-                           file.path("output", "pipeline_run_metadata"),
-                         output_file_path =
-                           file.path("output"), # nolint
+                         param_file_path = file.path("input", "params.toml"),
                          prod_run = FALSE, # TRUE if running for submission
                          ww_data_path = file.path(
                            "input", "ww_data", "nwss_data",
@@ -76,9 +73,19 @@ write_config <- function(run_id,
 
   # More transient vals
   forecast_date <- lubridate::ymd(forecast_date)
+  date_run <- as.character(lubridate::ymd(date_run))
   calibration_time <- 90
   forecast_time <- 28
   n_draws <- 100 # draws from the posterior to save
+
+
+  output_dir <-
+    file.path(
+      "output", forecast_date,
+      stringr::str_glue("run-on-{date_run}-{run_id}")
+    ) # nolint
+  path_to_save_metadata <-
+    file.path(output_dir, "pipeline_run_metadata")
 
   # Pre-specified delay distributions
   generation_interval <- read.csv(here::here(
@@ -122,12 +129,13 @@ write_config <- function(run_id,
   # How to fit the model
   compute_likelihood <- 1 # if want to use data, else just priors
   include_hosp <- 1 # if want to use hosp
-  iter_warmup <- 250
-  iter_sampling <- 500
+  iter_warmup <- 1000
+  iter_sampling <- 750
   n_chains <- 4
   n_parallel_chains <- 4
   adapt_delta <- 0.99
   max_treedepth <- 12
+  seed <- 123
   model_file_name <- get_model_file_name(model_type, include_ww)
 
   if (prod_run == TRUE) {
@@ -151,13 +159,14 @@ write_config <- function(run_id,
     forecast_date = as.character(lubridate::ymd(forecast_date)),
     location = location,
     run_id = run_id,
-    date_run = as.character(lubridate::ymd(date_run)),
+    date_run = date_run,
     calibration_time = calibration_time,
     forecast_time = forecast_time,
     hosp_reporting_delay = hosp_reporting_delay,
     geo_type = geo_type,
     hosp_data_source = hosp_data_source,
     train_data_dir = train_data_dir,
+    param_file_path = param_file_path,
     ww_data_source = ww_data_source,
     compute_likelihood = compute_likelihood,
     include_ww = include_ww,
@@ -168,8 +177,9 @@ write_config <- function(run_id,
     n_parallel_chains = n_parallel_chains,
     adapt_delta = adapt_delta,
     max_treedepth = max_treedepth,
+    seed = seed,
     n_draws = n_draws,
-    output_file_path = output_file_path,
+    output_dir = output_dir,
     ww_data_path = ww_data_path,
     hosp_data_dir = hosp_data_dir,
     population_data_path = population_data_path,

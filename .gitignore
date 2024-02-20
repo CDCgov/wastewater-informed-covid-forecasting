@@ -12,8 +12,11 @@ targets.log
 # default secrets file
 secrets.yaml
 
-# all yaml ignored by default
-*.yaml
+# rendered documents ignored by default
+*.html
+*.pdf
+*.docx
+
 
 # rendered documents ignored by default
 *.html
@@ -37,6 +40,7 @@ output/*
 # Do track certain static data
 !input/saved_pmfs
 !input/locations.csv
+!input/params.toml
 
 # Do track the output/forecasts folder,
 # including .yaml within it

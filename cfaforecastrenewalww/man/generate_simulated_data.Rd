@@ -77,7 +77,7 @@ lab level multiplier determining how much variation there is systematically
 in site-labs from the state mean}
 
 \item{mean_obs_error_in_ww_lab_site}{mean day to day variation in observed
-wastewater concentraitons across all lab-sites}
+wastewater concentrations across all lab-sites}
 
 \item{mean_reporting_freq}{mean frequency of wastewater measurements across
 sites in per day (e.g. 1/7 is once per week)}

@@ -4,17 +4,10 @@
 \alias{get_df_of_filepaths}
 \title{Get dataframe of filepaths}
 \usage{
-get_df_of_filepaths(
-  location,
-  model_type,
-  forecast_date,
-  date_run,
-  run_id,
-  output_file_path
-)
+get_df_of_filepaths(output_dir, forecast_date, location, model_type)
 }
 \arguments{
-\item{output_file_path}{}
+\item{model_type}{}
 }
 \description{
 Get dataframe of filepaths

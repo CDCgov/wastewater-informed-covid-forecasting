@@ -1,0 +1,98 @@
+[timescale]
+uot = 50
+
+[infection_process]
+r_prior_mean = 1
+r_prior_sd = 1
+sigma_rt_prior = 0.3
+dur_inf = 7
+
+sigma_i0_prior_mode = 0
+sigma_i0_prior_sd = 0.5
+i0_certainty = 5
+  ## effective number of binomial trials
+  ## in beta prior centered on estimated i0/n
+
+initial_growth_prior_mean = 0
+initial_growth_prior_sd = 0.01
+autoreg_rt_a = 2 # shape1 parameter of autoreg term on Rt trend
+autoreg_rt_b = 40 # shape2 parameter of autoreg on Rt trend
+  # mean = a/(a+b) = 0.05, stdv = sqrt(a)/b = sqrt(2)/40 = 0.035
+eta_sd_sd = 0.01
+infection_feedback_prior_mean = 500
+infection_feedback_prior_sd = 200
+
+[hospital_admission_observation_process]
+# Hospitalization parameters (informative priors)
+# IHR estimate from: https://www.nature.com/articles/s41467-023-39661-5
+p_hosp_mean = 0.01
+p_hosp_sd_logit = 0.3
+
+# time variation in p_hosp
+p_hosp_w_sd_sd = 0.01
+
+inv_sqrt_phi_prior_mean = 0.1 # 1 / sqrt(100)
+inv_sqrt_phi_prior_sd = 0.1414214 # 1 / sqrt(50)
+phi_w_prior_mean = 100
+phi_w_prior_sd = 30
+wday_effect_prior_mean = 0.1428571 # 1 / 7
+wday_effect_prior_sd = 0.05
+
+[wastewater_observation_process]
+ml_of_ww_per_person_day = 22.7e4
+t_peak_mean = 5
+t_peak_sd = 1
+viral_peak_mean = 5.1
+viral_peak_sd = 0.5
+duration_shedding_mean = 17
+duration_shedding_sd = 3
+log10_g_prior_mean = 12
+log10_g_prior_sd = 2
+log_g_prior_mean = 27.63102 # 12 * log(10)
+log_g_prior_sd = 4.60517 # 2 * log(10)
+
+sigma_ww_prior_sd = 0.5
+
+sigma_ww_site_prior_mean_mean = 0.5
+sigma_ww_site_prior_mean_sd = 1
+sigma_ww_site_prior_sd_mean = 0
+sigma_ww_site_prior_sd_sd = 1
+autoreg_conc_a = 1
+# shape1 parameter of Beta dist for autoreg term on Ct trend
+autoreg_conc_b = 2
+# shape 2 parameter of Beta dist for autoreg term on Ct trend
+ww_site_mod_sd_sd = 0.25
+log_phi_g_prior_mean = -2.302585 # log(0.1)
+# prior mean in individual level dispersion
+# in fecal shedding
+log_phi_g_prior_sd = 5 # wide std
+
+
+[continuous_distribution_parameters]
+  # Generation Interval
+  # From: Park, Sang Woo, et al. "Inferring the differences in incubation-period
+  # and generation-interval distributions of the Delta and Omicron variants of
+  # SARS-CoV-2." Proceedings of the National Academy of Sciences 120.22 (2023):
+  # e2221887120.
+  # from the object in Fig 4F corresponding to between household transmission
+  # in Omicron https://github.com/parksw3/omicron-generation/blob/d36d4568bfd3b3d389b30282758b9c322cfe2b9f/figure/compare.R#L175 #nolint
+
+ mu_gi = 0.92877
+ sigma_gi = 0.526 # (using lognormal CDF and Park CIs of 2.7 and 3.2)
+ gt_max = 15 # number of daily bins for discretization
+
+  # Incubation period parameters
+  # From: Park, Sang Woo, et al. "Inferring the differences in incubation-period
+  # and generation-interval distributions of the Delta and Omicron variants of
+  # SARS-CoV-2." Proceedings of the National Academy of Sciences 120.22 (2023):
+  # e2221887120.
+ r = 0.15
+ backward_shape = 1.5
+ backward_scale = 3.6
+
+  # Symptom onset to hospital admission delay parameters
+  # From fitting a negative binomial to data from
+  # Danache et al
+  # https://journals.plos.org/plosone/article?id=10.1371/journal.pone.0261428
+ neg_binom_mu = 6.98665
+ neg_binom_size = 2.490848

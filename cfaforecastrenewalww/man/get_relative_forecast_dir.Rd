@@ -2,13 +2,14 @@
 % Please edit documentation in R/process_model_outputs.R
 \name{get_relative_forecast_dir}
 \alias{get_relative_forecast_dir}
-\title{Get the relative path to directory to save the forecasts within the repo}
+\title{Hardcoded figure filepath for figures per the read me}
 \usage{
 get_relative_forecast_dir(forecast_date)
 }
 \arguments{
 \item{forecast_date}{date of forecast}
+\item{output_dir}{Get the relative path to directory to save the forecasts within the repo}
 }
 \description{
-Get the relative path to directory to save the forecasts within the repo
+Hardcoded figure filepath for figures per the read me
 }
