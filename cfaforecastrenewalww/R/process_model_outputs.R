@@ -1161,7 +1161,6 @@ get_submission_filepath_df <- function(prod_model_type,
 get_relative_forecast_dir <- function(forecast_date) {
   fp <- fs::path(
     "output", "forecasts",
-
     glue::glue("{forecast_date}")
   )
 
