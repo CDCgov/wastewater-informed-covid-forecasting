@@ -8,6 +8,7 @@ For an example of how to fit the model to simulated data, we recommend the [toy 
 
 ## Data sources
 
+
 We use two data sources as input to the model: wastewater viral concentrations and hospital admissions data. We describe each of these data sources in detail below.
 
 ### Wastewater viral concentration data

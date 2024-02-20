@@ -187,6 +187,7 @@ get_metadata_yaml <- function(full_diagnostics_df,
 #' @param model_type
 #' @param location
 #' @param output_dir
+
 #' @param root_dir root directory where pipeline is being run, used to make absolute filepaths
 #' @param ...
 #' @return the metadata

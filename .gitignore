@@ -12,6 +12,11 @@ targets.log
 # default secrets file
 secrets.yaml
 
+# rendered documents ignored by default
+*.html
+*.pdf
+*.docx
+
 
 # rendered documents ignored by default
 *.html
