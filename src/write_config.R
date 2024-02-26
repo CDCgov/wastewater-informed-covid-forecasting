@@ -50,7 +50,7 @@ write_config <- function(run_id,
     if (model_type == "state-level aggregated wastewater") {
       location <- c(
         "AK", "AL", "AR", "AZ", "CA",
-        "CO", "CT", "DC", "DE", "FL", "GA", "GU", "ND",
+        "CO", "CT", "DC", "DE", "FL", "GA", "ND",
         "HI", "IA", "ID", "IL", "IN", "KS", "KY", "LA", "MA",
         "MD", "ME", "MI", "MN", "MO", "MS", "MT", "NC",
         "NE", "NH", "NJ", "NM", "NV", "NY", "OH", "OK", "OR",
@@ -58,7 +58,6 @@ write_config <- function(run_id,
         "VT", "WA", "WI", "WV", "WY", "US"
       )
     } else {
-      # put NY back in
       location <- c(
         "AK", "AL", "AR", "AZ", "CA",
         "CO", "CT", "DC", "DE", "FL", "GA", "ND",
@@ -114,26 +113,18 @@ write_config <- function(run_id,
 
   # Assign the dates and locations for wastewater data to be removed manually
   first_date <- forecast_date - lubridate::days(calibration_time) - hosp_reporting_delay
-  dates_for_ww_removal <- c(seq(
-    from = first_date,
-    to = lubridate::ymd("2023-12-31"),
-    by = "days"
-  ))
 
-  states_for_ww_removal <- c(rep(
-    "MN",
-    length(dates_for_ww_removal)
-  ))
-
+  dates_for_ww_removal <- c()
+  states_for_ww_removal <- c()
 
   # How to fit the model
   compute_likelihood <- 1 # if want to use data, else just priors
   include_hosp <- 1 # if want to use hosp
-  iter_warmup <- 1000
-  iter_sampling <- 750
+  iter_warmup <- 750
+  iter_sampling <- 500
   n_chains <- 4
   n_parallel_chains <- 4
-  adapt_delta <- 0.99
+  adapt_delta <- 0.95
   max_treedepth <- 12
   seed <- 123
   model_file_name <- get_model_file_name(model_type, include_ww)

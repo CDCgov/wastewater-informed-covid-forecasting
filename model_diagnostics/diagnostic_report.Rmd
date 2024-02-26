@@ -9,6 +9,7 @@ library(targets)
 tar_read(full_diagnostics_df)
 tar_read(hub_submission_df)
 
+
 summary_list <- get_summary_stats(full_diagnostics_df)
 ```
 # Number of states/territories

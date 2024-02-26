@@ -2,7 +2,7 @@
 % Please edit documentation in R/process_model_outputs.R
 \name{get_diagnostics}
 \alias{get_diagnostics}
-\title{Get a joint dataframe of data and model fit diagnostics}
+\title{Get a data frame of data and model fit diagnostics}
 \usage{
 get_diagnostics(
   stan_fit_object,
@@ -10,20 +10,35 @@ get_diagnostics(
   location,
   model_type,
   forecast_date,
+  ebmfi_tolerance = 0.2,
+  divergences_tolerance = 0.01,
+  p_high_rhat_tolerance = 0.05,
+  max_tree_depth_tol = 0.01,
   ...
 )
 }
 \arguments{
-\item{stan_fit_object}{The output of fit$sample() in cmdstanR}
+\item{stan_fit_object}{The cmdstan object}
 
-\item{train_data}{The datarframe containing hospital admissions and
+\item{train_data}{The dataframe containing hospital admissions and
 wastewater data for callibration of the model}
 
 \item{location}{The location the model is being run on}
 
-\item{model_type}{The type of model e.g. site-level observation error}
+\item{model_type}{The type of model}
 
 \item{forecast_date}{The date of the forecast}
+
+\item{ebmfi_tolerance}{tolerance for mean EBMFI, default of 0.2}
+
+\item{divergences_tolerance}{tolerance for percent of iterations that
+are divergent from an individual chain}
+
+\item{p_high_rhat_tolerance}{tolerance for probability of high p_hat,
+default 0.05}
+
+\item{max_tree_depth_tol}{tolerance for number of draws that
+hit the maximum tree depth, default to 0.01}
 
 \item{...}{}
 }
@@ -31,7 +46,5 @@ wastewater data for callibration of the model}
 Returns a dataframe containing diagnostic summaries
 }
 \description{
-This returns a 10 row dataframe corresponding to 6 flags of the hospital
-admissions or wastewater data and 4 rows corresponding to stan fit
-diagnostics.
+Get a data frame of data and model fit diagnostics
 }

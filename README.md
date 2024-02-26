@@ -81,12 +81,28 @@ Model outputs are written to individual folders after each model is run, and the
                     		+-- individual plots of generated quantities + data for all models
     		+-- cleaned
 			+-- external
-				+-- pdf of hub submissions
+				+--cfa-wwrenewal
+					+-- {forecast_date}-cfa-wwrenewal.csv
+					+-- pdf of hub submissions
+				+--cfa-wwrenewal_hosp_only
+					+-- {forecast_date}-cfa-wwrenewal_hosp_only.csv
+					+-- pdf of what we would have submitted to hub had we submitted all hosp_only model
+				+--cfa-wwrenewal_all_ww
+					+-- {forecast_date}-cfa-wwrenewal_all_ww.csv
+					+-- pdf of what we would have submitted to hub had we submitted wastewater model in all cases
             		+-- internal
                 		+-- diagnostic_report.html
 				+-- pdfs of combined quantiles forecasts, hospital admissions forecasts for mult models, wastewater estimates, R(t), etc.
 			+-- {submitted/test}_forecasts
-                   			 +-- {forecast_date}-CDC_CFA-renewal_ww.csv
+				+-- {forecast_date}-cfa-wwrenewal.csv
+			+-- all_wastewater_submission
+				+-- test_forecasts
+					+--cfa_wwrenewal_all_ww
+						+{forecast_date}_cfa-wwrenewal_all_ww.csv
+			+-- hospital_admissions_only_submission
+				+-- test_forecasts
+					+--cfa_wwrenewal_hosp_only
+						+{forecast_date}_cfa-wwrenewal_hosp_only.csv
   		 +-- pipeline_run_metadata
         		+-- {test/prod}
                    		 +-- {run_id}.yaml
@@ -136,8 +152,8 @@ If you do, you can then install `CmdStan` by running:
 cmdstanr::install_cmdstan()
 ```
 If installation succeeds, you should see a message like the following:
-```R
-* Finished installing CmdStan to <a filepath on your system>
+```
+CmdStan path set to: {a path on your file system}
 ```
 
 If you run into trouble, consult the official [`cmdstanr`](https://mc-stan.org/cmdstanr/index.html) website for further installation guides and help.
@@ -169,15 +185,11 @@ NHSN_API_KEY_SECRET: {key}
 nwss_data_token: {token}
 data_rid: {rid}
 ```
-Directions to obtain the covidcast API are found [here](https://cmu-delphi.github.io/delphi-epidata/api/covidcast_clients.html).
 
-To request an NHSN token, navigate to [HealthData.gov’s developer settings page](https://healthdata.gov/login).
-You may be prompted to log in. If you have HHS AMS credentials, you should use those. Otherwise, you can sign up for an account with Tyler Data and Insights (which manages HealthData.gov). Once logged in and on the developer settings page, click the "Create new API key" button and follow the prompts.
-
-Note that you will need to have access to the dataset on DCIPHER to obtain the credentials stored as `nwss_data_token` and `data_rid`.
-Once you have DCIPHER access, you will need to go [here](https://dcipher.cdc.gov/workspace/settings/tokens) to create a new token.
-Name it whatever you like, then be sure to copy the one-time token and place it in `secrets.yaml` as your `nwss_data_token`.
-The dataset RID is obtained when the data use agreement is approved and the link to the dataset on DCIPHER is provided.
+- covidcast: Go to the CMU Delphi [website](https://cmu-delphi.github.io/delphi-epidata/api/api_keys.html) and request an API key using [their form](https://api.delphi.cmu.edu/epidata/admin/registration_form). The key will come in an email.
+- NSHN: Log into HealthData.gov's [developer settings page](https://healthdata.gov/login). At the profile page, click the pencil next to the abstract avatar image, then "Developer Settings," then create an API key. Be sure to copy the key secret to a safe place because you won't be able to see it again.
+- NWSS: Ensure you have access to DCIPHER first. Then go to the [tokens page](https://dcipher.cdc.gov/workspace/settings/tokens) to create a new token. Be sure to copy the token to a safe place because you won't be able to see it again.
+- RID: The dataset RID is obtained when the data use agreement is approved and the link to the dataset on DCIPHER is provided.
 
 ## Run the pipeline
 To run the pipeline, type the following at a command prompt from the top-level project directory:

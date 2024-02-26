@@ -6,15 +6,12 @@
 \usage{
 get_model_run_diagnostics(
   stan_fit_object,
-  n_chains,
   rhat_threshold = 1.05,
   ess_threshold = 100
 )
 }
 \arguments{
 \item{stan_fit_object}{CmdstanR object}
-
-\item{n_chains}{Number of chains in MCMC}
 
 \item{rhat_threshold}{Max acceptable Rhat, above this number we flag that
 parameter}

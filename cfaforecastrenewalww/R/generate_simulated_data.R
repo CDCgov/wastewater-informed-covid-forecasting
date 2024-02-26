@@ -10,8 +10,8 @@
 #' @param site_level_conc_dynamics if TRUE then the toy data has variation in the
 #' site-level concentration each day, if FALSE, then the relationship from infection
 #' to concentration in each site is the same across sites
-#' @param r_in_weeks The weekly R(t) that drives infection dynamics at the state-
-#' level
+#' @param r_in_weeks The mean weekly R(t) that drives infection dynamics at the state-
+#' level. This gets jittered with random noise to add week-to-week variation.
 #' @param n_sites Number of sites
 #' @param ww_pop_sites Catchment area in each of those sites (order must match)
 #' @param pop_size Population size in the state
@@ -44,9 +44,15 @@
 #' date to the last wastewater sample collection date, across sites
 #' @param mean_log_lod mean log of the LOD in each lab-site
 #' @param sd_log_lod standard deviation in the log of the LOD across sites
-#' @param set_seed whether or not we want to set the seed
+#' @param example_params_path path to the toml file with the parameters to use to
+#' generate the simulated data
 #'
-#' @return
+#' @return a list containing two dataframes. example_df is a dataframe containing
+#' all the columns needed to get the stan data needed for the infection dynamics
+#' model. It contains values for every site-lab-day combination, with NAs
+#' when the wastewater concentrations aren't observed. Hospital admissions
+#' are therefore repeated N site-lab times. param_df is a single row data
+#' frame of all the static parameters used to generate the model
 #' @export
 #'
 #' @examples
@@ -80,12 +86,10 @@ generate_simulated_data <- function(site_level_inf_dynamics = TRUE,
                                     sd_reporting_latency = 5,
                                     mean_log_lod = 3.8,
                                     sd_log_lod = 0.2,
-                                    set_seed = TRUE) {
-  # Set seed so we get the same results each time for the same input
-  if (isTRUE(set_seed)) {
-    set.seed(1)
-  }
-
+                                    example_params_path =
+                                      fs::path_package("extdata", "example_params.toml",
+                                        package = "cfaforecastrenewalww"
+                                      )) {
   stopifnot(
     "weekly R(t) passed in isn't long enough" =
       length(r_in_weeks) >= (ot + nt + forecast_time) / 7
@@ -118,7 +122,7 @@ generate_simulated_data <- function(site_level_inf_dynamics = TRUE,
   )
 
   model$expose_functions(global = TRUE)
-  params <- get_params() # load in a data table with parameters
+  params <- get_params(example_params_path) # load in a data table with parameters
   par_names <- colnames(params) # pull them into memory
   for (i in seq_along(par_names)) {
     assign(par_names[i], as.double(params[i]))
@@ -345,7 +349,7 @@ generate_simulated_data <- function(site_level_inf_dynamics = TRUE,
   # latencies for each lab-site
   log_obs_conc_lab_site <- matrix(nrow = n_lab_sites, ncol = ot + ht)
   for (i in 1:n_lab_sites) {
-    st <- sample(1:(ot + nt), floor((ot + nt) * lab_site_reporting_freq[i]))
+    st <- sample(1:(ot + nt), round((ot + nt) * lab_site_reporting_freq[i]))
     stl <- pmin((ot + nt - lab_site_reporting_latency[i]), st)
     log_obs_conc_lab_site[i, stl] <- log_obs_g_over_n_lab_site[i, stl] -
       log(ml_of_ww_per_person_day)

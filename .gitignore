@@ -12,11 +12,6 @@ targets.log
 # default secrets file
 secrets.yaml
 
-# rendered documents ignored by default
-*.html
-*.pdf
-*.docx
-
 
 # rendered documents ignored by default
 *.html
@@ -43,9 +38,8 @@ output/*
 !input/params.toml
 
 # Do track the output/forecasts folder,
-# including .yaml within it
 !output/forecasts
-!output/forecasts/*.yaml
+!output/forecasts/*
 
 # compiled test executables
 test/test_expgamma_lpdf

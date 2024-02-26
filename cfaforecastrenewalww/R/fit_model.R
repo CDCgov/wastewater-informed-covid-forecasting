@@ -117,30 +117,50 @@ get_df_of_filepaths <- function(output_dir,
 
 # Fit the model using aggregated WW data ---------------------------------------
 
-#' @title Fit site level model
-#' @description Takes in the training data, which is a long dataframe with all the
-#' site level WW observations plus the observed hospitalizations.
-#' Fit the stan model to a single slice of data
+#' @title Fit aggregated model
 #'
-#' @param train_data for a single location
-#' @param params of the model, these should be the same across all runs
-#' @param forecast_date
-#' @param forecast_time
-#' @param include_hosp
-#' @param compute_likelihood
-#' @param damp_type
-#' @param n_draws
-#' @param n_chains
-#' @param iter_sampling
-#' @param iter_warmup
-#' @param n_parallel_chains
-#' @param adapt_delta
-#' @param max_treedepth
-#' @param model_file compiled stan model (an upstream target)
-#' @param model_file_path
-#' @param write_files
+#' @description
+#' Wrapper function to fit the "aggregated" model, which takes in a single
+#' obervation of hospital admissions and wastewater data per time point
 #'
-#' @return a dataframe with 100 model draws for all time points for WW
+#'
+#' @param train_data dataframe containing a single locations observed hospital
+#' admissions and observed wastewater concentrations, with no more than one
+#' wastewater data stream for each time point
+#' @param params disease-specific parameters, including hyperparameters for priors.
+#' @param model_file the compiled stan model
+#' @param forecast_date date of the forecast
+#' @param forecast_time duration of the forecast period
+#' @param model_type name of the model being fit. Options are:
+#' `"state-level aggregated wastewater"`
+#' @param generation_interval a discretized (in days) normalized pmf indexed
+#' starting at 1 of the probability of each time from initial infection to
+#' secondary transmission
+#' @param inf_to_hosp a discretized (in days) normalized pmf indexed starting at
+#' 0 of the probability of time from initial infection to hospital admissions
+#' @param infection_feedback_pmf a discretized (in days) normalized pmf
+#' that dictates the distribution of delays from incident infection to incidence
+#' feedback
+#' @param include_hosp whether or not to include hospital admissions data in
+#' the likelihood to include
+#' @param compute_likelihood whether or not to include any data in the
+#' likelihood, if set to 0 returns prior predictions
+#' @param n_draws number of draws to save in the draws.parquet
+#' @param n_chains number of independent MCMC chains to run
+#' @param iter_sampling number of iterations to save in MCMC sampling
+#' @param iter_warmup number of iterations to discard in MCMC sampling
+#' @param n_parallel_chains number of chains to run in parallel, default = 4
+#' @param adapt_delta target proposal acceptance probability for the No-U-Turn Sampler.
+#' sampler
+#' @param max_treedepth max value in exponents of 2 of what the binary tree size
+#' in the NUTS algorithm should have
+#' @param seed random seed for the sampler
+#' @param output_dir location to save the model outputs
+#' @param write_files whether or not to save the outputs, default = 1 to save
+#' @param ... Additional named arguments (ignored) to allow [do.call()] on
+#' lists with additional entries
+#'
+#' @return a dataframe with model draws for all time points for WW
 #'  concentraiton, hospitalizaitons, hosp per 100k, and the matched data
 #' @export
 #'
@@ -148,8 +168,6 @@ get_df_of_filepaths <- function(output_dir,
 fit_aggregated_model <- function(train_data, params,
                                  model_file,
                                  forecast_date,
-                                 run_id,
-                                 date_run,
                                  forecast_time,
                                  model_type,
                                  generation_interval,
@@ -353,7 +371,7 @@ fit_aggregated_model <- function(train_data, params,
         model_type, forecast_date
       )
       model_run_diagnostics <- get_model_run_diagnostics(
-        fit_dynamic_rt, n_chains
+        fit_dynamic_rt
       )
 
       # Make a 1 row dataframe that contains the metadata combined with the
@@ -410,25 +428,59 @@ fit_aggregated_model <- function(train_data, params,
 }
 
 
-#' Fit the stan model to a single slice of data
+#' @title Fit site-level model
+#' @description
+#' Wrapper function to take a location's training data and fit to the
+#' site-level model
 #'
-#' @param train_data for a single location
-#' @param params of the model, these should be the same across all runs
-#' @param config_vars tells the model whether or not to include WW,
-#'                    include hosp, compute likelihood, and what damp type.
-#' @param model_file compiled stan model (an upstream target)
+#' @param train_data dataframe containing the hospital admissions on each day,
+#' the wastewater concentrations in each site and lab, and other metadata needed
+#' to pass to stan to run the model
+#' @param params disease-specific parameters, including hyperparameters for priors.
+#' @param model_file the compiled stan model
+#' @param forecast_date date of the forecast
+#' @param forecast_time duration of the forecast period
+#' @param generation_interval a discretized (in days) normalized pmf indexed
+#' starting at 1 of the probability of each time from initial infection to
+#' secondary transmission
+#' @param inf_to_hosp a discretized (in days) normalized pmf indexed starting at
+#' 0 of the probability of time from initial infection to hospital admissions
+#' @param infection_feedback_pmf a discretized (in days) normalized pmf
+#' that dictates the distribution of delays from incident infection to incidence
+#' feedback
+#' @param model_type name of the model being fit. Options are
+#' `"site-level infection dynamics"`, `"site-level observation error"`,
+#' `"site-level time-varying concentration"`
+#' @param output_dir location to save the model outputs
+#' @param adapt_delta dapt_delta target proposal acceptance probability for the No-U-Turn Sampler.
+#' @param max_treedepth max value in exponents of 2 of what the binary tree size
+#' in the NUTS algorithm should have
+#' @param seed random seed for the sampler
+#' @param include_hosp whether or not to include hospital admissions data in
+#' the likelihood (default = 1) to include
+#' @param compute_likelihood whether or not to include any data in the
+#' likelihood (default = 1), if set to 0 returns prior predictions
+#' @param n_draws number of draws to save in the draws.parquet, default = 100
+#' @param n_chains number of independent MCMC chains to run, default = 4
+#' @param iter_sampling number of iterations to save in MCMC sampling,
+#' default = 500
+#' @param iter_warmup number of iterations to discard in MCMC sampling,
+#' default = 250
+#' @param n_parallel_chains number of chains to run in parallel, default = 4
+#' @param write_files whether or not to save the outputs, default = 1 to save
+#' @param output_full_df whether or not to have targets return the full
+#' dataframe of draws, default = FALSE to just return a dataframe of filepaths
+#' @param ... Additional named arguments (ignored) to allow [do.call()] on
+#' lists with additional entries
 #'
-#' @return a dataframe with 100 model draws for all time points for WW
+#' @return a dataframe with model draws for all time points for WW
 #'  concentraiton, hospitalizaitons, hosp per 100k, and the matched data
 #' @export
-#'
 #' @examples
 fit_site_level_model <- function(train_data,
                                  params,
                                  model_file,
                                  forecast_date,
-                                 run_id,
-                                 date_run,
                                  forecast_time,
                                  generation_interval,
                                  inf_to_hosp,
@@ -758,7 +810,7 @@ fit_site_level_model <- function(train_data,
         model_type_to_save, forecast_date
       )
       model_run_diagnostics <- get_model_run_diagnostics(
-        fit_dynamic_rt, n_chains
+        fit_dynamic_rt
       )
 
       # Make a 1 row dataframe that contains the metadata combined with the

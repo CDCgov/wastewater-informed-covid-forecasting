@@ -167,6 +167,187 @@ list(
     deployment = "main"
   ),
 
+  # Site level infection dynamics  -----------------------------------
+  tar_target(
+    name = config_vars_id,
+    command = get_config_vals(fp_config_yaml_id),
+    deployment = "main",
+    priority = 1
+  ),
+  tar_target(
+    name = output_dir_id,
+    command = config_vars_id$output_dir,
+    deployment = "main",
+    priority = 1
+  ),
+  tar_target(
+    name = create_output_dir_id,
+    command = create_dir(output_dir_id),
+    deployment = "main",
+    priority = 1
+  ),
+  tar_target(
+    name = ww_data_raw_id,
+    command = do.call(get_ww_data, config_vars_id),
+    deployment = "main",
+    priority = 1
+  ),
+  tar_target(
+    name = train_data_orig_id,
+    command = do.call(get_all_training_data, c(
+      list(
+        ww_data_raw = ww_data_raw_id
+      ),
+      config_vars_id
+    )),
+    deployment = "main",
+    priority = 1
+  ),
+  tar_target(
+    name = train_data_id,
+    command = do.call(manual_removal_of_hosp_data, c(
+      list(train_data = train_data_orig_id),
+      config_vars_id
+    )),
+    deployment = "main",
+    priority = 1
+  ),
+  tar_target(
+    name = model_file_path_id,
+    command = config_vars_id$model_file_path,
+    format = "file",
+    deployment = "main",
+    priority = 1
+  ),
+  tar_target(
+    name = model_file_id,
+    command = ww_model(model_file_path_id),
+    deployment = "main",
+    priority = 1
+  ),
+  tar_target(
+    name = grouped_data_id,
+    command = train_data_id %>%
+      group_by(location) %>%
+      targets::tar_group(),
+    iteration = "group",
+    deployment = "main",
+    priority = 1
+  ),
+  tar_target(
+    name = param_file_path_id,
+    command = config_vars_id$param_file_path,
+    format = "file",
+    priority = 1
+  ),
+  tar_target(
+    name = params_id,
+    command = get_params(param_file_path_id),
+    deployment = "main",
+    priority = 1
+  ),
+
+
+  ## Fit the model ------------------------------------------------------------
+  # # get a stacked long dataframe containing the quantiles(estimated
+  # # from all draws) and 100 samples of the draws from the posterior for the
+  # # generated quantities and the parameters
+  tar_target(
+    name = df_of_filepaths_id,
+    command = do.call(
+      fit_site_level_model,
+      c(list(train_data = grouped_data_id),
+        list(params = params_id),
+        model_file = model_file_id,
+        config_vars_id
+      )
+    ),
+    pattern = map(grouped_data_id),
+    iteration = "group",
+    deployment = "worker",
+    priority = 1
+  ),
+  #  For plotting generated quantities
+  tar_target(
+    name = grouped_df_id,
+    command = df_of_filepaths_id %>%
+      filter(model_type == "site-level infection dynamics") %>%
+      group_by(location) %>%
+      targets::tar_group(),
+    iteration = "group",
+    deployment = "main"
+  ),
+  tar_target(
+    name = plot_single_location_hosp_draws_id,
+    command = get_plot_draws(grouped_df_id,
+      "pred_hosp",
+      figure_file_path,
+      show_calibration_data = FALSE
+    ),
+    pattern = map(grouped_df_id),
+    iteration = "list",
+    deployment = "main"
+  ),
+  tar_target(
+    name = plot_single_location_comb_quantiles_id,
+    command = get_combo_quantile_plot(
+      grouped_df_id,
+      figure_file_path
+    ),
+    pattern = map(grouped_df_id),
+    iteration = "list",
+    deployment = "main"
+  ),
+  tar_target(
+    name = plot_ww_site_level_quantiles_id,
+    command = get_ww_site_plots(
+      grouped_df_id,
+      figure_file_path
+    ),
+    pattern = map(grouped_df_id),
+    iteration = "list",
+    deployment = "main"
+  ),
+  tar_target(
+    name = plot_single_location_ww_draws_id,
+    command = get_plot_labsite_ww_draws(
+      grouped_df_id,
+      figure_file_path
+    ),
+    pattern = map(grouped_df_id),
+    iteration = "list",
+    deployment = "main"
+  ),
+  tar_target(
+    name = plot_rt_id,
+    command = get_rt_from_draws(
+      grouped_df_id,
+      figure_file_path
+    ),
+    pattern = map(grouped_df_id),
+    iteration = "list",
+    deployment = "main"
+  ),
+  tar_target(
+    name = plot_rt_site_level,
+    command = get_rt_site_level(
+      grouped_df_id,
+      figure_file_path
+    ),
+    pattern = map(grouped_df_id),
+    iteration = "list",
+    deployment = "main"
+  ),
+  tar_target(
+    name = plot_params_id,
+    command = get_plot_param_distribs(
+      grouped_df_id,
+      figure_file_path
+    ),
+    pattern = map(grouped_df_id),
+    iteration = "list",
+    deployment = "main"
+  ),
 
   # Hospital admissions only model for all states for a comparison-----------
   tar_target(
@@ -453,177 +634,6 @@ list(
     deployment = "main"
   ),
 
-  # Site level infection dynamics  -----------------------------------
-  tar_target(
-    name = config_vars_id,
-    command = get_config_vals(fp_config_yaml_id),
-    deployment = "main"
-  ),
-  tar_target(
-    name = output_dir_id,
-    command = config_vars_id$output_dir,
-    deployment = "main"
-  ),
-  tar_target(
-    name = create_output_dir_id,
-    command = create_dir(output_dir_id),
-    deployment = "main"
-  ),
-  tar_target(
-    name = ww_data_raw_id,
-    command = do.call(get_ww_data, config_vars_id),
-    deployment = "main"
-  ),
-  tar_target(
-    name = train_data_orig_id,
-    command = do.call(get_all_training_data, c(
-      list(
-        ww_data_raw = ww_data_raw_id
-      ),
-      config_vars_id
-    )),
-    deployment = "main"
-  ),
-  tar_target(
-    name = train_data_id,
-    command = do.call(manual_removal_of_hosp_data, c(
-      list(train_data = train_data_orig_id),
-      config_vars_id
-    )),
-    deployment = "main"
-  ),
-  tar_target(
-    name = model_file_path_id,
-    command = config_vars_id$model_file_path,
-    format = "file",
-    deployment = "main"
-  ),
-  tar_target(
-    name = model_file_id,
-    command = ww_model(model_file_path_id),
-    deployment = "main"
-  ),
-  tar_target(
-    name = grouped_data_id,
-    command = train_data_id %>%
-      group_by(location) %>%
-      targets::tar_group(),
-    iteration = "group",
-    deployment = "main"
-  ),
-  tar_target(
-    name = param_file_path_id,
-    command = config_vars_id$param_file_path,
-    format = "file"
-  ),
-  tar_target(
-    name = params_id,
-    command = get_params(param_file_path_id),
-    deployment = "main"
-  ),
-
-
-  ## Fit the model ------------------------------------------------------------
-  # # get a stacked long dataframe containing the quantiles(estimated
-  # # from all draws) and 100 samples of the draws from the posterior for the
-  # # generated quantities and the parameters
-  tar_target(
-    name = df_of_filepaths_id,
-    command = do.call(
-      fit_site_level_model,
-      c(list(train_data = grouped_data_id),
-        list(params = params_id),
-        model_file = model_file_id,
-        config_vars_id
-      )
-    ),
-    pattern = map(grouped_data_id),
-    iteration = "group",
-    deployment = "worker"
-  ),
-  #  For plotting generated quantities
-  tar_target(
-    name = grouped_df_id,
-    command = df_of_filepaths_id %>%
-      filter(model_type == "site-level infection dynamics") %>%
-      group_by(location) %>%
-      targets::tar_group(),
-    iteration = "group",
-    deployment = "main"
-  ),
-  tar_target(
-    name = plot_single_location_hosp_draws_id,
-    command = get_plot_draws(grouped_df_id,
-      "pred_hosp",
-      figure_file_path,
-      show_calibration_data = FALSE
-    ),
-    pattern = map(grouped_df_id),
-    iteration = "list",
-    deployment = "main"
-  ),
-  tar_target(
-    name = plot_single_location_comb_quantiles_id,
-    command = get_combo_quantile_plot(
-      grouped_df_id,
-      figure_file_path
-    ),
-    pattern = map(grouped_df_id),
-    iteration = "list",
-    deployment = "main"
-  ),
-  tar_target(
-    name = plot_ww_site_level_quantiles_id,
-    command = get_ww_site_plots(
-      grouped_df_id,
-      figure_file_path
-    ),
-    pattern = map(grouped_df_id),
-    iteration = "list",
-    deployment = "main"
-  ),
-  tar_target(
-    name = plot_single_location_ww_draws_id,
-    command = get_plot_labsite_ww_draws(
-      grouped_df_id,
-      figure_file_path
-    ),
-    pattern = map(grouped_df_id),
-    iteration = "list",
-    deployment = "main"
-  ),
-  tar_target(
-    name = plot_rt_id,
-    command = get_rt_from_draws(
-      grouped_df_id,
-      figure_file_path
-    ),
-    pattern = map(grouped_df_id),
-    iteration = "list",
-    deployment = "main"
-  ),
-  tar_target(
-    name = plot_rt_site_level,
-    command = get_rt_site_level(
-      grouped_df_id,
-      figure_file_path
-    ),
-    pattern = map(grouped_df_id),
-    iteration = "list",
-    deployment = "main"
-  ),
-  tar_target(
-    name = plot_params_id,
-    command = get_plot_param_distribs(
-      grouped_df_id,
-      figure_file_path
-    ),
-    pattern = map(grouped_df_id),
-    iteration = "list",
-    deployment = "main"
-  ),
-
-
   # Combine the model outputs-----------------------------------------
   tar_target(
     name = comb_df_filepaths,
@@ -694,6 +704,7 @@ list(
         ),
         type_of_output = "site_level_inf_dynamics",
         pdf_file_path = file.path(pdf_file_path, "internal"),
+        model_name = config_vars_id$submitting_model_name,
         n_row = 1,
         n_col = 1,
         config_vars_id
@@ -712,6 +723,7 @@ list(
         ),
         type_of_output = "hosp_and_ww_forecasts_site_level_inf_dyn",
         pdf_file_path = file.path(pdf_file_path, "internal"),
+        model_name = config_vars_id$submitting_model_name,
         n_row = 3,
         n_col = 1,
         config_vars_id
@@ -726,6 +738,7 @@ list(
       c(list(list_of_plots = plot_mult_models),
         type_of_output = "forecasts_from_mult_model_types",
         pdf_file_path = file.path(pdf_file_path, "internal"),
+        model_name = config_vars_id$submitting_model_name,
         n_row = 3,
         n_col = 1,
         config_vars_id
@@ -794,11 +807,12 @@ list(
   ),
   tar_target(
     name = pipeline_ww_metadata,
-    command = get_metadata_yaml(
-      full_diagnostics_df,
-      repo_file_path,
-      hosp_only_states
-    )
+    command = do.call(get_metadata_yaml, c(
+      list(full_diagnostics_df = full_diagnostics_df),
+      repo_file_path = repo_file_path,
+      list(hosp_only_states = hosp_only_states),
+      config_vars_id
+    ))
   ),
   tar_target(
     name = rt_box_plot_hub,
@@ -850,8 +864,135 @@ list(
           list_of_plots =
             plot_covidhub_submission
         ),
+        model_name = config_vars_id$submitting_model_name,
         type_of_output = "COVID_hub_submissions",
-        pdf_file_path = file.path(pdf_file_path, "external"),
+        pdf_file_path = submission_file_path,
+        n_row = 3,
+        n_col = 1,
+        config_vars_id
+      )
+    ),
+    deployment = "main"
+  ),
+
+  # Generate "would-be" submissions from each model type -----------------------
+  tar_target(
+    name = df_of_filepaths_hosp_only,
+    command = get_submission_filepath_df(
+      prod_model_type = "hospital admissions only",
+      hosp_only_states = c(),
+      df_of_filepaths_inf_dyn = df_of_filepaths_id,
+      df_of_filepaths_agg = df_of_filepaths_us,
+      df_of_filepaths_hosp_only = df_of_filepaths_ho,
+    ),
+    deployment = "main"
+  ),
+  tar_target(
+    name = would_be_hub_submission_df_hosp_only,
+    command = do.call(
+      get_df_for_hub_submission,
+      c(
+        list(df_of_filepaths = df_of_filepaths_hosp_only),
+        submitting_model_name = "cfa-wwrenewal_hosp_only",
+        submission_file_path = submission_file_path,
+        repo_file_path = repo_file_path, # We won't write to the repo
+        prod_run = FALSE, # This is not what we're submitting, even if it is part of a
+        # production run
+        is_for_public_repo = FALSE
+      )
+    ),
+    deployment = "main"
+  ),
+  tar_target(
+    name = grouped_hub_submission_df_ho,
+    command = would_be_hub_submission_df_hosp_only %>%
+      ungroup() %>%
+      group_by(location) %>%
+      targets::tar_group(),
+    iteration = "group",
+    deployment = "main"
+  ),
+  tar_target(
+    name = plot_covidhub_submission_ho,
+    command = get_plot_covidhub_submission(grouped_hub_submission_df_ho),
+    pattern = map(grouped_hub_submission_df_ho),
+    iteration = "list",
+    deployment = "main"
+  ),
+  tar_target(
+    name = pdf_of_hub_submissions_ho,
+    command = do.call(
+      save_to_pdf,
+      c(
+        list(
+          list_of_plots =
+            plot_covidhub_submission_ho
+        ),
+        type_of_output = "COVID_hub_submissions",
+        model_name = "cfa-wwrenewal_hosp_only",
+        pdf_file_path = submission_file_path,
+        n_row = 3,
+        n_col = 1,
+        config_vars_ho
+      )
+    ),
+    deployment = "main"
+  ),
+  tar_target(
+    name = df_of_filepaths_ww,
+    command = get_submission_filepath_df(
+      prod_model_type = prod_model_type,
+      hosp_only_states = c(),
+      df_of_filepaths_inf_dyn = df_of_filepaths_id,
+      df_of_filepaths_agg = df_of_filepaths_us,
+      df_of_filepaths_hosp_only = df_of_filepaths_ho,
+    ),
+    deployment = "main"
+  ),
+  tar_target(
+    name = would_be_hub_submission_df_ww,
+    command = do.call(
+      get_df_for_hub_submission,
+      c(
+        list(df_of_filepaths = df_of_filepaths_ww),
+        submitting_model_name = "cfa-wwrenewal_all_ww",
+        submission_file_path = submission_file_path,
+        repo_file_path = repo_file_path, # we won't write to the repo
+        prod_run = FALSE, # This is not what we're submitting, even if it is part of a
+        # production run
+        is_for_public_repo = FALSE
+      )
+    ),
+    deployment = "main"
+  ),
+  tar_target(
+    name = grouped_hub_submission_df_ww,
+    command = would_be_hub_submission_df_ww %>%
+      ungroup() %>%
+      group_by(location) %>%
+      targets::tar_group(),
+    iteration = "group",
+    deployment = "main"
+  ),
+  tar_target(
+    name = plot_covidhub_submission_ww,
+    command = get_plot_covidhub_submission(grouped_hub_submission_df_ww),
+    pattern = map(grouped_hub_submission_df_ww),
+    iteration = "list",
+    deployment = "main"
+  ),
+  tar_target(
+    name = pdf_of_hub_submissions_ww,
+    command = do.call(
+      save_to_pdf,
+      c(
+        list(
+          list_of_plots =
+            plot_covidhub_submission_ww
+        ),
+        type_of_output = "COVID_hub_submissions",
+        model_name = "cfa-wwrenewal_all_ww",
+        pdf_file_path = submission_file_path,
         n_row = 3,
         n_col = 1,
         config_vars_id

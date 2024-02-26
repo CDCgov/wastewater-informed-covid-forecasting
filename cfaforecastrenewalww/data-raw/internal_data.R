@@ -3,8 +3,12 @@
 ############
 
 example_df <- cfaforecastrenewalww::example_df
+params <- cfaforecastrenewalww::get_params(
+  fs::path_package("extdata", "example_params.toml",
+    package = "cfaforecastrenewalww"
+  )
+)
 
-params <- cfaforecastrenewalww::get_params()
 forecast_date <- example_df |>
   dplyr::pull(forecast_date) |>
   unique()

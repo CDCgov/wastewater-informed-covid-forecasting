@@ -50,28 +50,6 @@ get_pdf_file_path <- function(output_dir) {
   return(fp)
 }
 
-#' Get the submission file path fior hub csv
-#'
-#' @param output_dir
-#' @param forecast_date
-#' @param date_run
-#'
-#' @return
-#' @export
-#'
-#' @examples
-get_submission_file_path <- function(output_dir,
-                                     forecast_date,
-                                     date_run) {
-  fp <- file.path(
-    output_dir,
-    "cleaned",
-    glue::glue("{forecast_date}-run-on-{date_run}"),
-    "external"
-  )
-  return(fp)
-}
-
 #' Get summarized table with each location and
 #'
 #' @param hub_submission_df
@@ -143,6 +121,7 @@ get_summarized_table <- function(hub_submission_df,
 #'
 #' @param full_diagnostics_df
 #' @param repo_file_path
+#' @param hosp_only_states
 #'
 #' @return
 #' @export
@@ -150,7 +129,8 @@ get_summarized_table <- function(hub_submission_df,
 #' @examples
 get_metadata_yaml <- function(full_diagnostics_df,
                               repo_file_path,
-                              hosp_only_states) {
+                              hosp_only_states,
+                              ...) {
   summary_list <- get_summary_stats(full_diagnostics_df)
 
   metadata <- list(
@@ -187,7 +167,6 @@ get_metadata_yaml <- function(full_diagnostics_df,
 #' @param model_type
 #' @param location
 #' @param output_dir
-
 #' @param root_dir root directory where pipeline is being run, used to make absolute filepaths
 #' @param ...
 #' @return the metadata

@@ -403,7 +403,6 @@ get_wastewater_diagnostic <- function(calib_data,
 #' Get the parameters that were flagged for diagnostics for the model run
 #'
 #' @param stan_fit_object CmdstanR object
-#' @param n_chains Number of chains in MCMC
 #' @param rhat_threshold Max acceptable Rhat, above this number we flag that
 #' parameter
 #' @param ess_threshold this number times n chains is the minimum effective
@@ -414,10 +413,12 @@ get_wastewater_diagnostic <- function(calib_data,
 #' @export
 #'
 #' @examples
-get_model_run_diagnostics <- function(stan_fit_object, n_chains,
+get_model_run_diagnostics <- function(stan_fit_object,
                                       rhat_threshold = 1.05,
                                       ess_threshold = 100) {
   summary <- stan_fit_object$summary()
+  n_chains <- stan_fit_object$num_chains()
+
   high_rhats <- summary |>
     dplyr::filter(rhat > rhat_threshold) |>
     arrange(-rhat) |>
@@ -442,20 +443,22 @@ get_model_run_diagnostics <- function(stan_fit_object, n_chains,
   return(model_flags)
 }
 
-#' Get a joint dataframe of data and model fit diagnostics
+
+#' Get a data frame of data and model fit diagnostics
 #'
-#' @description
-#' This returns a 10 row dataframe corresponding to 6 flags of the hospital
-#' admissions or wastewater data and 4 rows corresponding to stan fit
-#' diagnostics.
-#'
-#'
-#' @param stan_fit_object The output of fit$sample() in cmdstanR
-#' @param train_data The datarframe containing hospital admissions and
+#' @param stan_fit_object The cmdstan object
+#' @param train_data The dataframe containing hospital admissions and
 #' wastewater data for callibration of the model
 #' @param location The location the model is being run on
-#' @param model_type The type of model e.g. site-level observation error
+#' @param model_type  The type of model
 #' @param forecast_date The date of the forecast
+#' @param ebmfi_tolerance tolerance for mean EBMFI, default of 0.2
+#' @param divergences_tolerance tolerance for percent of iterations that
+#' are divergent from an individual chain
+#' @param p_high_rhat_tolerance  tolerance for probability of high p_hat,
+#' default 0.05
+#' @param max_tree_depth_tol tolerance for number of draws that
+#' hit the maximum tree depth, default to 0.01
 #' @param ...
 #'
 #' @return Returns a dataframe containing diagnostic summaries
@@ -463,7 +466,12 @@ get_model_run_diagnostics <- function(stan_fit_object, n_chains,
 #'
 #' @examples
 get_diagnostics <- function(stan_fit_object, train_data, location,
-                            model_type, forecast_date, ...) {
+                            model_type, forecast_date,
+                            ebmfi_tolerance = 0.2,
+                            divergences_tolerance = 0.01,
+                            p_high_rhat_tolerance = 0.05,
+                            max_tree_depth_tol = 0.01,
+                            ...) {
   calib_data <- train_data %>% filter(date <= forecast_date)
   low_case_count_diagnostic <- get_low_case_count_diagnostic(calib_data)
 
@@ -508,6 +516,8 @@ get_diagnostics <- function(stan_fit_object, train_data, location,
   )
 
   diagnostics <- stan_fit_object$diagnostic_summary(quiet = TRUE)
+  n_chains <- stan_fit_object$num_chains()
+  iter_sampling <- stan_fit_object$metadata()$iter_sampling
 
   # Summary is a large dataframe with diagnostics for each parameters
   summary <- stan_fit_object$summary()
@@ -518,6 +528,12 @@ get_diagnostics <- function(stan_fit_object, train_data, location,
     dplyr::filter(rhat == max_rhat) |>
     pull(variable) |>
     paste(collapse = ",")
+
+  run_time_min <- stan_fit_object$time()$total / 60
+
+  chain_df <- data.frame(stan_fit_object$time())
+  chain_times_min <- as.character((chain_df$chains.total / 60))
+
 
   min_ess_bulk <- summary |>
     select(ess_bulk) |>
@@ -535,6 +551,14 @@ get_diagnostics <- function(stan_fit_object, train_data, location,
     pull(variable) |>
     paste(collapse = ",")
 
+  flag_low_embfi <- mean(diagnostics$ebfmi) <= ebmfi_tolerance
+  max_n_divergences <- n_chains * iter_sampling * divergences_tolerance
+  flag_too_many_divergences <- any(diagnostics$num_divergent >= max_n_divergences)
+  p_high_rhat <- as.numeric(mean(stan_fit_object$summary()[, "rhat"]$rhat > 1.05, na.rm = TRUE))
+  flag_high_rhat <- p_high_rhat >= p_high_rhat_tolerance
+  max_n_max_treedepth <- n_chains * iter_sampling * max_tree_depth_tol
+  flag_high_max_treedepth <- any(diagnostics$num_max_tree_depth >= max_n_max_treedepth)
+
   diagnostic_df <- tibble(
     diagnostic = c(
       "n_divergent",
@@ -546,19 +570,31 @@ get_diagnostics <- function(stan_fit_object, train_data, location,
       "min_ess_bulk",
       "param_min_ess_bulk",
       "min_ess_tail",
-      "param_min_ess_tail"
+      "param_min_ess_tail",
+      "run_time_minutes",
+      "chain_times_minutes",
+      "flag_low_embfi",
+      "flag_too_many_divergences",
+      "flag_high_rhat",
+      "flag_high_max_treedepth"
     ),
     value = c(
-      sum(diagnostics$num_divergent),
-      sum(diagnostics$num_max_treedepth),
+      toString(diagnostics$num_divergent),
+      toString(diagnostics$num_max_treedepth),
       mean(diagnostics$ebfmi),
-      as.numeric(mean(stan_fit_object$summary()[, "rhat"]$rhat > 1.05, na.rm = TRUE)),
+      p_high_rhat,
       max_rhat,
       param_max_rhat,
       min_ess_bulk,
       param_min_ess_bulk,
       min_ess_tail,
-      param_min_ess_tail
+      param_min_ess_tail,
+      run_time_min,
+      toString(chain_times_min),
+      flag_low_embfi,
+      flag_too_many_divergences,
+      flag_high_rhat,
+      flag_high_max_treedepth
     ),
     "location" = location,
     "forecast_date" = forecast_date,
@@ -593,27 +629,19 @@ read_diagnostics_df <- function(df_of_filepaths) {
   return(diagnostics_df)
 }
 
-#' Get the lists of states with different flags (both data and model)
+#' @title Get sumamry stats of diagnostics
 #'
-#' @param df long table containing diagnostic, value, location, forecast_date,
-#' and model_type
-#' @param ebmfi_tolerance tolerance for mean EBMFI, default of 0.2
-#' @param divergences_tolerance tolerance for number of divergent transitions
-#' assuming 2000 iterations, default 20
-#' @param p_high_rhat_tolerance tolerance for probability of high p_hat,
-#' default 0.05
-#' @param n_max_tree_depth_tol tolerance for number of draws that
-#' hit the maximum tree depth, default 20
+#' @description
+#' Takes the long dataframes of diagnostics by location and outputs summaries
+#'
+#'
+#' @param df
 #'
 #' @return
 #' @export
 #'
 #' @examples
-get_summary_stats <- function(df,
-                              ebmfi_tolerance = 0.2,
-                              divergences_tolerance = 20,
-                              p_high_rhat_tolerance = 0.05,
-                              n_max_tree_depth_tol = 20) {
+get_summary_stats <- function(df) {
   states_w_no_ww_data <- df %>%
     dplyr::filter(diagnostic == "no_wastewater_data_flag", as.logical(value)) %>%
     dplyr::pull(location)
@@ -652,22 +680,23 @@ get_summary_stats <- function(df,
     pull(location)
 
   states_w_low_ebmfi <- df %>%
-    filter(diagnostic == "mean_ebmfi", value <= ebmfi_tolerance) %>%
+    filter(diagnostic == "flag_low_embfi", as.logical(value)) %>%
     pull(location)
 
   states_w_too_many_divergences <- df %>%
-    filter(diagnostic == "n_divergent", value >= divergences_tolerance) %>%
+    filter(
+      diagnostic == "flag_too_many_divergences", as.logical(value)
+    ) %>%
     pull(location)
 
   states_w_high_rhat <- df %>%
-    filter(diagnostic == "p_high_rhat", value >= p_high_rhat_tolerance) %>%
+    filter(diagnostic == "flag_high_rhat", as.logical(value)) %>%
     pull(location)
 
   # states with high number of draws at maximum tree depth
   states_high_tree_depth <- df %>%
     filter(
-      diagnostic == "n_max_treedepth",
-      value >= n_max_tree_depth_tol
+      diagnostic == "flag_high_max_treedepth", as.logical(value)
     ) %>%
     pull(location)
 
@@ -1111,6 +1140,12 @@ get_submission_filepath_df <- function(prod_model_type,
       df_of_filepaths_varying_conc,
       df_of_filepaths_agg
     )
+  } else if (prod_model_type == "hospital admissions only") {
+    stopifnot(
+      "Filepaths for production model type not passed in" =
+        !is.na(df_of_filepaths_hosp_only)
+    )
+    df_of_filepaths <- df_of_filepaths_hosp_only
   } else {
     message("Production model type not specified properly")
   }
@@ -1119,6 +1154,15 @@ get_submission_filepath_df <- function(prod_model_type,
     # Replace the full file path of the wastewater model with the
     # hospital admissions only model
     inds_ho <- df_of_filepaths$location %in% c(hosp_only_states)
+    # This is a hacky very temporary way of ensuring the US is at the end.
+    # This needs to be refactored with a join by location
+    df_of_filepaths_ho_ordered <- df_of_filepaths_hosp_only %>%
+      filter(location != "US")
+    df_of_filepaths_hosp_only <- rbind(
+      df_of_filepaths_ho_ordered,
+      df_of_filepaths_hosp_only %>%
+        filter(location == "US")
+    )
 
     df_of_filepaths$model_draws_file_path[inds_ho] <-
       df_of_filepaths_hosp_only$model_draws_file_path[inds_ho]
@@ -1135,6 +1179,10 @@ get_submission_filepath_df <- function(prod_model_type,
   }
 
   if (any(duplicated(df_of_filepaths$location))) {
+    stop("Multiple model outputs for a single location")
+  }
+
+  if (any(duplicated(df_of_filepaths$future_hosp_draws_file_path))) {
     stop("Multiple model outputs for a single location")
   }
 
@@ -1170,20 +1218,15 @@ get_relative_forecast_dir <- function(forecast_date) {
 #' Get the hardcoded submission file path
 #'
 #' @param output_dir
-#' @param forecast_date
-#' @param date_run
-#' @param prod_run
 #' @param ...
 #'
 #' @return
 #' @export
 #'
 #' @examples
-get_submission_file_path <- function(output_dir,
-                                     forecast_date,
-                                     date_run) {
+get_submission_file_path <- function(output_dir) {
   fp <- file.path(
-    output_dir, "cleaned"
+    output_dir, "cleaned", "external"
   )
 
   return(fp)
@@ -1195,6 +1238,11 @@ get_submission_file_path <- function(output_dir,
 #' @param forecast_submission_filepath where we want the csv to be saved
 #' @param submitting_model_name name of the model that we will set as the
 #' folder name
+#' @param submission_file_path path to where we will write the submission csv
+#' @param repo_file_path path for public repo
+#' @param prod_run whether this is a test or production run
+#' @param is_for_public_repo whether we want to save into the repo file path
+#' to ultimately get pushed to prod. Defaults to TRUE
 #' @param write_files whether or not to write to the forecast submission
 #' file path
 #' @return df of hub submission for all locations
@@ -1206,6 +1254,7 @@ get_df_for_hub_submission <- function(df_of_filepaths,
                                       submission_file_path,
                                       repo_file_path,
                                       prod_run,
+                                      is_for_public_repo = TRUE,
                                       write_files = TRUE,
                                       ...) {
   for (i in seq_len(nrow(df_of_filepaths))) {
@@ -1241,37 +1290,29 @@ get_df_for_hub_submission <- function(df_of_filepaths,
     mutate(quantile = round(quantile, digits = 4))
 
   if (isTRUE(write_files)) {
-    if (isTRUE(prod_run)) {
-      full_file_path <- file.path(
-        submission_file_path,
-        "submitted_forecasts",
-        submitting_model_name
-      )
-    } else {
-      full_file_path <- file.path(
-        submission_file_path,
-        "test_forecasts",
-        submitting_model_name
-      )
-    }
-
+    full_file_path <- file.path(
+      submission_file_path,
+      submitting_model_name
+    )
     create_dir(full_file_path)
-    create_dir(repo_file_path)
-
     write_csv(quant_summary, file.path(
       full_file_path,
       glue::glue("{forecast_date}-{submitting_model_name}.csv")
     ))
     message("Writing forecast Hub files to csv")
-    write.table(quant_summary_full,
-      file =
-        file.path(
-          repo_file_path,
-          glue::glue("{forecast_date}.tsv")
-        ),
-      row.names = FALSE
-    )
-    message("Writing forecast files to repo location")
+
+    if (isTRUE(is_for_public_repo)) {
+      create_dir(repo_file_path)
+      write.table(quant_summary_full,
+        file =
+          file.path(
+            repo_file_path,
+            glue::glue("{forecast_date}.tsv")
+          ),
+        row.names = FALSE
+      )
+      message("Writing forecast files to repo location")
+    }
   }
 
   return(quant_summary_full)
@@ -1326,6 +1367,8 @@ format_hosp_draws_hub_sub <- function(hosp_draws) {
       target, location, forecast_date, target_end_date,
       quantile, value, type, model_type
     )
+
+  # stopifnot(quant_summary |> group_by(target_end_date) |> )
 
   return(quant_summary)
 }
@@ -1608,6 +1651,7 @@ get_quantiles_on_site_level_ww <- function(draws) {
 #'
 #' @examples
 save_to_pdf <- function(list_of_plots,
+                        model_name,
                         type_of_output,
                         pdf_file_path,
                         forecast_date,
@@ -1622,13 +1666,13 @@ save_to_pdf <- function(list_of_plots,
     model_type == "site-level infection dynamics" ~ "site_level_inf_dyn"
   )
 
-  full_file_path <- file.path(pdf_file_path)
+  full_file_path <- file.path(pdf_file_path, model_name)
   create_dir(full_file_path)
 
   ggsave(
     filename = file.path(
       full_file_path,
-      paste0(type_of_output, ".pdf")
+      glue::glue(type_of_output, ".pdf")
     ),
     plot = marrangeGrob(list_of_plots, nrow = n_row, ncol = n_col),
     width = 8.5, height = 11

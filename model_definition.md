@@ -8,12 +8,12 @@ For an example of how to fit the model to simulated data, we recommend the [toy 
 
 ## Data sources
 
+We use two data sources as input to the model: viral genome concentrations in wastewater ("genome concentrations") and incident hospital admissions ("admissions"). We describe each of these data sources in detail below.
 
-We use two data sources as input to the model: wastewater viral concentrations and hospital admissions data. We describe each of these data sources in detail below.
 
-### Wastewater viral concentration data
+### Viral genome concentration in wastewater data
 
-We source wastewater viral concentrations from the [CDC National Wastewater Surveillance System](https://www.cdc.gov/nwss/wastewater-surveillance.html) (NWSS) full analytic dataset.
+We source viral genome concentration in wastewater from the [CDC National Wastewater Surveillance System](https://www.cdc.gov/nwss/wastewater-surveillance.html) (NWSS) full analytic dataset. Concentrations are typically reported in units of estimated genome copies per unit volume wastewater or per unit mass of dry sludge. At present, we use only measurements per unit volume wastewater.
 The dataset is defined in the [data dictionary](https://www.cdc.gov/nwss/files/NWSS-Data-Dictionary_v5.0.0_2023-07-10.xlsx) and is described in plain text on the [NWSS website](https://www.cdc.gov/nwss/reporting.html).
 The full dataset is available to researchers [upon request](https://www.cdc.gov/nwss/about-data.html) but a [dashboard](https://www.cdc.gov/nwss/rv/COVID19-nationaltrend.html) with summary statistics is publicly available.
 
@@ -25,9 +25,9 @@ These data are complex and have many sources of variability and uncertainty. For
 - Different sites may use different collection methodologies. These methodologies may vary through time at an individual site.
 - Different sites sample at different cadences. Some sites sample nearly daily, while others sample less than once a week. Some sites report that data within the week while others have reporting latencies on the order of weeks.
 - Different samples are processed in different labs that may use different methodologies for extraction, concentration, and quantification. These labs may also vary their methodologies through time.
-- Not all states submit viral concentrations in wastewater to [CDC's National Wastewater Surveillance System](https://www.cdc.gov/nwss/wastewater-surveillance.html) (NWSS).
+- Not all states submit genome concentrations to [CDC's National Wastewater Surveillance System](https://www.cdc.gov/nwss/wastewater-surveillance.html) (NWSS).
 
-These complexities mean that wastewater data are often difficult to interpret. For example, a change in the average observed wastewater concentration across a state could reflect a change in the underlying number of infections, a change in the number of samples collected or processed, a change in the collection or processing methodologies, a change in the reporting cadence or latency, and/or a change in the viral shedding kinetics of the population (e.g., due to a new variant or a change in the age distribution of cases).
+These complexities mean that wastewater data are often difficult to interpret. For example, a change in genome concentration across a state could reflect a change in the underlying number of infections, a change in the number of samples collected or processed, a change in the collection or processing methodologies, a change in the reporting cadence or latency, and/or a change in the viral shedding kinetics of the population (e.g., due to a new variant or a change in the age distribution of cases).
 
 Details about data preprocessing, outlier detection, and aggregation are in the [Appendix](#appendix-wastewater-data-pre-processing).
 
@@ -45,16 +45,16 @@ The models share a common structure and are fit using the same codebase.
 The models differ in the data they use as input, in whether or not they include a wastewater component, and the aggregation of the estimates they produce.
 
 [**Model 1**](#model-1) is wastewater-informed, site-level infection dynamics model.
-It uses wastewater viral concentrations at the site level and hospital admissions at the state level as input and produces forecasts of hospital admissions at the state level.
+It uses genome concentrations at the site level and admissions at the state level as input and produces forecasts of admissions at the state level.
 We use Model 1 to generate forecasts for states with any wastewater data available.
-However, if a state has not reported any wastewater collection from the past 21 days or if there is less than 5 data points per site in any site, we will flag this in our metadata, as it is unlikely that the wastewater data is meaningfully informing the forecast in that location.
+However, if a state has not reported any genome concentration data in the past 21 days or if there are less than 5 data points per site in any site, we flag this in our metadata, as it is unlikely that the wastewater data is meaningfully informing the forecast in that location.
 
 [**Model 2**](#model-2) is a no-wastewater, state-level infection dynamics model.
-It uses hospital admissions at the state level as input and produces forecasts of hospital admissions at the state level.
+It uses state-level admissions as input and produces forecasts of state-level admissions as output.
 We use Model 2 to generate forecasts for states without any wastewater data.
 
 [**Model 3**](#model-3) is a nationwide aggregated wastewater model.
-It uses wastewater viral concentrations at the national level and hospital admissions at the national level as input and produces forecasts of hospital admissions at the national level.
+It uses nationally-aggregated genome concentrations and national-level admissions as input and produces forecasts of national-level admissions.
 We use Model 3 to generate nationwide forecasts.
 Of the forecasts being submitted to the [COVID-19 Forecast Hub](https://github.com/reichlab/covid19-forecast-hub/), only the nationwide (US) forecasts use this observation model.
 
@@ -74,7 +74,7 @@ Our models are constructed from a set of generative components. These are:
 
 - [**Infection component:**](#infection-component) A renewal model for the infection dynamics, which generates estimates of incident latent infections per capita.
 - [**Hospital admissions component:**](#hospital-admissions-component) A model for the expected number of hospital admissions given incident latent infections per capita.
-- [**Wastewater viral concentration:**](#wastewater-component) A model for the expected wastewater viral concentration given incident infections per capita.
+- [**Viral genome concentration in wastewater:**](#wastewater-component) A model for the expected genome concentration given incident infections per capita.
 
 Depending on the model, these components are implemented at different spatial scales and with different observation processes. In particular, the link to the observables depends on the model and the form of the observables, see below for detailed descriptions of each component and the following sections for model-specific details.
 
@@ -144,9 +144,9 @@ where the state population size $n$ is used to convert from per-capita hospitali
 
 Currently, we do not explicitly model the delay from hospital admission to reporting of hospital admissions. In reality, corrections (upwards or downwards) in the admissions data after the report date are possible and do happen. See [outlier detection and removal](#appendix-wastewater-data-pre-processing) for further details.
 
-### Wastewater viral concentration component
+### Viral genome concentration in wastewater component
 
-We model wastewater concentrations $C(t)$, measured in viral genomes per mL, as a convolution of the _expected_ latent incident infections per capita $I(t)$ and a normalized shedding kinetics function $s(\tau)$, multiplied by  $G$ the number of genomes shed per infected individual over the course of their infection and divided by $\alpha$ the volume of wastewater generated per person per day:
+We model viral genome concentrations in wastewater $C(t)$ as a convolution of the _expected_ latent incident infections per capita $I(t)$ and a normalized shedding kinetics function $s(\tau)$, multiplied by  $G$ the number of genomes shed per infected individual over the course of their infection and divided by $\alpha$ the volume of wastewater generated per person per day:
 
 $$C(t) = \frac{G}{\alpha} \sum_{\tau = 0}^{\tau_\mathrm{shed}} s(\tau) I(t-\tau)$$
 
@@ -169,7 +169,7 @@ We model the shedding kinetics $s(\tau)$ as a discretized, scaled triangular dis
 
 where $V_\mathrm{peak}$ is the peak number or viral genomes shed on any day, $\tau_\mathrm{peak}$ is the time from infection to peak shedding, and $\tau_\mathrm{shed}$ is the total duration of shedding. Then:
 
-We model the logarithms of observed wastewater concentrations as Normally distributed:
+We model the log observed genome concentrations as Normally distributed:
 
 $$
 \log[c_t] \sim \mathrm{Normal}(C(t), \sigma_c)
@@ -181,7 +181,7 @@ Future iterations of this model will evaluate the utility of mechanistic modelin
 
 ## Model 1: Site-level infection dynamics
 
-In this model, We model hospitalizations at the state-level, and wastewater viral concentrations at the site-level. We further model the site-level infection dynamics as a hierarchical model, where the site-level infection dynamics are perturbations of the state-level infection dynamics.
+In this model, we represent hospital admissions at the state-level, and viral genome concentrations at the site-level. We represent site-level infection dynamics using a hierarchical model: site-level infection dynamics are distributed about a central state-level infection dynamic.
 
 This model uses all of the components described above with following modifications.
 
@@ -220,11 +220,11 @@ $$
 \mathrm{logit}[I_i(0)] \sim \mathrm{Normal}(\mathrm{logit}[I(0)], \sigma_{i0})
 $$
 
-### Wastewater
+### Viral genome concentration in wastewater
 
-We model site-specific wastewater viral concentrations $C_i(t)$ independently for each site $i$ using the same model as described in [the wastewater component](#wastewater-viral-concentration-component)
+We model site-specific viral genome concentrations in wastewater $C_i(t)$ independently for each site $i$ using the same model as described in [the wastewater component](#wastewater-viral-concentration-component)
 
-Wastewater measurements can vary between sites, and even within a site through time, because of differences in sample collection and lab processing methods. To account for this variability, we add a scaling term $M_{ij}$ and a variablity term $\sigma_{cij}$ that vary across sites $i$ and also within sites across labs $j$:
+Genome concentration measurements can vary between sites, and even within a site through time, because of differences in sample collection and lab processing methods. To account for this variability, we add a scaling term $M_{ij}$ and a variablity term $\sigma_{cij}$ that vary across sites $i$ and also within sites across labs $j$:
 
 $$\log[c_{ijt}] \sim \mathrm{Normal}(\log[M_{ij} C_i(t)], \sigma_{cij})$$
 
@@ -267,12 +267,12 @@ This model also serves as a baseline for comparison to the wastewater-informed m
 
 In this model, the entire US population is treated as a single population. This model uses the general infection, hospitalization, and wastewater components described above, but with the following modifications:
 
-We first generate a thresholded population-weighted average concentration:
+We first generate a thresholded population-weighted average viral genome concentration in wastewater:
 
-1. For each week and site, if the site has more than one sample in that week, compute the mean concentration across those samples. This associates each site and week with a single wastewater concentration.
-1. For each week, compute the weighted mean wastewater concentration across all sites. The weights are the site population, or 300,000, whichever is lower. (The thresholding is intended to prevent large sites from dominating the average concentration.)
+1. For each week and site, if the site has more than one sample in that week, compute the mean genome concentration across those samples. This associates each site and week with a single genome concentration.
+1. For each week, compute the weighted mean genome concentration across all sites. The weights are the site population, or 300,000, whichever is lower. The aim of this thresholding is to prevent large sites from dominating the average concentration.
 
-This *ad hoc* approach is similar to the algorithm used by Biobot Analytics to derive regional and national aggregate wastewater concentration.
+This approach is similar to the algorithm used by Biobot Analytics to derive regional and national aggregate genome concentration.
 Future iterations of the model will evaluate the validity of this approach.
 
 We then use this thresholded population-weighted average concentration as the input to the [wastewater viral concentration component](#wastewater-viral-concentration-component).
@@ -373,9 +373,9 @@ Field names are references to [fields in the analytic dataset](https://www.cdc.g
 - No samples flagged for quality issues (field `quality_flag` is not `yes`)
 - Outliers removed (see below)
 
-### Wastewater concentration outlier detection and removal
+### Viral genome concentration in wastewater outlier detection and removal
 
-We identify wastewater concentration outliers within each unique combination of site and lab over the calibration time period using an approach based on $z$-scores.
+We identify potential outlier genome concentrations for each unique site and lab pair with an approach based on $z$-scores.
 
 Briefly, we compute $z$-scores for the concentrations and their finite differences and remove any observations above a threshold values for either metric. In detail:
 
@@ -389,7 +389,7 @@ The $z$-score thresholds were chosen by visual inspection of the data.
 
 ### Other data pre-processing
 
-- For consistency, the reported concentration (field `pcr_target_avg_conc`) and LOD (field `lod_sewage`) are converted to genome copies per mL wastewater using the reported measurement units (field `pcr_target_units`).
+- For consistency, the reported viral genome concentration in wastewater (field `pcr_target_avg_conc`) and LOD (field `lod_sewage`) are converted to genome copies per mL wastewater using the reported measurement units (field `pcr_target_units`).
 - For wastewater catchment population $n_{it}$, we use field `population_served`.
 - We identify the unique combinations of sites and labs and add this as a column to our pre-processed dataset.
 

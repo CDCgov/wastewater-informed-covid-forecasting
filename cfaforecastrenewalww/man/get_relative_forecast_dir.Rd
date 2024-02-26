@@ -8,6 +8,7 @@ get_relative_forecast_dir(forecast_date)
 }
 \arguments{
 \item{forecast_date}{date of forecast}
+
 \item{output_dir}{Get the relative path to directory to save the forecasts within the repo}
 }
 \description{
