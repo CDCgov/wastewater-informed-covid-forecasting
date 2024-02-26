@@ -1,0 +1,16 @@
+States without wastewaster data:
+- - GA
+  - MS
+  - ND
+  - PR
+States with insufficient wastewater data:
+- - KY
+  - VT
+  - DC
+States we chose to use hospital admissions only model on:
+- - FL
+  - OH
+  - PA
+  - VA
+  - IN
+  - IL
