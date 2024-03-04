@@ -8,11 +8,13 @@ get_summarized_table(
   hub_submission_df,
   full_diagnostics_df,
   hosp_only_states,
-  repo_file_path
+  repo_file_path,
+  prod_run,
+  ...
 )
 }
 \arguments{
-\item{repo_file_path}{}
+\item{prod_run}{}
 }
 \description{
 Get summarized table with each location and

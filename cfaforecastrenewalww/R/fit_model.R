@@ -250,6 +250,8 @@ fit_aggregated_model <- function(train_data, params,
         state_agg_inits(train_data, params, stan_data)
       }
 
+      print(paste0("Model type: ", model_type))
+
       fit_dynamic_rt <- model_file$sample(
         data = stan_data,
         seed = seed,
@@ -266,8 +268,21 @@ fit_aggregated_model <- function(train_data, params,
       all_draws <- fit_dynamic_rt$draws()
 
       # Grabs just predicted hospitalizations, WW concentration, and hosp per 100k
-      gen_quants_draws <- get_generated_quantities_draws(all_draws)
+      gen_quants_draws <- get_generated_quantities_draws(all_draws, model_type)
 
+
+      # Time-varying parameters depend on model type
+      if (model_type == "state-level aggregated wastewater") {
+        time_varying_pars <- c(
+          "pred_hosp", "pred_ww", "R(t)",
+          "p_hosp", "exp_state_ww_conc"
+        )
+      } else {
+        time_varying_pars <- c(
+          "pred_hosp", "pred_ww", "R(t)",
+          "exp_state_ww_conc"
+        )
+      }
 
 
       # First make the dataframe with the generated quantities
@@ -279,10 +294,7 @@ fit_aggregated_model <- function(train_data, params,
           location = location,
           data_type = "draw"
         ) %>%
-        filter(name %in% c(
-          "pred_hosp", "pred_ww", "R(t)",
-          "p_hosp", "exp_state_ww_conc"
-        )) %>%
+        filter(name %in% time_varying_pars) %>%
         left_join(date_df, by = "t") %>%
         left_join(train_data %>% select(
           t, date, ww, daily_hosp_admits,
@@ -324,11 +336,7 @@ fit_aggregated_model <- function(train_data, params,
           "pred_hosp", "pred_ww",
           "R(t)", "exp_state_ww_conc"
         ))) %>%
-        mutate(model_type = ifelse(
-          include_ww == 1,
-          "state-level aggregated wastewater",
-          "hospital admissions only"
-        ))
+        mutate(model_type = model_type)
 
       # Get a subset of the draws
       gen_quants_draws <- gen_quants_draws %>%
@@ -339,9 +347,7 @@ fit_aggregated_model <- function(train_data, params,
           pop, obs_data, period
         ) %>%
         mutate(
-          model_type = ifelse(include_ww == 1, "state-level aggregated wastewater",
-            "hospital admissions only"
-          )
+          model_type = model_type
         ) %>%
         filter(draw %in% c(sample(1:max(draw), n_draws)))
 
@@ -352,7 +358,7 @@ fit_aggregated_model <- function(train_data, params,
 
 
       # Then make the one for the parameter draws
-      parameter_draws <- get_raw_param_draws(all_draws)
+      parameter_draws <- get_raw_param_draws(all_draws, model_type)
       parameter_draws <- parameter_draws %>%
         mutate(
           data_type = "draw",
@@ -361,9 +367,7 @@ fit_aggregated_model <- function(train_data, params,
           location = location,
           hosp_reporting_delay = hosp_reporting_delay,
           pop = pop,
-          model_type = ifelse(include_ww == 1, "state-level aggregated wastewater",
-            "hospital admissions only"
-          )
+          model_type = model_type
         )
 
       diagnostics <- get_diagnostics(
@@ -780,7 +784,7 @@ fit_site_level_model <- function(train_data,
         filter(draw %in% c(sample(1:max(draw), n_draws)))
 
 
-      parameter_draws <- get_raw_param_draws(all_draws)
+      parameter_draws <- get_raw_param_draws(all_draws, model_type)
       parameter_draws <- parameter_draws %>%
         mutate(
           data_type = "draw",

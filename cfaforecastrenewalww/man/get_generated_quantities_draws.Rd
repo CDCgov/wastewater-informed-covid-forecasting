@@ -4,7 +4,7 @@
 \alias{get_generated_quantities_draws}
 \title{Get generated quantities draws}
 \usage{
-get_generated_quantities_draws(all_draws, n_draws = 100)
+get_generated_quantities_draws(all_draws, model_type, n_draws = 100)
 }
 \arguments{
 \item{train_data}{}

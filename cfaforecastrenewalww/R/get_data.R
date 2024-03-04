@@ -532,6 +532,7 @@ state_agg_inits <- function(train_data, params, stan_data) {
 
   # Estimate of number of initial infections
   i0 <- mean(train_data$daily_hosp_admits[1:7], na.rm = TRUE) / p_hosp_mean
+  include_ww <- stan_data$include_ww
 
   init_list <- list(
     w = rnorm(n_weeks - 1, 0, 0.01),
@@ -543,8 +544,8 @@ state_agg_inits <- function(train_data, params, stan_data) {
     inv_sqrt_phi_h = 1 / (sqrt(200)) + rnorm(1, 1 / 10000, 1 / 10000),
     sigma_ww = abs(rnorm(1, 0, 0.5)),
     p_hosp_int = rnorm(1, qlogis(p_hosp_mean), 0.01),
-    p_hosp_w = rnorm(tot_weeks - 1, 0, 0.01),
-    p_hosp_w_sd = abs(rnorm(1, 0.01, 0.001)),
+    p_hosp_w = if (include_ww == 1) rnorm(tot_weeks - 1, 0, 0.01) else rep(0, 0),
+    p_hosp_w_sd = if (include_ww == 1) abs(rnorm(1, 0.01, 0.001)) else rep(0, 0),
     t_peak = rnorm(1, t_peak_mean, 0.1 * t_peak_sd),
     viral_peak = rnorm(1, viral_peak_mean, 0.1 * viral_peak_sd),
     dur_shed = rnorm(1, duration_shedding_mean, 0.1 * duration_shedding_sd),

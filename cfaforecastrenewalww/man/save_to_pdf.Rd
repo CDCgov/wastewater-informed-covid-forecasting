@@ -6,6 +6,7 @@
 \usage{
 save_to_pdf(
   list_of_plots,
+  model_name,
   type_of_output,
   pdf_file_path,
   forecast_date,

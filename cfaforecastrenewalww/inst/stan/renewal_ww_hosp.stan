@@ -3,6 +3,7 @@ functions {
 #include functions/biased_rw.stan
 #include functions/convolve.stan
 #include functions/infections.stan
+#include functions/hospitalization.stan
 #include functions/observation_model.stan
 #include functions/utils.stan
 }
@@ -93,8 +94,10 @@ parameters {
   real<lower=1/sqrt(5000)> inv_sqrt_phi_h;
   real<lower=0> sigma_ww;
   real p_hosp_int; // Estimated IHR
-  vector[tot_weeks -1] p_hosp_w; // weekly random walk for IHR
-  real<lower=0> p_hosp_w_sd; // Estimated IHR sd
+  vector[(include_ww==1) ? tot_weeks -1 : 0] p_hosp_w;
+  array [(include_ww==1) ? 1 : 0] real <lower=0> p_hosp_w_sd;
+  //vector[tot_weeks -1] p_hosp_w; // weekly random walk for IHR
+ // real<lower=0> p_hosp_w_sd; // Estimated IHR sd
   real<lower=0> t_peak; // time to viral load peak in shedding
   real viral_peak; // log10 peak viral load shed /mL
   real<lower=0> dur_shed; // duration of detectable viral shedding
@@ -106,7 +109,7 @@ parameters {
 
 transformed parameters {
   vector[ot + uot + ht] new_i; // daily incident infections /n
-  vector[ot + uot + ht] p_hosp; // probability of hospitalization
+  vector [(include_ww ==1) ? ot + uot + ht: 1] p_hosp; // probability of hospitalization
   vector[ot + uot + ht] model_hosp; // model estimated hospital admissions
   vector[oht] exp_obs_hosp;  //  expected observed hospital admissions
   vector[ot] exp_obs_hosp_no_wday_effect; // expected observed hospital admissions before weekday effect
@@ -142,12 +145,18 @@ transformed parameters {
 
   // Expected hospitalizations:
   // generates all hospitalizations, across unobserved time, observed time, and forecast time
-  p_hosp = p_hosp_m * append_row(p_hosp_int, p_hosp_w_sd * p_hosp_w);
-  p_hosp = inv_logit(p_hosp);
-
-  // generates all hospitalizations, across unobserved time, observed time, and forecast time
-  model_hosp = convolve_dot_product(p_hosp .* new_i, reverse(inf_to_hosp),
+  if(include_ww==1){
+    p_hosp = assemble_p_hosp(p_hosp_m, p_hosp_int, p_hosp_w_sd[1], p_hosp_w);
+    model_hosp = convolve_dot_product(p_hosp .* new_i, reverse(inf_to_hosp),
                                     ot + uot + ht);
+  }else{
+    p_hosp[1] = inv_logit(p_hosp_int);
+    // generates all hospitalizations, across unobserved time, observed time, and forecast time
+    model_hosp = convolve_dot_product(p_hosp[1] * new_i, reverse(inf_to_hosp),
+                                    ot + uot + ht);
+  }
+
+
 
   // just get the expected observed hospitalizations
   exp_obs_hosp_no_wday_effect = model_hosp[uot + 1 : uot + ot];

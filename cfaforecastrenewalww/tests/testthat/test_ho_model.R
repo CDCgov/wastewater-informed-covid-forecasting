@@ -46,7 +46,11 @@ test_that("Test the state-level hospitalization-only model on simulated data.", 
   )
 
   # Check the parameters we care most about
-  model_params <- get_model_param_df(fit) %>% dplyr::pull(param_name)
+  model_params <- get_model_param_df(fit) %>%
+    filter(!param_name %in% c("p_hosp_w_sd[1]", "p_hosp_w")) %>%
+    dplyr::pull(param_name)
+  # hospital admissions only model doesn't
+  # have time-varying IHR
   for (param in model_params) {
     expect_equal(
       posterior::subset_draws(obs_last_draw, variable = !!param),
