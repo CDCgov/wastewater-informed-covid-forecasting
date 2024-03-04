@@ -118,7 +118,7 @@ get_model_param_df <- function(x) {
       "eta_sd", "autoreg_rt", "log_r",
       "i0_over_n",
       "initial_growth", "inv_sqrt_phi_h", "sigma_ww",
-      "p_hosp_w_sd", "t_peak", "dur_shed",
+      "p_hosp_w_sd[1]", "t_peak", "dur_shed",
       "infection_feedback"
     )
     daily_params <- c("rt", "new_i", "p_hosp")

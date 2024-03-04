@@ -760,13 +760,21 @@ list(
 
   # Format data for the hub ----------------------------------------------------
   tar_target(
+    name = loc_model_map_submission,
+    command = get_loc_model_map(
+      df_of_filepaths_id,
+      hosp_only_states
+    ),
+    deployment = "main"
+  ),
+  tar_target(
     name = df_of_filepaths,
     command = get_submission_filepath_df(
       prod_model_type = prod_model_type,
-      hosp_only_states = hosp_only_states,
+      loc_model_map = loc_model_map_submission,
       df_of_filepaths_inf_dyn = df_of_filepaths_id,
       df_of_filepaths_agg = df_of_filepaths_us,
-      df_of_filepaths_hosp_only = df_of_filepaths_ho,
+      df_of_filepaths_hosp_only = df_of_filepaths_ho
     ),
     deployment = "main"
   ),
@@ -797,11 +805,17 @@ list(
   ),
   tar_target(
     name = table_of_state_model_designations,
-    command = get_summarized_table(
-      hub_submission_df,
-      full_diagnostics_df,
-      hosp_only_states,
-      repo_file_path
+    command = do.call(
+      get_summarized_table,
+      c(
+        list(
+          hub_submission_df = hub_submission_df,
+          full_diagnostics_df = full_diagnostics_df,
+          hosp_only_states = hosp_only_states,
+          repo_file_path = repo_file_path
+        ),
+        config_vars_id
+      )
     ),
     deployment = "main"
   ),
@@ -877,13 +891,27 @@ list(
 
   # Generate "would-be" submissions from each model type -----------------------
   tar_target(
+    name = is_submitted_forecast,
+    command = FALSE,
+    deployment = "main"
+  ),
+  tar_target(
+    name = loc_model_map_ho,
+    command = get_loc_model_map(
+      df_of_filepaths_ho |> dplyr::filter(location != "US"),
+      hosp_only_states,
+      us_model_type = "hospital admissions only"
+    ),
+    deployment = "main"
+  ),
+  tar_target(
     name = df_of_filepaths_hosp_only,
     command = get_submission_filepath_df(
       prod_model_type = "hospital admissions only",
-      hosp_only_states = c(),
+      loc_model_map = loc_model_map_ho,
       df_of_filepaths_inf_dyn = df_of_filepaths_id,
       df_of_filepaths_agg = df_of_filepaths_us,
-      df_of_filepaths_hosp_only = df_of_filepaths_ho,
+      df_of_filepaths_hosp_only = df_of_filepaths_ho
     ),
     deployment = "main"
   ),
@@ -896,8 +924,8 @@ list(
         submitting_model_name = "cfa-wwrenewal_hosp_only",
         submission_file_path = submission_file_path,
         repo_file_path = repo_file_path, # We won't write to the repo
-        prod_run = FALSE, # This is not what we're submitting, even if it is part of a
-        # production run
+        prod_run = is_submitted_forecast, # This is not what we're submitting,
+        # even if it is part of a production run
         is_for_public_repo = FALSE
       )
     ),
@@ -939,13 +967,20 @@ list(
     deployment = "main"
   ),
   tar_target(
+    name = loc_model_map_ww,
+    command = get_loc_model_map(df_of_filepaths_id,
+      hosp_only_states = c()
+    ),
+    deployment = "main"
+  ),
+  tar_target(
     name = df_of_filepaths_ww,
     command = get_submission_filepath_df(
       prod_model_type = prod_model_type,
-      hosp_only_states = c(),
+      loc_model_map = loc_model_map_ww,
       df_of_filepaths_inf_dyn = df_of_filepaths_id,
       df_of_filepaths_agg = df_of_filepaths_us,
-      df_of_filepaths_hosp_only = df_of_filepaths_ho,
+      df_of_filepaths_hosp_only = df_of_filepaths_ho
     ),
     deployment = "main"
   ),
@@ -958,8 +993,8 @@ list(
         submitting_model_name = "cfa-wwrenewal_all_ww",
         submission_file_path = submission_file_path,
         repo_file_path = repo_file_path, # we won't write to the repo
-        prod_run = FALSE, # This is not what we're submitting, even if it is part of a
-        # production run
+        prod_run = is_submitted_forecast, # This is not what we're submitting,
+        # even if it is part of a production run
         is_for_public_repo = FALSE
       )
     ),

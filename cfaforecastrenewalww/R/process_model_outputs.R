@@ -834,7 +834,9 @@ get_gen_quants_draws <- function(all_draws,
 #' @export
 #'
 #' @examples
-get_generated_quantities_draws <- function(all_draws, n_draws = 100) {
+get_generated_quantities_draws <- function(all_draws,
+                                           model_type,
+                                           n_draws = 100) {
   # Dataframes with ndraws (long format)
   hosp_draws <- all_draws %>%
     spread_draws(pred_hosp[t]) %>%
@@ -877,20 +879,26 @@ get_generated_quantities_draws <- function(all_draws, n_draws = 100) {
     ) %>%
     select(name, t, value, draw)
 
-  p_hosp_draws <- all_draws %>%
-    spread_draws(p_hosp[t]) %>%
-    #  sample_draws(ndraws = n_draws) %>%
-    rename(value = p_hosp) %>%
-    mutate(
-      draw = `.draw`,
-      name = "p_hosp"
-    ) %>%
-    select(name, t, value, draw)
-
-  model_draws <- rbind(
-    hosp_draws, ww_draws, rt_draws,
-    exp_state_ww_draws, p_hosp_draws
-  )
+  if (model_type != "hospital admissions only") {
+    p_hosp_draws <- all_draws %>%
+      spread_draws(p_hosp[t]) %>%
+      #  sample_draws(ndraws = n_draws) %>%
+      rename(value = p_hosp) %>%
+      mutate(
+        draw = `.draw`,
+        name = "p_hosp"
+      ) %>%
+      select(name, t, value, draw)
+    model_draws <- rbind(
+      hosp_draws, ww_draws, rt_draws,
+      exp_state_ww_draws, p_hosp_draws
+    )
+  } else {
+    model_draws <- rbind(
+      hosp_draws, ww_draws, rt_draws,
+      exp_state_ww_draws
+    )
+  }
 
   return(model_draws)
 }
@@ -918,6 +926,7 @@ get_pars <- function() {
 #' This concatenates all the tidy draws dataframes of each of the parameters
 #'
 #' @param stan_output_draws
+#' @param model_type
 #' @param n_draws
 #' @param ...
 #'
@@ -927,8 +936,9 @@ get_pars <- function() {
 #' @export
 #'
 #' @examples
-get_raw_param_draws <- function(stan_output_draws, n_draws = 500, ...) {
-  # Single parmeter psoterior draws with sumamry stats
+get_raw_param_draws <- function(stan_output_draws, model_type,
+                                n_draws = 500, ...) {
+  # Single parmeter posterior draws with sumamry stats
   phi_h <- stan_output_draws %>%
     spread_draws(phi_h) %>%
     sample_draws(ndraws = n_draws) %>%
@@ -974,17 +984,6 @@ get_raw_param_draws <- function(stan_output_draws, n_draws = 500, ...) {
     rename(value = i0) %>%
     select(name, t, value, draw)
 
-  p_hosp_sd <- stan_output_draws %>%
-    spread_draws(p_hosp_w_sd) %>%
-    sample_draws(ndraws = n_draws) %>%
-    mutate(draw = `.draw`) %>%
-    mutate(
-      name = "p_hosp_sd",
-      t = NA
-    ) %>%
-    rename(value = p_hosp_w_sd) %>%
-    select(name, t, value, draw)
-
   initial_growth <- stan_output_draws %>%
     spread_draws(initial_growth) %>%
     sample_draws(ndraws = n_draws) %>%
@@ -1018,12 +1017,48 @@ get_raw_param_draws <- function(stan_output_draws, n_draws = 500, ...) {
     rename(value = autoreg_rt) %>%
     select(name, t, value, draw)
 
+  if (model_type == "state-level aggregated wastewater") {
+    p_hosp_sd <- stan_output_draws %>%
+      spread_draws(p_hosp_w_sd[1]) %>%
+      sample_draws(ndraws = n_draws) %>%
+      mutate(draw = `.draw`) %>%
+      mutate(
+        name = "p_hosp_sd",
+        t = NA
+      ) %>%
+      rename(value = p_hosp_w_sd) %>%
+      select(name, t, value, draw)
+    posterior_params <- rbind(
+      phi_h, eta_sd, log10_g, i0,
+      infection_feedback,
+      autoreg_rt, initial_growth, p_hosp_sd
+    )
+  } else if (model_type == "hospital admissions only") {
+    posterior_params <- rbind(
+      phi_h, eta_sd, log10_g, i0,
+      infection_feedback,
+      autoreg_rt, initial_growth
+    )
+  } else { # case for the site level wastewater models
 
-  posterior_params <- rbind(
-    phi_h, eta_sd, log10_g, i0,
-    infection_feedback,
-    autoreg_rt, initial_growth, p_hosp_sd
-  )
+    p_hosp_sd <- stan_output_draws %>%
+      spread_draws(p_hosp_w_sd) %>%
+      sample_draws(ndraws = n_draws) %>%
+      mutate(draw = `.draw`) %>%
+      mutate(
+        name = "p_hosp_sd",
+        t = NA
+      ) %>%
+      rename(value = p_hosp_w_sd) %>%
+      select(name, t, value, draw)
+
+    posterior_params <- rbind(
+      phi_h, eta_sd, log10_g, i0,
+      infection_feedback,
+      autoreg_rt, initial_growth, p_hosp_sd
+    )
+  }
+
 
   return(posterior_params)
 }
@@ -1081,24 +1116,53 @@ get_parameter_draws <- function(model_draws, pars, train_data) {
 
 # Prepare for submission ----------------------------------------------------
 
+
+#' Get location to model map
+#'
+#' @param df_of_filepaths the dataframe that comes out of fit model with
+#' columns indicating the paths to the specified models and the model type
+#' of those outputs
+#' @param hosp_only_states the states we want to manually replace with the
+#' hospital admissions only model for submission
+#' @param us_model_type The default model type for the US
+#'
+#' @return
+#' @export
+#'
+#' @examples
+get_loc_model_map <- function(df_of_filepaths,
+                              hosp_only_states,
+                              us_model_type = "state-level aggregated wastewater") {
+  # Specify the desired model type
+  loc_model_map_states <- df_of_filepaths |>
+    dplyr::select(location, model_type) |>
+    # Modify model type to hospital admissions only if specified
+    dplyr::mutate(
+      model_type = dplyr::case_when(
+        (location %in% hosp_only_states) ~ "hospital admissions only",
+        TRUE ~ model_type
+      )
+    )
+
+  us_df <- data.frame(location = "US", model_type = us_model_type)
+  loc_model_map <- rbind(loc_model_map_states, us_df)
+
+
+  return(loc_model_map)
+}
+
 #' Get a consolidated dataframe with each location and its corresponding
 #' file path for the necesary outputs.
 #'
-#' @param df_of_filepaths_inf_dyn the output filepaths resulting after running
-#' the infection dynamics model targets, default is NA
-#' @param df_of_filepaths_site_obs the output filepaths resulting after running
-#' the site-level observation error model targets, default is NA
-#' @param df_of_filepaths_hosp_only the output filepaths resulting after running
-#' the hospital admissions only model targets, default is NA
-#' @param df_of_filepaths_agg the output filepaths resulting after running the
-#' national aggreated model target, default is NA
-#' @param df_of_filepaths_varying_conc the output filepaths resulting after
-#' running the time varying concentration model targets, default is NA
 #' @param prod_model_type the model type we want to submit, default is
 #' "site-level infection dynamics"
-#' @param hosp_only_states the states that we want to manually
-#' specify to use the hospital admissions only model instead of the wastewater
-#' informed model
+#' @param loc_model_map two column dataframe with location and desired model type
+#' @param df_of_filepaths_inf_dyn the output filepaths resulting after running
+#' the infection dynamics model targets, default is NULL
+#' @param df_of_filepaths_hosp_only the output filepaths resulting after running
+#' the hospital admissions only model targets, default is NULL
+#' @param df_of_filepaths_agg the output filepaths resulting after running the
+#' national aggreated model target, default is NULL
 #'
 #' @return a dataframe of length of the number of locations (will message if
 #' not = 53) containing the model type and filepaths for the model outputs needed
@@ -1107,76 +1171,40 @@ get_parameter_draws <- function(model_draws, pars, train_data) {
 #'
 #' @examples
 get_submission_filepath_df <- function(prod_model_type,
-                                       hosp_only_states,
-                                       df_of_filepaths_inf_dyn = NA,
-                                       df_of_filepaths_site_obs = NA,
-                                       df_of_filepaths_hosp_only = NA,
-                                       df_of_filepaths_agg = NA,
-                                       df_of_filepaths_varying_conc = NA) {
-  if (prod_model_type == "site-level observation error") {
+                                       loc_model_map,
+                                       df_of_filepaths_inf_dyn = NULL,
+                                       df_of_filepaths_hosp_only = NULL,
+                                       df_of_filepaths_agg = NULL) {
+  if (prod_model_type == "site-level infection dynamics") {
     stopifnot(
       "Filepaths for production model type not passed in" =
-        !is.na(df_of_filepaths_site_obs)
+        !is.null(df_of_filepaths_inf_dyn)
     )
-    df_of_filepaths <- rbind(
-      df_of_filepaths_site_obs,
-      df_of_filepaths_agg
-    )
-  } else if (prod_model_type == "site-level infection dynamics") {
-    stopifnot(
-      "Filepaths for production model type not passed in" =
-        !is.na(df_of_filepaths_inf_dyn)
-    )
-    df_of_filepaths <- rbind(
+    df_of_filepaths_raw <- rbind(
       df_of_filepaths_inf_dyn,
-      df_of_filepaths_agg
-    )
-  } else if (prod_model_type == "site-level time-varying concentration") {
-    stopifnot(
-      "Filepaths for production model type not passed in" =
-        !is.na(df_of_filepaths_varying_conc)
-    )
-    df_of_filepaths <- rbind(
-      df_of_filepaths_varying_conc,
       df_of_filepaths_agg
     )
   } else if (prod_model_type == "hospital admissions only") {
     stopifnot(
       "Filepaths for production model type not passed in" =
-        !is.na(df_of_filepaths_hosp_only)
+        !is.null(df_of_filepaths_hosp_only)
     )
-    df_of_filepaths <- df_of_filepaths_hosp_only
+    df_of_filepaths_raw <- df_of_filepaths_hosp_only
   } else {
     message("Production model type not specified properly")
   }
+  # Get all the model file paths in one place
+  all_model_filepaths <- rbind(
+    df_of_filepaths_inf_dyn,
+    df_of_filepaths_agg,
+    df_of_filepaths_hosp_only
+  )
 
-  if (!is.null(hosp_only_states)) {
-    # Replace the full file path of the wastewater model with the
-    # hospital admissions only model
-    inds_ho <- df_of_filepaths$location %in% c(hosp_only_states)
-    # This is a hacky very temporary way of ensuring the US is at the end.
-    # This needs to be refactored with a join by location
-    df_of_filepaths_ho_ordered <- df_of_filepaths_hosp_only %>%
-      filter(location != "US")
-    df_of_filepaths_hosp_only <- rbind(
-      df_of_filepaths_ho_ordered,
-      df_of_filepaths_hosp_only %>%
-        filter(location == "US")
-    )
-
-    df_of_filepaths$model_draws_file_path[inds_ho] <-
-      df_of_filepaths_hosp_only$model_draws_file_path[inds_ho]
-    df_of_filepaths$quantiles_file_path[inds_ho] <-
-      df_of_filepaths_hosp_only$quantiles_file_path[inds_ho]
-    df_of_filepaths$future_hosp_draws_file_path[inds_ho] <-
-      df_of_filepaths_hosp_only$future_hosp_draws_file_path[inds_ho]
-    df_of_filepaths$parameters_file_path[inds_ho] <-
-      df_of_filepaths_hosp_only$parameters_file_path[inds_ho]
-    df_of_filepaths$diagnostics_file_path[inds_ho] <-
-      df_of_filepaths_hosp_only$diagnostics_file_path[inds_ho]
-    # Replace model type
-    df_of_filepaths$model_type[inds_ho] <- "hospital admissions only"
-  }
+  df_of_filepaths <- loc_model_map |>
+    dplyr::inner_join(all_model_filepaths,
+      by = c("location", "model_type")
+    ) |>
+    distinct()
 
   if (any(duplicated(df_of_filepaths$location))) {
     stop("Multiple model outputs for a single location")
@@ -1301,7 +1329,7 @@ get_df_for_hub_submission <- function(df_of_filepaths,
     ))
     message("Writing forecast Hub files to csv")
 
-    if (isTRUE(is_for_public_repo)) {
+    if (isTRUE(is_for_public_repo) && isTRUE(prod_run)) {
       create_dir(repo_file_path)
       write.table(quant_summary_full,
         file =

@@ -56,6 +56,7 @@ get_pdf_file_path <- function(output_dir) {
 #' @param full_diagnostics_df
 #' @param hosp_only_states
 #' @param repo_file_path
+#' @param prod_run
 #'
 #' @return
 #' @export
@@ -64,7 +65,9 @@ get_pdf_file_path <- function(output_dir) {
 get_summarized_table <- function(hub_submission_df,
                                  full_diagnostics_df,
                                  hosp_only_states,
-                                 repo_file_path) {
+                                 repo_file_path,
+                                 prod_run,
+                                 ...) {
   diag_df_wide <- full_diagnostics_df %>%
     dplyr::select(location, diagnostic, value) %>%
     dplyr::filter(diagnostic %in% c(
@@ -101,16 +104,18 @@ get_summarized_table <- function(hub_submission_df,
     ) %>%
     dplyr::select(location, additional_notes)
 
-  create_dir(repo_file_path)
-
-  readr::write_tsv(
-    diag_df_wide,
-    file = fs::path(
-      repo_file_path,
-      glue::glue("wastewater_metadata_table.tsv")
+  if (isTRUE(prod_run)) {
+    create_dir(repo_file_path)
+    readr::write_tsv(
+      diag_df_wide,
+      file = fs::path(
+        repo_file_path,
+        glue::glue("wastewater_metadata_table.tsv")
+      )
     )
-  )
-  cli::cli_inform("Writing forecast additional notes to repo ")
+    cli::cli_inform("Writing forecast additional notes to repo ")
+  }
+
 
 
   (diag_df_wide)
@@ -122,6 +127,7 @@ get_summarized_table <- function(hub_submission_df,
 #' @param full_diagnostics_df
 #' @param repo_file_path
 #' @param hosp_only_states
+#' @param prod_run
 #'
 #' @return
 #' @export
@@ -130,6 +136,7 @@ get_summarized_table <- function(hub_submission_df,
 get_metadata_yaml <- function(full_diagnostics_df,
                               repo_file_path,
                               hosp_only_states,
+                              prod_run,
                               ...) {
   summary_list <- get_summary_stats(full_diagnostics_df)
 
@@ -145,11 +152,14 @@ get_metadata_yaml <- function(full_diagnostics_df,
     "States we chose to use hospital admissions only model on" =
       ifelse(rlang::is_empty(hosp_only_states), "None", list(hosp_only_states))
   )
-  create_dir(repo_file_path)
-  write_yaml(metadata, file = file.path(
-    repo_file_path,
-    glue::glue("metadata.yaml")
-  ))
+  if (isTRUE(prod_run)) {
+    create_dir(repo_file_path)
+    write_yaml(metadata, file = file.path(
+      repo_file_path,
+      glue::glue("metadata.yaml")
+    ))
+  }
+
   return(metadata)
 }
 

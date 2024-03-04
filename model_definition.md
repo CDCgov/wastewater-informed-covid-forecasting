@@ -124,8 +124,9 @@ $$H(t) = \omega(t) p_\mathrm{hosp}(t) \sum_{\tau = 0}^{T_d} d(\tau) I(t-\tau)$$
 Where $T_d$ is the maximum delay from infection to hospitalization that we consider.
 
 We define the discrete hospital admissions delay distribution $d(\tau)$ as a convolution of the incubation period distribution [^Park2023] and a separate estimate of the distribution of time from symptom onset to hospital admission (see [Parameter section](#model-parameters) below for further details).
+#### Infection-hospitalization rate
+In the models that include fits to wastewater data, we allow the population-level infection-hospitalization rate (IHR) to change over time. An inferred change in the IHR could reflect either a true change in the rate at which infections result in hospital admissions (e.g. the age distribution of cases could shift, a more or less severe variant could emerge, or vaccine coverage could shift) or a change in the relationship between infections and genomes shed in wastewater $G$ (which we currently treat as fixed, but which could change in time if, for example, immunity reduces wastewater shedding without reducing transmission, or a variant emerges with a different per infection wastewater shedding profile).
 
-The population-level infection-hospitalization ratio can change over time due to multiple unmodeled factors. For example, the age distribution of cases could shift, a more or less severe variant could emerge, or vaccine coverage could change.
 Therefore, we model the hospitalization proportion $p_\mathrm{hosp}(t)$ as a piecewise-constant function with weekly change points.
 If $t$ and $t'$ are two days in the same week, then $p_\mathrm{hosp}(t) = p_\mathrm{hosp}(t')$.
 
@@ -136,6 +137,9 @@ $$ \mathrm{logit} (p_{\mathrm{hosp}}(t_2)) \sim \mathrm{Normal}(\mathrm{logit}(p
 
 The process is initialized at the calibration start time $t_0$ via a prior distribution (see [Prior Distributions](#prior-distributions) below).
 
+In hospital admissions only models, we model the IHR as constant. We assign this constant IHR the same prior distribution we assign to the mean of the time-varying IHR in the wastewater-informed models.
+
+### Hospital admissions observation model
 We model the observed hospital admission counts $h_t$ as:
 
 $$h_t \sim \mathrm{NegBinom}(n H(t), \phi)$$

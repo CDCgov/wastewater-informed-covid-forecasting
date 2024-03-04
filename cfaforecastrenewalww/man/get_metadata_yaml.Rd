@@ -5,10 +5,16 @@
 \title{Get metadata to list all states with no wastewater or insufficient wastewater
 data}
 \usage{
-get_metadata_yaml(full_diagnostics_df, repo_file_path, hosp_only_states, ...)
+get_metadata_yaml(
+  full_diagnostics_df,
+  repo_file_path,
+  hosp_only_states,
+  prod_run,
+  ...
+)
 }
 \arguments{
-\item{hosp_only_states}{}
+\item{prod_run}{}
 }
 \description{
 Get metadata to list all states with no wastewater or insufficient wastewater
