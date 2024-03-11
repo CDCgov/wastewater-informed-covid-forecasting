@@ -112,7 +112,7 @@ list(
     command = write_config(
       save_config = TRUE,
       location = NULL,
-      prod_run = FALSE,
+      prod_run = TRUE,
       run_id = run_id,
       ww_geo_type = "state",
       date_run = date_run,
