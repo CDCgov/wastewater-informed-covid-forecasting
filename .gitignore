@@ -18,14 +18,8 @@ secrets.yaml
 *.pdf
 *.docx
 
-# Don't track compiled model executable
-
-cfaforecastrenewalww/inst/stan/renewal_ww_hosp
-cfaforecastrenewalww/inst/stan/renewal_ww_hosp_hierarchical_w_dispersion
-cfaforecastrenewalww/inst/stan/renewal_ww_hosp_site_level_phi
-cfaforecastrenewalww/inst/stan/renewal_ww_hosp_site_level_phi_varying_C
-cfaforecastrenewalww/inst/stan/renewal_ww_hosp_hierarchical
-cfaforecastrenewalww/inst/stan/renewal_ww_hosp_site_level_inf_dynamics
+# Don't track compiled model executables
+bin
 
 # Don't track data by default
 repo_data/
@@ -37,9 +31,13 @@ output/*
 !input/locations.csv
 !input/params.toml
 
-# Do track the output/forecasts folder,
+# Do track the output/forecasts directory
 !output/forecasts
 !output/forecasts/*
+
+# Do track the output/decision_archive directory
+!output/decision_archive
+!output/decision_archive/*
 
 # compiled test executables
 test/test_expgamma_lpdf
