@@ -100,40 +100,33 @@ write_config <- function(run_id,
 
   # Assign the dates and locations for hospital admissions to be manually
   # removed
-  last_3 <- seq(
-    from = lubridate::ymd("2024-02-21"),
-    to = lubridate::ymd("2024-02-23"),
-    by = "days"
-  )
-  last_2 <- seq(
-    from = lubridate::ymd("2024-02-22"),
-    to = lubridate::ymd("2024-02-23"),
-    by = "days"
-  )
-  last_1 <- lubridate::ymd("2024-02-23")
+  last_1 <- lubridate::ymd("2024-03-01")
   dates_for_hosp_removal <- c(
-    last_2, # AZ
-    last_3, # CT
-    last_1, # IL
-    last_2, # ME
-    last_3, # MD
-    last_3, # NJ
-    last_3, # NM
-    last_1, # PA
-    last_3 # DC
+    lubridate::ymd("2024-02-27"), # CA 4th to last
+    last_1, # NE last data point
+    seq(
+      from = lubridate::ymd("2024-02-27"),
+      to = lubridate::ymd("2024-02-29"),
+      by = "days"
+    ), # NM 4th to last to second to last repeated data points
+    last_1, # OK
+    last_1, # OR
+    seq(
+      from = lubridate::ymd("2024-02-29"),
+      to = lubridate::ymd("2024-03-01"),
+      by = "days"
+    ) # WI last two
   )
 
   states_for_hosp_removal <- c(
-    rep("AZ", 2),
-    rep("CT", 3),
-    rep("IL", 1),
-    rep("ME", 2),
-    rep("MD", 3),
-    rep("NJ", 3),
+    rep("CA", 1),
+    rep("NE", 1),
     rep("NM", 3),
-    rep("PA", 1),
-    rep("DC", 3)
+    rep("OK", 1),
+    rep("OR", 1),
+    rep("WI", 2)
   )
+
 
   # Assign the dates and locations for wastewater data to be removed manually
   first_date <- forecast_date - lubridate::days(calibration_time) - hosp_reporting_delay

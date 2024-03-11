@@ -220,8 +220,10 @@ list(
     priority = 1
   ),
   tar_target(
-    name = model_file_id,
-    command = ww_model(model_file_path_id),
+    name = model_object_id,
+    command = compile_model(model_file_path_id,
+      target_dir = "bin"
+    ),
     deployment = "main",
     priority = 1
   ),
@@ -256,14 +258,16 @@ list(
     name = df_of_filepaths_id,
     command = do.call(
       fit_site_level_model,
-      c(list(train_data = grouped_data_id),
-        list(params = params_id),
-        model_file = model_file_id,
+      c(
+        list(
+          train_data = grouped_data_id,
+          params = params_id,
+          model_file = model_object_id
+        ),
         config_vars_id
       )
     ),
     pattern = map(grouped_data_id),
-    iteration = "group",
     deployment = "worker",
     priority = 1
   ),
@@ -402,8 +406,10 @@ list(
     deployment = "main"
   ),
   tar_target(
-    name = model_file_ho,
-    command = ww_model(model_file_path_ho),
+    name = model_object_ho,
+    command = compile_model(model_file_path_ho,
+      target_dir = "bin"
+    ),
     deployment = "main"
   ),
   tar_target(
@@ -431,13 +437,18 @@ list(
   # generated quantities and the parameters
   tar_target(
     name = df_of_filepaths_ho,
-    command = do.call(fit_aggregated_model, c(list(train_data = grouped_data),
-      list(params = params_ho),
-      model_file = model_file_ho,
-      config_vars_ho
-    )),
+    command = do.call(
+      fit_aggregated_model,
+      c(
+        list(
+          train_data = grouped_data,
+          params = params_ho,
+          model_file = model_object_ho
+        ),
+        config_vars_ho
+      )
+    ),
     pattern = map(grouped_data),
-    iteration = "group",
     deployment = "worker"
   ),
   tar_target(
@@ -526,8 +537,10 @@ list(
     deployment = "main"
   ),
   tar_target(
-    name = model_file_sa,
-    command = ww_model(model_file_path_sa),
+    name = model_object_sa,
+    command = compile_model(model_file_path_sa,
+      target_dir = "bin"
+    ),
     deployment = "main"
   ),
   tar_target(
@@ -562,13 +575,18 @@ list(
   # generated quantities and the parameters
   tar_target(
     name = df_of_filepaths_sa,
-    command = do.call(fit_aggregated_model, c(list(train_data = grouped_data_sa),
-      list(params = params_sa),
-      model_file = model_file_sa,
-      config_vars_sa
-    )),
+    command = do.call(
+      fit_aggregated_model,
+      c(
+        list(
+          train_data = grouped_data_sa,
+          params = params_sa,
+          model_file = model_object_sa
+        ),
+        config_vars_sa
+      )
+    ),
     pattern = map(grouped_data_sa),
-    iteration = "group",
     deployment = "worker"
   ),
   tar_target(

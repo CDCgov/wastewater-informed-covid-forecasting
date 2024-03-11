@@ -7,61 +7,6 @@
 #' (under an MIT license) as part of the `epinowcast`
 #' package (https://github.com/epinowcast/epinowcast)
 
-# Compile a stan model and include stan function files
-#' ww_model
-#' @description
-#' This function compiles the stan model, and is written to include the 'stan'
-#' folder. Within each stan file, to include the functions, use #include
-#' functions/{your_function_file}.stan
-#'
-#'
-#' @param model
-#' @param include
-#' @param compile
-#' @param threads
-#' @param target_dir
-#' @param stanc_options
-#' @param cpp_options
-#' @param verbose
-#' @param ...
-#'
-#' @return
-#' @export
-#'
-#' @examples
-ww_model <- function(model,
-                     include = system.file("stan",
-                       package = "cfaforecastrenewalww"
-                     ),
-                     compile = TRUE, threads = FALSE,
-                     target_dir = tempdir(), stanc_options = list(),
-                     cpp_options = list(), verbose = TRUE, ...) {
-  if (verbose) {
-    message(glue::glue("Using model {model}."))
-    message(sprintf("include is %s.", toString(include)))
-  }
-
-  if (compile) {
-    monitor <- suppressMessages
-    if (verbose) {
-      monitor <- function(x) {
-        return(x)
-      }
-    }
-    cpp_options$stan_threads <- threads
-    model <- monitor(cmdstanr::cmdstan_model(
-      model,
-      include_paths = include,
-      stanc_options = stanc_options,
-      cpp_options = cpp_options,
-      ...
-    ))
-  }
-  return(model)
-}
-
-
-
 #' Get dataframe of filepaths
 #'
 #' @param output_dir

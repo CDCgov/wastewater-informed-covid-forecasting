@@ -203,6 +203,8 @@ Alternatively, in an interactive R session with your R working directory set to 
 targets::tar_make()
 ```
 
+The first time you run the pipeline after installing `cfaforecastrenewalww`, `cmdstan` will compile the model source `.stan` files to executible binaries, which by default are stored in a subdirectory `bin/` of the top-level project directory. Subsequent runs should use those precompiled executibles, without need for recompilation. To force recompilation, delete the binaries stored in the `bin/` directory or reinstall the `cfaforecastrenewalww` R package.
+
 # Contributing to this project
 
 ## Git workflow

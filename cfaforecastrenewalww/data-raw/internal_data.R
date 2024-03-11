@@ -67,7 +67,7 @@ toy_stan_data_id <- cfaforecastrenewalww::get_stan_data_site_level_model(
 model_type <- "site-level infection dynamics"
 model_file_path <- cfaforecastrenewalww::get_model_file_path(model_type)
 
-model <- cfaforecastrenewalww::ww_model(model_file_path)
+model <- cfaforecastrenewalww::compile_model(model_file_path)
 
 fit_dynamic_rt <- model$sample(
   data = toy_stan_data_id,
@@ -104,7 +104,7 @@ toy_stan_data_ho$include_ww <- 0
 model_type <- "hospital admissions only"
 model_file_path <- cfaforecastrenewalww::get_model_file_path(model_type)
 
-model <- cfaforecastrenewalww::ww_model(model_file_path)
+model <- cfaforecastrenewalww::compile_model(model_file_path)
 
 fit_dynamic_rt <- model$sample(
   data = toy_stan_data_ho,

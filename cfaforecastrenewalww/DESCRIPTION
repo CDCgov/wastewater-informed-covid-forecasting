@@ -57,12 +57,13 @@ Imports:
     posterior,
     scoringutils,
     tidyr,
-    targets,
+    targets (>= 1.5.1),
     tarchetypes,
     gridExtra,
     rlang,
     RcppTOML,
-    RcppEigen
+    RcppEigen,
+    crew (>= 0.9.0)
 VignetteBuilder:
     knitr
 Suggests:
