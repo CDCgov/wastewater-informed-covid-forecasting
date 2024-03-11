@@ -132,7 +132,7 @@ list(
     command = write_config(
       save_config = TRUE,
       location = "US",
-      prod_run = FALSE,
+      prod_run = TRUE,
       run_id = run_id,
       ww_geo_type = "state",
       date_run = date_run,
@@ -152,7 +152,7 @@ list(
     command = write_config(
       save_config = TRUE,
       location = NULL,
-      prod_run = FALSE,
+      prod_run = TRUE,
       run_id = run_id,
       date_run = date_run,
       model_type = "site-level infection dynamics",
