@@ -17,13 +17,18 @@ compiled_site_inf_model <- cmdstanr::cmdstan_model(
   model_file_path_id,
   force_recompile = TRUE,
   compile_standalone = TRUE,
-  include = testthat_stan_include()
+  include = testthat_stan_include(),
+  dir = tempdir()
 )
 
 # Make sure hosp-only model is compiled if it isn't yet
 model_file_path_ho <- system.file(
-  "stan", "renewal_ww_hosp.stan",
+  "stan",
+  "renewal_ww_hosp.stan",
   package = "cfaforecastrenewalww"
 )
 
-compiled_hosp_only_model <- ww_model(model_file_path_ho)
+compiled_hosp_only_model <- compile_model(
+  model_file_path_ho,
+  target_dir = tempdir()
+)

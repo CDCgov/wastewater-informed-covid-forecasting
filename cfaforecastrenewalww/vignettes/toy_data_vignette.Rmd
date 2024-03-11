@@ -127,7 +127,7 @@ forecast_time <- as.integer(max(example_df$date) - forecast_date)
 model_type <- "site-level infection dynamics"
 model_file_path <- get_model_file_path(model_type)
 # Compile the model
-model <- ww_model(file.path(here(
+model <- compile_model(file.path(here(
   model_file_path
 )))
 

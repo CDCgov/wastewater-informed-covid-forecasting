@@ -30,6 +30,11 @@ testthat::test_that("End to end test of the pipeline. Should run without error."
   tmp_src <- fs::path(tmp_dir, "src")
   fs::dir_copy(repo_src, tmp_src)
 
+  #############
+  ## binaries
+  tmp_bin <- fs::path(tmp_dir, "bin")
+  fs::dir_create(tmp_bin)
+
   #######
   # secrets
   #######

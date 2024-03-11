@@ -181,8 +181,8 @@ get_stan_data <- function(train_data,
     p_hosp_mean = p_hosp_mean,
     p_hosp_sd_logit = p_hosp_sd_logit,
     p_hosp_w_sd_sd = p_hosp_w_sd_sd,
-    infection_feedback_prior_mean = infection_feedback_prior_mean,
-    infection_feedback_prior_sd = infection_feedback_prior_sd
+    inf_feedback_prior_logmean = infection_feedback_prior_logmean,
+    inf_feedback_prior_logsd = infection_feedback_prior_logsd
   )
 
   return(data_renewal)
@@ -475,8 +475,8 @@ get_stan_data_site_level_model <- function(train_data,
     p_hosp_sd_logit = p_hosp_sd_logit,
     p_hosp_w_sd_sd = p_hosp_w_sd_sd,
     ww_site_mod_sd_sd = ww_site_mod_sd_sd,
-    infection_feedback_prior_mean = infection_feedback_prior_mean,
-    infection_feedback_prior_sd = infection_feedback_prior_sd
+    inf_feedback_prior_logmean = infection_feedback_prior_logmean,
+    inf_feedback_prior_logsd = infection_feedback_prior_logsd
   )
 
   if (model_type == "site-level time-varying concentration") {
@@ -551,10 +551,7 @@ state_agg_inits <- function(train_data, params, stan_data) {
     dur_shed = rnorm(1, duration_shedding_mean, 0.1 * duration_shedding_sd),
     log10_g = rnorm(1, log10_g_prior_mean, 0.5),
     hosp_wday_effect = to_simplex(rnorm(7, 1 / 7, 0.01)),
-    infection_feedback = abs(rnorm(
-      1, infection_feedback_prior_mean,
-      0.1 * infection_feedback_prior_sd
-    ))
+    infection_feedback = abs(rnorm(1, 500, 20))
   )
   return(init_list)
 }
@@ -755,10 +752,7 @@ site_level_inf_inits <- function(train_data, params, stan_data) {
     ww_site_mod_raw = abs(rnorm(n_ww_lab_sites, 0, 0.05)),
     ww_site_mod_sd = abs(rnorm(1, 0, 0.05)),
     hosp_wday_effect = to_simplex(rnorm(7, 1 / 7, 0.01)),
-    infection_feedback = abs(rnorm(
-      1, infection_feedback_prior_mean,
-      0.5 * infection_feedback_prior_sd
-    ))
+    infection_feedback = abs(rnorm(1, 500, 20))
   )
 
 

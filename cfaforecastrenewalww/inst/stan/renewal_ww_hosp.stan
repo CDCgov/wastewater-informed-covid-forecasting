@@ -61,8 +61,8 @@ data {
   real p_hosp_mean;
   real<lower=0> p_hosp_sd_logit;
   real<lower=0> p_hosp_w_sd_sd;
-  real infection_feedback_prior_mean;
-  real<lower=0> infection_feedback_prior_sd;
+  real inf_feedback_prior_logmean;
+  real<lower=0> inf_feedback_prior_logsd;
 }
 
 transformed data {
@@ -198,7 +198,7 @@ model {
   t_peak ~ normal(t_peak_mean, t_peak_sd);
   viral_peak ~ normal(viral_peak_mean, viral_peak_sd);
   dur_shed ~ normal(dur_shed_mean, dur_shed_sd);
-  infection_feedback ~ normal(infection_feedback_prior_mean, infection_feedback_prior_sd);
+  infection_feedback ~ lognormal(inf_feedback_prior_logmean, inf_feedback_prior_logsd);
 
   // Compute log likelihood
   if (compute_likelihood == 1) {

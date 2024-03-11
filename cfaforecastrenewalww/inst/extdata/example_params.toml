@@ -19,8 +19,8 @@ autoreg_rt_a = 2 # shape1 parameter of autoreg term on Rt trend
 autoreg_rt_b = 40 # shape2 parameter of autoreg on Rt trend
   # mean = a/(a+b) = 0.05, stdv = sqrt(a)/b = sqrt(2)/40 = 0.035
 eta_sd_sd = 0.01
-infection_feedback_prior_mean = 500
-infection_feedback_prior_sd = 200
+infection_feedback_prior_logmean = 6.37408 # log(mode) + q^2 mode = 500, q = 0.4
+infection_feedback_prior_logsd = 0.4
 
 [hospital_admission_observation_process]
 # Hospitalization parameters (informative priors)

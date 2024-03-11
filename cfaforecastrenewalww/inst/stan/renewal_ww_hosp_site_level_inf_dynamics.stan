@@ -78,8 +78,8 @@ data {
   real<lower=0> sigma_rt_prior;
   real log_phi_g_prior_mean;
   real<lower=0> log_phi_g_prior_sd;
-  real infection_feedback_prior_mean;
-  real<lower=0> infection_feedback_prior_sd;
+  real inf_feedback_prior_logmean;
+  real<lower=0> inf_feedback_prior_logsd;
 }
 
 // The transformed data
@@ -150,7 +150,7 @@ transformed parameters {
   vector[owt] exp_obs_log_v = rep_vector(0, owt); // expected observations at each site with modifier in log scale
   vector[n_ww_lab_sites] ww_site_mod; // site specific WW mod
   row_vector [ot + uot + ht] model_net_i; // number of net infected individuals shedding on each day (sum of individuals in dift stages of infection)
-  real<lower=0> phi_h = inv_square(inv_sqrt_phi_h); // previouslt inv_square(inv_sqrt_phi_h)
+  real<lower=0> phi_h = inv_square(inv_sqrt_phi_h);
   vector[n_ww_lab_sites] sigma_ww_site;
   vector[n_weeks] log_r_mu_t_in_weeks; // log of state level mean R(t) in weeks
   vector[n_weeks] log_r_site_t_in_weeks; // log of site level mean R(t) in weeks, used as a placeholder in loop
@@ -295,7 +295,7 @@ model {
   dur_shed ~ normal(dur_shed_mean, dur_shed_sd);
   ww_site_mod_raw ~ std_normal();
   ww_site_mod_sd ~ normal(0, ww_site_mod_sd_sd);
-  infection_feedback ~ normal(infection_feedback_prior_mean, infection_feedback_prior_sd);
+  infection_feedback ~ lognormal(inf_feedback_prior_logmean, inf_feedback_prior_logsd);
 
   //Compute log likelihood
   if (compute_likelihood == 1) {
