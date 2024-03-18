@@ -2,13 +2,18 @@
 % Please edit documentation in R/get_config_vals.R
 \name{get_config_vals}
 \alias{get_config_vals}
-\title{Read in the config yaml}
+\title{Read in the config yaml and add run-specific
+dynamic configuration to it.}
 \usage{
 get_config_vals(path_to_config)
 }
 \arguments{
 \item{path_to_config}{path the config yaml}
 }
+\value{
+The configuration values, as a list
+}
 \description{
-Read in the config yaml
+Read in the config yaml and add run-specific
+dynamic configuration to it.
 }

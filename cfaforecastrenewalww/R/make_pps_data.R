@@ -68,25 +68,25 @@ make_pps_data <- function(mcmc_fit,
                              config) {
   stan_data <- real_data
 
-  y_df <- bind_rows(
+  y_df <- dplyr::bind_rows(
     pps_hosp_data,
     pps_ww_data
   )
 
   hosp_reporting_delay <- config$hosp_reporting_delay
   length_generated_hosp <- y_df %>%
-    filter(name == "pred_hosp") %>%
+    dplyr::filter(name == "pred_hosp") %>%
     nrow()
   calibration_time <- config$calibration_time
   length_input_hosp <- calibration_time
 
   # Reallocate hosp vector to be the same length as input hosp vector
   hosp <- y_df %>%
-    filter(
+    dplyr::filter(
       name == "pred_hosp",
       day <= calibration_time
     ) %>%
-    pull(value)
+    dplyr::pull(value)
 
   # Reallocate wastewater vector to be the same parameter as
   # the input wastewater vector
@@ -96,13 +96,13 @@ make_pps_data <- function(mcmc_fit,
 
   # Make into a matrix with each row a ww_lab_site and each column a time
   ww_conc_matrix <- y_df %>%
-    filter(name == "pred_ww") %>%
-    select(value, ww_lab_site, day) %>%
-    pivot_wider(
+    dplyr::filter(name == "pred_ww") %>%
+    dplyr::select(value, ww_lab_site, day) %>%
+    tidyr::pivot_wider(
       names_from = "day",
       values_from = "value"
     ) %>%
-    select(-ww_lab_site)
+    dplyr::select(-ww_lab_site)
   ww_conc_matrix <- data.matrix(ww_conc_matrix)
 
   # Get the vector of generated  wastewater concentrations using the same

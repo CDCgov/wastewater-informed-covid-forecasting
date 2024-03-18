@@ -83,7 +83,7 @@ write_config <- function(run_id,
       "output", forecast_date,
       stringr::str_glue("run-on-{date_run}-{run_id}")
     ) # nolint
-  path_to_save_metadata <-
+  dir_to_save_metadata <-
     file.path(output_dir, "pipeline_run_metadata")
 
   # Pre-specified delay distributions
@@ -100,31 +100,22 @@ write_config <- function(run_id,
 
   # Assign the dates and locations for hospital admissions to be manually
   # removed
-  last_1 <- lubridate::ymd("2024-03-01")
+
+  last_1 <- lubridate::ymd("2024-03-08")
   dates_for_hosp_removal <- c(
-    lubridate::ymd("2024-02-27"), # CA 4th to last
-    last_1, # NE last data point
+    lubridate::ymd("2024-03-07"), # IA 2nd to last
     seq(
       from = lubridate::ymd("2024-02-27"),
       to = lubridate::ymd("2024-02-29"),
       by = "days"
     ), # NM 4th to last to second to last repeated data points
-    last_1, # OK
-    last_1, # OR
-    seq(
-      from = lubridate::ymd("2024-02-29"),
-      to = lubridate::ymd("2024-03-01"),
-      by = "days"
-    ) # WI last two
+    last_1 # SC
   )
 
   states_for_hosp_removal <- c(
-    rep("CA", 1),
-    rep("NE", 1),
+    rep("IA", 1),
     rep("NM", 3),
-    rep("OK", 1),
-    rep("OR", 1),
-    rep("WI", 2)
+    rep("SC", 1)
   )
 
 
@@ -205,7 +196,7 @@ write_config <- function(run_id,
     inf_to_hosp = inf_to_hosp,
     submitting_model_name = submitting_model_name,
     prod_run = prod_run,
-    path_to_save_metadata = path_to_save_metadata,
+    dir_to_save_metadata = dir_to_save_metadata,
     config_file_path = fp
   )
 
