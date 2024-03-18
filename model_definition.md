@@ -111,7 +111,7 @@ The damping term we use is based on Asher et al. 2018[^Asher2018] but extended t
 
 $$ \mathcal{R}(t) = \mathcal{R}^\mathrm{u}(t) \exp \left( -\gamma \sum_{\tau = 1}^{T_f}I(t-\tau)g(\tau) \right) $$
 
-where $\gamma$ is the _infection feedback term_ controlling the strength of the damping on $\mathcal{R}(t)$, and the summation is analogous to the "force of infection."
+where $\gamma$ is the _infection feedback term_ controlling the strength of the damping on $\mathcal{R}(t)$, and the summation is analogous to the "force of infection." See [Prior Distributions](#prior-distributions) below for description of prior choice on $\gamma$.
 
 ### Hospital admissions component
 
@@ -137,7 +137,7 @@ $$ \mathrm{logit} (p_{\mathrm{hosp}}(t_2)) \sim \mathrm{Normal}(\mathrm{logit}(p
 
 The process is initialized at the calibration start time $t_0$ via a prior distribution (see [Prior Distributions](#prior-distributions) below).
 
-In hospital admissions only models, we model the IHR as constant. We assign this constant IHR the same prior distribution we assign to the mean of the time-varying IHR in the wastewater-informed models.
+In hospital admissions only models, we model the IHR as constant. We assign this constant IHR the same prior distribution we assign to the intercept of the time-varying IHR in the wastewater-informed models.
 
 ### Hospital admissions observation model
 We model the observed hospital admission counts $h_t$ as:
@@ -296,6 +296,7 @@ We use informative priors for parameters that have been well characterized in th
 | Total genomes shed per infected individual | $\log_{10}[G] \sim \mathrm{Normal}(9, 2)$ | Watson et al 2023[^Watson]   |
 | Initial infections per capita $I_0$ | $I_0 \sim \mathrm{Beta}(1 + k i_\mathrm{est}, 1 + k (1-i_\mathrm{est}))$ | where $i_\mathrm{est}$ is the sum of the last 7 days of hospital admissions, divided by state population, and divided by the prior mode for $p_\mathrm{hosp}$, and $k = 5$ is a parameter governing the informativeness ("certainty") of the Beta distribution |
 | Initial exponential growth rate | $r \sim \mathrm{Normal}(0, 0.01)$ | Chosen to assume flat dynamics prior to observations |
+| Infection feedback term | $\gamma \sim \mathrm{logNormal}(6.37, 0.4)$ | Weakly informative prior chosen to have a mode of 500 in natural scale, based on posterior estimates of peaks from prior seasons in a few locations|
 
 ### Scalar parameters
 

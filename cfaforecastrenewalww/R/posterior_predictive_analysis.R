@@ -1,9 +1,17 @@
-#' Runs posterior-predictive analyses and returns summaries of performance
+#' Runs posterior- and prior--predictive analyses and returns summaries of performance
+#'
 #' @description
 #' This function takes in a model object, the observed data, and the configuration file used to
-#' produce the real-data stan data object. It then fits the model, extracts generated quantities
-#' from some number of those fits, and runs new analyses on the simulated data. It then returns
-#' summaries of estimation performance.
+#' produce the real-data stan data object.
+#'
+#' If running a posterior-predictive analysis, it then fits the model, extracts generated
+#' quantities from some number of those fits, and runs new analyses on the simulated data.
+#' Lastly it returns summaries of estimation performance.
+#'
+#' If running prior-predictive analyses, it runs under the prior to get the joint prior
+#' distribution. Then it extracts generated quantities from some number of those fits,
+#' and runs new analyses on the simulated data. Lastly it returns summaries of
+#' estimation performance.
 #'
 #' @param model a CmdStanModel object defining the model
 #' @param real_data observed data, formated for stan
@@ -16,6 +24,7 @@
 #'  previously-run pps analyses (for re-summarizing)
 #' @param mclapply_cores integer specifying number of threads to use for
 #' posterior-predictive-analysis-level parallelization, separate from stan parallelization
+#' @param under_prior boolean, if TRUE prior-predictive analysis is run, not posterior
 #'
 #' @param ... further arguments passed to model$sample(), e.g. # chains
 #'
@@ -28,6 +37,7 @@ posterior_predictive_analysis <- function(model,
                                           real_data_fit = NA,
                                           ci_width = 0.89,
                                           mclapply_cores = NA,
+                                          under_prior = FALSE,
                                           ...) {
   alpha <- 1 - ci_width
   ci <- c(alpha / 2, 1 - alpha / 2)

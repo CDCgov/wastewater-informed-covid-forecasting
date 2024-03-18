@@ -215,7 +215,8 @@ transformed parameters {
     // log(R(t)site) ~ log(R(t)state) + log(R(t)state-log(R(t)site)) + eta_site
     log_r_site_t_in_weeks = ar1(log_r_mu_t_in_weeks,
                                 autoreg_rt_site, sigma_rt,
-                                to_vector(error_site[i]));
+                                to_vector(error_site[i]),
+                                1);
      //convert from weekly to daily
      unadj_r_site_t = exp(to_row_vector(ind_m*(log_r_site_t_in_weeks)));
 
