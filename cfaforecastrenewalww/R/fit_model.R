@@ -582,18 +582,78 @@ fit_site_level_model <- function(train_data,
           ww = NA,
           site = NA,
           site_index = NA,
+          subpop_index = NA,
           lab = NA,
           lab_wwtp_unique_id = NA,
+          subpop = NA,
           below_LOD = NA,
           flag_as_ww_outlier = NA,
           lod_sewage = NA,
-          ww_pop = NA
+          ww_pop = NA,
+          subpop_size = NA
         )
 
-      # This should be at the lab site level
+      # From train_data, identify whether we need to fit an additional subpop
+      pop_ww <- train_data %>%
+        select(site_index, ww_pop) %>%
+        filter(!is.na(site_index)) %>%
+        group_by(site_index) %>%
+        summarise(pop_avg = mean(ww_pop)) %>%
+        arrange(site_index, "desc") %>%
+        pull(pop_avg)
+      pop <- train_data %>%
+        select(pop) %>%
+        unique() %>%
+        pull(pop)
+
+      add_auxiliary_site <- ifelse(pop >= sum(pop_ww), TRUE, FALSE)
+
+      # From the input data, which labs align with which sites and
+      # which population sizes
+      site_map_raw <- train_data %>%
+        select(
+          lab_site_index, lab_wwtp_unique_id, site_index,
+          lab, site, ww_pop
+        ) %>%
+        distinct() %>%
+        filter(!is.na(site_index))
+
+      # Create a new variable called subpop, link it to site indexes
+      site_subpop_map <- site_map_raw %>%
+        mutate(subpop = paste0("Site: ", site)) %>%
+        select(site_index, subpop, ww_pop) %>%
+        rename(
+          subpop_index = site_index,
+          subpop_size = ww_pop
+        )
+      # Link subpops to the rest of the site and lab metadata
+      site_map <- site_map_raw %>%
+        left_join(site_subpop_map, by = c("site_index" = "subpop_index")) %>%
+        mutate(subpop_index = site_index)
+
+      # If we add an auxiliary site, this means we need to track an additional
+      # subpopulation whose population is the difference between the state pop
+      # and the sum of the wastewater site populations
+      if (isTRUE(add_auxiliary_site)) {
+        extra_subpop <- data.frame(
+          subpop_index = max(site_map$site_index) + 1,
+          subpop = "Pop not on wastewater",
+          subpop_size = pop - sum(pop_ww)
+        )
+
+        subpop_map <- rbind(site_subpop_map, extra_subpop)
+      } else {
+        subpop_map <- site_subpop_map
+      }
+
+
+
+
+      # This should be at the lab site level, but you want to map to
+      # sites and subpops
       gen_quants_draws_w_ww <- gen_quants_draws %>%
         filter(name == "pred_ww") %>%
-        select(-site_index) %>%
+        select(-subpop_index) %>%
         mutate(
           include_ww = include_ww,
           forecast_date = forecast_date,
@@ -603,13 +663,7 @@ fit_site_level_model <- function(train_data,
         ) %>%
         left_join(date_df, by = "t") %>%
         ungroup() %>%
-        left_join(
-          train_data %>%
-            select(
-              lab_site_index, lab_wwtp_unique_id, site_index,
-              lab, site
-            ) %>%
-            distinct(),
+        left_join(site_map,
           by = c("lab_site_index")
         ) %>%
         left_join(
@@ -626,11 +680,14 @@ fit_site_level_model <- function(train_data,
             ungroup() %>%
             select(
               lab_site_index, date, ww,
-              below_LOD, flag_as_ww_outlier, lod_sewage, ww_pop
+              below_LOD, flag_as_ww_outlier, lod_sewage
             ) %>%
             filter(!is.na(ww)) %>%
             unique(),
           by = c("date", "lab_site_index")
+        ) %>%
+        mutate(
+          subpop_index = site_index
         ) %>%
         select(colnames(gen_quants_draws_non_ww))
 
@@ -652,12 +709,15 @@ fit_site_level_model <- function(train_data,
           ) %>%
           left_join(date_df, by = "t") %>%
           ungroup() %>%
-          left_join(
-            train_data %>%
-              select(site_index, site, ww_pop) %>%
-              distinct(),
-            by = c("site_index")
+          left_join(subpop_map,
+            by = c("subpop_index")
           ) %>%
+          left_join(site_map %>%
+            select(
+              subpop_index,
+              site_index, site, ww_pop
+            ) %>%
+            distinct(), by = "subpop_index") %>%
           mutate(
             lab_site_index = NA,
             lab_wwtp_unique_id = NA,

@@ -753,6 +753,39 @@ save_timestamped_nwss_data <- function(ww_path_to_save) {
   return(ww_data_path)
 }
 
+#' Subsample wastewater sites
+#'
+#' @param ww_data Site-level wastewater data, extracted and trnsformed from
+#' the raw NWSS data to contain only the relevant columns. This will be for all
+#' time points
+#' @param prop_sites Proportion of all sites that we want to keep in the input
+#' data. default is 0.2
+#' @param sampled_sites The list of sites that you want to keep, so that we
+#' can compare the exact same subsample if desired. Default is NULL, then
+#' random sampling is done according to the proportion
+#'
+#' @return a data frame structured the same way as the ww_data but with only
+#' prop_sites included. These sites are chosen randomly
+#' @export
+#'
+#' @examples
+subsample_sites <- function(ww_data, prop_sites = 0.2,
+                            sampled_sites = NULL) {
+  if (is.null(sampled_sites)) {
+    site_list <- ww_data %>%
+      select(site) %>%
+      unique() %>%
+      filter(!is.na(site)) %>%
+      pull()
+    n_sites <- length(site_list)
+
+    sampled_sites <- sample(site_list, max(1, round(prop_sites * n_sites)))
+  }
+
+  ww_data_subsampled <- ww_data %>% filter(site %in% c(sampled_sites))
+
+  return(ww_data_subsampled)
+}
 
 
 #' Initial subsetting of NWSS data

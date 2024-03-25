@@ -11,6 +11,7 @@ admissions only model.}
 get_metadata_yaml(
   data_diagnostics_df,
   hosp_only_states,
+  exclude_states,
   output_dir = NULL,
   prod_run = FALSE
 )
@@ -23,6 +24,11 @@ diagnostics by location}
 to use the hospitalization only model, as a vector
 with states coded identically to how they are in
 the `location` column of `full_diagnostics_df`}
+
+\item{exclude_states}{States for which we chose to
+not submit a forecast for this week, as a vector with states
+coded identically to how they are in the `location` columnd
+of `full_diagnostics_df}
 
 \item{output_dir}{Path to a directory in which to save
 the metadata table. Only used if `prod_run = TRUE`.

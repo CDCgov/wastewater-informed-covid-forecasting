@@ -99,7 +99,7 @@ get_model_param_df <- function(x) {
       "p_hosp_w_sd", "t_peak", "dur_shed", "ww_site_mod_sd",
       "infection_feedback"
     )
-    daily_params <- c("rt", "new_i", "p_hosp")
+    daily_params <- c("rt", "state_inf_per_capita", "p_hosp")
     weekly_params <- c("w", "p_hosp_w")
     day_of_week_params <- c("hosp_wday_effect")
 

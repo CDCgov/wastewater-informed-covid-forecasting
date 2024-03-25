@@ -10,6 +10,10 @@
 #' to use the hospitalization only model, as a vector
 #' with states coded identically to how they are in
 #' the `location` column of `full_diagnostics_df`
+#' @param exclude_states States for which we chose to
+#' not submit a forecast for this week, as a vector with states
+#' coded identically to how they are in the `location` columnd
+#' of `full_diagnostics_df`
 #' @param output_dir Path to a directory in which to save
 #' the metadata table. Only used if `prod_run = TRUE`.
 #' Default `NULL`.
@@ -21,6 +25,7 @@
 #' @export
 get_location_notes_table <- function(full_diagnostics_df,
                                      hosp_only_states,
+                                     exclude_states,
                                      output_dir = NULL,
                                      prod_run = FALSE) {
   metadata_df <- full_diagnostics_df %>%
@@ -51,6 +56,10 @@ get_location_notes_table <- function(full_diagnostics_df,
       ),
       location %in% c(hosp_only_states) ~ paste0(
         "Hospital admissions only model was run ",
+        "due to either issues with input data or model"
+      ),
+      location %in% c(exclude_states) ~ paste0(
+        "No forecast was submitted ",
         "due to either issues with input data or model"
       ),
       TRUE ~ "None"
@@ -87,6 +96,10 @@ get_location_notes_table <- function(full_diagnostics_df,
 #' to use the hospitalization only model, as a vector
 #' with states coded identically to how they are in
 #' the `location` column of `full_diagnostics_df`
+#' @param exclude_states States for which we chose to
+#' not submit a forecast for this week, as a vector with states
+#' coded identically to how they are in the `location` columnd
+#' of `full_diagnostics_df
 #' @param output_dir Path to a directory in which to save
 #' the metadata table. Only used if `prod_run = TRUE`.
 #' Default `NULL`.
@@ -98,6 +111,7 @@ get_location_notes_table <- function(full_diagnostics_df,
 #' @export
 get_metadata_yaml <- function(data_diagnostics_df,
                               hosp_only_states,
+                              exclude_states,
                               output_dir = NULL,
                               prod_run = FALSE) {
   summary_list <- get_summary_stats(data_diagnostics_df)
@@ -116,6 +130,11 @@ get_metadata_yaml <- function(data_diagnostics_df,
       ifelse(rlang::is_empty(hosp_only_states),
         "None",
         list(hosp_only_states)
+      ),
+    "States we chose to not submit a forecast for" =
+      ifelse(rlang::is_empty(exclude_states),
+        "None",
+        list(exclude_states)
       )
   )
   if (isTRUE(prod_run)) {

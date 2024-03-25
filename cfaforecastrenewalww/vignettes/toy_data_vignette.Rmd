@@ -92,7 +92,7 @@ ggplot(example_df) +
   geom_point(aes(x = date, y = daily_hosp_admits)) +
   geom_vline(aes(xintercept = forecast_date), linetype = "dashed") +
   xlab("") +
-  ylab("Daily hospital admssions") +
+  ylab("Daily hospital admissions") +
   ggtitle("State level hospital admissions") +
   theme_bw()
 ```
@@ -212,7 +212,7 @@ exp_obs_hosp <- all_draws %>%
   select(pred_hosp, `.draw`, t) %>%
   rename(draw = `.draw`)
 
-# Predicted observed wastewaster concentrations in each lab site
+# Predicted observed wastewater concentrations in each lab site
 exp_obs_conc <- all_draws %>%
   spread_draws(pred_ww[lab_wwtp_unique_id, t]) %>%
   select(pred_ww, `.draw`, t, lab_wwtp_unique_id) %>%
@@ -237,7 +237,7 @@ ggplot(output_df) +
   geom_point(aes(x = date, y = daily_hosp_admits)) +
   geom_vline(aes(xintercept = forecast_date), linetype = "dashed") +
   xlab("") +
-  ylab("Daily hospital admssions") +
+  ylab("Daily hospital admissions") +
   ggtitle("State level hospital admissions estimated with wastewater") +
   theme_bw()
 
@@ -296,7 +296,7 @@ ggplot(output_df) +
 <br>
 
 # Model outputs: parameters
-Get a dataframe of all of the key estimate model paramters combined with the key
+Get a dataframe of all of the key estimate model parameters combined with the key
 "known" model parameters to get a sense of
 which parameters we can recover and which might be unidentifiable (just as a
 first pass, eventually we will probably want to do a full sensitivity analysis
@@ -313,7 +313,7 @@ static_params <- c(
   "infection_feedback"
 )
 vector_params <- c(
-  "w", "p_hosp_w", "rt", "new_i", "p_hosp",
+  "w", "p_hosp_w", "rt", "state_inf_per_capita", "p_hosp",
   "sigma_ww_site_raw", "ww_site_mod_raw",
   "ww_site_mod", "sigma_ww_site",
   "hosp_wday_effect"

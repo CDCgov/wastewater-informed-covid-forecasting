@@ -148,6 +148,8 @@ plot_combined_data <- function(comb, figure_file_path,
 #' @param y outcome variable for the y-axis of plots, options are 'pred_hosp'
 #' and 'pred_ww'
 #' @param figure_file_path directory to save the figure
+#' @param log_scale whether or not to transform the y-axis to log scale,
+#' default is FALSE
 #' @param grouping_var what to group by, default is NA, options are 'model_type'
 #' and 'location'
 #' @param from_full_df if TRUE, df is a draws dataframe, if FALSE, df is a data
@@ -166,6 +168,7 @@ plot_combined_data <- function(comb, figure_file_path,
 #' @examples
 get_plot_draws <- function(df, y,
                            figure_file_path,
+                           log_scale = FALSE,
                            grouping_var = NA,
                            from_full_df = FALSE,
                            days_pre_forecast_date_plot = 90,
@@ -266,7 +269,15 @@ get_plot_draws <- function(df, y,
     )
   }
 
+  last_obs_data <- y_draws %>%
+    filter(
+      !is.na(obs_data),
+      date == max(date)
+    ) %>%
+    distinct(obs_data) %>%
+    pull()
   max_obs_data <- max(y_draws$obs_data, na.rm = TRUE)
+  y_axis_lim <- max(3 * last_obs_data, 1.5 * max_obs_data)
   # Make a plot with the draws and the median
   plot <- ggplot() +
     geom_line(
@@ -336,8 +347,15 @@ get_plot_draws <- function(df, y,
         vjust = 0.5, hjust = 0.5
       )
     ) +
-    coord_cartesian(ylim = c(0, 3 * max_obs_data)) +
     guides(color = "none")
+  trans <- if (log_scale) "log" else "linear"
+
+  if (isFALSE(log_scale)) {
+    plot <- plot +
+      coord_cartesian(ylim = c(0, y_axis_lim))
+  } else {
+    plot <- plot + scale_y_continuous(trans = "log10")
+  }
 
   if (y == "pred_ww") {
     # Fill in the WW data point
@@ -386,7 +404,7 @@ get_plot_draws <- function(df, y,
       ggsave(
         file.path(
           full_file_path,
-          glue::glue("{y}_draws_{model_file_name}.png")
+          glue::glue("{y}_draws_{model_file_name}_{trans}.png")
         ),
         plot = p,
         width = 12, # 8
@@ -412,7 +430,8 @@ get_plot_draws <- function(df, y,
       create_dir(full_file_path)
       ggsave(
         file.path(
-          full_file_path, "mult_models_hosp_forecast.png"
+          full_file_path,
+          glue::glue("mult_models_hosp_forecast_{trans}.png")
         ),
         plot = p,
         width = 15,
@@ -624,10 +643,10 @@ get_plot_param_distribs <- function(df,
 #' then don't
 #' @return plot object of R(t)s in each site with state level median overlaid
 #' @export
-get_rt_site_level <- function(df,
-                              figure_file_path,
-                              from_full_df = FALSE,
-                              write_files = TRUE) {
+get_rt_subpop_level <- function(df,
+                                figure_file_path,
+                                from_full_df = FALSE,
+                                write_files = TRUE) {
   if (isFALSE(from_full_df)) {
     model_draws <- arrow::read_parquet(
       file =
@@ -644,7 +663,7 @@ get_rt_site_level <- function(df,
     )
   rt_draws <- rt_draws %>% left_join(
     rt_draws %>%
-      group_by(date, site) %>%
+      group_by(date, subpop) %>%
       summarise(median_Rt = quantile(value, 0.5, na.rm = TRUE))
   )
 
@@ -672,14 +691,14 @@ get_rt_site_level <- function(df,
   model_file_name <- plot_metadata$model_file_name
   n_sites <- length(unique(rt_draws$site))
 
-  title <- glue::glue("Site-level R(t) as of {forecast_date} in {location}")
+  title <- glue::glue("Subpopulation R(t) as of {forecast_date} in {location}")
 
   plot <- ggplot(rt_draws) +
-    geom_line(aes(x = date, y = value, group = draw, color = as.factor(site)),
+    geom_line(aes(x = date, y = value, group = draw, color = as.factor(subpop)),
       show.legend = FALSE,
       alpha = 0.05, size = 0.5
     ) +
-    geom_line(aes(x = date, y = median_Rt, color = as.factor(site)),
+    geom_line(aes(x = date, y = median_Rt, color = as.factor(subpop)),
       show.legend = FALSE, size = 1.3
     ) +
     geom_line(
@@ -687,7 +706,7 @@ get_rt_site_level <- function(df,
       aes(x = date, y = median_Rt_state), color = "black"
     ) +
     geom_vline(aes(xintercept = forecast_date), linetype = "dashed") +
-    facet_wrap(~site) +
+    facet_wrap(~subpop) +
     xlab("") +
     ylab("R(t)") +
     theme_bw() +
@@ -718,7 +737,7 @@ get_rt_site_level <- function(df,
     ggsave(
       file.path(
         full_file_path,
-        glue::glue("site_level_Rt_from_{model_file_name}.png")
+        glue::glue("subpop_level_Rt_from_{model_file_name}.png")
       ),
       plot = plot,
       width = max(3 * round(sqrt(n_sites)), 6),
@@ -807,7 +826,7 @@ get_rt_from_draws <- function(df,
       labels = scales::date_format("%Y-%m-%d")
     ) +
     ggtitle(title) +
-    scale_y_continuous(trans = scales::log_trans()) +
+    scale_y_continuous(trans = "log10") +
     theme(
       axis.text.x = element_text(
         size = 10, vjust = 1,
