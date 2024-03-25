@@ -185,48 +185,59 @@ Future iterations of this model will evaluate the utility of mechanistic modelin
 
 ## Model 1: Site-level infection dynamics
 
-In this model, we represent hospital admissions at the state-level, and viral genome concentrations at the site-level. We represent site-level infection dynamics using a hierarchical model: site-level infection dynamics are distributed about a central state-level infection dynamic.
+In this model, we represent hospital admissions at the state-level, and viral genome concentrations at the site-level.
+We divide the population into subpopulations, with each site representing a subpopulation of the state total, plus an additional subpopulation that represents the portion of the state population not covered by wastewater surveillance.
+We represent subpopulation infection dynamics using a hierarchical model: subpopulation infection dynamics are distributed about a central state-level infection dynamic and the total infections in each subpopulation sum up to the total state infections.
 
 This model uses all of the components described above with following modifications.
 
-### Site-level infections
+### Subpopulation-level infections
 
 We couple the site- and state-level dynamics at the level of the un-damped instantaneous reproduction number $\mathcal{R}^\mathrm{u}(t)$.
 
 We assume that the populations represented by wastewater treatment sites have infection dynamics that are _similar_ to one another but can vary from the state-level mean.
 
-We represent this with a hierarchical model where we first model a state-level un-damped effective reproductive number $\mathcal{R}^\mathrm{u}(t)$, but then allow individual sites $i$ to have individual site-level values of $\mathcal{R}^\mathrm{u}_{i}(t)$
+We represent this with a hierarchical model where we first model a state-level un-damped effective reproductive number $\mathcal{R}^\mathrm{u}(t)$, but then allow individual subpopulations $k$ to have individual subpopulation values of $\mathcal{R}^\mathrm{u}_{k}(t)$
 
-The state-level model for $\mathcal{R}^\mathrm{u}(t)$ is the same as the infection model described above, with $\mathcal{R}^\mathrm{u}(t)$ generating the state-level hospital admissions.
-Site-level deviations from the state-level reproduction number are modeled via a log-scale AR(1) process. Specifically, for site $i$:
+The state-level model for the undamped instantaneous reproductive number $\mathcal{R}^\mathrm{u}(t)$ follows the time-evolution described above.
+Subpopulation deviations from the state-level reproduction number are modeled via a log-scale AR(1) process. Specifically, for subpopulation $k$:
 
 $$
-\log[\mathcal{R}^\mathrm{u}_{i}(t)] = \log[\mathcal{R}^\mathrm{u}(t)] + \delta_i(t)
+\log[\mathcal{R}^\mathrm{u}_{k}(t)] = \log[\mathcal{R}^\mathrm{u}(t)] + \delta_k(t)
 $$
 
-where $\delta_i(t)$ is the time-varying site effect on $\mathcal{R}(t)$, modeled as,
+where $\delta_k(t)$ is the time-varying subpopulation effect on $\mathcal{R}(t)$, modeled as,
 
-$$\delta_i(t) = \varphi \delta_i(t-1) + \epsilon_{it}$$
+$$\delta_k(t) = \varphi \delta_k(t-1) + \epsilon_{kt}$$
 
-where $0 < \varphi < 1$ and $\epsilon_{it} \sim \mathrm{Normal}(0, \sigma_\delta)$.
+where $0 < \varphi < 1$ and $\epsilon_{kt} \sim \mathrm{Normal}(0, \sigma_\delta)$.
 
-The site-level $\mathcal{R}_{i}(t)$ is also subject to the infection feedback described above such that:
+The subpopulation $\mathcal{R}_{i}(t)$ is subject to the infection feedback described above such that:
 
 ```math
-\mathcal{R}_i(t) = \mathcal{R}^\mathrm{u}_i(t) \exp \left(-\gamma \sum_{\tau = 1}^{T_f} I_i(t-\tau) g(\tau) \right)
+\mathcal{R}_k(t) = \mathcal{R}^\mathrm{u}_k(t) \exp \left(-\gamma \sum_{\tau = 1}^{T_f} I_k(t-\tau) g(\tau) \right)
 ```
 
-From $\mathcal{R}_{i}(t)$, we generate estimates of site-level _expected_ latent incident infections per capita $I_i(t)$ using the renewal process described in [the infection component](#infection-component).
+From $\mathcal{R}_{k}(t)$, we generate estimates of site-level _expected_ latent incident infections per capita $I_k(t)$ using the renewal process described in [the infection component](#infection-component).
 
-We infer the site level initial per capita incidence $I_i(0)$ hierarchically. Specifically, we treat $\mathrm{logit}[I_i(0)]$ as Normally distributed about the corresponding state-level value $\mathrm{logit}[I(0)]$, with an estimated standard deviation $\sigma_{i0}$:
+To obtain the state-level _expected_ latent incident infections per capita $I(t)$, we assume that wastewater catchment area population sizess are non-overlapping subsets of the total state population, and represent the remaining state population not represented by wastewater surveillance as an additional subpopulation.
+To obtain the total state infections, we divide the population into the $n_k$ subpopulations and we sum the subpopulation per capita infections weighted by the proportion of the state population they represent:
+
+```math
+I(t) = \frac{1}{\sum n_k} \sum_{k=1}^{k=n_{k}} n_k I_k(t)
+```
+
+In the rare case where the sum of the site populations exceeds the state population, we do not add an additional subpopulation (so $n_{sites} = n_{k}$) and assume that the population sizes in each catchment area are representative of the population fraction in the state, assuming that the reported populations represented by each wastewater catchment area are non-overlapping.
+
+We infer the site level initial per capita incidence $I_k(0)$ hierarchically. Specifically, we treat $\mathrm{logit}[I_k(0)]$ as Normally distributed about the corresponding state-level value $\mathrm{logit}[I(0)]$, with an estimated standard deviation $\sigma_{i0}$:
 
 $$
-\mathrm{logit}[I_i(0)] \sim \mathrm{Normal}(\mathrm{logit}[I(0)], \sigma_{i0})
+\mathrm{logit}[I_k(0)] \sim \mathrm{Normal}(\mathrm{logit}[I(0)], \sigma_{k0})
 $$
 
 ### Viral genome concentration in wastewater
 
-We model site-specific viral genome concentrations in wastewater $C_i(t)$ independently for each site $i$ using the same model as described in [the wastewater component](#wastewater-viral-concentration-component)
+We model site-specific viral genome concentrations in wastewater $C_i(t)$ independently for each site $i$ using the same model as described in [the wastewater component](#wastewater-viral-concentration-component). The latent incident infections in subpopulation $k$ are mapped to the corresponding site $i$.
 
 Genome concentration measurements can vary between sites, and even within a site through time, because of differences in sample collection and lab processing methods. To account for this variability, we add a scaling term $M_{ij}$ and a variablity term $\sigma_{cij}$ that vary across sites $i$ and also within sites across labs $j$:
 

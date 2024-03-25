@@ -101,21 +101,24 @@ write_config <- function(run_id,
   # Assign the dates and locations for hospital admissions to be manually
   # removed
 
-  last_1 <- lubridate::ymd("2024-03-08")
   dates_for_hosp_removal <- c(
-    lubridate::ymd("2024-03-07"), # IA 2nd to last
+    seq(
+      from = lubridate::ymd("2024-03-13"),
+      to = lubridate::ymd("2024-03-14"),
+      by = "days"
+    ), # OR exclude two repeats
     seq(
       from = lubridate::ymd("2024-02-27"),
       to = lubridate::ymd("2024-02-29"),
       by = "days"
-    ), # NM 4th to last to second to last repeated data points
-    last_1 # SC
+    ), # NM exclude repeats,
+    lubridate::ymd("2023-03-14") # second to last MS data point
   )
 
   states_for_hosp_removal <- c(
-    rep("IA", 1),
+    rep("OR", 2),
     rep("NM", 3),
-    rep("SC", 1)
+    "MS"
   )
 
 

@@ -7,6 +7,7 @@
 get_loc_model_map(
   df_of_filepaths,
   hosp_only_states,
+  exclude_states,
   us_model_type = "state-level aggregated wastewater"
 )
 }
@@ -17,6 +18,8 @@ of those outputs}
 
 \item{hosp_only_states}{the states we want to manually replace with the
 hospital admissions only model for submission}
+
+\item{exclude_states}{the states we don't want to submit this week}
 
 \item{us_model_type}{The default model type for the US}
 }

@@ -801,11 +801,11 @@ get_gen_quants_draws <- function(all_draws,
     p_hosp_draws
   )
   model_draws <- model_draws %>%
-    mutate(site_index = NA)
+    mutate(subpop_index = NA)
 
   if (model_type == "site-level infection dynamics") {
     site_level_rt <- all_draws %>%
-      spread_draws(r_site_t[site_index, t]) %>%
+      spread_draws(r_site_t[subpop_index, t]) %>%
       rename(value = r_site_t) %>%
       mutate(
         draw = `.draw`,
@@ -1124,6 +1124,7 @@ get_parameter_draws <- function(model_draws, pars, train_data) {
 #' of those outputs
 #' @param hosp_only_states the states we want to manually replace with the
 #' hospital admissions only model for submission
+#' @param exclude_states the states we don't want to submit this week
 #' @param us_model_type The default model type for the US
 #'
 #' @return
@@ -1132,6 +1133,7 @@ get_parameter_draws <- function(model_draws, pars, train_data) {
 #' @examples
 get_loc_model_map <- function(df_of_filepaths,
                               hosp_only_states,
+                              exclude_states,
                               us_model_type = "state-level aggregated wastewater") {
   # Specify the desired model type
   loc_model_map_states <- df_of_filepaths |>
@@ -1142,7 +1144,15 @@ get_loc_model_map <- function(df_of_filepaths,
         (location %in% hosp_only_states) ~ "hospital admissions only",
         TRUE ~ model_type
       )
-    )
+    ) |>
+    dplyr::mutate(
+      keep_state = dplyr::case_when(
+        (location %in% exclude_states) ~ FALSE,
+        TRUE ~ TRUE
+      )
+    ) |>
+    dplyr::filter(keep_state == TRUE) |>
+    dplyr::select(location, model_type)
 
   us_df <- data.frame(location = "US", model_type = us_model_type)
   loc_model_map <- rbind(loc_model_map_states, us_df)

@@ -8,6 +8,7 @@ get_plot_draws(
   df,
   y,
   figure_file_path,
+  log_scale = FALSE,
   grouping_var = NA,
   from_full_df = FALSE,
   days_pre_forecast_date_plot = 90,
@@ -27,6 +28,9 @@ period, model_type}
 and 'pred_ww'}
 
 \item{figure_file_path}{directory to save the figure}
+
+\item{log_scale}{whether or not to transform the y-axis to log scale,
+default is FALSE}
 
 \item{grouping_var}{what to group by, default is NA, options are 'model_type'
 and 'location'}

@@ -387,10 +387,31 @@ get_stan_data_site_level_model <- function(train_data,
     select(pop) %>%
     unique() %>%
     pull(pop)
+
   stopifnot(
     "More than one population size in training data" =
       length(pop) == 1
   )
+
+  message("Prop of population size covered by wastewater: ", sum(pop_ww) / pop)
+
+  # Logic to determine the number of subpopulations to estimate R(t) for
+  add_auxiliary_site <- ifelse(pop >= sum(pop_ww), TRUE, FALSE)
+  if (add_auxiliary_site) {
+    # In most cases, wastewater catchment coverage < entire state.
+    # So here we add a subpopulation that represents the population not
+    # covered by wastewater surveillance
+    norm_pop <- pop
+    n_subpops <- n_ww_sites + 1
+    subpop_size <- c(pop_ww, pop - sum(pop_ww))
+  } else {
+    message("Sum of wastewater catchment areas is greater than state pop")
+    norm_pop <- sum(pop_ww)
+    # If sum catchment areas > state pop,
+    # use sum of catchment area pop to normalize
+    n_subpops <- n_ww_sites # Only divide the state into n_site subpops
+    subpop_size <- pop_ww
+  }
 
   # Estimate of number of initial infections
   i0 <- mean(train_data$daily_hosp_admits[1:7], na.rm = TRUE) / p_hosp_mean
@@ -418,7 +439,7 @@ get_stan_data_site_level_model <- function(train_data,
     dur_inf = dur_inf,
     mwpd = ml_of_ww_per_person_day,
     ot = ot,
-    n_ww_sites = n_ww_sites,
+    n_subpops = n_subpops,
     n_ww_lab_sites = n_ww_lab_sites,
     owt = owt,
     oht = oht,
@@ -432,7 +453,9 @@ get_stan_data_site_level_model <- function(train_data,
     p_hosp_m = p_hosp_m,
     generation_interval = generation_interval,
     ts = 1:gt_max,
-    n = pop,
+    state_pop = pop, # state population (needed for hospital admissions)
+    subpop_size = subpop_size, # population size in each site/subpop
+    norm_pop = norm_pop, # used to normalize the sum of infections from each subpop
     ww_sampled_times = ww_sampled_times,
     hosp_times = hosp_times,
     ww_sampled_lab_sites = ww_sampled_lab_sites,
@@ -706,7 +729,7 @@ site_level_inf_inits <- function(train_data, params, stan_data) {
 
   n_weeks <- as.numeric(stan_data$n_weeks)
   tot_weeks <- as.numeric(stan_data$tot_weeks)
-  n_ww_sites <- as.numeric(stan_data$n_ww_sites)
+  n_subpops <- as.numeric(stan_data$n_subpops)
   n_ww_lab_sites <- as.numeric(stan_data$n_ww_lab_sites)
   ot <- as.numeric(stan_data$ot)
   ht <- as.numeric(stan_data$ht)
@@ -718,16 +741,13 @@ site_level_inf_inits <- function(train_data, params, stan_data) {
   init_list <- list(
     w = rnorm(n_weeks - 1, 0, 0.01),
     eta_sd = abs(rnorm(1, 0, 0.01)),
-    eta_i0 = abs(rnorm(n_ww_sites, 0, 0.01)),
+    eta_i0 = abs(rnorm(n_subpops, 0, 0.01)),
     sigma_i0 = abs(rnorm(1, 0, 0.01)),
-    eta_growth = abs(rnorm(n_ww_sites, 0, 0.01)),
+    eta_growth = abs(rnorm(n_subpops, 0, 0.01)),
     sigma_growth = abs(rnorm(1, 0, 0.01)),
     autoreg_rt = abs(rnorm(1, autoreg_rt_a / (autoreg_rt_a + autoreg_rt_b), 0.05)),
     log_r_mu_intercept = rnorm(1, convert_to_logmean(1, 0.1), convert_to_logsd(1, 0.1)),
-    error_site = matrix(
-      rnorm(n_ww_sites * n_weeks, mean = 0, sd = 0.1),
-      n_ww_sites, n_weeks
-    ),
+    error_site = matrix(rnorm(n_subpops * n_weeks, mean = 0, sd = 0.1), n_subpops, n_weeks),
     autoreg_rt_site = abs(rnorm(1, 0.5, 0.05)),
     sigma_rt = abs(rnorm(1, 0, 0.01)),
     i0_over_n = plogis(rnorm(1, qlogis(i0 / pop), 0.05)),

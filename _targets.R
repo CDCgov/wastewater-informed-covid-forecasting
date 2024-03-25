@@ -93,6 +93,11 @@ list(
     command = c(),
     deployment = "main"
   ),
+  tar_target(
+    name = exclude_states,
+    command = c(),
+    deployment = "main"
+  ),
   # If want to enforce a global change, need to tar_destroy to
   # regenerate run_id
   tar_target(
@@ -112,7 +117,7 @@ list(
     command = write_config(
       save_config = TRUE,
       location = NULL,
-      prod_run = TRUE,
+      prod_run = FALSE,
       run_id = run_id,
       ww_geo_type = "state",
       date_run = date_run,
@@ -132,7 +137,7 @@ list(
     command = write_config(
       save_config = TRUE,
       location = "US",
-      prod_run = TRUE,
+      prod_run = FALSE,
       run_id = run_id,
       ww_geo_type = "state",
       date_run = date_run,
@@ -152,7 +157,7 @@ list(
     command = write_config(
       save_config = TRUE,
       location = NULL,
-      prod_run = TRUE,
+      prod_run = FALSE,
       run_id = run_id,
       date_run = date_run,
       model_type = "site-level infection dynamics",
@@ -250,10 +255,10 @@ list(
   ),
 
 
-  # # Fit the model ------------------------------------------------------------
-  # # get a stacked long dataframe containing the quantiles(estimated
-  # # from all draws) and 100 samples of the draws from the posterior for the
-  # # generated quantities and the parameters
+  ## Fit the model ------------------------------------------------------------
+  # get a stacked long dataframe containing the quantiles(estimated
+  # from all draws) and 100 samples of the draws from the posterior for the
+  # generated quantities and the parameters
   tar_target(
     name = df_of_filepaths_id,
     command = do.call(
@@ -286,6 +291,18 @@ list(
     command = get_plot_draws(grouped_df_id,
       "pred_hosp",
       figure_output_subdirectory,
+      show_calibration_data = FALSE
+    ),
+    pattern = map(grouped_df_id),
+    iteration = "list",
+    deployment = "main"
+  ),
+  tar_target(
+    name = plot_single_location_hosp_draws_log_id,
+    command = get_plot_draws(grouped_df_id,
+      "pred_hosp",
+      figure_output_subdirectory,
+      log_scale = TRUE,
       show_calibration_data = FALSE
     ),
     pattern = map(grouped_df_id),
@@ -333,8 +350,8 @@ list(
     deployment = "main"
   ),
   tar_target(
-    name = plot_rt_site_level,
-    command = get_rt_site_level(
+    name = plot_rt_subpop_level,
+    command = get_rt_subpop_level(
       grouped_df_id,
       figure_output_subdirectory
     ),
@@ -464,6 +481,18 @@ list(
     command = get_plot_draws(grouped_df,
       "pred_hosp",
       figure_output_subdirectory,
+      show_calibration_data = FALSE
+    ),
+    pattern = map(grouped_df),
+    iteration = "list",
+    deployment = "main"
+  ),
+  tar_target(
+    name = plot_single_location_hosp_draws_log_ho,
+    command = get_plot_draws(grouped_df,
+      "pred_hosp",
+      figure_output_subdirectory,
+      log_scale = TRUE,
       show_calibration_data = FALSE
     ),
     pattern = map(grouped_df),
@@ -618,6 +647,18 @@ list(
     deployment = "main"
   ),
   tar_target(
+    name = plot_single_location_hosp_draws_log_sa,
+    command = get_plot_draws(grouped_df_sa,
+      "pred_hosp",
+      figure_output_subdirectory,
+      log_scale = TRUE,
+      show_calibration_data = FALSE
+    ),
+    pattern = map(grouped_df_sa),
+    iteration = "list",
+    deployment = "main"
+  ),
+  tar_target(
     name = plot_single_location_ww_draws_sa,
     command = get_plot_draws(df_of_filepaths_us,
       "pred_ww",
@@ -681,6 +722,20 @@ list(
       "pred_hosp",
       grouping_var = "model_type",
       figure_output_subdirectory,
+      show_calibration_data = FALSE
+    ),
+    pattern = map(grouped_df_comb),
+    iteration = "list",
+    deployment = "main"
+  ),
+  tar_target(
+    name = plot_mult_models_log,
+    command = get_plot_draws(
+      grouped_df_comb,
+      "pred_hosp",
+      grouping_var = "model_type",
+      figure_output_subdirectory,
+      log_scale = TRUE,
       show_calibration_data = FALSE
     ),
     pattern = map(grouped_df_comb),
@@ -782,6 +837,24 @@ list(
     ),
     deployment = "main"
   ),
+  tar_target(
+    name = pdf_of_forecast_comparisons_log,
+    command = do.call(
+      save_to_pdf,
+      c(list(list_of_plots = plot_mult_models_log),
+        type_of_output = "forecasts_from_mult_model_types_log",
+        pdf_file_path = file.path(
+          pdf_output_subdirectory,
+          "internal"
+        ),
+        model_name = config_vars_id$submitting_model_name,
+        n_row = 3,
+        n_col = 1,
+        config_vars_id
+      )
+    ),
+    deployment = "main"
+  ),
   # Get model run diagnostics for submission -------------------------------------
   tar_target(
     name = full_diagnostics_df,
@@ -798,8 +871,9 @@ list(
   tar_target(
     name = loc_model_map_submission,
     command = get_loc_model_map(
-      df_of_filepaths_id,
-      hosp_only_states
+      df_of_filepaths = df_of_filepaths_id,
+      hosp_only_states = hosp_only_states,
+      exclude_states = exclude_states
     ),
     deployment = "main"
   ),
@@ -844,6 +918,7 @@ list(
     command = get_location_notes_table(
       full_diagnostics_df,
       hosp_only_states,
+      exclude_states,
       output_dir = repo_file_path,
       prod_run = config_vars_id$prod_run
     ),
@@ -854,6 +929,7 @@ list(
     command = get_metadata_yaml(
       data_diagnostics_df = full_diagnostics_df,
       hosp_only_states = hosp_only_states,
+      exclude_states = exclude_states,
       output_dir = repo_file_path,
       prod_run = config_vars_id$prod_run
     )
@@ -933,6 +1009,7 @@ list(
     command = get_loc_model_map(
       df_of_filepaths_ho |> dplyr::filter(location != "US"),
       hosp_only_states,
+      exclude_states = c(),
       us_model_type = "hospital admissions only"
     ),
     deployment = "main"
@@ -1002,7 +1079,8 @@ list(
   tar_target(
     name = loc_model_map_ww,
     command = get_loc_model_map(df_of_filepaths_id,
-      hosp_only_states = c()
+      hosp_only_states = c(),
+      exclude_states = c()
     ),
     deployment = "main"
   ),
