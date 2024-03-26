@@ -47,7 +47,7 @@ The models differ in the data they use as input, in whether or not they include 
 [**Model 1**](#model-1) is wastewater-informed, site-level infection dynamics model.
 It uses genome concentrations at the site level and admissions at the state level as input and produces forecasts of admissions at the state level.
 We use Model 1 to generate forecasts for states with any wastewater data available.
-However, if a state has not reported any genome concentration data in the past 21 days or if there are less than 5 data points per site in any site, we flag this in our metadata, as it is unlikely that the wastewater data is meaningfully informing the forecast in that location.
+However, if a state has not reported any genome concentration data in the past 21 days or if there are fewer than 5 data points per site in any site, we flag this in our metadata, as it is unlikely that the wastewater data is meaningfully informing the forecast in that location.
 
 [**Model 2**](#model-2) is a no-wastewater, state-level infection dynamics model.
 It uses state-level admissions as input and produces forecasts of state-level admissions as output.
@@ -65,8 +65,7 @@ Of the forecasts being submitted to the [COVID-19 Forecast Hub](https://github.c
 | Model 3 | Nationally aggregated | Nationally aggregated | National | National |
 
 
-We provide a metadata table alongside the forecasts that indicate notes on the wastewater data for each state, indicating if it does not have any wastewater data from the past 90 days.
-For states with minimal or delayed wastewater data, we will still fit Model 1, but the metadata will indicate that the wastewater data is likely insufficient to be inform the forecast.
+Alongside each forecast, we publish a corresponding metadata table with state-by-state notes on wastewater data status and model used. If a state has no wastewater data during the fitting period (the past 90 days), we fit Model 2 and indicate this in the metadata. If a state has minimal wastewater data or no recent wastewater measurements, we still fit Model 1, but we indicate in the metadata that the wastewater data may be insufficient to inform the forecast.
 
 ### Model components
 
@@ -185,17 +184,32 @@ Future iterations of this model will evaluate the utility of mechanistic modelin
 
 ## Model 1: Site-level infection dynamics
 
-In this model, we represent hospital admissions at the state-level, and viral genome concentrations at the site-level.
-We divide the population into subpopulations, with each site representing a subpopulation of the state total, plus an additional subpopulation that represents the portion of the state population not covered by wastewater surveillance.
-We represent subpopulation infection dynamics using a hierarchical model: subpopulation infection dynamics are distributed about a central state-level infection dynamic and the total infections in each subpopulation sum up to the total state infections.
+In this model, we represent hospital admissions at the state-level and viral genome concentrations at the site-level. We use the components described above but divide the state population into subpopulations representing sampled wastewater sites' catchment populations, with an additional subpopulation to represent individuals who do not contribute to sampled wastewater.
 
-This model uses all of the components described above with following modifications.
+We model infection dynamics in these subpopulations hierarchically: subpopulation infection dynamics are distributed about a central state-level infection dynamic, and total state infections are simply the sum of the subpopulation-level infections.
 
-### Subpopulation-level infections
+### Subpopulation definition
+In Model 1, a state consists of $K_\mathrm{total}$ subpopulations $k$ with corresponding population sizes $n_k$. We associate one subpopulation to each of the $K_\mathrm{sites}$ wastewater sampling sites in the state and assign that subpopulation a population size $n_k$ equal to the wastewater catchment population size reported to NWSS for that site.
 
-We couple the site- and state-level dynamics at the level of the un-damped instantaneous reproduction number $\mathcal{R}^\mathrm{u}(t)$.
+Whenever the sum of the wastewater catchment population sizes $\sum\nolimits_{k=1}^{K_\mathrm{sites}} n_k$ is less than the total state population size $n$, we use an additional subpopulation of size $n - \sum\nolimits_{k=1}^{K_\mathrm{sites}} n_k$ to model individuals in the state who are not covered by wastewater sampling.
 
-We assume that the populations represented by wastewater treatment sites have infection dynamics that are _similar_ to one another but can vary from the state-level mean.
+The total number of subpopulations is then $K_\mathrm{total} = K_\mathrm{sites} + 1$: the $K_\mathrm{sites}$ subpopulations with sampled wastewater, and the final subpopulation to account for individuals not covered by wastewater sampling.
+
+This amounts to modeling the wastewater catchments populations as approximately non-overlapping; every infected individual either does not contribute to measured wastewater or contributes principally to one wastewater catchment.
+This approximation is reasonable because we only use samples taken from primary wastewaster treatment plants, which avoids the possibility that an individual might be sampled once in a sample taken upstream and then sampled again in a more aggregated sample taken further downstream; see [data filtering](#appendix-wastewater-data-pre-processing) for further details.
+
+If the sum of the wastewater site catchment populations meets or exceeds the reported state population ($\sum\nolimits_{k=1}^{K_\mathrm{sites}} n_k \ge n$) we do not use a final subpopulation without sampled wastewater. In that case, the total number of subpopulations $K_\mathrm{total} = K_\mathrm{sites}$. In our data, this is true only for the District of Columbia.
+
+When converting from predicted per capita incident hospital admissions $H(t)$ to predicted hospitalization counts, we use the state population size $n$, even in the case of the District of Columbia where $\sum n_k > n$.
+
+This amounts to making two key additional modeling assumptions:
+- Any individuals who contribute to wastewaster measurements but are not part of the state population are distributed among the catchment populations approximately proportional to catchment population size.
+- Whenever $\sum n_k \ge n$, the fraction of individuals in the state not covered by wastewater is small enough to have minimal impact on the statewide per capita infection dynamics.
+
+### Subpopulation-level infection dynamics
+We couple the subpopulation- and state-level infection dynamics at the level of the un-damped instantaneous reproduction number $\mathcal{R}^\mathrm{u}(t)$.
+
+We model the subpopulations as having infection dynamics that are _similar_ to one another but can differ from the overall state-level dynamic.
 
 We represent this with a hierarchical model where we first model a state-level un-damped effective reproductive number $\mathcal{R}^\mathrm{u}(t)$, but then allow individual subpopulations $k$ to have individual subpopulation values of $\mathcal{R}^\mathrm{u}_{k}(t)$
 
@@ -212,22 +226,19 @@ $$\delta_k(t) = \varphi \delta_k(t-1) + \epsilon_{kt}$$
 
 where $0 < \varphi < 1$ and $\epsilon_{kt} \sim \mathrm{Normal}(0, \sigma_\delta)$.
 
-The subpopulation $\mathcal{R}_{i}(t)$ is subject to the infection feedback described above such that:
+The subpopulation $\mathcal{R}_{k}(t)$ is subject to the infection feedback described above such that:
 
 ```math
 \mathcal{R}_k(t) = \mathcal{R}^\mathrm{u}_k(t) \exp \left(-\gamma \sum_{\tau = 1}^{T_f} I_k(t-\tau) g(\tau) \right)
 ```
 
-From $\mathcal{R}_{k}(t)$, we generate estimates of site-level _expected_ latent incident infections per capita $I_k(t)$ using the renewal process described in [the infection component](#infection-component).
+From $\mathcal{R}_{k}(t)$, we generate values of the supopulation-level _expected_ latent incident infections per capita $I_k(t)$ using the renewal process described in [the infection component](#infection-component).
 
-To obtain the state-level _expected_ latent incident infections per capita $I(t)$, we assume that wastewater catchment area population sizess are non-overlapping subsets of the total state population, and represent the remaining state population not represented by wastewater surveillance as an additional subpopulation.
-To obtain the total state infections, we divide the population into the $n_k$ subpopulations and we sum the subpopulation per capita infections weighted by the proportion of the state population they represent:
+To obtain the number of statewide infections per capita $I(t)$, we sum the $K_\mathrm{total}$ subpopulation per capita infection counts $I_k(t)$ weighted by their population sizes:
 
 ```math
-I(t) = \frac{1}{\sum n_k} \sum_{k=1}^{k=n_{k}} n_k I_k(t)
+I(t) = \frac{1}{\sum\nolimits_{k=1}^{K_\mathrm{total}} n_k} \sum_{k=1}^{K_\mathrm{total}} n_k I_k(t)
 ```
-
-In the rare case where the sum of the site populations exceeds the state population, we do not add an additional subpopulation (so $n_{sites} = n_{k}$) and assume that the population sizes in each catchment area are representative of the population fraction in the state, assuming that the reported populations represented by each wastewater catchment area are non-overlapping.
 
 We infer the site level initial per capita incidence $I_k(0)$ hierarchically. Specifically, we treat $\mathrm{logit}[I_k(0)]$ as Normally distributed about the corresponding state-level value $\mathrm{logit}[I(0)]$, with an estimated standard deviation $\sigma_{i0}$:
 
