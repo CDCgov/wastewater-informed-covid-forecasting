@@ -1,0 +1,17 @@
+States without wastewaster data:
+- - MS
+  - ND
+  - PR
+States with insufficient wastewater data:
+- DC
+States we chose to use hospital admissions only model on:
+- - AL
+  - AR
+  - GA
+  - MD
+  - NJ
+  - NY
+  - SC
+  - WV
+States we chose to not submit a forecast for:
+- TX
