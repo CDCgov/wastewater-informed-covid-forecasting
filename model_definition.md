@@ -231,7 +231,6 @@ The subpopulation $\mathcal{R}_{k}(t)$ is subject to the infection feedback desc
 ```math
 \mathcal{R}_k(t) = \mathcal{R}^\mathrm{u}_k(t) \exp \left(-\gamma \sum_{\tau = 1}^{T_f} I_k(t-\tau) g(\tau) \right)
 ```
-
 From $\mathcal{R}_{k}(t)$, we generate values of the supopulation-level _expected_ latent incident infections per capita $I_k(t)$ using the renewal process described in [the infection component](#infection-component).
 
 To obtain the number of statewide infections per capita $I(t)$, we sum the $K_\mathrm{total}$ subpopulation per capita infection counts $I_k(t)$ weighted by their population sizes:
@@ -239,7 +238,6 @@ To obtain the number of statewide infections per capita $I(t)$, we sum the $K_\m
 ```math
 I(t) = \frac{1}{\sum\nolimits_{k=1}^{K_\mathrm{total}} n_k} \sum_{k=1}^{K_\mathrm{total}} n_k I_k(t)
 ```
-
 We infer the site level initial per capita incidence $I_k(0)$ hierarchically. Specifically, we treat $\mathrm{logit}[I_k(0)]$ as Normally distributed about the corresponding state-level value $\mathrm{logit}[I(0)]$, with an estimated standard deviation $\sigma_{i0}$:
 
 $$
