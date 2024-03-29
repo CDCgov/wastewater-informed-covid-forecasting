@@ -126,17 +126,24 @@ We define the discrete hospital admissions delay distribution $d(\tau)$ as a con
 #### Infection-hospitalization rate
 In the models that include fits to wastewater data, we allow the population-level infection-hospitalization rate (IHR) to change over time. An inferred change in the IHR could reflect either a true change in the rate at which infections result in hospital admissions (e.g. the age distribution of cases could shift, a more or less severe variant could emerge, or vaccine coverage could shift) or a change in the relationship between infections and genomes shed in wastewater $G$ (which we currently treat as fixed, but which could change in time if, for example, immunity reduces wastewater shedding without reducing transmission, or a variant emerges with a different per infection wastewater shedding profile).
 
-Therefore, we model the hospitalization proportion $p_\mathrm{hosp}(t)$ as a piecewise-constant function with weekly change points.
+Therefore, we model the proportion of infections that give rise to hospital admissions $p_\mathrm{hosp}(t)$ as a piecewise-constant function with weekly change points.
 If $t$ and $t'$ are two days in the same week, then $p_\mathrm{hosp}(t) = p_\mathrm{hosp}(t')$.
 
-The values $p_\mathrm{hosp}(t)$ follow a random walk.
-For $t_1$ and $t_2$ in two successive weeks:
+The values $p_\mathrm{hosp}(t)$ follow a logit-scale AR(1) process with linear scale median $\mu_{p_\mathrm{hosp}}$
 
-$$ \mathrm{logit} (p_{\mathrm{hosp}}(t_2)) \sim \mathrm{Normal}(\mathrm{logit}(p_{\mathrm{hosp}}(t_1)), \sigma_p)$$
 
-The process is initialized at the calibration start time $t_0$ via a prior distribution (see [Prior Distributions](#prior-distributions) below).
+$$ \mathrm{logit} (p_{\mathrm{hosp}}(t)) =  \mathrm{logit} (\mu_{p_{\mathrm{hosp}}}(t)) + \delta_{H}(t)$$
 
-In hospital admissions only models, we model the IHR as constant. We assign this constant IHR the same prior distribution we assign to the intercept of the time-varying IHR in the wastewater-informed models.
+where $\delta_{H}(t)$ is the time-varying site effect on $\mathrm{logit} (p_{\mathrm{hosp}}(t))$, modeled as,
+
+$$\delta_{H}(t) = \varphi_H \delta_{H}(t-1) + \epsilon_{Ht}$$
+
+where $0 < \varphi_H < 1$ and $\epsilon_{Ht} \sim \mathrm{Normal}(0, \sigma_{H\delta})$.
+
+We chose a relatively strong prior of $\varphi_H \sim \mathrm{beta}(1,100)$ to impose minimal autocorrelation, and similarly chose a small prior on $\sigma_{H\delta} \sim \mathrm{Normal}(0, 0.01)$ to impose our believe that the IHR should only change in time if the data strongly suggests it.
+See [Prior Distributions](#prior-distributions) for the specified prior on $\mu_{p_\mathrm{hosp}}$.
+
+In hospital admissions only models, we model the IHR as constant. We assign this constant IHR the same prior distribution that we assign $\mu_{p_\mathrm{hosp}}$ in the wastewater model.
 
 ### Hospital admissions observation model
 We model the observed hospital admission counts $h_t$ as:
@@ -222,15 +229,19 @@ $$
 
 where $\delta_k(t)$ is the time-varying subpopulation effect on $\mathcal{R}(t)$, modeled as,
 
-$$\delta_k(t) = \varphi \delta_k(t-1) + \epsilon_{kt}$$
+$$\delta_k(t) = \varphi_{R(t)} \delta_k(t-1) + \epsilon_{kt}$$
 
-where $0 < \varphi < 1$ and $\epsilon_{kt} \sim \mathrm{Normal}(0, \sigma_\delta)$.
+where $0 < \varphi_{R(t)} < 1$ and $\epsilon_{kt} \sim \mathrm{Normal}(0, \sigma_{R(t)\delta})$.
+
+We chose a prior of $\varphi_{R(t)} \sim \mathrm{beta}(2,40)$ to impose limited autocorrelation in the week-by-week deviations.
+We set a weakly informative prior $\sigma_{R(t)\delta} \sim \mathrm{Normal}(0, 0.3)$ to allow for either limited or substantial site-site heterogeneity in $\mathcal{R}(t)$, with the degree of heterogeneity inferred from the data.
 
 The subpopulation $\mathcal{R}_{k}(t)$ is subject to the infection feedback described above such that:
 
 ```math
 \mathcal{R}_k(t) = \mathcal{R}^\mathrm{u}_k(t) \exp \left(-\gamma \sum_{\tau = 1}^{T_f} I_k(t-\tau) g(\tau) \right)
 ```
+
 From $\mathcal{R}_{k}(t)$, we generate values of the supopulation-level _expected_ latent incident infections per capita $I_k(t)$ using the renewal process described in [the infection component](#infection-component).
 
 To obtain the number of statewide infections per capita $I(t)$, we sum the $K_\mathrm{total}$ subpopulation per capita infection counts $I_k(t)$ weighted by their population sizes:
@@ -238,6 +249,7 @@ To obtain the number of statewide infections per capita $I(t)$, we sum the $K_\m
 ```math
 I(t) = \frac{1}{\sum\nolimits_{k=1}^{K_\mathrm{total}} n_k} \sum_{k=1}^{K_\mathrm{total}} n_k I_k(t)
 ```
+
 We infer the site level initial per capita incidence $I_k(0)$ hierarchically. Specifically, we treat $\mathrm{logit}[I_k(0)]$ as Normally distributed about the corresponding state-level value $\mathrm{logit}[I(0)]$, with an estimated standard deviation $\sigma_{i0}$:
 
 $$
@@ -367,7 +379,7 @@ This resulting infection to hospital admission delay distribution has a mean of 
 
 Our framework is an extension of the widely used [^CDCRtestimates] [^CDCtechnicalblog], semi-mechanistic renewal framework `{EpiNow2}` [^epinow2paper][^EpiNow2], using a Bayesian latent variable approach implemented in the probabilistic programming language Stan [^stan] using [^cmdstanr] to interface with R.
 For submission to the [COVID-19 Forecast Hub](https://github.com/reichlab/covid19-forecast-hub/tree/master), the model is run on Saturday to generate forecasts each Monday.
-For each location, we run 4 chains for 250 warm-up iterations and 500 sampling iterations, with a target average acceptance probability of 99% and a maximum tree depth of 12.
+For each location, we run 4 chains for 750 warm-up iterations and 500 sampling iterations, with a target average acceptance probability of 0.95 and a maximum tree depth of 12.
 To generate forecasts per the hub submission guidelines, we calculate the necessary quantiles from the 2,000 draws from the posterior of the expected observed hospital admissions 28 days ahead of the Monday forecast date.
 
 ## Appendix: Notation

@@ -350,6 +350,27 @@ list(
     deployment = "main"
   ),
   tar_target(
+    name = plot_p_hosp_t,
+    command = get_plot_p_hosp_t(
+      grouped_df_id,
+      figure_output_subdirectory,
+      params_id
+    ),
+    pattern = map(grouped_df_id),
+    iteration = "list",
+    deployment = "main"
+  ),
+  tar_target(
+    name = plot_change_in_p_hosp_t,
+    command = get_plot_change_in_p_hosp_t(
+      grouped_df_id,
+      figure_output_subdirectory
+    ),
+    pattern = map(grouped_df_id),
+    iteration = "list",
+    deployment = "main"
+  ),
+  tar_target(
     name = plot_rt_subpop_level,
     command = get_rt_subpop_level(
       grouped_df_id,
@@ -363,6 +384,28 @@ list(
     name = plot_params_id,
     command = get_plot_param_distribs(
       grouped_df_id,
+      figure_output_subdirectory
+    ),
+    pattern = map(grouped_df_id),
+    iteration = "list",
+    deployment = "main"
+  ),
+  tar_target(
+    name = plot_p_hosp_sd_id,
+    command = get_plot_single_param(
+      grouped_df_id,
+      param_name = "p_hosp_sd",
+      figure_output_subdirectory
+    ),
+    pattern = map(grouped_df_id),
+    iteration = "list",
+    deployment = "main"
+  ),
+  tar_target(
+    name = plot_p_hosp_mean,
+    command = get_plot_single_param(
+      grouped_df_id,
+      param_name = "p_hosp_mean",
       figure_output_subdirectory
     ),
     pattern = map(grouped_df_id),
@@ -520,6 +563,7 @@ list(
     deployment = "main"
   ),
 
+
   # National aggregated model for the US only--------------------------------
   tar_target(
     name = config_vars_sa,
@@ -600,7 +644,6 @@ list(
     command = get_params(param_file_path_sa),
     deployment = "main"
   ),
-
   ## Fit the model ------------------------------------------------------------
   # get a stacked long dataframe containing the quantiles(estimated
   # from all draws) and 100 samples of the draws from the posterior for the
@@ -643,6 +686,17 @@ list(
       show_calibration_data = FALSE
     ),
     pattern = map(grouped_df_sa),
+    iteration = "list",
+    deployment = "main"
+  ),
+  tar_target(
+    name = plot_p_hosp_t_us,
+    command = get_plot_p_hosp_t(
+      grouped_df_sa,
+      figure_output_subdirectory,
+      params_sa
+    ),
+    pattern = map(grouped_df_id),
     iteration = "list",
     deployment = "main"
   ),

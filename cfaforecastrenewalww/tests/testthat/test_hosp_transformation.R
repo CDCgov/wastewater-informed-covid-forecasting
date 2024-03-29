@@ -7,24 +7,26 @@ test_that("Test logit-scale random walk on probability of being hospitalized in 
 
   # Make sure we cover a wide range
   sigma <- 0.5
-  lower <- -20
-  upper <- 20
-  delta <- ((upper - lower) / (nweeks - 1))
+  ac <- 0.1
+  std_normal <- rnorm((nweeks))
+  mu <- rep(logit_fn(0.01), (nweeks))
 
-  # Build the vector ourselves
-  p_hosp_r <- numeric(nweeks)
-  p_hosp_r <- lower + c(0, cumsum(rep(delta, nweeks - 1)))
-  p_hosp_r <- inv_logit_fn(p_hosp_r)
-  p_hosp_r <- sort(rep(p_hosp_r, 7)) # Make daily, will overshoot
+  # Build the vector ourselves using the AR1 function from stan
+  p_hosp_r <- model$functions$ar1(mu, ac, sigma, std_normal, 1)
+  p_hosp_r <- rep(p_hosp_r, each = 7) # In R, expand weekly to daily
+  p_hosp_r <- inv_logit_fn(p_hosp_r) # convert to natural scale
   p_hosp_r <- p_hosp_r[1:ndays] # Trim to size
 
+
   # Get vector from stan and compare
-  delta <- delta / sigma # make sure stan SD != 1, but canceling them out makes comparing easy
   p_hosp_stan <- model$functions$assemble_p_hosp(
-    toy_stan_data_id$p_hosp_m, # cum sum and expand matrix
-    lower, # intercept
+    toy_stan_data_id$p_hosp_m, # matrix to expand from weekly to daily
+    mu[1], # intercept to regress back to
     sigma, # SD
-    rep(delta, nweeks - 1) # noise terms
+    ac, # autocorrelation factor
+    std_normal,
+    nweeks,
+    1
   )
 
   testthat::expect_equal(

@@ -12,6 +12,8 @@ get_rt_from_draws(
 )
 }
 \arguments{
+\item{df}{dataframe of either model draws or filepath to model draws}
+
 \item{figure_file_path}{higher level directory where data from this pipeline will be saved}
 
 \item{from_full_df}{if TRUE then df is draws object, if FALSE then df is a
@@ -19,8 +21,6 @@ dataframe of filepaths to load in the parameter object}
 
 \item{write_files}{if TRUE then write files to specified location, if FALSE
 then don't}
-
-\item{quantiles}{dataframe of forecasts with quantiles including for R(t)}
 }
 \value{
 plot of R(t) for a single location, model, and forecast date

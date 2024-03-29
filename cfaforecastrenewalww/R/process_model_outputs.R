@@ -1028,10 +1028,23 @@ get_raw_param_draws <- function(stan_output_draws, model_type,
       ) %>%
       rename(value = p_hosp_w_sd) %>%
       select(name, t, value, draw)
+
+    p_hosp_mean <- stan_output_draws %>%
+      spread_draws(p_hosp_mean) %>%
+      sample_draws(ndraws = n_draws) %>%
+      mutate(draw = `.draw`) %>%
+      mutate(
+        name = "p_hosp_mean",
+        t = NA
+      ) %>%
+      rename(value = p_hosp_mean) %>%
+      select(name, t, value, draw)
+
     posterior_params <- rbind(
       phi_h, eta_sd, log10_g, i0,
       infection_feedback,
-      autoreg_rt, initial_growth, p_hosp_sd
+      autoreg_rt, initial_growth, p_hosp_sd,
+      p_hosp_mean
     )
   } else if (model_type == "hospital admissions only") {
     posterior_params <- rbind(
@@ -1052,10 +1065,22 @@ get_raw_param_draws <- function(stan_output_draws, model_type,
       rename(value = p_hosp_w_sd) %>%
       select(name, t, value, draw)
 
+    p_hosp_mean <- stan_output_draws %>%
+      spread_draws(p_hosp_mean) %>%
+      sample_draws(ndraws = n_draws) %>%
+      mutate(draw = `.draw`) %>%
+      mutate(
+        name = "p_hosp_mean",
+        t = NA
+      ) %>%
+      mutate(value = plogis(p_hosp_mean)) %>%
+      select(name, t, value, draw)
+
     posterior_params <- rbind(
       phi_h, eta_sd, log10_g, i0,
       infection_feedback,
-      autoreg_rt, initial_growth, p_hosp_sd
+      autoreg_rt, initial_growth, p_hosp_sd,
+      p_hosp_mean
     )
   }
 
@@ -1145,13 +1170,7 @@ get_loc_model_map <- function(df_of_filepaths,
         TRUE ~ model_type
       )
     ) |>
-    dplyr::mutate(
-      keep_state = dplyr::case_when(
-        (location %in% exclude_states) ~ FALSE,
-        TRUE ~ TRUE
-      )
-    ) |>
-    dplyr::filter(keep_state == TRUE) |>
+    dplyr::filter(!(location %in% exclude_states)) |>
     dplyr::select(location, model_type)
 
   us_df <- data.frame(location = "US", model_type = us_model_type)

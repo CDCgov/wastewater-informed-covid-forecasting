@@ -18,6 +18,8 @@ initial_growth_prior_sd = 0.01
 autoreg_rt_a = 2 # shape1 parameter of autoreg term on Rt trend
 autoreg_rt_b = 40 # shape2 parameter of autoreg on Rt trend
   # mean = a/(a+b) = 0.05, stdv = sqrt(a)/b = sqrt(2)/40 = 0.035
+autoreg_p_hosp_a = 1 # shape1 parameter of autoreg term on IHR(t) trend
+autoreg_p_hosp_b = 100 # shape2 parameter of autoreg term on IHR(t) trend
 eta_sd_sd = 0.01
 infection_feedback_prior_logmean = 6.37408 # log(mode) + q^2 mode = 500, q = 0.4
 infection_feedback_prior_logsd = 0.4
@@ -33,8 +35,6 @@ p_hosp_w_sd_sd = 0.01
 
 inv_sqrt_phi_prior_mean = 0.1 # 1 / sqrt(100)
 inv_sqrt_phi_prior_sd = 0.1414214 # 1 / sqrt(50)
-phi_w_prior_mean = 100
-phi_w_prior_sd = 30
 wday_effect_prior_mean = 0.1428571 # 1 / 7
 wday_effect_prior_sd = 0.05
 
@@ -51,16 +51,11 @@ log10_g_prior_sd = 2
 log_g_prior_mean = 27.63102 # 12 * log(10)
 log_g_prior_sd = 4.60517 # 2 * log(10)
 
-sigma_ww_prior_sd = 0.5
-
 sigma_ww_site_prior_mean_mean = 0.5
 sigma_ww_site_prior_mean_sd = 1
 sigma_ww_site_prior_sd_mean = 0
 sigma_ww_site_prior_sd_sd = 1
-autoreg_conc_a = 1
-# shape1 parameter of Beta dist for autoreg term on Ct trend
-autoreg_conc_b = 2
-# shape 2 parameter of Beta dist for autoreg term on Ct trend
+
 ww_site_mod_sd_sd = 0.25
 log_phi_g_prior_mean = -2.302585 # log(0.1)
 # prior mean in individual level dispersion

@@ -9,7 +9,10 @@ This vignette steps through the pre-processing and fitting procedure to forecast
 state-level hospital admissions using simulated data. The code can be adapted
 for your own datasets by replacing the joined hospital admissions + site-lab
 level wastewater dataset, here called, `example_df`, with your own dataset and
-varying the parameters that are pre-specified.
+varying the parameters that are pre-specified. See the documentation for
+`example_df` to format your data in a similar manner. For an example of how to
+do this from the raw generated outputs, see the `generate_simulated_data.R`
+function.
 
 ```{r setup, include=FALSE}
 knitr::opts_chunk$set(echo = TRUE)
@@ -28,26 +31,26 @@ library(tidybayes)
 # by calling `generate_simulated_data()`
 # See function documentation to modify R(t), number of sites, etc.
 example_df <- cfaforecastrenewalww::example_df
-param_df <- cfaforecastrenewalww::param_df
 ```
 The `generate_simulated_data.R` file can be used to generate this simulated
-data, using the most complex model, where individual sites
-exhibit their own site-level infection dynamics, site-level time-varying
-concentrations of wastewater, and lab-site level measurement effects. There
-are options to
-turn off all but the lab-site measurement effects. Setting `n_sites` to one
+data where individual sites exhibit their own site-level infection dynamics.
+Setting `n_sites` to one
 allows the user to generate data amenable to the state-level aggregated
 wastewater model, or alternatively, site-level data can be generated and then
 aggregated using population weighted averaging of the concentration to generate
-a single state-level wastewater data stream.
+a single state-level wastewater data stream. However, this vignette assumes you
+have wastewater data from one or more sites that represent some subset of the
+population for which you have hospital admissions data for.
 
 # Data exploration
-The example dataframe is a tidy data frame with hospital admissions alongside
+The example dataframe is a long tidy data frame with hospital admissions alongside
 site-level wastewater data, corresponding to a single observation for each
 lab-site-day. We assign an arbitrary date to the time series so that we can
 assign a week day to each day. We additionally include a column containing
-the daily hospital admissions through the forecast period. This will
+the daily hospital admissions through the forecast period
+`daily_hosp_admits_for_eval`. This will
 be used for evaluating our simulated data inference procedure.
+See documentation of `example_df` for a full description of each column.
 ```{r}
 head(example_df)
 ```
@@ -154,7 +157,7 @@ train_data <- flag_ww_outliers(train_data_raw)
 # delay distribution to pass to stan.
 # Use the same values as we do in the
 # generation of these vectors in the generate simulated data function....
-# See Song Woo Park et al
+# See Park et al
 # https://www.medrxiv.org/content/10.1101/2024.01.12.24301247v1 for why
 # we use a double-censored pmf here
 generation_interval <- simulate_double_censored_pmf(
@@ -328,6 +331,8 @@ full_param_df <- get_full_param_distrib(
 )
 
 # Compare to the knows parameters
+param_df <- cfaforecastrenewalww::param_df # A set of the set static and dynamic
+# from the `generate_simulated_data()` function default args. This is package data
 comp_df <- full_param_df %>%
   left_join(param_df,
     by = c("name", "index_rows", "index_cols")
