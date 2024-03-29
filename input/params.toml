@@ -18,6 +18,8 @@ initial_growth_prior_sd = 0.01
 autoreg_rt_a = 2 # shape1 parameter of autoreg term on Rt trend
 autoreg_rt_b = 40 # shape2 parameter of autoreg on Rt trend
   # mean = a/(a+b) = 0.05, stdv = sqrt(a)/b = sqrt(2)/40 = 0.035
+autoreg_p_hosp_a = 1 # shape1 parameter of autoreg term on IHR(t) trend
+autoreg_p_hosp_b = 100 # shape2 parameter of autoreg term on IHR(t) trend
 eta_sd_sd = 0.01
 infection_feedback_prior_logmean = 6.37408 # log(mode) + q^2 mode = 500, q = 0.4
 infection_feedback_prior_logsd = 0.4

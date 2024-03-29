@@ -54,6 +54,8 @@ data {
   vector[6] viral_shedding_pars;// tpeak, viral peak, shedding duration mean and sd
   real<lower=0> autoreg_rt_a;
   real<lower=0> autoreg_rt_b;
+  real<lower=0> autoreg_p_hosp_a;
+  real<lower=0> autoreg_p_hosp_b;
   real inv_sqrt_phi_prior_mean;
   real<lower=0> inv_sqrt_phi_prior_sd;
   real r_prior_mean;
@@ -73,7 +75,7 @@ data {
   real sigma_ww_site_prior_sd_mean;
   real<lower=0> sigma_ww_site_prior_sd_sd;
   real<lower=0> eta_sd_sd;
-  real p_hosp_mean;
+  real p_hosp_prior_mean;
   real<lower=0> p_hosp_sd_logit;
   real<lower=0> p_hosp_w_sd_sd;
   real<lower=0> ww_site_mod_sd_sd;
@@ -111,7 +113,8 @@ parameters {
   real<upper=log(10)> log_r_mu_intercept; // state-level mean baseline reproduction number estimate (log) at t=0
   real<lower=0> sigma_rt; // magnitude of site level variation from state level
   real<lower=0, upper=1> autoreg_rt_site;
-  matrix[n_subpops, n_weeks] error_site; // matrix of w_sites
+  real<lower=0, upper=1> autoreg_p_hosp;
+  matrix[n_subpops, n_weeks] error_site; // matrix of subpopulations
   real<lower=0,upper=1> i0_over_n; // initial per capita
   // infection incidence
   vector[n_subpops] eta_i0; // z-score on logit scale of state
@@ -125,8 +128,8 @@ parameters {
   real<lower=0> sigma_ww_site_mean; //mean of site level stdev
   real<lower=0> sigma_ww_site_sd; // stdev of site level stdev
   vector<lower=0>[n_ww_lab_sites]sigma_ww_site_raw; // let each lab-site combo have its own observation error
-  real p_hosp_int; // Estimated IHR
-  vector[tot_weeks -1] p_hosp_w; // weekly random walk for IHR
+  real p_hosp_mean; // Estimated mean IHR
+  vector[tot_weeks] p_hosp_w; // weekly random walk for IHR
   real<lower=0> p_hosp_w_sd; // Estimated IHR sd
   real<lower=0> t_peak; // time to viral load peak in shedding
   real viral_peak; // log10 peak viral load shed /mL
@@ -196,13 +199,13 @@ transformed parameters {
       tuple(vector[num_elements(state_inf_per_capita)], vector[num_elements(unadj_r)]) output;
       output = generate_infections(
         to_vector(unadj_r_site_t),
-	                    uot,
-	gt_rev_pmf,
-	log(i0_site_over_n[i]),
-	growth_site[i],
-	ht,
+	      uot,
+	      gt_rev_pmf,
+	      log(i0_site_over_n[i]),
+	      growth_site[i],
+	      ht,
         infection_feedback,
-	infection_feedback_rev_pmf
+	      infection_feedback_rev_pmf
       );
       new_i_site = to_row_vector(output.1);
       r_site_t[i] =  to_row_vector(output.2);
@@ -223,8 +226,9 @@ transformed parameters {
   }
 
 
-  // Assemble a daily vector of p_hosp from the initial value, random walk increments, and scaling SD
-  p_hosp = assemble_p_hosp(p_hosp_m, p_hosp_int, p_hosp_w_sd, p_hosp_w);
+  // Set up p_hosp as an AR(1) process that regresses back towards the initial value of p_hosp
+	p_hosp = assemble_p_hosp(p_hosp_m, p_hosp_mean, p_hosp_w_sd,
+                           autoreg_p_hosp, p_hosp_w, tot_weeks, 1);
 
   // Expected hospital admissions per capita:
   // This is a convolution of incident infections and the hospital-admission delay distribution
@@ -269,6 +273,7 @@ model {
   eta_sd ~ normal(0, eta_sd_sd);
   autoreg_rt_site ~ beta(autoreg_rt_a, autoreg_rt_b);
   autoreg_rt ~ beta(autoreg_rt_a, autoreg_rt_b);
+  autoreg_p_hosp ~ beta(autoreg_p_hosp_a, autoreg_p_hosp_b);
   log_r_mu_intercept ~ normal(r_logmean, r_logsd);
   to_vector(error_site) ~ std_normal();
   sigma_rt ~ normal(0, sigma_rt_prior);
@@ -286,7 +291,7 @@ model {
   sigma_ww_site_raw ~ std_normal();
   log10_g ~ normal(log10_g_prior_mean, log10_g_prior_sd);
   hosp_wday_effect ~ normal(effect_mean, wday_effect_prior_sd);
-  p_hosp_int ~ normal(logit(p_hosp_mean), p_hosp_sd_logit); // logit scale
+  p_hosp_mean ~ normal(logit(p_hosp_prior_mean), p_hosp_sd_logit); // logit scale
   p_hosp_w ~ std_normal();
   p_hosp_w_sd ~ normal(0, p_hosp_w_sd_sd);
   t_peak ~ normal(t_peak_mean, t_peak_sd);

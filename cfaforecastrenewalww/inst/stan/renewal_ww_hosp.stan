@@ -43,13 +43,14 @@ data {
   vector[6] viral_shedding_pars; // tpeak, viral peak, shedding duration mean and sd
   real<lower=0> autoreg_rt_a;
   real<lower=0> autoreg_rt_b;
+  real<lower=0> autoreg_p_hosp_a;
+  real<lower=0> autoreg_p_hosp_b;
   real inv_sqrt_phi_prior_mean;
   real<lower=0> inv_sqrt_phi_prior_sd;
   real r_prior_mean;
   real<lower=0> r_prior_sd;
   real log10_g_prior_mean;
   real<lower=0> log10_g_prior_sd;
-
   real<lower=0> i0_over_n_prior_a;
   real<lower=0> i0_over_n_prior_b;
   real wday_effect_prior_mean;
@@ -58,7 +59,7 @@ data {
   real<lower=0> initial_growth_prior_sd;
   real sigma_ww_prior_mean;
   real<lower=0> eta_sd_sd;
-  real p_hosp_mean;
+  real p_hosp_prior_mean;
   real<lower=0> p_hosp_sd_logit;
   real<lower=0> p_hosp_w_sd_sd;
   real inf_feedback_prior_logmean;
@@ -87,17 +88,16 @@ parameters {
   vector[n_weeks-1] w; // weekly random walk
   real<lower=0> eta_sd; // step size of random walk
   real<lower = 0, upper=1> autoreg_rt;// coefficient on AR process in R(t)
+  array [(include_ww==1) ? 1 : 0] real<lower=0, upper=1> autoreg_p_hosp;
   real<upper=log(10)> log_r; // baseline reproduction number estimate (log)
   real<lower=0,upper=1> i0_over_n; // Per capita incident infections
   // on day -uot before first observation day
   real<lower=-1, upper=1> initial_growth; // initial growth from I0 to first observed time
   real<lower=1/sqrt(5000)> inv_sqrt_phi_h;
   real<lower=0> sigma_ww;
-  real p_hosp_int; // Estimated IHR
-  vector[(include_ww==1) ? tot_weeks -1 : 0] p_hosp_w;
+  real p_hosp_mean; // Estimated IHR
+  vector[(include_ww==1) ? tot_weeks : 0] p_hosp_w;
   array [(include_ww==1) ? 1 : 0] real <lower=0> p_hosp_w_sd;
-  //vector[tot_weeks -1] p_hosp_w; // weekly random walk for IHR
- // real<lower=0> p_hosp_w_sd; // Estimated IHR sd
   real<lower=0> t_peak; // time to viral load peak in shedding
   real viral_peak; // log10 peak viral load shed /mL
   real<lower=0> dur_shed; // duration of detectable viral shedding
@@ -110,6 +110,7 @@ parameters {
 transformed parameters {
   vector[ot + uot + ht] new_i; // daily incident infections /n
   vector [(include_ww ==1) ? ot + uot + ht: 1] p_hosp; // probability of hospitalization
+  vector[(include_ww == 1) ? tot_weeks-1: 0] p_hosp_in_weeks; // the weekly vector of probability of hospital admissions
   vector[ot + uot + ht] model_hosp; // model estimated hospital admissions
   vector[oht] exp_obs_hosp;  //  expected observed hospital admissions
   vector[ot] exp_obs_hosp_no_wday_effect; // expected observed hospital admissions before weekday effect
@@ -146,11 +147,12 @@ transformed parameters {
   // Expected hospitalizations:
   // generates all hospitalizations, across unobserved time, observed time, and forecast time
   if(include_ww==1){
-    p_hosp = assemble_p_hosp(p_hosp_m, p_hosp_int, p_hosp_w_sd[1], p_hosp_w);
+    p_hosp = assemble_p_hosp(p_hosp_m, p_hosp_mean, p_hosp_w_sd[1],
+                           autoreg_p_hosp[1], p_hosp_w, tot_weeks, 1);
     model_hosp = convolve_dot_product(p_hosp .* new_i, reverse(inf_to_hosp),
                                     ot + uot + ht);
   }else{
-    p_hosp[1] = inv_logit(p_hosp_int);
+    p_hosp[1] = inv_logit(p_hosp_mean);
     // generates all hospitalizations, across unobserved time, observed time, and forecast time
     model_hosp = convolve_dot_product(p_hosp[1] * new_i, reverse(inf_to_hosp),
                                     ot + uot + ht);
@@ -185,6 +187,7 @@ model {
   w ~ std_normal();
   eta_sd ~ normal(0, eta_sd_sd);
   autoreg_rt ~ beta(autoreg_rt_a, autoreg_rt_b);
+  autoreg_p_hosp ~ beta(autoreg_p_hosp_a, autoreg_p_hosp_b);
   log_r ~ normal(r_logmean, r_logsd);
   i0_over_n ~ beta(i0_over_n_prior_a, i0_over_n_prior_b);
   initial_growth ~ normal(initial_growth_prior_mean, initial_growth_prior_sd);
@@ -192,7 +195,7 @@ model {
   sigma_ww ~ normal(0, sigma_ww_prior_mean);
   log10_g ~ normal(log10_g_prior_mean, log10_g_prior_sd);
   hosp_wday_effect ~ normal(effect_mean, wday_effect_prior_sd);
-  p_hosp_int ~ normal(logit(p_hosp_mean), p_hosp_sd_logit);
+  p_hosp_mean ~ normal(logit(p_hosp_prior_mean), p_hosp_sd_logit);
   p_hosp_w ~ std_normal();
   p_hosp_w_sd ~ normal(0, p_hosp_w_sd_sd);
   t_peak ~ normal(t_peak_mean, t_peak_sd);

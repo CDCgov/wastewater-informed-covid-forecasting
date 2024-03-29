@@ -103,22 +103,38 @@ write_config <- function(run_id,
 
   dates_for_hosp_removal <- c(
     seq(
-      from = lubridate::ymd("2024-03-13"),
-      to = lubridate::ymd("2024-03-14"),
-      by = "days"
-    ), # OR exclude two repeats
-    seq(
       from = lubridate::ymd("2024-02-27"),
       to = lubridate::ymd("2024-02-29"),
       by = "days"
-    ), # NM exclude repeats,
-    lubridate::ymd("2023-03-14") # second to last MS data point
+    ), # NM exclude repeats
+    seq(
+      from = lubridate::ymd("2024-02-27"),
+      to = lubridate::ymd("2024-03-02"),
+      by = "days"
+    ), # TX anomalies
+    seq(
+      from = lubridate::ymd("2024-02-27"),
+      to = lubridate::ymd("2024-03-02"),
+      by = "days"
+    ), # US exclusions bc of TX anomalies
+    seq(
+      from = lubridate::ymd("2024-03-18"),
+      to = lubridate::ymd("2024-03-19"),
+      by = "days"
+    ), # NJ repeats
+    seq(
+      from = lubridate::ymd("2024-03-16"),
+      to = lubridate::ymd("2024-03-22"),
+      by = "days"
+    ) # OR anomalies
   )
 
   states_for_hosp_removal <- c(
-    rep("OR", 2),
     rep("NM", 3),
-    "MS"
+    rep("TX", 5),
+    rep("US", 5),
+    rep("NJ", 2),
+    rep("OR", 7)
   )
 
 

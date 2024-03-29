@@ -632,6 +632,92 @@ get_plot_param_distribs <- function(df,
   return(p)
 }
 
+#' Get plot single parameter
+#'
+#' @param df df of filepaths or of draws themselves
+#' @param param_name the name of the parameter to plot
+#' @param figure_file_path path to save figure
+#' @param from_full_df whether or not df is a df of filepaths or of draws,
+#' default = FALSE which means it is of filepaths
+#' @param write_files whether or not to write files (default = TRUE)
+#' @param ...
+#'
+#' @return
+#' @export
+#'
+#' @examples
+get_plot_single_param <- function(df,
+                                  param_name,
+                                  figure_file_path,
+                                  from_full_df = FALSE,
+                                  write_files = TRUE, ...) {
+  if (isFALSE(from_full_df)) {
+    draws <- arrow::read_parquet(
+      file =
+        df$parameters_file_path
+    )
+  } else {
+    draws <- df
+  }
+
+
+  posterior_params <- draws %>%
+    filter(name == param_name)
+
+  # get metadata for filename and title
+  plot_metadata <- get_plot_metadata(draws)
+  location <- plot_metadata$location
+  forecast_date <- plot_metadata$forecast_date
+  hosp_reporting_delay <- plot_metadata$hosp_reporting_delay
+  model_type <- plot_metadata$model_type
+  model_file_name <- plot_metadata$model_file_name
+
+
+  p <- ggplot(posterior_params) +
+    geom_histogram(aes(x = value), alpha = 0.3) +
+    facet_wrap(~name, scales = "free_x", nrow = 2) +
+    theme_bw() +
+    xlab("Parameter value") +
+    ylab("Frequency") +
+    ggtitle(
+      glue::glue(
+        "Parameter draws for {model_type} in {location}",
+        " from forecast on {forecast_date}"
+      )
+    ) +
+    theme(
+      axis.text.x = element_text(
+        size = 8, vjust = 1,
+        hjust = 1, angle = 45
+      ),
+      plot.title = element_text(
+        size = 10,
+        vjust = 0.5, hjust = 0.5
+      )
+    )
+
+  if (isTRUE(write_files)) {
+    full_file_path <- file.path(
+      figure_file_path, location
+    )
+    create_dir(full_file_path)
+
+    ggsave(
+      file.path(
+        full_file_path,
+        glue::glue("posterior_{param_name}_{model_file_name}.png")
+      ),
+      plot = p,
+      width = 10,
+      height = 5,
+      bg = "white"
+    )
+  }
+
+
+  return(p)
+}
+
 
 #' Plot of site-level Rt
 #'
@@ -754,7 +840,7 @@ get_rt_subpop_level <- function(df,
 
 #' Get R(t) for a single location
 #'
-#' @param quantiles dataframe of forecasts with quantiles including for R(t)
+#' @param df dataframe of either model draws or filepath to model draws
 #' @param figure_file_path higher level directory where data from this pipeline will be saved
 #' @param from_full_df if TRUE then df is draws object, if FALSE then df is a
 #' dataframe of filepaths to load in the parameter object
@@ -851,6 +937,242 @@ get_rt_from_draws <- function(df,
       file.path(
         full_file_path,
         glue::glue("Rt_from_{model_file_name}.png")
+      ),
+      plot = p,
+      width = 7,
+      height = 7,
+      units = "in",
+      bg = "white"
+    )
+  }
+
+  return(p)
+}
+
+
+#' Get plot of IHR(t)
+#'
+#' @param df dataframe either of model draws or file path to model draws
+#' @param figure_file_path where to save the figure
+#' @param params input params, used to plot the prior
+#' @param from_full_df whether df is a dataframe of draws or filepath to draws,
+#' default is FALSE
+#' @param write_files whether to save the figure, default  is TRUE
+#'
+#' @return
+#' @export
+#'
+#' @examples
+get_plot_p_hosp_t <- function(df,
+                              figure_file_path,
+                              params,
+                              from_full_df = FALSE,
+                              write_files = TRUE) {
+  if (isFALSE(from_full_df)) {
+    model_draws <- arrow::read_parquet(
+      file =
+        df$model_draws_file_path
+    )
+  } else {
+    model_draws <- df
+  }
+
+  # Get the median for plotting
+  p_hosp_draws <- model_draws %>%
+    filter(name == "p_hosp")
+
+  p_hosp_draws <- p_hosp_draws %>%
+    left_join(
+      p_hosp_draws %>%
+        group_by(date) %>%
+        summarise(
+          median_p_hosp = quantile(value, 0.5, na.rm = TRUE)
+        )
+    )
+
+  # Subset to 25 draws
+
+  p_hosp_draws <- p_hosp_draws %>%
+    filter(draw %in% sample(unique(p_hosp_draws$draw), 25))
+
+
+
+  plot_metadata <- get_plot_metadata(model_draws)
+  location <- plot_metadata$location
+  include_ww <- plot_metadata$include_ww
+  forecast_date <- plot_metadata$forecast_date
+  hosp_reporting_delay <- plot_metadata$hosp_reporting_delay
+  model_type <- plot_metadata$model_type
+  model_file_name <- plot_metadata$model_file_name
+
+  title <- glue::glue("IHR(t) as of {forecast_date} in {location} with {model_type}")
+
+  p <- ggplot(p_hosp_draws) +
+    geom_line(aes(x = date, y = value, group = draw, color = period),
+      alpha = 0.2,
+      show.legend = FALSE
+    ) +
+    geom_line(aes(x = date, y = median_p_hosp),
+      show.legend = FALSE
+    ) +
+    geom_vline(aes(xintercept = forecast_date), linetype = "dashed") +
+    geom_hline(aes(yintercept = params$p_hosp_mean), linetype = "dashed", color = "darkgray") +
+    xlab("") +
+    ylab("IHR(t)") +
+    theme_bw() +
+    scale_x_date(
+      date_breaks = "2 weeks",
+      labels = scales::date_format("%Y-%m-%d")
+    ) +
+    ggtitle(title) +
+    theme(
+      axis.text.x = element_text(
+        size = 10, vjust = 1,
+        hjust = 1, angle = 45
+      ),
+      axis.title.x = element_text(size = 10),
+      axis.title.y = element_text(size = 10),
+      plot.title = element_text(
+        size = 12,
+        vjust = 0.5, hjust = 0.5
+      )
+    )
+
+  p
+
+  if (isTRUE(write_files)) {
+    full_file_path <- file.path(
+      figure_file_path, location
+    )
+    create_dir(full_file_path)
+    ggsave(
+      file.path(
+        full_file_path,
+        glue::glue("IHR_t.png")
+      ),
+      plot = p,
+      width = 7,
+      height = 7,
+      units = "in",
+      bg = "white"
+    )
+  }
+
+  return(p)
+}
+
+#' Get plot of the change in IHR over time
+#'
+#' @param df dataframe of filepaths
+#' @param figure_file_path where to write the figure to
+#' @param write_files whether or not to save the figure, default is TRUE
+#'
+#' @return a plot of the change in the IHR over time (IHR intercept - IHR(t))
+#' @export
+#'
+#' @examples
+get_plot_change_in_p_hosp_t <- function(df,
+                                        figure_file_path,
+                                        write_files = TRUE) {
+  model_draws <- arrow::read_parquet(
+    file =
+      df$model_draws_file_path
+  )
+  param_draws <- arrow::read_parquet(
+    file =
+      df$parameters_file_path
+  )
+
+  p_hosp_mean_draws <- param_draws %>%
+    filter(name == "p_hosp_mean") %>%
+    filter(draw %in% unique(model_draws$draw)) %>%
+    select(value, draw) %>%
+    rename(p_hosp_mean = value)
+  sampled_draws <- model_draws %>%
+    filter(draw %in% unique(p_hosp_mean_draws$draw))
+  p_hosp_final_draws <- sampled_draws %>%
+    filter(t == max(t)) %>%
+    select(value, draw) %>%
+    rename(p_hosp_final = value)
+
+
+  # Get the median for plotting
+  p_hosp_draws <- sampled_draws %>%
+    filter(name == "p_hosp") %>%
+    select(date, t, forecast_date, draw, name, value) %>%
+    tidyr::pivot_wider(
+      id_cols = c(date, forecast_date, t, draw),
+      names_from = name,
+      values_from = value
+    ) %>%
+    left_join(p_hosp_mean_draws, by = "draw") %>%
+    left_join(p_hosp_final_draws, by = "draw") %>%
+    mutate(delta_p_hosp = p_hosp_final - p_hosp)
+
+
+
+  p_hosp_draws <- p_hosp_draws %>%
+    left_join(
+      p_hosp_draws %>%
+        group_by(date) %>%
+        summarise(
+          median_delta = quantile(delta_p_hosp, 0.5, na.rm = TRUE)
+        )
+    )
+
+
+
+  plot_metadata <- get_plot_metadata(model_draws)
+  location <- plot_metadata$location
+  include_ww <- plot_metadata$include_ww
+  forecast_date <- plot_metadata$forecast_date
+  hosp_reporting_delay <- plot_metadata$hosp_reporting_delay
+  model_type <- plot_metadata$model_type
+  model_file_name <- plot_metadata$model_file_name
+
+  title <- glue::glue("Change in IHR(t) as of {forecast_date} in {location} with {model_type}")
+
+  p <- ggplot(p_hosp_draws) +
+    geom_line(aes(x = date, y = delta_p_hosp, group = draw),
+      alpha = 0.2,
+      show.legend = FALSE
+    ) +
+    geom_line(aes(x = date, y = median_delta),
+      show.legend = FALSE
+    ) +
+    geom_vline(aes(xintercept = forecast_date), linetype = "dashed") +
+    xlab("") +
+    ylab("IHR(t)") +
+    theme_bw() +
+    scale_x_date(
+      date_breaks = "2 weeks",
+      labels = scales::date_format("%Y-%m-%d")
+    ) +
+    ggtitle(title) +
+    theme(
+      axis.text.x = element_text(
+        size = 10, vjust = 1,
+        hjust = 1, angle = 45
+      ),
+      axis.title.x = element_text(size = 10),
+      axis.title.y = element_text(size = 10),
+      plot.title = element_text(
+        size = 12,
+        vjust = 0.5, hjust = 0.5
+      )
+    )
+
+  p
+
+  if (isTRUE(write_files)) {
+    full_file_path <- file.path(
+      figure_file_path, location
+    )
+    create_dir(full_file_path)
+    ggsave(
+      file.path(
+        full_file_path,
+        glue::glue("delta_IHR_t.png")
       ),
       plot = p,
       width = 7,

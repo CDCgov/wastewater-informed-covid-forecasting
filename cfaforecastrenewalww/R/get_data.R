@@ -102,9 +102,7 @@ get_stan_data <- function(train_data,
 
   # matrix to convert R(t) from weekly to daily
   ind_m <- get_ind_m(ot + ht, n_weeks)
-
-  # matrix to transform p_hosp RW from weekly to daily
-  p_hosp_m <- get_ind_m_cum_sum(uot + ot + ht, tot_weeks)
+  p_hosp_m <- get_ind_m(uot + ot + ht, tot_weeks)
 
   # Get other variables needed from data
   pop <- train_data %>%
@@ -164,6 +162,8 @@ get_stan_data <- function(train_data,
     # duration shedding
     autoreg_rt_a = autoreg_rt_a,
     autoreg_rt_b = autoreg_rt_b,
+    autoreg_p_hosp_a = autoreg_p_hosp_a,
+    autoreg_p_hosp_b = autoreg_p_hosp_b,
     inv_sqrt_phi_prior_mean = inv_sqrt_phi_prior_mean,
     inv_sqrt_phi_prior_sd = inv_sqrt_phi_prior_sd,
     r_prior_mean = r_prior_mean,
@@ -178,7 +178,7 @@ get_stan_data <- function(train_data,
     initial_growth_prior_sd = initial_growth_prior_sd,
     sigma_ww_prior_mean = sigma_ww_site_prior_mean_mean,
     eta_sd_sd = eta_sd_sd,
-    p_hosp_mean = p_hosp_mean,
+    p_hosp_prior_mean = p_hosp_mean,
     p_hosp_sd_logit = p_hosp_sd_logit,
     p_hosp_w_sd_sd = p_hosp_w_sd_sd,
     inf_feedback_prior_logmean = infection_feedback_prior_logmean,
@@ -378,9 +378,7 @@ get_stan_data_site_level_model <- function(train_data,
 
   # matrix to transform from weekly to daily
   ind_m <- get_ind_m(ot + ht, n_weeks)
-
-  # matrix to transform p_hosp RW from weekly to daily
-  p_hosp_m <- get_ind_m_cum_sum(uot + ot + ht, tot_weeks)
+  p_hosp_m <- get_ind_m(uot + ot + ht, tot_weeks)
 
   # Get other variables needed from data
   pop <- train_data %>%
@@ -475,6 +473,8 @@ get_stan_data_site_level_model <- function(train_data,
     # duration shedding
     autoreg_rt_a = autoreg_rt_a,
     autoreg_rt_b = autoreg_rt_b,
+    autoreg_p_hosp_a = autoreg_p_hosp_a,
+    autoreg_p_hosp_b = autoreg_p_hosp_b,
     inv_sqrt_phi_prior_mean = inv_sqrt_phi_prior_mean,
     inv_sqrt_phi_prior_sd = inv_sqrt_phi_prior_sd,
     r_prior_mean = r_prior_mean,
@@ -494,7 +494,7 @@ get_stan_data_site_level_model <- function(train_data,
     eta_sd_sd = eta_sd_sd,
     sigma_i0_prior_mode = sigma_i0_prior_mode,
     sigma_i0_prior_sd = sigma_i0_prior_sd,
-    p_hosp_mean = p_hosp_mean,
+    p_hosp_prior_mean = p_hosp_mean,
     p_hosp_sd_logit = p_hosp_sd_logit,
     p_hosp_w_sd_sd = p_hosp_w_sd_sd,
     ww_site_mod_sd_sd = ww_site_mod_sd_sd,
@@ -566,9 +566,10 @@ state_agg_inits <- function(train_data, params, stan_data) {
     initial_growth = rnorm(1, 0, 0.001),
     inv_sqrt_phi_h = 1 / (sqrt(200)) + rnorm(1, 1 / 10000, 1 / 10000),
     sigma_ww = abs(rnorm(1, 0, 0.5)),
-    p_hosp_int = rnorm(1, qlogis(p_hosp_mean), 0.01),
-    p_hosp_w = if (include_ww == 1) rnorm(tot_weeks - 1, 0, 0.01) else rep(0, 0),
+    p_hosp_mean = rnorm(1, qlogis(p_hosp_mean), 0.01),
+    p_hosp_w = if (include_ww == 1) rnorm(tot_weeks, 0, 0.01) else rep(0, 0),
     p_hosp_w_sd = if (include_ww == 1) abs(rnorm(1, 0.01, 0.001)) else rep(0, 0),
+    autoreg_p_hosp = if (include_ww == 1) abs(rnorm(1, 1 / 100, 0.001)) else rep(0, 0),
     t_peak = rnorm(1, t_peak_mean, 0.1 * t_peak_sd),
     viral_peak = rnorm(1, viral_peak_mean, 0.1 * viral_peak_sd),
     dur_shed = rnorm(1, duration_shedding_mean, 0.1 * duration_shedding_sd),
@@ -749,6 +750,7 @@ site_level_inf_inits <- function(train_data, params, stan_data) {
     log_r_mu_intercept = rnorm(1, convert_to_logmean(1, 0.1), convert_to_logsd(1, 0.1)),
     error_site = matrix(rnorm(n_subpops * n_weeks, mean = 0, sd = 0.1), n_subpops, n_weeks),
     autoreg_rt_site = abs(rnorm(1, 0.5, 0.05)),
+    autoreg_p_hosp = abs(rnorm(1, 1 / 100, 0.001)),
     sigma_rt = abs(rnorm(1, 0, 0.01)),
     i0_over_n = plogis(rnorm(1, qlogis(i0 / pop), 0.05)),
     initial_growth = rnorm(1, 0, 0.001),
@@ -762,8 +764,8 @@ site_level_inf_inits <- function(train_data, params, stan_data) {
       0.1 * sigma_ww_site_prior_sd_sd
     )),
     sigma_ww_site_raw = abs(rnorm(n_ww_lab_sites, 0, 0.05)),
-    p_hosp_int = rnorm(1, qlogis(p_hosp_mean), 0.01),
-    p_hosp_w = rnorm(tot_weeks - 1, 0, 0.01),
+    p_hosp_mean = rnorm(1, qlogis(p_hosp_mean), 0.01),
+    p_hosp_w = rnorm(tot_weeks, 0, 0.01),
     p_hosp_w_sd = abs(rnorm(1, 0.01, 0.001)),
     t_peak = rnorm(1, t_peak_mean, 0.1 * t_peak_sd),
     viral_peak = rnorm(1, viral_peak_mean, 0.1 * viral_peak_sd),
