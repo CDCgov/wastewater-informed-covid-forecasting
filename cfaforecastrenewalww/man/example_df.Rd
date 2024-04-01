@@ -10,12 +10,12 @@ model}
 A data frame with 635 rows and 13 columns
 \describe{
   \item{t}{The time index in days}
-  \item{lab_wwtp_unique_id}{The unique identifier of the wasteawter site-lab
-   combination (1-5) in this instance,
-  but would vary for the number of unique combinations in your inptu dataset
-  if trying to construct something mirroring
+  \item{lab_wwtp_unique_id}{The unique identifier of the wastewater site-lab
+  combination. For this example, there are 5 unique combinations, so the
+  indices range from 1 to 5 but would vary for the number of unique
+  combinations in your input dataset if trying to construct something mirroring
   this structure}
-  \item{log_conc}{The log scaled viral genomes per mL collected from the
+  \item{log_conc}{The log scale viral genomes per mL collected from the
   lab-site specified on day date.
   NAs indicate days where a sample wasn't reported in that lab-site.}
   \item{date}{Sample collection date, formatted as YYYY-MM-DD}

@@ -11,9 +11,10 @@ A data frame with 305 rows and 4 columns
   \item{name}{Parameter name}
   \item{true_value}{ The value that was assigned to this parameter in the
   data generation process}
-  \item{index_rows}{If the data is dynamic, the other indexing }
-  \item{index_cols}{If the data is dynamic the indexing (e.g. time in
-  days or weeks) }
+  \item{index_rows}{if this is a parameter array, the array row index for
+  this particular value; for scalar parameters it is always NA }
+  \item{index_cols}{if this is a parameter array, the array column index for
+  this particular value; for scalar parameters it is always NA) }
 }
 }
 \source{

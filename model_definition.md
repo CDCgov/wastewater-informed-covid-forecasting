@@ -1,6 +1,6 @@
 # CFA wastewater-informed hospital admissions forecasts
 
-This document describes the data sources, model structure, and implementation details for the wastewater-informed hospital admissions forecasts submitted to the [COVID-19 Forecast Hub](https://github.com/reichlab/covid19-forecast-hub/tree/master) under the name `cfa-wwrenewal`. The methods described will evolve as we continue to develop and improve the model.
+This document describes the data sources, model structure, and implementation details for the wastewater-informed hospital admissions forecasts submitted to the [COVID-19 Forecast Hub](https://github.com/reichlab/covid19-forecast-hub/tree/master) under the name `cfa-wwrenewal`. The methods described will evolve as we continue to develop and improve the model. We use the model to produce forecasts for 53 jurisdictions: the 50 U.S. states, the District of Columbia, Puerto Rico, and the United States as a whole.
 
 We welcome feedback on the model structure and implementation, please feel free to submit an issue directly on GitHub or reach out via this [form](https://www.cdc.gov/forecast-outbreak-analytics/contact-us.html).
 
@@ -21,19 +21,19 @@ We use the most recent data available at the time of submission to generate the 
 
 These data are complex and have many sources of variability and uncertainty. For example,
 
-- Each state has a different number of wastewater sampling sites (e.g., wastewater treatment plants) that each cover a catchment area. This means that different sites cover different populations, and when combining the sites across a state, represent some subset of the state population. This subset varies significantly across states.
-- Different sites may use different collection methodologies. These methodologies may vary through time at an individual site.
+- Each jurisdiction (for our forecasts, typically a U.S. state or territory) has a different number of wastewater sampling sites (e.g., wastewater treatment plants) that each cover a catchment area. This means that different sites cover different populations, and when combining the sites across a jurisdiction, represent some subset of the jurisdiction's total population. The fraction of the total population covered by sampling sites varies significantly among the jurisdictions we consider.
+- Different wastewater sites may use different sample collection methodologies. These methodologies may also vary through time at an individual site.
 - Different sites sample at different cadences. Some sites sample nearly daily, while others sample less than once a week. Some sites report that data within the week while others have reporting latencies on the order of weeks.
 - Different samples are processed in different labs that may use different methodologies for extraction, concentration, and quantification. These labs may also vary their methodologies through time.
-- Not all states submit genome concentrations to [CDC's National Wastewater Surveillance System](https://www.cdc.gov/nwss/wastewater-surveillance.html) (NWSS).
+- Not all of the jurisdictions we forecast submit genome concentrations to [CDC's National Wastewater Surveillance System](https://www.cdc.gov/nwss/wastewater-surveillance.html) (NWSS).
 
-These complexities mean that wastewater data are often difficult to interpret. For example, a change in genome concentration across a state could reflect a change in the underlying number of infections, a change in the number of samples collected or processed, a change in the collection or processing methodologies, a change in the reporting cadence or latency, and/or a change in the viral shedding kinetics of the population (e.g., due to a new variant or a change in the age distribution of cases).
+These complexities mean that wastewater data are often difficult to interpret. For example, a change in genome concentration sampled at a site could reflect a change in the underlying number of infections, a change in the number of samples collected or processed, a change in the collection or processing methodologies, a change in the reporting cadence or latency, and/or a change in the viral shedding kinetics of the population (e.g., due to a new variant or a change in the age distribution of cases).
 
 Details about data preprocessing, outlier detection, and aggregation are in the [Appendix](#appendix-wastewater-data-pre-processing).
 
 ### Hospital admissions data
 
-We source hospital admissions data for each state from [healthdata.gov](https://healthdata.gov/Hospital/COVID-19-Reported-Patient-Impact-and-Hospital-Capa/g62h-syeh/about_data).
+We source hospital admissions data for each jurisdiction from [healthdata.gov](https://healthdata.gov/Hospital/COVID-19-Reported-Patient-Impact-and-Hospital-Capa/g62h-syeh/about_data).
 As this data is updated on Friday afternoon with admissions up until the previous Saturday, and we submit forecasts on the following Monday, this means that we have a 9 day delay between the most recent data and when the model is fitted.
 
 Details about data preprocessing and outlier detection are in the [Appendix](#hospital-admissions-pre-processing).
@@ -45,27 +45,27 @@ The models share a common structure and are fit using the same codebase.
 The models differ in the data they use as input, in whether or not they include a wastewater component, and the aggregation of the estimates they produce.
 
 [**Model 1**](#model-1) is wastewater-informed, site-level infection dynamics model.
-It uses genome concentrations at the site level and admissions at the state level as input and produces forecasts of admissions at the state level.
-We use Model 1 to generate forecasts for states with any wastewater data available.
-However, if a state has not reported any genome concentration data in the past 21 days or if there are fewer than 5 data points per site in any site, we flag this in our metadata, as it is unlikely that the wastewater data is meaningfully informing the forecast in that location.
+It uses genome concentrations at the site level and admissions at the jurisdictional level as input and produces forecasts of admissions at the jurisdictional level.
+We use Model 1 to generate forecasts for jurisdictions with any wastewater data available.
+However, if a jurisdiction has not reported any genome concentration data in the past 21 days or if there are fewer than 5 data points per site in any site, we flag this in our metadata, as it is unlikely that the wastewater data is meaningfully informing the forecast in that jurisdiction.
 
-[**Model 2**](#model-2) is a no-wastewater, state-level infection dynamics model.
-It uses state-level admissions as input and produces forecasts of state-level admissions as output.
-We use Model 2 to generate forecasts for states without any wastewater data.
+[**Model 2**](#model-2) is a no-wastewater, jurisdiction-level infection dynamics model.
+It uses jurisdiction-level admissions as input and produces forecasts of jurisdiction-level admissions as output.
+We use Model 2 to generate forecasts for jurisdictions without any wastewater data.
 
 [**Model 3**](#model-3) is a nationwide aggregated wastewater model.
 It uses nationally-aggregated genome concentrations and national-level admissions as input and produces forecasts of national-level admissions.
-We use Model 3 to generate nationwide forecasts.
-Of the forecasts being submitted to the [COVID-19 Forecast Hub](https://github.com/reichlab/covid19-forecast-hub/), only the nationwide (US) forecasts use this observation model.
+We use Model 3 to generate nationwide forecasts for the entire United States.
+Of the forecasts being submitted to the [COVID-19 Forecast Hub](https://github.com/reichlab/covid19-forecast-hub/), only the nationwide (U.S.) forecasts use this observation model.
 
 | Model | Input WW data | Input hospitalization data | Infection dynamics | Predicted hospitalizations |
 | --- | --- | --- | --- | --- |
-| Model 1 | Site-level | State-level | Coupled site- and state-level | State-level |
-| Model 2 | None | State-level | State-level | State-level |
+| Model 1 | Site-level | Jurisdiction-level | Coupled site- and jurisdiction-level | Jurisdiction-level |
+| Model 2 | None | Jurisdiction-level | Jurisdiction-level | Jurisdiction-level |
 | Model 3 | Nationally aggregated | Nationally aggregated | National | National |
 
 
-Alongside each forecast, we publish a corresponding metadata table with state-by-state notes on wastewater data status and model used. If a state has no wastewater data during the fitting period (the past 90 days), we fit Model 2 and indicate this in the metadata. If a state has minimal wastewater data or no recent wastewater measurements, we still fit Model 1, but we indicate in the metadata that the wastewater data may be insufficient to inform the forecast.
+Alongside each forecast, we publish a corresponding metadata table with jurisdiction-by-jurisdiction notes on wastewater data status and model used. If a jurisdiction has no wastewater data during the fitting period (the past 90 days), we fit Model 2 and indicate this in the metadata. If a jurisdiction has minimal wastewater data or no recent wastewater measurements, we still fit Model 1, but we indicate in the metadata that the wastewater data may be insufficient to inform the forecast.
 
 ### Model components
 
@@ -150,7 +150,7 @@ We model the observed hospital admission counts $h_t$ as:
 
 $$h_t \sim \mathrm{NegBinom}(n H(t), \phi)$$
 
-where the state population size $n$ is used to convert from per-capita hospitalization rate $H(t)$ to hospitalization counts.
+where the jurisdiction population size $n$ is used to convert from per-capita hospitalization rate $H(t)$ to hospitalization counts.
 
 Currently, we do not explicitly model the delay from hospital admission to reporting of hospital admissions. In reality, corrections (upwards or downwards) in the admissions data after the report date are possible and do happen. See [outlier detection and removal](#appendix-wastewater-data-pre-processing) for further details.
 
@@ -191,37 +191,37 @@ Future iterations of this model will evaluate the utility of mechanistic modelin
 
 ## Model 1: Site-level infection dynamics
 
-In this model, we represent hospital admissions at the state-level and viral genome concentrations at the site-level. We use the components described above but divide the state population into subpopulations representing sampled wastewater sites' catchment populations, with an additional subpopulation to represent individuals who do not contribute to sampled wastewater.
+In this model, we represent hospital admissions at the jurisdictional level and viral genome concentrations at the site level. We use the components described above but divide the jurisdiction's total population into subpopulations representing sampled wastewater sites' catchment populations, with an additional subpopulation to represent individuals who do not contribute to sampled wastewater.
 
-We model infection dynamics in these subpopulations hierarchically: subpopulation infection dynamics are distributed about a central state-level infection dynamic, and total state infections are simply the sum of the subpopulation-level infections.
+We model infection dynamics in these subpopulations hierarchically: subpopulation infection dynamics are distributed about a central jurisdiction-level infection dynamic, and jurisdiction's total infections are simply the sum of the subpopulation-level infections.
 
 ### Subpopulation definition
-In Model 1, a state consists of $K_\mathrm{total}$ subpopulations $k$ with corresponding population sizes $n_k$. We associate one subpopulation to each of the $K_\mathrm{sites}$ wastewater sampling sites in the state and assign that subpopulation a population size $n_k$ equal to the wastewater catchment population size reported to NWSS for that site.
+In Model 1, a jurisdiction consists of $K_\mathrm{total}$ subpopulations $k$ with corresponding population sizes $n_k$. We associate one subpopulation to each of the $K_\mathrm{sites}$ wastewater sampling sites in the jurisdiction and assign that subpopulation a population size $n_k$ equal to the wastewater catchment population size reported to NWSS for that site.
 
-Whenever the sum of the wastewater catchment population sizes $\sum\nolimits_{k=1}^{K_\mathrm{sites}} n_k$ is less than the total state population size $n$, we use an additional subpopulation of size $n - \sum\nolimits_{k=1}^{K_\mathrm{sites}} n_k$ to model individuals in the state who are not covered by wastewater sampling.
+Whenever the sum of the wastewater catchment population sizes $\sum\nolimits_{k=1}^{K_\mathrm{sites}} n_k$ is less than the total jurisdiction population size $n$, we use an additional subpopulation of size $n - \sum\nolimits_{k=1}^{K_\mathrm{sites}} n_k$ to model individuals in the jurisdiction who are not covered by wastewater sampling.
 
 The total number of subpopulations is then $K_\mathrm{total} = K_\mathrm{sites} + 1$: the $K_\mathrm{sites}$ subpopulations with sampled wastewater, and the final subpopulation to account for individuals not covered by wastewater sampling.
 
 This amounts to modeling the wastewater catchments populations as approximately non-overlapping; every infected individual either does not contribute to measured wastewater or contributes principally to one wastewater catchment.
 This approximation is reasonable because we only use samples taken from primary wastewaster treatment plants, which avoids the possibility that an individual might be sampled once in a sample taken upstream and then sampled again in a more aggregated sample taken further downstream; see [data filtering](#appendix-wastewater-data-pre-processing) for further details.
 
-If the sum of the wastewater site catchment populations meets or exceeds the reported state population ($\sum\nolimits_{k=1}^{K_\mathrm{sites}} n_k \ge n$) we do not use a final subpopulation without sampled wastewater. In that case, the total number of subpopulations $K_\mathrm{total} = K_\mathrm{sites}$. In our data, this is true only for the District of Columbia.
+If the sum of the wastewater site catchment populations meets or exceeds the reported jurisdiction population ($\sum\nolimits_{k=1}^{K_\mathrm{sites}} n_k \ge n$) we do not use a final subpopulation without sampled wastewater. In that case, the total number of subpopulations $K_\mathrm{total} = K_\mathrm{sites}$. In our data, this is true only for the District of Columbia.
 
-When converting from predicted per capita incident hospital admissions $H(t)$ to predicted hospitalization counts, we use the state population size $n$, even in the case of the District of Columbia where $\sum n_k > n$.
+When converting from predicted per capita incident hospital admissions $H(t)$ to predicted hospitalization counts, we use the jurisdiction population size $n$, even in the case of the District of Columbia where $\sum n_k > n$.
 
 This amounts to making two key additional modeling assumptions:
-- Any individuals who contribute to wastewaster measurements but are not part of the state population are distributed among the catchment populations approximately proportional to catchment population size.
-- Whenever $\sum n_k \ge n$, the fraction of individuals in the state not covered by wastewater is small enough to have minimal impact on the statewide per capita infection dynamics.
+- Any individuals who contribute to wastewaster measurements but are not part of the jurisdiction population are distributed among the catchment populations approximately proportional to catchment population size.
+- Whenever $\sum n_k \ge n$, the fraction of individuals in the jurisdiction not covered by wastewater is small enough to have minimal impact on the jurisdiction-wide per capita infection dynamics.
 
 ### Subpopulation-level infection dynamics
-We couple the subpopulation- and state-level infection dynamics at the level of the un-damped instantaneous reproduction number $\mathcal{R}^\mathrm{u}(t)$.
+We couple the subpopulation- and jurisdiction-level infection dynamics at the level of the un-damped instantaneous reproduction number $\mathcal{R}^\mathrm{u}(t)$.
 
-We model the subpopulations as having infection dynamics that are _similar_ to one another but can differ from the overall state-level dynamic.
+We model the subpopulations as having infection dynamics that are _similar_ to one another but can differ from the overall jurisdiction-level dynamic.
 
-We represent this with a hierarchical model where we first model a state-level un-damped effective reproductive number $\mathcal{R}^\mathrm{u}(t)$, but then allow individual subpopulations $k$ to have individual subpopulation values of $\mathcal{R}^\mathrm{u}_{k}(t)$
+We represent this with a hierarchical model where we first model a jurisdiction-level un-damped effective reproductive number $\mathcal{R}^\mathrm{u}(t)$, but then allow individual subpopulations $k$ to have individual subpopulation values of $\mathcal{R}^\mathrm{u}_{k}(t)$
 
-The state-level model for the undamped instantaneous reproductive number $\mathcal{R}^\mathrm{u}(t)$ follows the time-evolution described above.
-Subpopulation deviations from the state-level reproduction number are modeled via a log-scale AR(1) process. Specifically, for subpopulation $k$:
+The jurisdiction-level model for the undamped instantaneous reproductive number $\mathcal{R}^\mathrm{u}(t)$ follows the time-evolution described above.
+Subpopulation deviations from the jurisdiction-level reproduction number are modeled via a log-scale AR(1) process. Specifically, for subpopulation $k$:
 
 $$
 \log[\mathcal{R}^\mathrm{u}_{k}(t)] = \log[\mathcal{R}^\mathrm{u}(t)] + \delta_k(t)
@@ -244,13 +244,13 @@ The subpopulation $\mathcal{R}_{k}(t)$ is subject to the infection feedback desc
 
 From $\mathcal{R}_{k}(t)$, we generate values of the supopulation-level _expected_ latent incident infections per capita $I_k(t)$ using the renewal process described in [the infection component](#infection-component).
 
-To obtain the number of statewide infections per capita $I(t)$, we sum the $K_\mathrm{total}$ subpopulation per capita infection counts $I_k(t)$ weighted by their population sizes:
+To obtain the number of infections per capita $I(t)$ in the jurisdiction as a whole, we sum the $K_\mathrm{total}$ subpopulation per capita infection counts $I_k(t)$ weighted by their population sizes:
 
 ```math
 I(t) = \frac{1}{\sum\nolimits_{k=1}^{K_\mathrm{total}} n_k} \sum_{k=1}^{K_\mathrm{total}} n_k I_k(t)
 ```
 
-We infer the site level initial per capita incidence $I_k(0)$ hierarchically. Specifically, we treat $\mathrm{logit}[I_k(0)]$ as Normally distributed about the corresponding state-level value $\mathrm{logit}[I(0)]$, with an estimated standard deviation $\sigma_{i0}$:
+We infer the site level initial per capita incidence $I_k(0)$ hierarchically. Specifically, we treat $\mathrm{logit}[I_k(0)]$ as Normally distributed about the corresponding jurisdiction-level value $\mathrm{logit}[I(0)]$, with an estimated standard deviation $\sigma_{i0}$:
 
 $$
 \mathrm{logit}[I_k(0)] \sim \mathrm{Normal}(\mathrm{logit}[I(0)], \sigma_{k0})
@@ -294,14 +294,14 @@ If a sample has a reported concentration (field `pcr_target_avg_conc`) above the
 
 ## Model 2: no wastewater
 
-The no wastewater, state-level infection dynamics model is the simplest model, because it does not include wastewater data.
-Each state is modeled as a separate population according to the infection component and hospitalization component described above.
-We use this model when no wastewater data is available for a state.
-This model also serves as a baseline for comparison to the wastewater-informed models.
+The no wastewater, jurisdiction-level infection dynamics model is the simplest model, because it does not include wastewater data.
+Each jurisdiction is modeled as a separate population according to the infection component and hospitalization component described above.
+We use this model when no wastewater data is available for a jurisdiction.
+This model also serves as a comparative baseline for evaluating wastewater-informed models.
 
 ## Model 3: nationwide wastewater
 
-In this model, the entire US population is treated as a single population. This model uses the general infection, hospitalization, and wastewater components described above, but with the following modifications:
+In this model, the entire United States is treated as a single population. This model uses the general infection, hospitalization, and wastewater components described above, but with the following modifications:
 
 We first generate a thresholded population-weighted average viral genome concentration in wastewater:
 
@@ -326,9 +326,9 @@ We use informative priors for parameters that have been well characterized in th
 | Peak viral shedding $V_\mathrm{peak}$| $\log_{10}[V_\mathrm{peak}] \sim \mathrm{Normal}(5.1, 0.5)$ | Miura et al. 2021 [^Muira] |
 | Duration of shedding | $\tau_\mathrm{shed} \sim \mathrm{Normal}(17 \text{ days}, 3 \text{ days})$  | Cevik et al. 2021 [^Cevik], Russell et al. 2023 [^Russell]   |
 | Total genomes shed per infected individual | $\log_{10}[G] \sim \mathrm{Normal}(9, 2)$ | Watson et al 2023[^Watson]   |
-| Initial infections per capita $I_0$ | $I_0 \sim \mathrm{Beta}(1 + k i_\mathrm{est}, 1 + k (1-i_\mathrm{est}))$ | where $i_\mathrm{est}$ is the sum of the last 7 days of hospital admissions, divided by state population, and divided by the prior mode for $p_\mathrm{hosp}$, and $k = 5$ is a parameter governing the informativeness ("certainty") of the Beta distribution |
+| Initial infections per capita $I_0$ | $I_0 \sim \mathrm{Beta}(1 + k i_\mathrm{est}, 1 + k (1-i_\mathrm{est}))$ | where $i_\mathrm{est}$ is the sum of the last 7 days of hospital admissions, divided by jurisdiction population, and divided by the prior mode for $p_\mathrm{hosp}$, and $k = 5$ is a parameter governing the informativeness ("certainty") of the Beta distribution |
 | Initial exponential growth rate | $r \sim \mathrm{Normal}(0, 0.01)$ | Chosen to assume flat dynamics prior to observations |
-| Infection feedback term | $\gamma \sim \mathrm{logNormal}(6.37, 0.4)$ | Weakly informative prior chosen to have a mode of 500 in natural scale, based on posterior estimates of peaks from prior seasons in a few locations|
+| Infection feedback term | $\gamma \sim \mathrm{logNormal}(6.37, 0.4)$ | Weakly informative prior chosen to have a mode of 500 in natural scale, based on posterior estimates of peaks from prior seasons in a few jurisdictions |
 
 ### Scalar parameters
 
@@ -379,7 +379,9 @@ This resulting infection to hospital admission delay distribution has a mean of 
 
 Our framework is an extension of the widely used [^CDCRtestimates] [^CDCtechnicalblog], semi-mechanistic renewal framework `{EpiNow2}` [^epinow2paper][^EpiNow2], using a Bayesian latent variable approach implemented in the probabilistic programming language Stan [^stan] using [^cmdstanr] to interface with R.
 For submission to the [COVID-19 Forecast Hub](https://github.com/reichlab/covid19-forecast-hub/tree/master), the model is run on Saturday to generate forecasts each Monday.
-For each location, we run 4 chains for 750 warm-up iterations and 500 sampling iterations, with a target average acceptance probability of 0.95 and a maximum tree depth of 12.
+
+For each jurisdiction, we run 4 chains for 750 warm-up iterations and 500 sampling iterations, with a target average acceptance probability of 0.95 and a maximum tree depth of 12.
+
 To generate forecasts per the hub submission guidelines, we calculate the necessary quantiles from the 2,000 draws from the posterior of the expected observed hospital admissions 28 days ahead of the Monday forecast date.
 
 ## Appendix: Notation
@@ -432,7 +434,7 @@ The $z$-score thresholds were chosen by visual inspection of the data.
 
 ### Hospital admissions pre-processing
 
-We visually inspect the hospital admissions data for each state before producing a forecast, identifying anomalies that seem implausible.
+We visually inspect the hospital admissions data for each jurisdiction before producing a forecast, identifying anomalies that seem implausible.
 We then remove these observations from the model inference, treating them as missing data (i.e. as NA values in the model).
 Often these implausible observations are due to reporting errors, such as a hospital reporting a large number of admissions on a single day that should have been spread out over multiple days and are later corrected. When this happens, we add the corrected data back into the model inference when it gets updated.
 
