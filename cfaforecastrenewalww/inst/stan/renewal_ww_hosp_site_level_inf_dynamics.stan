@@ -1,6 +1,6 @@
 functions {
 #include functions/ar1.stan
-#include functions/biased_rw.stan
+#include functions/diff_ar1.stan
 #include functions/convolve.stan
 #include functions/hospitalization.stan
 #include functions/infections.stan
@@ -173,7 +173,7 @@ transformed parameters {
 
 
   // State-leve R(t) AR + RW implementation:
-  log_r_mu_t_in_weeks = biased_rw(log_r_mu_intercept, autoreg_rt, eta_sd, w);
+  log_r_mu_t_in_weeks = diff_ar1(log_r_mu_intercept, autoreg_rt, eta_sd, w);
   unadj_r = ind_m*log_r_mu_t_in_weeks;
   unadj_r = exp(unadj_r);
 
@@ -185,8 +185,6 @@ transformed parameters {
   growth_site = initial_growth + eta_growth * sigma_growth; // site level growth rate
   for (i in 1:n_subpops) {
     // Let site-level R(t) vary around the hierarchical mean R(t)
-    // with a biased random walk towards the previous time
-    // steps deviation
     // log(R(t)site) ~ log(R(t)state) + log(R(t)state-log(R(t)site)) + eta_site
     log_r_site_t_in_weeks = ar1(log_r_mu_t_in_weeks,
                                 autoreg_rt_site, sigma_rt,

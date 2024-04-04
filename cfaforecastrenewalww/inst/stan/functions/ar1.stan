@@ -15,24 +15,25 @@
   */
 vector ar1(vector mu, real ac, real sd, vector z, int is_stat) {
   int n = num_elements(z);
+  vector[n] eta;
   vector[n] x;
   vector[n] tvd;
 
-  real adj = 1.0;
+  eta = sd * z;
   if(is_stat) {
+    real adj;
     if (ac >= 1.0) {
       reject("AR(1) process is not stationary if ac >= 1.");
     }
     adj = 1.0 / sqrt(1.0 - ac^2);
+    eta[1] = adj * eta[1];
   }
 
-  tvd[1] = sd * adj * z[1];
-  x[1] = mu[1] + tvd[1];
-
+  tvd[1] = eta[1];
   for (t in 2:n) {
-    tvd[t] = ac * tvd[t - 1] + sd * z[t];
-    x[t] = mu[t] + tvd[t];
+    tvd[t] = ac * tvd[t - 1] + eta[t];
   }
 
+  x = mu + tvd;
   return x;
 }

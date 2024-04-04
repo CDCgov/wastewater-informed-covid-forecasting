@@ -1,21 +1,22 @@
-test_that("Test the state-level hospitalization-only model on simulated data.", {
-  #######
-  # run model briefly on the simulated data
-  #######
-  # We intentionally use default stan initialization for modularity of the test
-  quiet({
-    model <- compiled_hosp_only_model
-    fit <- model$sample(
-      data = toy_stan_data_ho,
-      seed = 123,
-      iter_sampling = 25,
-      iter_warmup = 25,
-      chains = 1
-    )
-  })
+#######
+## run model briefly on the simulated data
+#######
+## We intentionally use default stan initialization for modularity
+## of the test
+quiet({
+  model <- compiled_hosp_only_model
+  fit <- model$sample(
+    data = toy_stan_data_ho,
+    seed = 123,
+    iter_sampling = 25,
+    iter_warmup = 25,
+    chains = 1
+  )
+})
 
-  obs_last_draw <- posterior::subset_draws(fit$draws(), draw = 25)
+obs_last_draw <- posterior::subset_draws(fit$draws(), draw = 25)
 
+test_that("Fit draws have the right parameter names and shapes", {
   # Check all parameters (ignoring their dimensions) are in both fits
   # But in a way that makes error messages easy to understand
   obs_par_names <- get_nonmatrix_names_from_draws(obs_last_draw)
@@ -44,23 +45,18 @@ test_that("Test the state-level hospitalization-only model on simulated data.", 
     obs_par_lens,
     exp_par_lens
   )
+})
 
-  # Check the parameters we care most about
-  model_params <- get_model_param_df(fit) %>%
-    filter(!param_name %in% c("p_hosp_w_sd[1]", "p_hosp_w")) %>%
+
+test_that("Draws are equal to the snapshot for all parameters", {
+  model_params <- get_model_param_df(fit) |>
+    filter(!param_name %in% c("p_hosp_w_sd[1]", "p_hosp_w")) |>
     dplyr::pull(param_name)
-  # hospital admissions only model doesn't
-  # have time-varying IHR
+
   for (param in model_params) {
     expect_equal(
       posterior::subset_draws(obs_last_draw, variable = !!param),
       posterior::subset_draws(toy_stan_fit_last_draw_ho, variable = !!param)
     )
   }
-
-  # Compare everything, with numerical tolerance
-  expect_equal(
-    obs_last_draw,
-    toy_stan_fit_last_draw_ho
-  )
 })

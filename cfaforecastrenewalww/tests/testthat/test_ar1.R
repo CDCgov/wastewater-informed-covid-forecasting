@@ -1,22 +1,6 @@
 test_that("Test AR(1) function in stan.", {
   model <- compiled_site_inf_model
 
-  ar1ify <- function(z, sd, ac, stationary = FALSE) {
-    x <- rep(NA, length(z))
-
-    x[1] <- z[1] * sd
-    if (stationary) {
-      stat_sd <- sd / sqrt(1 - ac * ac)
-      x[1] <- z[1] * stat_sd
-    }
-
-    for (i in 2:length(z)) {
-      x[i] <- ac * x[i - 1] + z[i] * sd
-    }
-
-    return(x)
-  }
-
   withr::with_seed(42, {
     z <- rnorm(10)
 
@@ -27,7 +11,7 @@ test_that("Test AR(1) function in stan.", {
       z = z,
       is_stat = TRUE
     )
-    r_ar <- ar1ify(z, 1.26, 0.73, TRUE)
+    r_ar <- ar1_from_z_scores(z, 1.26, 0.73, TRUE)
 
     testthat::expect_equal(
       stan_ar,
@@ -46,7 +30,7 @@ test_that("Test AR(1) function in stan.", {
       all(abs(stan_ar - stan_ar_nonstat) > testthat::testthat_tolerance())
     )
 
-    r_ar_nonstat <- ar1ify(z, 1.26, 0.73, FALSE)
+    r_ar_nonstat <- ar1_from_z_scores(z, 1.26, 0.73, FALSE)
 
     testthat::expect_equal(
       stan_ar_nonstat,

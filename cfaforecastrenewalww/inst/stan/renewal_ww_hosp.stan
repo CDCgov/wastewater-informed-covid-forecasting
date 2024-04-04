@@ -1,6 +1,6 @@
 functions {
 #include functions/ar1.stan
-#include functions/biased_rw.stan
+#include functions/diff_ar1.stan
 #include functions/convolve.stan
 #include functions/infections.stan
 #include functions/hospitalization.stan
@@ -127,8 +127,7 @@ transformed parameters {
 
 
   // AR + RW implementation:
-   // AR + RW implementation:
-  log_rt_weeks = biased_rw(log_r, autoreg_rt, eta_sd, w);
+  log_rt_weeks = diff_ar1(log_r, autoreg_rt, eta_sd, w);
   unadj_r = ind_m * log_rt_weeks;
   unadj_r = exp(unadj_r);
 
