@@ -311,7 +311,7 @@ static_params <- c(
   "log_r_mu_intercept",
   "i0_over_n", "initial_growth",
   "inv_sqrt_phi_h", "sigma_ww_site_mean", "sigma_ww_site_sd",
-  "p_hosp_int", "p_hosp_w_sd", "t_peak", "viral_peak",
+  "p_hosp_mean", "p_hosp_w_sd", "t_peak", "viral_peak",
   "dur_shed", "log10_g", "ww_site_mod_sd",
   "infection_feedback"
 )
