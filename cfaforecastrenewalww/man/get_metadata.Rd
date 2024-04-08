@@ -12,7 +12,7 @@ get_metadata(train_data)
 }
 \value{
 single row dataframe containing values for forecast date, pop,
- include_ww, hosp_reporting delay, and location
+include_ww, hosp_reporting delay, and location
 }
 \description{
 From a single model run, get the relevant metadata

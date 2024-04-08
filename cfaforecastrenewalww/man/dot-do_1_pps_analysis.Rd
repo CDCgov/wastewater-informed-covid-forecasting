@@ -16,7 +16,7 @@ the parameters from which the data was simulated}
 
 \item{stan_predictive_data}{list of simulated datasets, in same order as real_data_draws}
 
-\item{ci}{length-2 numeric vector of [lower, upper] values for CI}
+\item{ci}{length-2 numeric vector of \link{lower, upper} values for CI}
 
 \item{...}{further arguments passed to model$sample(), e.g. # chains}
 }

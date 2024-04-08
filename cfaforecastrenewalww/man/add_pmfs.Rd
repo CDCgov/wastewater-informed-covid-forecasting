@@ -20,7 +20,7 @@ convolution of the PMFs.
 }
 \details{
 This code was adapted from code written
-(under an MIT license) as part of the `epinowcast`
+(under an MIT license) as part of the \code{epinowcast}
 package (https://github.com/epinowcast/epinowcast)
 }
 \examples{

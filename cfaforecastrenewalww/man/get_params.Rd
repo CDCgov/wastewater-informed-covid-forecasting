@@ -7,12 +7,12 @@
 get_params(param_file)
 }
 \arguments{
-\item{param_file}{Path to a `.toml` file defining
+\item{param_file}{Path to a \code{.toml} file defining
 parameter values.}
 }
 \value{
 a dataframe with numeric values for parameter values passed to the
- model
+model
 }
 \description{
 Get parameters for model run

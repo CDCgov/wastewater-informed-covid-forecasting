@@ -15,15 +15,15 @@ get_ww_site_plots(
 \item{df}{dataframe of draws or dataframe containing filepath to load in draws}
 
 \item{figure_file_path}{path to save figure
- @param from_full_df if TRUE then df is draws object, if FALSE then df is a
+@param from_full_df if TRUE then df is draws object, if FALSE then df is a
 dataframe of filepaths to load in the parameter object}
 
 \item{write_files}{if TRUE then write files to specified location, if FALSE
 then don't}
 }
 \value{
-plot object of site level wastewater median, 50th, and 95% CI
- with observed data overlaid
+plot object of site level wastewater median, 50th, and 95\% CI
+with observed data overlaid
 }
 \description{
 Plot of lab-site level wastewater quantiles

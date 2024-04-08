@@ -1,0 +1,8 @@
+url: https://didactic-doodle-g3m75r1.pages.github.io/
+template:
+  bootstrap: 5
+
+repo:
+  url:
+    home: https://github.com/cdcgov/wastewater-informed-covid-forecasting/
+    source: https://github.com/cdcgov/wastewater-informed-covid-forecasting/blob/HEAD/cfaforecastrenewalww/

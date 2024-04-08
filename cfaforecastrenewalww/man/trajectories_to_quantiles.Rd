@@ -22,27 +22,27 @@ of trajectories}
 
 \item{quantiles}{quantiles to output for each
 timepoint (default the FluSight 2023 quantiles:
-`c(0.01, 0.025, seq(0.05, 0.95, 0.05), 0.975, 0.99)`}
+\code{c(0.01, 0.025, seq(0.05, 0.95, 0.05), 0.975, 0.99)}}
 
-\item{timepoint_cols}{name of the column(s) in`trajectories`
-that identifies unique timepoints. Default `timepoint`.}
+\item{timepoint_cols}{name of the column(s) in\code{trajectories}
+that identifies unique timepoints. Default \code{timepoint}.}
 
-\item{value_col}{name of the column in `trajectories`
+\item{value_col}{name of the column in \code{trajectories}
 with the trajectory values (for which we wish to
-compute quantiles), e.g. `hosp`, `weekly_hosp`, `cases`,
-etc. Default `value`.}
+compute quantiles), e.g. \code{hosp}, \code{weekly_hosp}, \code{cases},
+etc. Default \code{value}.}
 
 \item{quantile_value_name}{What to name
 the column containing quantile values in
-the output table. Default `"quantile_value"`}
+the output table. Default \code{"quantile_value"}}
 
 \item{quantile_level_name}{What to name
 the column containing quantile levels in
-the output table. Default `"quantile_level"`}
+the output table. Default \code{"quantile_level"}}
 
 \item{id_cols}{additional id columns in
-`trajectories` to group by before aggregating,
-e.g. a `location` column if `trajectories` contains
+\code{trajectories} to group by before aggregating,
+e.g. a \code{location} column if \code{trajectories} contains
 trajectories over the same time period for multiple
 locations, such as different US States and Territories.
 If NULL, ignored. Default NULL.}

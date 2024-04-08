@@ -3,10 +3,10 @@
 \name{compile_model}
 \alias{compile_model}
 \title{This code was adapted from code written
-(under an MIT license) as part of the `epinowcast`
+(under an MIT license) as part of the \code{epinowcast}
 package (https://github.com/epinowcast/epinowcast)
 Compile a stan model while pointing at the package default
-include directory (`stan`) for #include statements}
+include directory (\code{stan}) for #include statements}
 \usage{
 compile_model(
   model_filepath,
@@ -23,44 +23,44 @@ compile_model(
 \item{model_filepath}{path to .stan file defining the model}
 
 \item{include_paths}{path(s) to directories to search for files
-specified in #include statements. Passed to [cmdstanr::cmdstan_model()].
-Defaults to the `stan` subdirectory of the installed
-`cfaforecastrenewalww` package.}
+specified in #include statements. Passed to \code{\link[cmdstanr:cmdstan_model]{cmdstanr::cmdstan_model()}}.
+Defaults to the \code{stan} subdirectory of the installed
+\code{cfaforecastrenewalww} package.}
 
 \item{threads}{Number of threads to use in model compilation,
-as an integer. Passed to [cmdstanr::cmdstan_model()].
-Default `FALSE` (use single-threaded compilation).}
+as an integer. Passed to \code{\link[cmdstanr:cmdstan_model]{cmdstanr::cmdstan_model()}}.
+Default \code{FALSE} (use single-threaded compilation).}
 
 \item{target_dir}{Directory in which to save the compiled
-stan model binary. Passed as the `dir` keyword argument to
-[cmdstanr::cmdstan_model()]. Defaults to a temporary directory
-for the R sessions (the output of [tempdir()]).}
+stan model binary. Passed as the \code{dir} keyword argument to
+\code{\link[cmdstanr:cmdstan_model]{cmdstanr::cmdstan_model()}}. Defaults to a temporary directory
+for the R sessions (the output of \code{\link[=tempdir]{tempdir()}}).}
 
 \item{stanc_options}{Options for the stan compiler passed to
-[cmdstanr::cmdstan_model()], as a list. See that function's
-documentation for more details. Default `list()` (use default
+\code{\link[cmdstanr:cmdstan_model]{cmdstanr::cmdstan_model()}}, as a list. See that function's
+documentation for more details. Default \code{list()} (use default
 options).}
 
 \item{cpp_options}{Options for the C++ compiler passed to
-[cmdstanr::cmdstan_model()], as a list. See that function's
-documentation for more details. Default `list()` (use default
+\code{\link[cmdstanr:cmdstan_model]{cmdstanr::cmdstan_model()}}, as a list. See that function's
+documentation for more details. Default \code{list()} (use default
 options).}
 
 \item{verbose}{Write detailed output to the terminal while
-executing the function? Boolean, default `TRUE`.}
+executing the function? Boolean, default \code{TRUE}.}
 
 \item{...}{Additional keyword arguments passed to
-[cmdstanr::cmdstan_model()].}
+\code{\link[cmdstanr:cmdstan_model]{cmdstanr::cmdstan_model()}}.}
 }
 \value{
-The resulting `cmdstanr` model object, as the output
-of [cmdstanr::cmdstan_model()].
+The resulting \code{cmdstanr} model object, as the output
+of \code{\link[cmdstanr:cmdstan_model]{cmdstanr::cmdstan_model()}}.
 }
 \description{
 This function reads in and optionally compiles a Stan model.
-It is written to search the installed package `stan` directory
+It is written to search the installed package \code{stan} directory
 for additional source files to include. Within each stan file,
-use #include {path to your file with the `stan` directory}.stan
+use #include {path to your file with the \code{stan} directory}.stan
 }
 \details{
 compile_model

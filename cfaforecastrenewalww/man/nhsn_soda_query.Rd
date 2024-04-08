@@ -23,35 +23,35 @@ nhsn_soda_query(
 when constructing the query.}
 
 \item{start_date}{Pull only rows with dates
-greater than or equal to this date. If `NULL`,
-no minimum date. Default `NULL`.}
+greater than or equal to this date. If \code{NULL},
+no minimum date. Default \code{NULL}.}
 
 \item{end_date}{Pull only rows with dates
-less than or equal to this date. If `NULL`,
-no maximum date. Default `NULL`.}
+less than or equal to this date. If \code{NULL},
+no maximum date. Default \code{NULL}.}
 
 \item{columns}{Vector of columns to retrieve, in
-addition to `date` and `state`, which are always
-retrieved. If `NULL`, retrieve all columns.
-Default `NULL`.}
+addition to \code{date} and \code{state}, which are always
+retrieved. If \code{NULL}, retrieve all columns.
+Default \code{NULL}.}
 
 \item{states}{Vector of states or territories to
 retrieve, by two letter US postal service code.
-If `NULL`, retrieve all. Default `NULL`.}
+If \code{NULL}, retrieve all. Default \code{NULL}.}
 
 \item{limit}{limit to the number of rows to retrieve.
 Default 1e5.}
 
 \item{order_by}{Vector of columns by which to order the
-results. Default `c("state", "date")`}
+results. Default \code{c("state", "date")}}
 
 \item{desc}{whether to order descending instead of
-ascending. Default `FALSE` (order ascending).}
+ascending. Default \code{FALSE} (order ascending).}
 
 \item{...}{additional arguments (ignored for now)}
 }
 \value{
-the query as [soql::soql()] output
+the query as \code{\link[soql:soql]{soql::soql()}} output
 }
 \description{
 Construct a Socrata open data

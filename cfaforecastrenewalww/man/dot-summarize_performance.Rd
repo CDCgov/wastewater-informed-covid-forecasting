@@ -13,7 +13,7 @@ the parameters from which the data was simulated}
 
 \item{fit_draws}{draws-family object containing the MCMC}
 
-\item{ci}{length-2 numeric vector of [lower, upper] values for CI}
+\item{ci}{length-2 numeric vector of \link{lower, upper} values for CI}
 }
 \value{
 a list, each of which is a list of formatted stan data
