@@ -55,8 +55,8 @@ that dictates the distribution of delays from incident infection to incidence
 feedback}
 
 \item{model_type}{name of the model being fit. Options are
-`"site-level infection dynamics"`, `"site-level observation error"`,
-`"site-level time-varying concentration"`}
+\code{"site-level infection dynamics"}, \code{"site-level observation error"},
+\code{"site-level time-varying concentration"}}
 
 \item{output_dir}{location to save the model outputs}
 
@@ -90,12 +90,12 @@ default = 250}
 \item{output_full_df}{whether or not to have targets return the full
 dataframe of draws, default = FALSE to just return a dataframe of filepaths}
 
-\item{...}{Additional named arguments (ignored) to allow [do.call()] on
+\item{...}{Additional named arguments (ignored) to allow \code{\link[=do.call]{do.call()}} on
 lists with additional entries}
 }
 \value{
 a dataframe with model draws for all time points for WW
- concentraiton, hospitalizaitons, hosp per 100k, and the matched data
+concentraiton, hospitalizaitons, hosp per 100k, and the matched data
 }
 \description{
 Wrapper function to take a location's training data and fit to the

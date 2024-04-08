@@ -43,7 +43,7 @@ wastewater data stream for each time point}
 \item{forecast_time}{duration of the forecast period}
 
 \item{model_type}{name of the model being fit. Options are:
-`"state-level aggregated wastewater"`}
+\code{"state-level aggregated wastewater"}}
 
 \item{generation_interval}{a discretized (in days) normalized pmf indexed
 starting at 1 of the probability of each time from initial infection to
@@ -84,12 +84,12 @@ in the NUTS algorithm should have}
 
 \item{write_files}{whether or not to save the outputs, default = 1 to save}
 
-\item{...}{Additional named arguments (ignored) to allow [do.call()] on
+\item{...}{Additional named arguments (ignored) to allow \code{\link[=do.call]{do.call()}} on
 lists with additional entries}
 }
 \value{
 a dataframe with model draws for all time points for WW
- concentraiton, hospitalizaitons, hosp per 100k, and the matched data
+concentraiton, hospitalizaitons, hosp per 100k, and the matched data
 }
 \description{
 Wrapper function to fit the "aggregated" model, which takes in a single

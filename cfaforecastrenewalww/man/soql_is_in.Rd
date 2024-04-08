@@ -2,15 +2,15 @@
 % Please edit documentation in R/forecasttools.R
 \name{soql_is_in}
 \alias{soql_is_in}
-\title{Return a [soql::soql_where()] construct
+\title{Return a \code{\link[soql:soql_queries]{soql::soql_where()}} construct
 for a given column being in a list of values}
 \usage{
 soql_is_in(soql_list, column, match_values)
 }
 \arguments{
-\item{soql_list}{A `soql` query object, which
+\item{soql_list}{A \code{soql} query object, which
 can be piped in. If one hasn't been
-created yet, use or pipe in [soql::soql()].}
+created yet, use or pipe in \code{\link[soql:soql]{soql::soql()}}.}
 
 \item{column}{The column to filter on}
 
@@ -22,6 +22,6 @@ A new soql object with the filter added,
 for use in other functions.
 }
 \description{
-Return a [soql::soql_where()] construct
+Return a \code{\link[soql:soql_queries]{soql::soql_where()}} construct
 for a given column being in a list of values
 }

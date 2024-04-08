@@ -3,18 +3,20 @@
 \docType{data}
 \name{param_df}
 \alias{param_df}
-\title{Input parameters used to generate `example_df`}
+\title{Input parameters used to generate \code{example_df}}
 \format{
-## param_df
+\subsection{param_df}{
+
 A data frame with 305 rows and 4 columns
 \describe{
-  \item{name}{Parameter name}
-  \item{true_value}{ The value that was assigned to this parameter in the
-  data generation process}
-  \item{index_rows}{if this is a parameter array, the array row index for
-  this particular value; for scalar parameters it is always NA }
-  \item{index_cols}{if this is a parameter array, the array column index for
-  this particular value; for scalar parameters it is always NA) }
+\item{name}{Parameter name}
+\item{true_value}{ The value that was assigned to this parameter in the
+data generation process}
+\item{index_rows}{if this is a parameter array, the array row index for
+this particular value; for scalar parameters it is always NA }
+\item{index_cols}{if this is a parameter array, the array column index for
+this particular value; for scalar parameters it is always NA) }
+}
 }
 }
 \source{
@@ -25,6 +27,6 @@ param_df
 }
 \description{
 A few key parameters that were created by the default arguments in
-`generate_simulated_data.R`
+\code{generate_simulated_data.R}
 }
 \keyword{datasets}

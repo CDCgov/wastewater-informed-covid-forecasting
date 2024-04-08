@@ -51,7 +51,7 @@ level. This gets jittered with random noise to add week-to-week variation.}
 \item{pop_size}{Population size in the state}
 
 \item{n_lab_sites}{NUmber of unique combinations of labs and sites. Must be
-greater than or equal to `n_sites`}
+greater than or equal to \code{n_sites}}
 
 \item{map_site_to_lab}{Vector mapping the sites to the lab-sites in order
 of the sites}

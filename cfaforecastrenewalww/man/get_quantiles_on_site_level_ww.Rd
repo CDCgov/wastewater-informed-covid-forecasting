@@ -11,7 +11,7 @@ get_quantiles_on_site_level_ww(draws)
 }
 \value{
 a wide format dataframe with just the median, 50th, and 95th quantiles of
-         the expected WW concentation
+the expected WW concentation
 }
 \description{
 Quantile the site level expected observed WW

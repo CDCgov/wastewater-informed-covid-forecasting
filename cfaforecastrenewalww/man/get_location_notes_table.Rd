@@ -23,23 +23,23 @@ by locations.}
 \item{hosp_only_states}{States for which we chose
 to use the hospitalization only model, as a vector
 with states coded identically to how they are in
-the `location` column of `full_diagnostics_df`}
+the \code{location} column of \code{full_diagnostics_df}}
 
 \item{exclude_states}{States for which we chose to
 not submit a forecast for this week, as a vector with states
-coded identically to how they are in the `location` columnd
-of `full_diagnostics_df`}
+coded identically to how they are in the \code{location} columnd
+of \code{full_diagnostics_df}}
 
 \item{output_dir}{Path to a directory in which to save
-the metadata table. Only used if `prod_run = TRUE`.
-Default `NULL`.}
+the metadata table. Only used if \code{prod_run = TRUE}.
+Default \code{NULL}.}
 
 \item{prod_run}{Is this a run for publication /
 production? If so, the output will be saved in an
-appropriate location as a .tsv. Boolean, default `FALSE`}
+appropriate location as a .tsv. Boolean, default \code{FALSE}}
 }
 \value{
-The table of information as a [tibble::tibble()].
+The table of information as a \code{\link[tibble:tibble]{tibble::tibble()}}.
 }
 \description{
 Get a table that records notes on data characteristics
