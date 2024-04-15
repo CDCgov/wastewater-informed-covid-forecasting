@@ -1,16 +1,16 @@
-#' This code was adapted from code written
-#' (under an MIT license) as part of the `epinowcast`
-#' package (https://github.com/epinowcast/epinowcast)
-
 #' Compile a stan model while pointing at the package default
 #' include directory (`stan`) for #include statements
 #'
-#' compile_model
 #' @description
 #' This function reads in and optionally compiles a Stan model.
 #' It is written to search the installed package `stan` directory
 #' for additional source files to include. Within each stan file,
 #' use #include {path to your file with the `stan` directory}.stan
+#'
+#' @details The code for this function has been adapted
+#' from code written (under an MIT license) as part of
+#' the [`epinowcast`](https://github.com/epinowcast/epinowcast)
+#' R package.
 #'
 #' @param model_filepath path to .stan file defining the model
 #' @param include_paths path(s) to directories to search for files

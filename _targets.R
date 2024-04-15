@@ -291,7 +291,8 @@ list(
     command = get_plot_draws(grouped_df_id,
       "pred_hosp",
       figure_output_subdirectory,
-      show_calibration_data = FALSE
+      show_calibration_data = FALSE,
+      show_median = TRUE
     ),
     pattern = map(grouped_df_id),
     iteration = "list",
@@ -524,7 +525,8 @@ list(
     command = get_plot_draws(grouped_df,
       "pred_hosp",
       figure_output_subdirectory,
-      show_calibration_data = FALSE
+      show_calibration_data = FALSE,
+      show_median = TRUE
     ),
     pattern = map(grouped_df),
     iteration = "list",
@@ -683,7 +685,8 @@ list(
     command = get_plot_draws(grouped_df_sa,
       "pred_hosp",
       figure_output_subdirectory,
-      show_calibration_data = FALSE
+      show_calibration_data = FALSE,
+      show_median = TRUE
     ),
     pattern = map(grouped_df_sa),
     iteration = "list",
@@ -776,7 +779,8 @@ list(
       "pred_hosp",
       grouping_var = "model_type",
       figure_output_subdirectory,
-      show_calibration_data = FALSE
+      show_calibration_data = FALSE,
+      show_median = TRUE
     ),
     pattern = map(grouped_df_comb),
     iteration = "list",

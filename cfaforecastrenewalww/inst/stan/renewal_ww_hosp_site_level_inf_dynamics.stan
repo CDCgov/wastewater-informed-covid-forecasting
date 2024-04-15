@@ -173,7 +173,11 @@ transformed parameters {
 
 
   // State-leve R(t) AR + RW implementation:
-  log_r_mu_t_in_weeks = diff_ar1(log_r_mu_intercept, autoreg_rt, eta_sd, w);
+  log_r_mu_t_in_weeks = diff_ar1(log_r_mu_intercept,
+                                 autoreg_rt,
+				 eta_sd,
+				 w,
+				 0);
   unadj_r = ind_m*log_r_mu_t_in_weeks;
   unadj_r = exp(unadj_r);
 

@@ -17,7 +17,7 @@ Useful links:
 
 }
 \author{
-\strong{Maintainer}: Kaitlyn Johnson \email{uox1@cdc.gov}
+\strong{Maintainer}: Kaitlyn Johnson \email{uox1@cdc.gov} (\href{https://orcid.org/0000-0001-8011-0012}{ORCID})
 
 Authors:
 \itemize{
@@ -30,7 +30,7 @@ Authors:
 
 Other contributors:
 \itemize{
-  \item George Vega Yon \email{xrd4@cdc.gov} [contributor]
+  \item George Vega Yon \email{g.vegayon@gmail.com} (\href{https://orcid.org/0000-0002-3171-0844}{ORCID}) [contributor]
 }
 
 }

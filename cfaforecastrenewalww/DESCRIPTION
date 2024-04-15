@@ -5,7 +5,8 @@ Authors@R:
   c(person(given = "Kaitlyn",
            family = "Johnson",
            role = c("aut", "cre"),
-           email = "uox1@cdc.gov"),
+           email = "uox1@cdc.gov",
+           comment = c(ORCID = "0000-0001-8011-0012")),
   person(given = "Sam",
            family = "Abbott",
            role = c("aut"),
@@ -34,9 +35,8 @@ Authors@R:
 	   email = "g.vegayon@gmail.com",
 	   comment = c(ORCID = "0000-0002-3171-0844"))
 	)
-Description: Semi-mechanistic renewal approach jointly calibrating to state-level
-    hospital admissions and site-level wastewater concentrations
-License: Apache 2.0 LICENSE
+Description: Semi-mechanistic renewal approach jointly calibrating to state-level hospital admissions and site-level wastewater concentrations.
+License: Apache License (>= 2)
 URL: https://github.com/cdcgov/wastewater-informed-covid-forecasting/
 BugReports: https://github.com/cdcgov/wastewater-informed-covid-forecasting/issues/
 Depends:
