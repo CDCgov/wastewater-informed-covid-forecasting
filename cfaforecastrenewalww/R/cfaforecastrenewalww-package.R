@@ -18,7 +18,7 @@ NULL
 #' @importFrom jsonlite fromJSON
 #' @importFrom posterior subset_draws summarize_draws as_draws
 #' @importFrom grDevices boxplot.stats
-#' @importFrom stats dgamma dlnorm dnbinom dweibull ecdf mad median qlogis quantile
+#' @importFrom stats dgamma dlnorm dnbinom dweibull ecdf mad median plogis qlogis quantile
 #'  rnbinom rnorm sd time rlnorm
 #' @importFrom utils tail write.table
 #' @importFrom scoringutils score summarize_scores add_coverage

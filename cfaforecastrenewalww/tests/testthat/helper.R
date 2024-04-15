@@ -125,7 +125,14 @@ diff_ar1_from_z_scores_alt <- function(x0, ar, sd, z, stationary = FALSE) {
   n <- length(z) + 1
   x <- rep(NA, n)
   x[1] <- x0
-  x[2] <- x[1] + sd * z[1]
+
+  first_sd <- sd
+
+  if (stationary) {
+    first_sd <- first_sd / sqrt(1 - ar^2)
+  }
+
+  x[2] <- x[1] + first_sd * z[1]
 
   for (i in 3:n) {
     x[i] <- x[i - 1] + ar * (x[i - 1] - x[i - 2]) + sd * z[i - 1]

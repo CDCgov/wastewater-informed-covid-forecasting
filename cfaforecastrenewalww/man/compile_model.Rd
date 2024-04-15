@@ -2,10 +2,7 @@
 % Please edit documentation in R/compile_model.R
 \name{compile_model}
 \alias{compile_model}
-\title{This code was adapted from code written
-(under an MIT license) as part of the \code{epinowcast}
-package (https://github.com/epinowcast/epinowcast)
-Compile a stan model while pointing at the package default
+\title{Compile a stan model while pointing at the package default
 include directory (\code{stan}) for #include statements}
 \usage{
 compile_model(
@@ -63,5 +60,8 @@ for additional source files to include. Within each stan file,
 use #include {path to your file with the \code{stan} directory}.stan
 }
 \details{
-compile_model
+The code for this function has been adapted
+from code written (under an MIT license) as part of
+the \href{https://github.com/epinowcast/epinowcast}{\code{epinowcast}}
+R package.
 }

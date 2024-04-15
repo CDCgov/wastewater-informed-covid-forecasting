@@ -1,8 +1,8 @@
-Package: cfaforecastrenewalww
-Title: Wastewater informed COVID-19 hospital admissions forecasting
-Version: 0.2.3.2000
+Package: wweval
+Title: Evaluation of wastewater informed COVID-19 hospital admissions forecasting
+Version: 0.0.0.9000
 Authors@R:
-  c(person(given = "Kaitlyn",
+     c(person(given = "Kaitlyn",
            family = "Johnson",
            role = c("aut", "cre"),
            email = "uox1@cdc.gov",
@@ -35,57 +35,41 @@ Authors@R:
 	   email = "g.vegayon@gmail.com",
 	   comment = c(ORCID = "0000-0002-3171-0844"))
 	)
-Description: Semi-mechanistic renewal approach jointly calibrating to state-level hospital admissions and site-level wastewater concentrations.
-License: Apache License (>= 2)
+Description: This package provides helper functions designed to
+ preprocess, postprocess, and analyze outputs from fitting a
+ semi-mechanistic renewal model with and without incorporating
+ wastewater.
+License: Apache License (== 2.0)
 URL: https://github.com/cdcgov/wastewater-informed-covid-forecasting/
 BugReports: https://github.com/cdcgov/wastewater-informed-covid-forecasting/issues/
 Depends:
     R (>= 4.3.0)
 Imports:
     dplyr,
-    here,
-    yaml,
     tidybayes,
-    cmdstanr (>= 0.7.1),
-    zoo,
     lubridate,
     ggplot2,
-    boot,
-    cli,
-    scales,
-    tibble,
-    soql,
-    parallel,
-    data.table,
-    readr,
-    fs,
-    glue,
-    arrow,
-    jsonlite,
-    posterior,
-    scoringutils,
+    stats,
     tidyr,
-    targets (>= 1.5.1),
-    tarchetypes,
-    gridExtra,
+    arrow,
+    glue,
+    jsonlite,
+    readr,
     rlang,
-    RcppTOML,
-    RcppEigen,
-    crew (>= 0.9.0)
-VignetteBuilder:
-    knitr
-Suggests:
-    rmarkdown,
+    cli,
     covidcast,
-    httr,
-    knitr,
-    withr,
-    testthat
+    data.table,
+    purrr,
+    scales,
+    scoringutils,
+    tibble,
+    cmdstanr (>= 0.7.1),
+    cfaforecastrenewalww
 Additional_repositories: https://mc-stan.org/r-packages/
 SystemRequirements: CmdStan (>=2.34.1)
-RoxygenNote: 7.3.1
 Encoding: UTF-8
-LazyData: true
-Config/testthat/edition: 3
-Config/Needs/check: rcmdcheck, testthat
 Roxygen: list(markdown = TRUE)
+Config/Needs/check: rcmdcheck, testthat
+RoxygenNote: 7.3.1
+Remotes:
+    cfaforecastrenewalww=local::../cfaforecastrenewalww

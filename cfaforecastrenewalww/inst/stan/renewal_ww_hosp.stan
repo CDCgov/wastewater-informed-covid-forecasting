@@ -127,7 +127,7 @@ transformed parameters {
 
 
   // AR + RW implementation:
-  log_rt_weeks = diff_ar1(log_r, autoreg_rt, eta_sd, w);
+  log_rt_weeks = diff_ar1(log_r, autoreg_rt, eta_sd, w, 0);
   unadj_r = ind_m * log_rt_weeks;
   unadj_r = exp(unadj_r);
 

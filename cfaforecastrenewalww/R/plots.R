@@ -287,7 +287,7 @@ get_plot_draws <- function(df, y,
         group = draw,
         color = model_type
       ),
-      size = 0.1, alpha = 0.1
+      size = 0.2, alpha = 0.1
     ) +
     geom_line(
       data = y_draws %>% filter(period != "forecast"),
@@ -296,7 +296,7 @@ get_plot_draws <- function(df, y,
         group = draw,
         color = model_type
       ),
-      size = 0.1, alpha = 0.1
+      size = 0.2, alpha = 0.1
     ) +
     geom_line(
       data = y_draws,
@@ -369,7 +369,7 @@ get_plot_draws <- function(df, y,
 
   if (isTRUE(show_median)) {
     plot <- plot + geom_line(
-      data = y_draws,
+      data = y_draws %>% filter(period == "forecast"),
       aes(
         x = date, y = median,
         color = model_type

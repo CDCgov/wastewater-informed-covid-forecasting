@@ -21,7 +21,8 @@ test_that(paste0(
 
   ## Build the vector ourselves
   unadj_log_r_weeks_r <- diff_ar1_from_z_scores(
-    init_val, ac, sigma, std_normal
+    init_val, ac, sigma, std_normal,
+    stationary = FALSE
   )
   unadj_log_r_days_r <- rep(unadj_log_r_weeks_r,
     each = 7
@@ -36,7 +37,8 @@ test_that(paste0(
     init_val,
     ac,
     sigma,
-    std_normal
+    std_normal,
+    is_stat = FALSE
   ) |>
     as.numeric()
 
