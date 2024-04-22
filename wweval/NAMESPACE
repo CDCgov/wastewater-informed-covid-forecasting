@@ -3,7 +3,6 @@
 export(add_time_indexing)
 export(clean_ww_data)
 export(date_of_ww_data)
-export(filter_sites_by_scenario)
 export(get_full_scores)
 export(get_hosp_data_sizes)
 export(get_hosp_indices)
