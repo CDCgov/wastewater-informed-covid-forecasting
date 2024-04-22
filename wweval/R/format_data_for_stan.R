@@ -80,19 +80,30 @@ get_stan_data_list <- function(model_type,
         ww_outlier_col_name %in% colnames(input_ww_data)
     )
 
+    # Test to see if ww_data_present
+    ww_data_present <- nrow(input_ww_data) != 0
+    if (ww_data_present == FALSE) {
+      message("No wastewater data present")
+    }
+
     # Filter out wastewater outliers and arrange data for indexing
     ww_data <- input_ww_data |>
       dplyr::filter({{ ww_outlier_col_name }} != 1) |>
       dplyr::arrange(date, site_index)
 
-    ww_data_sizes <- get_ww_data_sizes(ww_data, lod_col_name)
-    ww_indices <- get_ww_data_indices(ww_data, input_hosp_data,
-      owt = ww_data_sizes$owt,
+    ww_data_sizes <- get_ww_data_sizes(
+      ww_data,
       lod_col_name
     )
+    ww_indices <- get_ww_data_indices(ww_data,
+      input_hosp_data,
+      owt = ww_data_sizes$owt,
+      lod_col_name = lod_col_name
+    )
     ww_values <- get_ww_values(
-      ww_data, ww_measurement_col_name,
-      ww_value_lod_col_name
+      ww_data,
+      ww_measurement_col_name,
+      ww_value_lod_col_name,
     )
 
     stopifnot(
@@ -434,32 +445,44 @@ get_inits <- function(model_type, stan_data, params,
 #' @export
 get_ww_data_sizes <- function(ww_data,
                               lod_col_name = "below_LOD") {
-  # Test for presence of column names
-  stopifnot(
-    "LOD column name isn't present in input dataset" =
-      lod_col_name %in% colnames(ww_data)
-  )
+  ww_data_present <- nrow(ww_data) != 0
+  if (isTRUE(ww_data_present)) {
+    # Test for presence of column names
+    stopifnot(
+      "LOD column name isn't present in input dataset" =
+        lod_col_name %in% colnames(ww_data)
+    )
 
-  # Number of wastewater observations
-  owt <- nrow(ww_data)
-  # Number of censored wastewater observations
-  n_censored <- sum(ww_data[lod_col_name] == 1)
-  # Number of uncensored wastewater observations
-  n_uncensored <- owt - n_censored
+    # Number of wastewater observations
+    owt <- nrow(ww_data)
+    # Number of censored wastewater observations
+    n_censored <- sum(ww_data[lod_col_name] == 1)
+    # Number of uncensored wastewater observations
+    n_uncensored <- owt - n_censored
 
-  # Number of ww sites
-  n_ww_sites <- dplyr::n_distinct(ww_data$site_index)
+    # Number of ww sites
+    n_ww_sites <- dplyr::n_distinct(ww_data$site_index)
 
-  # Number of unique combinations of wastewater sites and labs
-  n_ww_lab_sites <- dplyr::n_distinct(ww_data$lab_site_index)
+    # Number of unique combinations of wastewater sites and labs
+    n_ww_lab_sites <- dplyr::n_distinct(ww_data$lab_site_index)
 
-  data_sizes <- list(
-    owt = owt,
-    n_censored = n_censored,
-    n_uncensored = n_uncensored,
-    n_ww_sites = n_ww_sites,
-    n_ww_lab_sites = n_ww_lab_sites
-  )
+    data_sizes <- list(
+      owt = owt,
+      n_censored = n_censored,
+      n_uncensored = n_uncensored,
+      n_ww_sites = n_ww_sites,
+      n_ww_lab_sites = n_ww_lab_sites
+    )
+  } else {
+    data_sizes <- list(
+      owt = 0,
+      n_censored = 0,
+      n_uncensored = 0,
+      n_ww_sites = 0,
+      n_ww_lab_sites = 0
+    )
+  }
+
 
   return(data_sizes)
 }
@@ -496,62 +519,76 @@ get_ww_data_indices <- function(ww_data,
                                 lod_col_name = "below_LOD") {
   # Vector of indices along the list of wastewater concentrations that
   # correspond to censored observations
-  ww_data_with_index <- ww_data |>
-    dplyr::mutate(ind_rel_to_sampled_times = dplyr::row_number())
-  ww_censored <- ww_data_with_index |>
-    dplyr::filter(.data[[lod_col_name]] == 1) |>
-    dplyr::pull(ind_rel_to_sampled_times)
-  ww_uncensored <- ww_data_with_index |>
-    dplyr::filter(.data[[lod_col_name]] == 0) |>
-    dplyr::pull(ind_rel_to_sampled_times)
-  stopifnot(
-    "Length of censored vectors incorrect" =
-      length(ww_censored) + length(ww_uncensored) == owt
-  )
+  ww_data_present <- nrow(ww_data) != 0
+
+  if (isTRUE(ww_data_present)) {
+    ww_data_with_index <- ww_data |>
+      dplyr::mutate(ind_rel_to_sampled_times = dplyr::row_number())
+    ww_censored <- ww_data_with_index |>
+      dplyr::filter(.data[[lod_col_name]] == 1) |>
+      dplyr::pull(ind_rel_to_sampled_times)
+    ww_uncensored <- ww_data_with_index |>
+      dplyr::filter(.data[[lod_col_name]] == 0) |>
+      dplyr::pull(ind_rel_to_sampled_times)
+    stopifnot(
+      "Length of censored vectors incorrect" =
+        length(ww_censored) + length(ww_uncensored) == owt
+    )
 
 
-  # Need to get the times of wastewater sampling, starting at the first
-  # day of hospital admissions data
-  ww_date_df <- data.frame(
-    date = seq(
-      from = min(input_hosp_data$date),
-      to = max(ww_data$date),
-      by = "days"
-    ),
-    t = 1:(as.integer(max(ww_data$date) - min(input_hosp_data$date)) + 1)
-  )
+    # Need to get the times of wastewater sampling, starting at the first
+    # day of hospital admissions data
+    ww_date_df <- data.frame(
+      date = seq(
+        from = min(input_hosp_data$date),
+        to = max(ww_data$date),
+        by = "days"
+      ),
+      t = 1:(as.integer(max(ww_data$date) - min(input_hosp_data$date)) + 1)
+    )
 
-  # Left join the data mapped to time to the wastewater data
-  spine_ww <- ww_data |>
-    dplyr::left_join(ww_date_df, by = "date")
+    # Left join the data mapped to time to the wastewater data
+    spine_ww <- ww_data |>
+      dplyr::left_join(ww_date_df, by = "date")
 
-  # Pull just the vector of times of wastewater observations
-  ww_sampled_times <- spine_ww |>
-    dplyr::pull(t)
+    # Pull just the vector of times of wastewater observations
+    ww_sampled_times <- spine_ww |>
+      dplyr::pull(t)
 
-  # Pull just the indexes of the sites that correspond to the vector of
-  # sampled times
-  ww_sampled_sites <- ww_data$site_index
+    # Pull just the indexes of the sites that correspond to the vector of
+    # sampled times
+    ww_sampled_sites <- ww_data$site_index
 
-  # Pull just the indexes of the lab-sites that correspond to the vector of
-  # sampled times
-  ww_sampled_lab_sites <- ww_data$lab_site_index
+    # Pull just the indexes of the lab-sites that correspond to the vector of
+    # sampled times
+    ww_sampled_lab_sites <- ww_data$lab_site_index
 
-  # Need a vector of indices indicating the site for each lab-site
-  lab_site_to_site_map <- ww_data |>
-    dplyr::select(lab_site_index, site_index) |>
-    dplyr::arrange(lab_site_index, "desc") |>
-    dplyr::distinct() |>
-    dplyr::pull(site_index)
+    # Need a vector of indices indicating the site for each lab-site
+    lab_site_to_site_map <- ww_data |>
+      dplyr::select(lab_site_index, site_index) |>
+      dplyr::arrange(lab_site_index, "desc") |>
+      dplyr::distinct() |>
+      dplyr::pull(site_index)
 
-  ww_data_indices <- list(
-    ww_censored = ww_censored,
-    ww_uncensored = ww_uncensored,
-    ww_sampled_times = ww_sampled_times,
-    ww_sampled_sites = ww_sampled_sites,
-    ww_sampled_lab_sites = ww_sampled_lab_sites,
-    lab_site_to_site_map = lab_site_to_site_map
-  )
+    ww_data_indices <- list(
+      ww_censored = ww_censored,
+      ww_uncensored = ww_uncensored,
+      ww_sampled_times = ww_sampled_times,
+      ww_sampled_sites = ww_sampled_sites,
+      ww_sampled_lab_sites = ww_sampled_lab_sites,
+      lab_site_to_site_map = lab_site_to_site_map
+    )
+  } else {
+    ww_data_indices <- list(
+      ww_censored = c(),
+      ww_uncensored = c(),
+      ww_sampled_times = c(),
+      ww_sampled_sites = c(),
+      ww_sampled_lab_sites = c(),
+      lab_site_to_site_map = c()
+    )
+  }
+
 
   return(ww_data_indices)
 }
@@ -585,39 +622,50 @@ get_ww_values <- function(ww_data,
                           ww_lod_value_col_name = "lod_sewage",
                           ww_site_pop_col_name = "ww_pop",
                           one_pop_per_site = TRUE) {
-  # Get the vector of log LOD values corresponding to each observation
-  ww_lod <- ww_data |>
-    dplyr::pull({{ ww_lod_value_col_name }}) |>
-    log()
+  ww_data_present <- nrow(ww_data) != 0
 
-  # Get a vector of population sizes
-  if (isTRUE(one_pop_per_site)) {
-    # Want one population per site during the model calibration period,
-    # so just take the average across the populations reported for each observation
-    pop_ww <- ww_data |>
-      dplyr::select(site_index, {{ ww_site_pop_col_name }}) |>
-      dplyr::group_by(site_index) |>
-      dplyr::summarise(pop_avg = mean(.data[[ww_site_pop_col_name]])) |>
-      dplyr::arrange(site_index, "desc") |>
-      dplyr::pull(pop_avg)
+  if (isTRUE(ww_data_present)) {
+    # Get the vector of log LOD values corresponding to each observation
+    ww_lod <- ww_data |>
+      dplyr::pull({{ ww_lod_value_col_name }}) |>
+      log()
+
+    # Get a vector of population sizes
+    if (isTRUE(one_pop_per_site)) {
+      # Want one population per site during the model calibration period,
+      # so just take the average across the populations reported for each observation
+      pop_ww <- ww_data |>
+        dplyr::select(site_index, {{ ww_site_pop_col_name }}) |>
+        dplyr::group_by(site_index) |>
+        dplyr::summarise(pop_avg = mean(.data[[ww_site_pop_col_name]])) |>
+        dplyr::arrange(site_index, "desc") |>
+        dplyr::pull(pop_avg)
+    } else {
+      # Want a vector of length of the number of observations, corresponding to
+      # the population at that time
+      pop_ww <- ww_data |>
+        dplyr::pull({{ ww_site_pop_col_name }})
+    }
+
+
+    # Get the vector of log wastewater concentrations
+    log_conc <- ww_data |>
+      dplyr::mutate(log_conc = as.numeric(log(!!sym(ww_measurement_col_name) + 1e-8))) |>
+      dplyr::pull(log_conc)
+
+    ww_values <- list(
+      ww_lod = ww_lod,
+      pop_ww = pop_ww,
+      log_conc = log_conc
+    )
   } else {
-    # Want a vector of length of the number of observations, corresponding to
-    # the population at that time
-    pop_ww <- ww_data |>
-      dplyr::pull({{ ww_site_pop_col_name }})
+    ww_values <- list(
+      ww_lod = c(),
+      pop_ww = c(),
+      log_conc = c()
+    )
   }
 
-
-  # Get the vector of log wastewater concentrations
-  log_conc <- ww_data |>
-    dplyr::mutate(log_conc = as.numeric(log(!!sym(ww_measurement_col_name) + 1e-8))) |>
-    dplyr::pull(log_conc)
-
-  ww_values <- list(
-    ww_lod = ww_lod,
-    pop_ww = pop_ww,
-    log_conc = log_conc
-  )
 
   return(ww_values)
 }

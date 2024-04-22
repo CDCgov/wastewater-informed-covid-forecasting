@@ -3,7 +3,7 @@ name: R CMD check project packages
 on:
   pull_request:
   push:
-    branches: [main]
+    branches: [main, prod]
 
 jobs:
   check-eval:

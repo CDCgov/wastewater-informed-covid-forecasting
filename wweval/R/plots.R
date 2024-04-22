@@ -39,11 +39,11 @@ get_plot_ww_data_comparison <- function(draws_w_data,
     facet_wrap(~site_lab_name, scales = "free") +
     geom_point(
       data = draws_w_data_subsetted |> filter(below_LOD == 1),
-      aes(x = date, y = value), color = "red", size = 1.1
+      aes(x = date, y = calib_data), color = "red", size = 1.1
     ) +
     geom_point(
       data = draws_w_data_subsetted |> filter(flag_as_ww_outlier == 1),
-      aes(x = date, y = value), color = "blue", size = 1.1
+      aes(x = date, y = calib_data), color = "blue", size = 1.1
     ) +
     xlab("") +
     ylab("Genome copies per mL") +
@@ -146,7 +146,7 @@ get_plot_hosp_data_comparison <- function(draws_w_data,
 }
 
 get_plot_quantile_comparison <- function(hosp_quantiles,
-                                         days_to_show_forecast = 7) {
+                                         days_to_show_forecast = 28) {
   location <- hosp_quantiles |>
     pull(location) |>
     unique()
@@ -233,11 +233,25 @@ get_plot_quantile_comparison <- function(hosp_quantiles,
 }
 
 
+get_plot_final_scores <- function(final_scores,
+                                  score_metric = "crps") {
+  p <- ggplot(final_scores) +
+    geom_bar(aes(x = scenario, y = .data[[score_metric]], fill = scenario),
+      position = "dodge", stat = "identity"
+    ) +
+    theme_bw() +
+    ylab(glue::glue("{score_metric} across forecast dates and locations"))
+  return(p)
+}
+
 get_plot_raw_scores <- function(all_scores,
                                 score_metric = "crps") {
   ggplot(all_scores) +
-    geom_point(aes(x = date, y = crps, color = scenario, group = c(forecast_date))) +
-    facet_grid(forecast_date ~ location) +
+    geom_point(aes(
+      x = date, y = .data[[score_metric]],
+      color = scenario, group = c(forecast_date)
+    )) +
+    facet_grid(forecast_date ~ location, scales = "free") +
     theme_bw()
 }
 
@@ -248,6 +262,7 @@ get_plot_summarized_scores <- function(all_scores,
     data.table::as.data.table()
 
   summarized_scores <- all_scores |>
+    mutate(forecast_date = lubridate::ymd(forecast_date)) |>
     data.table::as.data.table() |>
     scoringutils::summarize_scores(
       by = c("scenario", "period", "forecast_date", "location")
@@ -268,12 +283,12 @@ get_plot_summarized_scores <- function(all_scores,
     )
 
   p <- ggplot(summarized_scores) +
-    geom_bar(aes(x = forecast_date, y = {{ score_metric }}, fill = scenario),
+    geom_bar(aes(x = forecast_date, y = .data[[score_metric]], fill = scenario),
       stat = "identity", position = "dodge", alpha = 0.5
     ) +
     geom_hline(
       data = summary_across_dates,
-      aes(yintercept = get(score_metric), color = scenario)
+      aes(yintercept = .data[[score_metric]], color = scenario)
     ) +
     facet_wrap(~period, nrow = n_periods) +
     theme_bw() +

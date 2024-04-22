@@ -57,19 +57,20 @@ Imports:
     readr,
     rlang,
     cli,
-    covidcast,
+    epidatr,
+    sjmisc,
     data.table,
     purrr,
     scales,
     scoringutils,
     tibble,
-    cmdstanr (>= 0.7.1),
-    cfaforecastrenewalww
-Additional_repositories: https://mc-stan.org/r-packages/
+    cfaforecastrenewalww,
+    cmdstanr (>= 0.7.1)
 SystemRequirements: CmdStan (>=2.34.1)
 Encoding: UTF-8
 Roxygen: list(markdown = TRUE)
 Config/Needs/check: rcmdcheck, testthat
 RoxygenNote: 7.3.1
 Remotes:
-    cfaforecastrenewalww=local::../cfaforecastrenewalww
+    cfaforecastrenewalww=CDCgov/wastewater-informed-covid-forecasting/cfaforecastrenewalww,
+    stan-dev/cmdstanr

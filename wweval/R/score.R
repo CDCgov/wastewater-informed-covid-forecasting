@@ -19,36 +19,41 @@ get_full_scores <- function(draws,
                               "mad", "ae_median", "se_mean"
                             ),
                             ...) {
-  # Filter to after the last date
-  last_calib_date <- max(draws$date[!is.na(draws$calib_data)])
+  if (is.null(draws)) {
+    scores <- NULL
+  } else {
+    # Filter to after the last date
+    last_calib_date <- max(draws$date[!is.na(draws$calib_data)])
 
-  forecasted_draws <- draws |>
-    filter(date > last_calib_date) |>
-    ungroup() |>
-    # Rename for scoring utils
-    rename(
-      true_value = eval_data,
-      prediction = value,
-      sample = draw,
-      model = model_type
-    ) |>
-    select(
-      location,
-      forecast_date,
-      date,
-      true_value,
-      prediction,
-      sample,
-      model
-    ) |>
-    mutate(
-      period = ifelse(date <= forecast_date, "nowcast", "forecast"),
-      scenario = !!scenario
-    )
+    forecasted_draws <- draws |>
+      filter(date > !!last_calib_date) |>
+      ungroup() |>
+      # Rename for scoring utils
+      rename(
+        true_value = eval_data,
+        prediction = value,
+        sample = draw,
+        model = model_type
+      ) |>
+      select(
+        location,
+        forecast_date,
+        date,
+        true_value,
+        prediction,
+        sample,
+        model
+      ) |>
+      mutate(
+        period = ifelse(date <= forecast_date, "nowcast", "forecast"),
+        scenario = !!scenario
+      )
 
 
-  scores <- forecasted_draws |>
-    scoringutils::score(metrics = metrics, ...)
+    scores <- forecasted_draws |>
+      scoringutils::score(metrics = metrics, ...)
+  }
+
 
   return(scores)
 }

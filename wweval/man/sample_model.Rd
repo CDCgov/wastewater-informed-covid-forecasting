@@ -6,7 +6,8 @@
 \usage{
 sample_model(
   standata,
-  compiled_model,
+  stan_model_path,
+  stan_models_dir,
   init_lists,
   iter_warmup = 250,
   iter_sampling = 250,
@@ -19,7 +20,10 @@ sample_model(
 \arguments{
 \item{standata}{a list of elements to pass to stan}
 
-\item{compiled_model}{the compiled model object}
+\item{stan_model_path}{the path to the main stan model}
+
+\item{stan_models_dir}{the path to the folder with the stan models needed
+for the include paths}
 
 \item{init_lists}{nested list of initial parameter values for each chain}
 
@@ -41,5 +45,18 @@ default = 250}
 a list containing draws, diagnostics, and summary_diagnostics
 }
 \description{
-Fit the model
+This function takes in the data for stan, the lists of initial values for the
+parameters, and the path to the cmdstan model. It compiles the model and
+then it fits the model using the specified MCMC parameters. If the sampling
+errors, it returns a list with the error message. If the sampling does not
+error, it returns a list containing the draws, diagnostics, and diagnostic
+summary
+}
+\details{
+This code was adapted from code written
+(under an MIT license) as part of the \code{epidist}
+paper (https://github.com/parksw3/epidist-paper).
+It is a wrapper function that fits a stan model to data
+and returns a list containing the draws, diagnostics, and
+summary if the model runs successfully, or returns an error.
 }

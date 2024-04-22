@@ -52,61 +52,59 @@ get_model_draws_w_data <- function(model_output,
   # Dataframe with columns
   if (model_output == "hosp") {
     pop <- input_data |>
-      pull(pop) |>
+      dplyr::pull(pop) |>
       unique()
 
     draws_w_data <- draws |>
-      spread_draws(pred_hosp[t]) |>
-      rename(value = pred_hosp) |>
-      mutate(
+      tidybayes::spread_draws(pred_hosp[t]) |>
+      dplyr::rename(value = pred_hosp) |>
+      dplyr::mutate(
         draw = `.draw`,
         name = "pred_hosp"
       ) |>
-      select(name, t, value, draw) |>
-      left_join(date_df, by = "t") |>
-      left_join(input_data |> select(-pop, -location),
+      dplyr::select(name, t, value, draw) |>
+      dplyr::left_join(date_df, by = "t") |>
+      dplyr::left_join(input_data |> select(-pop, -location),
         by = c("date")
       ) |>
-      rename(calib_data = daily_hosp_admits) |>
-      left_join(eval_data |> select(-pop, -location),
+      dplyr::rename(calib_data = daily_hosp_admits) |>
+      dplyr::left_join(eval_data |> select(-pop, -location),
         by = c("date")
       ) |>
-      rename(eval_data = daily_hosp_admits) |>
-      mutate(
+      dplyr::rename(eval_data = daily_hosp_admits) |>
+      dplyr::mutate(
         forecast_date = lubridate::ymd(!!forecast_date),
         model_type = !!model_type,
         location = !!location,
         pop = !!pop,
         scenario = !!scenario
       ) |>
-      ungroup()
+      dplyr::ungroup()
   }
 
   if (model_output == "ww") {
     # Then we also want to output the wastewater predictions
     lab_site_map <- input_data |>
-      select(lab_site_index, site, lab, location) |>
-      distinct()
+      dplyr::distinct(lab_site_index, site, lab, location)
     # Get mean population in the site over the calibration period, this
     # is the same pop size we use in the model fitting
     site_pop_map <- input_data |>
-      select(site, ww_pop, date) |>
-      group_by(site) |>
-      summarise(ww_pop = mean(ww_pop))
+      dplyr::group_by(site) |>
+      dplyr::summarise(ww_pop = mean(ww_pop))
 
     draws_w_data <- draws |>
-      spread_draws(pred_ww[lab_site_index, t]) |>
-      rename(value = pred_ww) |>
-      mutate(
+      tidybayes::spread_draws(pred_ww[lab_site_index, t]) |>
+      dplyr::rename(value = pred_ww) |>
+      dplyr::mutate(
         draw = `.draw`,
         name = "pred_ww",
         value = exp(value)
       ) |>
-      select(name, lab_site_index, t, value, draw) |>
-      left_join(date_df, by = "t") |>
-      left_join(lab_site_map, by = "lab_site_index") |>
-      left_join(site_pop_map, by = c("site")) |>
-      left_join(
+      dplyr::select(name, lab_site_index, t, value, draw) |>
+      dplyr::left_join(date_df, by = "t") |>
+      dplyr::left_join(lab_site_map, by = "lab_site_index") |>
+      dplyr::left_join(site_pop_map, by = c("site")) |>
+      dplyr::left_join(
         input_data |> select(
           date, lab_site_index,
           ww, below_LOD,
@@ -114,20 +112,21 @@ get_model_draws_w_data <- function(model_output,
         ),
         by = c("date", "lab_site_index")
       ) |>
-      rename(calib_data = ww) |>
-      left_join(eval_data |> select(date, ww, lab, site),
+      dplyr::rename(calib_data = ww) |>
+      dplyr::left_join(eval_data |> select(date, ww, lab, site),
         by = c("date", "lab", "site")
       ) |>
-      rename(eval_data = ww) |>
-      mutate(
+      dplyr::rename(eval_data = ww) |>
+      dplyr::mutate(
         forecast_date = ymd(!!forecast_date),
         model_type = !!model_type,
         scenario = !!scenario,
         site_lab_name = glue::glue("Site: {site}, Lab: {lab}"),
         location = !!location
       ) |>
-      ungroup()
+      dplyr::ungroup()
   }
+
   return(draws_w_data)
 }
 

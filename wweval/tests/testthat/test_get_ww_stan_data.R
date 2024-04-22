@@ -28,7 +28,7 @@ test_that("Function returns correct counts", {
 # Test that function handles error properly when LOD column is missing
 test_that("Error is thrown when LOD column is missing", {
   expect_error(
-    get_ww_data_sizes(sample_ww_data, "nonexistent_column"),
+    get_ww_data_sizes(sample_ww_data, lod_col_name = "nonexistent_column"),
     "LOD column name isn't present in input dataset"
   )
 })
@@ -36,9 +36,13 @@ test_that("Error is thrown when LOD column is missing", {
 # Test that function works with different LOD column names
 test_that("Function works with different LOD column names", {
   # Rename below_LOD to new_LOD_col for testing purposes
-  renamed_sample <- dplyr::rename(sample_ww_data, new_LOD_col = below_LOD)
+  renamed_sample <- dplyr::rename(sample_ww_data,
+    new_LOD_col = below_LOD
+  )
 
-  result <- get_ww_data_sizes(renamed_sample, "new_LOD_col")
+  result <- get_ww_data_sizes(renamed_sample,
+    lod_col_name = "new_LOD_col"
+  )
 
   expect_equal(result$n_censored, sum(renamed_sample$new_LOD_col == 1))
 })

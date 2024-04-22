@@ -4,17 +4,16 @@
 # pass to tar map to iterate over.
 source(file.path("src", "write_eval_config.R"))
 write_eval_config(
-  locations = c("MA", "WA"),
-  forecast_dates = c(
-    "2023-10-16", "2023-10-23", "2023-10-30",
-    "2023-11-06", "2023-11-13", "2023-11-20",
-    "2023-11-27", "2023-12-04", "2023-12-11",
-    "2023-12-18", "2023-12-25", "2024-01-01",
-    "2024-01-08", "2024-01-15", "2024-01-22",
-    "2024-01-29", "2024-02-05", "2024-02-12",
-    "2024-02-19"
-  ),
-  scenarios = c("Status quo", "One site per jurisdiction"),
+  locations = c("GA"), # c("CA", "CO", "MN", "MA") # nolint
+  forecast_dates = c("2024-02-12", "2024-02-26"),
+  # forecast_dates = c(
+  #   "2023-10-23", "2023-11-20", # nolint
+  #   "2023-12-18", "2024-01-15", "2024-02-12", # nolint
+  #   "2024-03-11"
+  # ), # nolint
+  # scenarios = c("status_quo", "coes", "hhs_regions", "msas", "national"), # nolint
+  scenarios = c("national", "status_quo"),
   config_dir = file.path("input", "config", "eval"),
-  eval_date = "2024-03-25"
+  scenario_dir = file.path("input", "config", "eval", "scenarios"),
+  eval_date = "2024-04-15"
 )

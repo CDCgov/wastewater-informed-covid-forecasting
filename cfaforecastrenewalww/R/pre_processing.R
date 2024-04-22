@@ -94,16 +94,19 @@ get_state_level_hosp_data <- function(hosp_data_source,
   } else {
     # Raw state level hospital data
     if (hosp_data_source == "covidcast") {
-      # These codechunk depends on the covidcast package
-      check_package_is_installed("covidcast")
+      # These codechunk depends on the epidatr package
+      check_package_is_installed("epidatr")
       options(covidcast.auth = get_secret("covidcast_api_key"))
 
       # Get hospital admissions data by state
-      hosp_raw <- (covidcast::covidcast_signal(
-        "hhs", "confirmed_admissions_covid_1d",
-        geo_type = "state", geo_values = "*"
-      ))
-
+      hosp_raw <- epidatr::pub_covidcast(
+        source = "hhs",
+        signals = "confirmed_admissions_covid_1d",
+        geo_type = "state",
+        time_type = "day",
+        geo_values = "*",
+        time_values = "*"
+      )
       stopifnot(
         "Hospitalization data more than 13 days delayed" =
           max(hosp_raw$time_value) > lubridate::today() - 13
@@ -138,10 +141,13 @@ get_state_level_hosp_data <- function(hosp_data_source,
     }
 
     if (hosp_data_source == "HHS_protect_vintages") {
-      hosp_raw <- quiet(covidcast::covidcast_signal(
-        "hhs", "confirmed_admissions_covid_1d",
+      hosp_raw <- quiet(epidatr::pub_covidcast(
+        source = "hhs",
+        signals = "confirmed_admissions_covid_1d",
         geo_type = "state",
+        time_type = "day",
         geo_values = "*",
+        time_values = "*",
         as_of = forecast_date
       ))
     }

@@ -13,3 +13,16 @@ quiet <- function(code) {
   on.exit(sink())
   suppressMessages(code)
 }
+
+#' Check whether a required package is installed
+#' @param pkg_name Character scalar. The name of the package to check.
+#' @return If the package is not available, it returns an error.
+#' @noRd
+check_package_is_installed <- function(pkg_name) {
+  if (!requireNamespace(pkg_name)) {
+    stop(
+      glue::glue("The R package `{pkg_name}` is not available. "),
+      glue::glue("Use `install.packages(\"{pkg_name}\")`.")
+    )
+  }
+}

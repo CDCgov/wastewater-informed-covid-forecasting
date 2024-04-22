@@ -6,6 +6,9 @@
 #' @param scenatios the scenarios (which will pertain to site ids) to
 #' run the model on
 #' @param config_dir the directory where we want to save the config file
+#' @param scenario_dir the directory where the files defining scenarios
+#' (default `.tsv` format) are located
+#' @param eval_date the data of the evaluation dataset, in ISO YYYY-MM-DD format
 #'
 #' @return
 #' @export
@@ -14,13 +17,38 @@
 write_eval_config <- function(locations, forecast_dates,
                               scenarios,
                               config_dir,
+                              scenario_dir,
                               eval_date) {
-  # get a dataframe of all the iteration combinations for the wastewater mapping
-  df_ww <- expand.grid(
-    location = locations,
-    forecast_date = forecast_dates,
-    scenario = scenarios
-  )
+  # Will need to load in the files corresponding to the input scenarios, so we
+  # get the list of locations that are relevant for each scenario. We will bind
+  # these all together to create the full eval config.
+  df_ww <- data.frame(row.names = c("location", "forecast_date", "scenario"))
+
+  # This is a "manual" way of generating the dataframe we need to pass to targets
+  # It does not handle the case of missing wastewater data.
+  for (i in seq_along(scenarios)) {
+    if (scenarios[i] == "status_quo") {
+      locs <- locations
+    } else {
+      scenario_df <- read.table(file.path(
+        scenario_dir,
+        glue::glue("{scenarios[i]}.tsv")
+      ), header = TRUE)
+      locs <- scenario_df |>
+        dplyr::filter(wwtp_jurisdiction %in% !!locations) |>
+        dplyr::pull(wwtp_jurisdiction) |>
+        unique()
+    }
+
+    df_i <- expand.grid(
+      location = locs,
+      forecast_date = forecast_dates,
+      scenario = scenarios[i]
+    )
+
+    df_ww <- rbind(df_ww, df_i)
+  }
+
   # No scenarios for the hosp admissions only, so we just need all combos
   # of locations and forecast dates
   df_hosp <- expand.grid(
@@ -32,6 +60,7 @@ write_eval_config <- function(locations, forecast_dates,
   ww_data_dir <- file.path("input", "ww_data", "monday_datasets")
   scenario_dir <- file.path("input", "config", "eval", "scenarios")
   hosp_data_dir <- file.path("input", "hosp_data", "vintage_datasets")
+  population_data_path <- file.path("input", "locations.csv")
   # stan_models_dir <- system.file("stan", package = "cfaforecastrenewalww") #nolint
   stan_models_dir <- file.path("cfaforecastrenewalww", "inst", "stan")
   init_dir <- file.path("input", "init_lists")
@@ -40,8 +69,8 @@ write_eval_config <- function(locations, forecast_dates,
   calibration_time <- 90
   forecast_time <- 28
 
-  iter_warmup <- 750
-  iter_sampling <- 500
+  iter_warmup <- 250 # 750 #nolint
+  iter_sampling <- 250 # 500 #nolint
   n_chains <- 4
   n_parallel_chains <- 4
   adapt_delta <- 0.95
@@ -76,6 +105,7 @@ write_eval_config <- function(locations, forecast_dates,
     scenario_dir = scenario_dir,
     hosp_data_dir = hosp_data_dir,
     stan_models_dir = stan_models_dir,
+    population_data_path = population_data_path,
     init_dir = init_dir,
     init_fps = init_fps,
     calibration_time = calibration_time,
