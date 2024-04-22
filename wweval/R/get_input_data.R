@@ -47,10 +47,14 @@ get_input_ww_data <- function(forecast_date_i,
   ww_data <- raw_nwss_data |>
     init_subset_nwss_data()
   # Get the data corresponding to the scenario
-  subsetted_ww_data <- filter_sites_by_scenario(
-    ww_data, scenario_i,
+  list_of_site_ids <- get_scenario_site_ids(
+    ww_data,
+    scenario_i,
     scenario_dir
   )
+  subsetted_ww_data <- ww_data |>
+    dplyr::filter(wwtp_name %in% !!list_of_site_ids)
+
   ww <- subsetted_ww_data |>
     clean_ww_data() |>
     filter(
@@ -86,37 +90,39 @@ get_input_ww_data <- function(forecast_date_i,
   return(ww)
 }
 
-#' Filter sites by scenario
+#' Get scenario site ids
 #'
 #' @param init_subset_nwss_data a dataframe of the raw NWSS data
 #' filtered to exclude solids and upstream sites
 #' @param scenario a string indicating what scenario we are running.
-#' Default is "Status quo" which uses all the data we have available
+#' Default is "status_quo" which uses all the data we have available
 #' @param scenario_dir a string indicating the file path where the
 #' scenario csvs will live. Default is NA because we don't need this
-#' for the status quo scenario
+#' for the status_quo scenario
 #'
 #' @return a dataframe that only contains the ww data from
 #' the sites in the list pertaining to the scenario
 #' @export
-filter_sites_by_scenario <- function(init_subset_nwss_data,
-                                     scenario = "Status quo",
-                                     scenario_dir = NA) {
-  list_of_wwtp_ids <- if (scenario == "Status quo") {
-    list_of_wwtp_ids <- unique(init_subset_nwss_data$wwtp_name)
-  } else {
-    list_of_wwtp_ids <- utils::read.csv(file.path(
-      scenario_dir,
-      glue::glue("{scenario}.csv")
-    )) |>
-      pull(wwtp_name)
+get_scenario_site_ids <- function(init_subset_nwss_data,
+                                  scenario = "status_quo",
+                                  scenario_dir = NA) {
+  list_of_wwtp_ids <- unique(init_subset_nwss_data$wwtp_name)
+  if (scenario != "status_quo") {
+    list_of_wwtp_ids <- read.table(
+      file.path(
+        scenario_dir,
+        glue::glue("{scenario}.tsv")
+      ),
+      header = TRUE
+    ) |>
+      pull(wwtp_name) |>
+      unique() # There could be duplicates here if multiple site ids
+    # had the same WWTP name (e.g. labs switched but represents same pop)
   }
 
-  filtered_nwss_data <- init_subset_nwss_data |>
-    dplyr::filter(wwtp_name %in% !!list_of_wwtp_ids)
-
-  return(filtered_nwss_data)
+  return(list_of_wwtp_ids)
 }
+
 
 #' Get input hospital admissions data
 #'
@@ -126,27 +132,40 @@ filter_sites_by_scenario <- function(init_subset_nwss_data,
 #'  time stamped hospital admissions datasets
 #' @param calibration_time  A numeric indicating the duration of model
 #' calibration (based on the last hospital admissions data point)
-#' @param load_from_covidcast boolean indicating whether or not the hospital
-#' admissions datasets should be loaded directly from covidcast.
+#' @param load_from_epidatr boolean indicating whether or not the hospital
+#' admissions datasets should be loaded directly from epidatr.
 #' `default = FALSE` because we are assuming that we have already created a
 #' folder with time stamped datasets
+#' @param population_data_path path to a table of state populations, default is
+#' `NULL`, only needed if pulling from epidatr
 #'
 #' @return a dataframe containing the cleaned hospital admissions needed as
 #' an input to the stan model for the specified forecast date and location
 #' @export
 get_input_hosp_data <- function(forecast_date_i, location_i,
                                 hosp_data_dir, calibration_time,
-                                load_from_covidcast = FALSE) {
+                                load_from_epidatr = FALSE,
+                                population_data_path = NA) {
   fp <- file.path(hosp_data_dir, paste0(forecast_date_i, ".csv"))
 
   # Load in the appropriate time-stamped hospital admissions dataset
-  if (isTRUE(load_from_covidcast)) {
-    hosp_raw <- quiet(covidcast::covidcast_signal(
-      "hhs", "confirmed_admissions_covid_1d",
+  if (isTRUE(load_from_epidatr)) {
+    # These codechunk depends on the epidatr package
+    check_package_is_installed("epidatr")
+    options(covidcast.auth = get_secret("covidcast_api_key"))
+
+    hosp_raw <- quiet(epidatr::pub_covidcast(
+      source = "hhs",
+      signals = "confirmed_admissions_covid_1d",
       geo_type = "state",
+      time_type = "day",
       geo_values = "*",
+      time_values = "*",
       as_of = forecast_date_i
     ))
+
+    state_population_table <- readr::read_csv(population_data_path) %>%
+      dplyr::mutate(population = as.numeric(population))
 
     hosp <- hosp_raw |>
       as_tibble() |>

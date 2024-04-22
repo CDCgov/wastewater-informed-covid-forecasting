@@ -1,7 +1,25 @@
 #' Fit the model
 #'
+#' @description
+#' This function takes in the data for stan, the lists of initial values for the
+#' parameters, and the path to the cmdstan model. It compiles the model and
+#' then it fits the model using the specified MCMC parameters. If the sampling
+#' errors, it returns a list with the error message. If the sampling does not
+#' error, it returns a list containing the draws, diagnostics, and diagnostic
+#' summary
+#' @details
+#' This code was adapted from code written
+#' (under an MIT license) as part of the `epidist`
+#' paper (https://github.com/parksw3/epidist-paper).
+#' It is a wrapper function that fits a stan model to data
+#' and returns a list containing the draws, diagnostics, and
+#' summary if the model runs successfully, or returns an error.
+#'
+#'
 #' @param standata a list of elements to pass to stan
-#' @param compiled_model the compiled model object
+#' @param stan_model_path the path to the main stan model
+#' @param stan_models_dir the path to the folder with the stan models needed
+#' for the include paths
 #' @param init_lists nested list of initial parameter values for each chain
 #' @param iter_warmup number of iterations to save in MCMC sampling,
 #' default = 250
@@ -15,8 +33,10 @@
 #'
 #' @return a list containing draws, diagnostics, and summary_diagnostics
 #' @export
+
 sample_model <- function(standata,
-                         compiled_model,
+                         stan_model_path,
+                         stan_models_dir,
                          init_lists,
                          iter_warmup = 250,
                          iter_sampling = 250,
@@ -24,6 +44,11 @@ sample_model <- function(standata,
                          adapt_delta = 0.95,
                          n_chains = 4,
                          seed = 123) {
+  compiled_model <- cfaforecastrenewalww::compile_model(
+    model_filepath = stan_model_path,
+    include_paths = stan_models_dir
+  )
+
   if (!inherits(compiled_model, "CmdStanModel")) {
     cli::cli_abort(paste0(
       "Argument `compiled_model` must be a ",
@@ -31,25 +56,64 @@ sample_model <- function(standata,
       "{class(compiled_model)} object instead"
     ))
   }
-  fit <- compiled_model$sample(
-    data = standata,
-    init = init_lists,
-    iter_warmup = iter_warmup,
-    iter_sampling = iter_sampling,
-    max_treedepth = max_treedepth,
-    adapt_delta = adapt_delta,
-    chains = n_chains,
-    seed = seed
+
+
+  # Set up failure tolerant model fitting
+  fit_model <- function(compiled_model,
+                        standata,
+                        init_lists,
+                        iter_warmup,
+                        iter_sampling,
+                        max_treedepth,
+                        adapt_delta,
+                        n_chains,
+                        seed) {
+    fit <- compiled_model$sample(
+      data = standata,
+      init = init_lists,
+      iter_warmup = iter_warmup,
+      iter_sampling = iter_sampling,
+      max_treedepth = max_treedepth,
+      adapt_delta = adapt_delta,
+      chains = n_chains,
+      seed = seed
+    )
+    print(fit)
+    return(fit)
+  }
+
+  safe_fit_model <- purrr::safely(fit_model)
+  # This returns the cmdstan object if the model runs, and result = NULL if
+  # the model errors
+  fit <- safe_fit_model(
+    compiled_model,
+    standata,
+    init_lists,
+    iter_warmup,
+    iter_sampling,
+    max_treedepth,
+    adapt_delta,
+    n_chains,
+    seed
   )
 
-  draws <- fit$draws()
-  diagnostics <- fit$sampler_diagnostics(format = "df")
-  summary_diagnostics <- fit$diagnostic_summary()
 
-  draws_and_diagnostics <- list(
-    draws = draws,
-    diagnostics = diagnostics,
-    summary_diagnostics = summary_diagnostics
-  )
-  return(draws_and_diagnostics)
+  if (!is.null(fit$error)) { # If the model errors, return a list with the
+    # error and everything else NULL
+    out <- list(
+      error = fit$error[[1]]
+    )
+  } else {
+    draws <- fit$result$draws()
+    diagnostics <- fit$result$sampler_diagnostics(format = "df")
+    summary_diagnostics <- fit$result$diagnostic_summary()
+
+    out <- list(
+      draws = draws,
+      diagnostics = diagnostics,
+      summary_diagnostics = summary_diagnostics
+    )
+  }
+
+  return(out)
 }

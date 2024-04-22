@@ -76,12 +76,11 @@ VignetteBuilder:
     knitr
 Suggests:
     rmarkdown,
-    covidcast,
+    epidatr,
     httr,
     knitr,
     withr,
     testthat
-Additional_repositories: https://mc-stan.org/r-packages/
 SystemRequirements: CmdStan (>=2.34.1)
 RoxygenNote: 7.3.1
 Encoding: UTF-8
@@ -89,3 +88,5 @@ LazyData: true
 Config/testthat/edition: 3
 Config/Needs/check: rcmdcheck, testthat
 Roxygen: list(markdown = TRUE)
+Remotes:
+    stan-dev/cmdstanr
