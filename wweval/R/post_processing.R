@@ -167,3 +167,45 @@ get_state_level_quantiles <- function(draws) {
 
   return(quantiles)
 }
+
+#' Save files
+#' @description This helper function is a wrapper to save intermediate outputs
+#' running within the model fit loop as tsvs in the following file strucuture:
+#' scenario > forecast_date > model_type > location > type_of_output
+#'
+#' @param data_to_save The dataframe/tibble to save
+#' @param type_of_output The name of the type of output e.g. scores, quantiles,
+#' etc.
+#' @param output_dir The upper level directory to save these outputs in
+#' @param scenario A  string indicating the scenario under which the
+#' model was run
+#' @param forecast_date A string indicating the date of the forecast,
+#' in YYYY-MM-DD
+#' @param model_type A string indicating the type of model (either `ww` or `hosp`)
+#' @param location A string indicating the location (e.g. 2 letter abbreviation
+#' for the state)
+#'
+#' @return NULL
+#' @export
+#'
+save_files <- function(data_to_save,
+                       type_of_output,
+                       output_dir,
+                       scenario,
+                       forecast_date,
+                       model_type,
+                       location) {
+  full_dir <- file.path(
+    output_dir,
+    scenario,
+    forecast_date,
+    model_type,
+    location
+  )
+
+  cfaforecastrenewalww::create_dir(full_dir)
+
+  write.table(data_to_save,
+    file = file.path(full_dir, glue::glue("{type_of_output}.tsv"))
+  )
+}

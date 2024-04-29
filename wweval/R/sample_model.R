@@ -1,13 +1,6 @@
 #' Fit the model
 #'
 #' @description
-#' This function takes in the data for stan, the lists of initial values for the
-#' parameters, and the path to the cmdstan model. It compiles the model and
-#' then it fits the model using the specified MCMC parameters. If the sampling
-#' errors, it returns a list with the error message. If the sampling does not
-#' error, it returns a list containing the draws, diagnostics, and diagnostic
-#' summary
-#' @details
 #' This code was adapted from code written
 #' (under an MIT license) as part of the `epidist`
 #' paper (https://github.com/parksw3/epidist-paper).
@@ -57,7 +50,6 @@ sample_model <- function(standata,
     ))
   }
 
-
   # Set up failure tolerant model fitting
   fit_model <- function(compiled_model,
                         standata,
@@ -97,23 +89,38 @@ sample_model <- function(standata,
     seed
   )
 
+  # If the model doesn't immediately error, get diagnostics
+  if (is.null(fit$error)) {
+    # Get the diagnostics using thresholds set in production pipeline
+    flag_df <- get_diagnostic_flags(fit$result, n_chains, iter_sampling)
+    any_flags <- any(flag_df)
+  }
+
+
 
   if (!is.null(fit$error)) { # If the model errors, return a list with the
     # error and everything else NULL
     out <- list(
       error = fit$error[[1]]
     )
+  } else if (any_flags) { # If there are model convergence issues, pass dataframe of flags
+    out <- list(
+      flags = flag_df,
+      summary = fit$result$summary()
+    )
+    message("Model convergence issues")
   } else {
     draws <- fit$result$draws()
     diagnostics <- fit$result$sampler_diagnostics(format = "df")
     summary_diagnostics <- fit$result$diagnostic_summary()
+    summary <- fit$result$summary()
 
     out <- list(
       draws = draws,
       diagnostics = diagnostics,
-      summary_diagnostics = summary_diagnostics
+      summary_diagnostics = summary_diagnostics,
+      summary = summary
     )
   }
-
   return(out)
 }

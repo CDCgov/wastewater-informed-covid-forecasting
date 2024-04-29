@@ -64,13 +64,14 @@ write_eval_config <- function(locations, forecast_dates,
   # stan_models_dir <- system.file("stan", package = "cfaforecastrenewalww") #nolint
   stan_models_dir <- file.path("cfaforecastrenewalww", "inst", "stan")
   init_dir <- file.path("input", "init_lists")
+  output_dir <- file.path("output", "eval")
 
   ww_data_mapping <- "Monday: Monday, Wednesday: Monday"
   calibration_time <- 90
   forecast_time <- 28
 
-  iter_warmup <- 250 # 750 #nolint
-  iter_sampling <- 250 # 500 #nolint
+  iter_warmup <- 750
+  iter_sampling <- 500
   n_chains <- 4
   n_parallel_chains <- 4
   adapt_delta <- 0.95
@@ -105,6 +106,7 @@ write_eval_config <- function(locations, forecast_dates,
     scenario_dir = scenario_dir,
     hosp_data_dir = hosp_data_dir,
     stan_models_dir = stan_models_dir,
+    output_dir = output_dir,
     population_data_path = population_data_path,
     init_dir = init_dir,
     init_fps = init_fps,

@@ -52,8 +52,7 @@ setup_interactive_dev_run <- function() {
       "lubridate",
       "cmdstanr",
       "tidybayes",
-      "cfaforecastrenewalww",
-      "wweval"
+      "cfaforecastrenewalww"
     )
   )
 }
@@ -197,8 +196,8 @@ mapped_ww <- tar_map(
       stan_model_path = stan_model_path_target,
       stan_models_dir = eval_config$stan_models_dir,
       init_lists,
-      iter_warmup = 250, # eval_config$iter_warmup,
-      iter_sampling = 25, # eval_config$iter_sampling,
+      iter_warmup = eval_config$iter_warmup,
+      iter_sampling = eval_config$iter_sampling,
       adapt_delta = eval_config$adapt_delta,
       n_chains = eval_config$n_chains,
       max_treedepth = eval_config$max_treedepth,
@@ -223,6 +222,12 @@ mapped_ww <- tar_map(
   tar_target(
     name = ww_diagnostic_summary,
     command = ww_fit_obj$summary_diagnostics,
+    deployment = "main",
+    priority = 1
+  ),
+  tar_target(
+    name = ww_summary,
+    command = ww_fit_obj$summary,
     deployment = "main",
     priority = 1
   ),
@@ -310,6 +315,18 @@ mapped_ww <- tar_map(
     deployment = "main",
     priority = 1
   ),
+  tar_target(
+    name = save_forecasted_quantiles_ww,
+    command = save_files(
+      data_to_save = hosp_quantiles,
+      type_of_output = "quantiles",
+      output_dir = eval_config$output_dir,
+      scenario = scenario,
+      forecast_date = forecast_date,
+      model_type = "ww",
+      location = location
+    )
+  ),
   ### Plot the draw comparison-------------------------------------
   tar_target(
     name = plot_hosp_draws,
@@ -345,10 +362,21 @@ mapped_ww <- tar_map(
   ),
 
   ## Score hospital admissions forecasts----------------------------------
-  # @TODO save scores locally
   tar_target(
     name = hosp_scores,
     command = get_full_scores(hosp_draws, scenario)
+  ),
+  tar_target(
+    name = save_hosp_scores_ww,
+    command = save_files(
+      data_to_save = hosp_scores,
+      type_of_output = "scores",
+      output_dir = eval_config$output_dir,
+      scenario = scenario,
+      forecast_date = forecast_date,
+      model_type = "ww",
+      location = location
+    )
   )
   # Get a subset of samples for plotting
   # Get a subset of quantiles for plotting
@@ -414,8 +442,8 @@ mapped_hosp <- tar_map(
       stan_model_path = stan_model_path_target,
       stan_models_dir = eval_config$stan_models_dir,
       init_lists,
-      iter_warmup = 250, # eval_config$iter_warmup,
-      iter_sampling = 25, # eval_config$iter_sampling,
+      iter_warmup = eval_config$iter_warmup,
+      iter_sampling = eval_config$iter_sampling,
       adapt_delta = eval_config$adapt_delta,
       n_chains = eval_config$n_chains,
       max_treedepth = eval_config$max_treedepth,
@@ -438,6 +466,11 @@ mapped_hosp <- tar_map(
   tar_target(
     name = hosp_diagnostic_summary,
     command = hosp_fit_obj$summary_diagnostics,
+    deployment = "main"
+  ),
+  tar_target(
+    name = hosp_summary,
+    command = hosp_fit_obj$summary,
     deployment = "main"
   ),
   tar_target(
@@ -479,6 +512,18 @@ mapped_hosp <- tar_map(
       dplyr::filter(period != "calibration"),
     deployment = "main"
   ),
+  tar_target(
+    name = save_forecasted_quantiles_hosp,
+    command = save_files(
+      data_to_save = hosp_model_quantiles,
+      type_of_output = "quantiles",
+      output_dir = eval_config$output_dir,
+      scenario = "no_wastewater",
+      forecast_date = forecast_date,
+      model_type = "hosp",
+      location = location
+    )
+  ),
   ### Plot the draw comparison-------------------------------------
   tar_target(
     name = plot_hosp_draws_hosp_model,
@@ -497,6 +542,18 @@ mapped_hosp <- tar_map(
       scenario = "no_wastewater"
     ),
     deployment = "main"
+  ),
+  tar_target(
+    name = save_scores_hosp,
+    command = save_files(
+      data_to_save = hosp_scores,
+      type_of_output = "scores",
+      output_dir = eval_config$output_dir,
+      scenario = "no_wastewater",
+      forecast_date = forecast_date,
+      model_type = "hosp",
+      location = location
+    )
   )
 ) # end tar map
 

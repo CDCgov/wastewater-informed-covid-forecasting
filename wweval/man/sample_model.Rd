@@ -45,14 +45,6 @@ default = 250}
 a list containing draws, diagnostics, and summary_diagnostics
 }
 \description{
-This function takes in the data for stan, the lists of initial values for the
-parameters, and the path to the cmdstan model. It compiles the model and
-then it fits the model using the specified MCMC parameters. If the sampling
-errors, it returns a list with the error message. If the sampling does not
-error, it returns a list containing the draws, diagnostics, and diagnostic
-summary
-}
-\details{
 This code was adapted from code written
 (under an MIT license) as part of the \code{epidist}
 paper (https://github.com/parksw3/epidist-paper).
