@@ -169,7 +169,6 @@ get_plot_quantile_comparison <- function(hosp_quantiles,
 
   p <- ggplot(quantiles_wide) +
     geom_point(aes(x = date, y = eval_data)) +
-    geom_line(aes(x = date, y = eval_data)) +
     geom_line(
       data = quantiles_wide |> filter(
         date >= forecast_date,
