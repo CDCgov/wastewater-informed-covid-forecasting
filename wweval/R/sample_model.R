@@ -11,9 +11,14 @@
 #'
 #' @param standata a list of elements to pass to stan
 #' @param stan_model_path the path to the main stan model
-#' @param stan_models_dir the path to the folder with the stan models needed
-#' for the include paths
+#' @param stan_models_dir the path to the folder with the stan models
+#' needed for the include paths
 #' @param init_lists nested list of initial parameter values for each chain
+#' @param target_dir Directory in which to save the compiled
+#' stan model binary. Passed as the `target_dir` keyword argument to
+#' [cfaforecastrenewalww::compile_model()].
+#' Defaults to a temporary directory for the R session
+#' (the output of [tempdir()]).
 #' @param iter_warmup number of iterations to save in MCMC sampling,
 #' default = 250
 #' @param iter_sampling number of iterations to save in MCMC sampling,
@@ -31,6 +36,7 @@ sample_model <- function(standata,
                          stan_model_path,
                          stan_models_dir,
                          init_lists,
+                         target_dir = tempdir(),
                          iter_warmup = 250,
                          iter_sampling = 250,
                          max_treedepth = 12,
@@ -39,7 +45,8 @@ sample_model <- function(standata,
                          seed = 123) {
   compiled_model <- cfaforecastrenewalww::compile_model(
     model_filepath = stan_model_path,
-    include_paths = stan_models_dir
+    include_paths = stan_models_dir,
+    target_dir = target_dir
   )
 
   if (!inherits(compiled_model, "CmdStanModel")) {

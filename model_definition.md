@@ -1,5 +1,8 @@
 # CFA wastewater-informed hospital admissions forecasts
 
+### Update on Covid-19 Forecast Hub Submissions
+As of May 2024, the  [COVID-19 Forecast Hub](https://github.com/reichlab/covid19-forecast-hub/tree/master) has paused submission of forecasts. We plan to resume submitting wastewater-informed forecasts to the Hub when it reopens submissions.
+
 This document describes the data sources, model structure, and implementation details for the wastewater-informed hospital admissions forecasts submitted to the [COVID-19 Forecast Hub](https://github.com/reichlab/covid19-forecast-hub/tree/master) under the name `cfa-wwrenewal`. The methods described will evolve as we continue to develop and improve the model. We use the model to produce forecasts for 53 jurisdictions: the 50 U.S. states, the District of Columbia, Puerto Rico, and the United States as a whole.
 
 We welcome feedback on the model structure and implementation, please feel free to submit an issue directly on GitHub or reach out via this [form](https://www.cdc.gov/forecast-outbreak-analytics/contact-us.html).

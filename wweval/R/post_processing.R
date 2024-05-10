@@ -112,8 +112,12 @@ get_model_draws_w_data <- function(model_output,
         ),
         by = c("date", "lab_site_index")
       ) |>
+      dplyr::ungroup() |>
       dplyr::rename(calib_data = ww) |>
-      dplyr::left_join(eval_data |> select(date, ww, lab, site),
+      dplyr::left_join(
+        eval_data |>
+          dplyr::select(date, ww, lab, site) |>
+          unique(),
         by = c("date", "lab", "site")
       ) |>
       dplyr::rename(eval_data = ww) |>
@@ -168,7 +172,48 @@ get_state_level_quantiles <- function(draws) {
   return(quantiles)
 }
 
-#' Save files
+
+#' Get quantiles for site-lab level wastewater
+#'
+#' @param ww_draws a dataframe containing all the draws from the model estimated
+#' site-lab level cocnentrations
+#'
+#' @return a dataframe containing the quantile value for the quantiles
+#' required for the Hub submission for each site lab in the state
+#' @export
+get_state_level_ww_quantiles <- function(ww_draws) {
+  quantiles <- cfaforecastrenewalww::trajectories_to_quantiles(
+    ww_draws,
+    timepoint_cols = "date",
+    value_col = "value",
+    id_cols = c("location", "name", "scenario", "model_type", "site_lab_name")
+  ) |>
+    dplyr::rename(
+      quantile = quantile_level,
+      value = quantile_value
+    ) |>
+    dplyr::left_join(
+      ww_draws |>
+        select(-draw, -value) |>
+        unique(),
+      by = c(
+        "date", "name", "location", "scenario",
+        "model_type", "site_lab_name"
+      )
+    ) |>
+    dplyr::mutate(
+      period = dplyr::case_when(
+        date <= forecast_date ~ "calibration",
+        TRUE ~ "forecast"
+      ),
+      quantile = round(quantile, 4)
+    )
+
+  return(quantiles)
+}
+
+
+#' Save table
 #' @description This helper function is a wrapper to save intermediate outputs
 #' running within the model fit loop as tsvs in the following file strucuture:
 #' scenario > forecast_date > model_type > location > type_of_output
@@ -188,24 +233,39 @@ get_state_level_quantiles <- function(draws) {
 #' @return NULL
 #' @export
 #'
-save_files <- function(data_to_save,
+save_table <- function(data_to_save,
                        type_of_output,
                        output_dir,
                        scenario,
                        forecast_date,
                        model_type,
                        location) {
-  full_dir <- file.path(
-    output_dir,
-    scenario,
-    forecast_date,
-    model_type,
-    location
-  )
+  if (!is.null(data_to_save)) {
+    full_dir <- file.path(
+      output_dir,
+      scenario,
+      forecast_date,
+      model_type,
+      location
+    )
 
-  cfaforecastrenewalww::create_dir(full_dir)
+    fp <- get_filepath(
+      output_dir,
+      scenario,
+      forecast_date,
+      model_type,
+      location,
+      glue::glue("{type_of_output}"),
+      "tsv"
+    )
 
-  write.table(data_to_save,
-    file = file.path(full_dir, glue::glue("{type_of_output}.tsv"))
-  )
+
+
+    cfaforecastrenewalww::create_dir(full_dir)
+
+    readr::write_tsv(as_tibble(data_to_save),
+      file = fp
+    )
+  }
+  return(NULL)
 }

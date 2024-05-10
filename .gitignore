@@ -12,6 +12,8 @@ targets.log
 # default secrets file
 secrets.yaml
 
+# Azure batch configuration
+batch_config.toml
 
 # rendered documents ignored by default
 *.html
@@ -56,3 +58,16 @@ test/test_expgamma_lpdf
 
 # R tempfiles
 Rplots.pdf
+
+# Make sentinel files
+.*_up_to_date
+
+# python
+__pycache__
+*.pyc
+
+# python venv
+lib/*
+lib64
+pyvenv.cfg
+bin/*
