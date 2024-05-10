@@ -50,6 +50,7 @@ Imports:
     lubridate,
     ggplot2,
     stats,
+    yaml,
     tidyr,
     arrow,
     glue,
