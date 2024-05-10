@@ -12,7 +12,8 @@ level wastewater dataset, here called, `example_df`, with your own dataset and
 varying the parameters that are pre-specified. See the documentation for
 `example_df` to format your data in a similar manner. For an example of how to
 do this from the raw generated outputs, see the `generate_simulated_data.R`
-function.
+function. Note that if using real data, the part about comparing the inferred
+parameters to the known truth parameters will not be relevant as this information will not be available.
 
 ```{r setup, include=FALSE}
 knitr::opts_chunk$set(echo = TRUE)
@@ -191,17 +192,24 @@ init_fun <- function() {
 }
 ```
 # Fit the wastewaster informed model
+Here we will use MCMC settings with 500 warmup iterations and 750 sampling
+iterations, with settings for the maximum treedepth (referred to as
+`max_treedepth`) of 12 and an acceptance probability (referred to as
+`adapt_delta`) of 0.95. This matches the production-level settings specified in
+`src/write_config.R`.
 ```{r}
 fit_dynamic_rt <- model$sample(
   data = stan_data,
   seed = 123,
   init = init_fun,
   iter_sampling = 500,
-  iter_warmup = 250,
+  iter_warmup = 750,
+  max_treedepth = 12,
   chains = 4,
   parallel_chains = 4
 )
 ```
+
 # Look at the model outputs: generated quantities
 Plot the model predicted hospital admissions vs the simulated forecasted
 hospital admissions and the model estimated wastewater concentration in each
@@ -209,11 +217,13 @@ site vs the simulated wastewater data.
 ```{r}
 all_draws <- fit_dynamic_rt$draws()
 
+
 # Predicted observed hospital admissions
 exp_obs_hosp <- all_draws %>%
   spread_draws(pred_hosp[t]) %>%
   select(pred_hosp, `.draw`, t) %>%
   rename(draw = `.draw`)
+sampled_draws <- sample(1:max(exp_obs_hosp$draw), 100)
 
 # Predicted observed wastewater concentrations in each lab site
 exp_obs_conc <- all_draws %>%
@@ -228,7 +238,7 @@ output_df <- exp_obs_conc %>%
   left_join(exp_obs_hosp,
     by = c("t", "draw")
   ) %>%
-  filter(draw %in% sample(1:max(draw), 100)) # sample the draws for plotting
+  filter(draw %in% sampled_draws) # sample the draws for plotting
 
 ggplot(output_df) +
   geom_line(aes(x = date, y = pred_hosp, group = draw),
@@ -298,12 +308,16 @@ ggplot(output_df) +
 ```
 <br>
 
-# Model outputs: parameters
-Get a dataframe of all of the key estimate model parameters combined with the key
+# Model outputs: compare inferred parameters to known parameters
+Get a dataframe of all of the key estimated model parameters combined with the key
 "known" model parameters to get a sense of
 which parameters we can recover and which might be unidentifiable (just as a
 first pass, eventually we will probably want to do a full sensitivity analysis
 to identify the regions of parameter space that are non-identifiable).
+
+Note that if you are modifying this vignette to run on your own data skip this
+part-- in the case of real data, we don't know the true underlying model
+parameters.
 ```{r}
 static_params <- c(
   "eta_sd", "autoreg_rt",
@@ -373,8 +387,9 @@ fit_dynamic_rt_hosp_only <- model$sample(
   seed = 123,
   init = init_fun,
   iter_sampling = 500,
-  iter_warmup = 250,
+  iter_warmup = 750,
   chains = 4,
+  max_treedepth = 12,
   parallel_chains = 4
 )
 ```
@@ -386,12 +401,20 @@ exp_obs_hosp <- all_draws_hosp_only %>%
   spread_draws(pred_hosp[t]) %>%
   select(pred_hosp, `.draw`, t) %>%
   rename(draw = `.draw`)
+sampled_draws <- sample(1:max(exp_obs_hosp$draw), 100)
+
 
 output_df_hosp_only <- exp_obs_hosp %>%
-  left_join(train_data,
+  left_join(
+    train_data %>%
+      select(
+        date, t, daily_hosp_admits,
+        daily_hosp_admits_for_eval
+      ) %>%
+      distinct(),
     by = c("t")
   ) %>%
-  filter(draw %in% sample(1:max(draw), 100)) # sample the draws for plotting
+  filter(draw %in% sampled_draws) # sample the draws for plotting
 
 ggplot(output_df_hosp_only) +
   geom_line(aes(x = date, y = pred_hosp, group = draw),
@@ -406,7 +429,10 @@ ggplot(output_df_hosp_only) +
   ylab("Daily hospital admssions") +
   ggtitle("State level hospital admissions fit to only hospital admissions") +
   theme_bw()
-
+```
+# Model outputs: compare inferred parameters to known parameters
+This time just for the IHR and R(t)
+```{r}
 # Get the full posterior parameter distribution from the real data
 full_param_df_hosp_only <- get_full_param_distrib(
   all_draws_hosp_only, static_params, vector_params, matrix_params
@@ -418,7 +444,7 @@ comp_df_hosp_only <- full_param_df_hosp_only %>%
     by = c("name", "index_rows", "index_cols")
   )
 
-ggplot(comp_df_hosp_only %>% filter(name %in% c("R", "p_hosp"))) +
+ggplot(comp_df_hosp_only %>% filter(name %in% c("rt", "p_hosp"))) +
   geom_line(aes(x = index_cols, y = value, group = draw), size = 0.05, alpha = 0.05) +
   geom_line(aes(x = index_cols, y = median), color = "black") +
   geom_line(aes(x = index_cols, y = true_value), color = "red") +

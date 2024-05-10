@@ -23,7 +23,7 @@
 #' @param target_dir Directory in which to save the compiled
 #' stan model binary. Passed as the `dir` keyword argument to
 #' [cmdstanr::cmdstan_model()]. Defaults to a temporary directory
-#' for the R sessions (the output of [tempdir()]).
+#' for the R session (the output of [tempdir()]).
 #' @param stanc_options Options for the stan compiler passed to
 #' [cmdstanr::cmdstan_model()], as a list. See that function's
 #' documentation for more details. Default `list()` (use default
@@ -81,7 +81,7 @@ compile_model <- function(model_filepath,
 
   if (verbose) {
     cli::cli_inform(paste0(
-      "Model compiled successfully; ",
+      "Model compiled or loaded successfully; ",
       "model executable binary located at: ",
       "{model$exe_file()}"
     ))
