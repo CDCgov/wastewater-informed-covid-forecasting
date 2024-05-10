@@ -10,6 +10,9 @@ This README is organized into the following sections:
 - [Standard CDCGov open source repository information, notices, and disclaimers](#standard-cdcgov-open-source-repository-information-notices-and-disclaimers)
 
 # Our workflow for Covid-19 Forecast Hub submissions
+### Update on Covid-19 Forecast Hub Submissions
+As of May 2024, the  [COVID-19 Forecast Hub](https://github.com/reichlab/covid19-forecast-hub/tree/master) has paused submission of forecasts. We plan to resume submitting wastewater-informed forecasts to the Hub when it reopens submissions.
+
 To produce our submissions to the Covid-19 Forecast Hub, we run a [forecasting pipeline](#forecasting-pipeline) every Saturday evening at 9:10 pm EST. In addition to pulling the latest data and using it to fit our inference models, the pipeline generates summary figures, produces a diagnostic report of Markov Chain Monte Carlo convergence diagnostics, and performs data quality checks on the wastewater data. We examine these outputs manually to check for data or model convergence issues.
 
 We produce forecasts of COVID-19 hospital admissions for the 50 states, Puerto Rico, District of Columbia (DC), and the United States. Most forecasts use both wastewater data and hospital admission data, but if a location does not have any wastewater data, the wastewater input data for the model are deemed unreliable, or the model fails to converge, we use the hospital admissions-only model instead. If that model is also unreliable, we do not submit a forecast for that location. In all cases, we record our choice and the reason for it in a run-specific `metadata.yaml` file, as follows:
