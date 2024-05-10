@@ -52,8 +52,7 @@ setup_interactive_dev_run <- function() {
       "lubridate",
       "cmdstanr",
       "tidybayes",
-      "cfaforecastrenewalww",
-      "wweval"
+      "cfaforecastrenewalww"
     )
   )
 }
@@ -85,7 +84,7 @@ upstream_targets <- list(
     name = eval_hosp_data,
     command = get_input_hosp_data(
       forecast_date = eval_config$eval_date,
-      location = unique(eval_config$location_ww),
+      location = unique(eval_config$location_hosp),
       hosp_data_dir = eval_config$hosp_data_dir,
       calibration_time = 365, # Grab sufficient data for eval
       # If don't have a hospital admissions dataset from the `eval_date`,
@@ -197,8 +196,8 @@ mapped_ww <- tar_map(
       stan_model_path = stan_model_path_target,
       stan_models_dir = eval_config$stan_models_dir,
       init_lists,
-      iter_warmup = 250, # eval_config$iter_warmup,
-      iter_sampling = 25, # eval_config$iter_sampling,
+      iter_warmup = eval_config$iter_warmup,
+      iter_sampling = eval_config$iter_sampling,
       adapt_delta = eval_config$adapt_delta,
       n_chains = eval_config$n_chains,
       max_treedepth = eval_config$max_treedepth,
@@ -227,9 +226,46 @@ mapped_ww <- tar_map(
     priority = 1
   ),
   tar_target(
+    name = ww_summary,
+    command = ww_fit_obj$summary,
+    deployment = "main",
+    priority = 1
+  ),
+  tar_target(
     name = errors,
     command = ww_fit_obj$error,
     deployment = "main"
+  ),
+  tar_target(
+    name = flags,
+    command = ww_fit_obj$flags,
+    deployment = "main"
+  ),
+  # Save errors
+  tar_target(
+    name = save_ww_errors,
+    command = save_table(
+      data_to_save = errors,
+      type_of_output = "errors",
+      output_dir = eval_config$output_dir,
+      scenario = scenario,
+      forecast_date = forecast_date,
+      model_type = "ww",
+      location = location
+    )
+  ),
+  # Save flags
+  tar_target(
+    name = save_ww_flags,
+    command = save_table(
+      data_to_save = flags,
+      type_of_output = "flags",
+      output_dir = eval_config$output_dir,
+      scenario = scenario,
+      forecast_date = forecast_date,
+      model_type = "ww",
+      location = location
+    )
   ),
   # Get evaluation data from hospital admissions and wastewater
   # Join draws with data
@@ -295,8 +331,20 @@ mapped_ww <- tar_map(
     deployment = "main",
     priority = 1
   ),
-  # @TODO Save forecasted hospital quantiles locally as well as via
-  # targets caching just for backup
+  tar_target(
+    name = full_ww_quantiles,
+    command = {
+      if (is.null(ww_draws)) {
+        NULL
+      } else {
+        get_state_level_ww_quantiles(
+          ww_draws = ww_draws
+        )
+      }
+    },
+    deployment = "main",
+    priority = 1
+  ),
   tar_target(
     name = hosp_quantiles,
     command = {
@@ -309,6 +357,45 @@ mapped_ww <- tar_map(
     },
     deployment = "main",
     priority = 1
+  ),
+  tar_target(
+    name = ww_quantiles,
+    command = {
+      if (is.null(full_ww_quantiles)) {
+        NULL
+      } else {
+        full_ww_quantiles |>
+          dplyr::filter(period != "calibration")
+      }
+    },
+    deployment = "main",
+    priority = 1
+  ),
+  # Save forecasted quantiles locally as well as via
+  # targets caching just for backup
+  tar_target(
+    name = save_forecasted_quantiles_ww,
+    command = save_table(
+      data_to_save = full_hosp_quantiles,
+      type_of_output = "hosp_quantiles",
+      output_dir = eval_config$output_dir,
+      scenario = scenario,
+      forecast_date = forecast_date,
+      model_type = "ww",
+      location = location
+    )
+  ),
+  tar_target(
+    name = save_forecasted_ww_quantiles_ww,
+    command = save_table(
+      data_to_save = full_ww_quantiles,
+      type_of_output = "ww_quantiles",
+      output_dir = eval_config$output_dir,
+      scenario = scenario,
+      forecast_date = forecast_date,
+      model_type = "ww",
+      location = location
+    )
   ),
   ### Plot the draw comparison-------------------------------------
   tar_target(
@@ -345,13 +432,40 @@ mapped_ww <- tar_map(
   ),
 
   ## Score hospital admissions forecasts----------------------------------
-  # @TODO save scores locally
   tar_target(
     name = hosp_scores,
     command = get_full_scores(hosp_draws, scenario)
+  ),
+  tar_target(
+    name = save_hosp_scores_ww,
+    command =
+      save_table(
+        data_to_save = hosp_scores,
+        type_of_output = "scores",
+        output_dir = eval_config$output_dir,
+        scenario = scenario,
+        forecast_date = forecast_date,
+        model_type = "ww",
+        location = location
+      )
+  ),
+  tar_target(
+    name = hosp_scores_quantiles,
+    command = get_scores_from_quantiles(hosp_quantiles, scenario)
+  ),
+  tar_target(
+    name = save_hosp_scores_ww_quantiles,
+    command =
+      save_table(
+        data_to_save = hosp_scores_quantiles,
+        type_of_output = "scores_quantiles",
+        output_dir = eval_config$output_dir,
+        scenario = scenario,
+        forecast_date = forecast_date,
+        model_type = "ww",
+        location = location
+      )
   )
-  # Get a subset of samples for plotting
-  # Get a subset of quantiles for plotting
 ) # end tar map
 
 # Hospital admissions model fitting loop-----------------------------------------------
@@ -414,8 +528,8 @@ mapped_hosp <- tar_map(
       stan_model_path = stan_model_path_target,
       stan_models_dir = eval_config$stan_models_dir,
       init_lists,
-      iter_warmup = 250, # eval_config$iter_warmup,
-      iter_sampling = 25, # eval_config$iter_sampling,
+      iter_warmup = eval_config$iter_warmup,
+      iter_sampling = eval_config$iter_sampling,
       adapt_delta = eval_config$adapt_delta,
       n_chains = eval_config$n_chains,
       max_treedepth = eval_config$max_treedepth,
@@ -441,9 +555,45 @@ mapped_hosp <- tar_map(
     deployment = "main"
   ),
   tar_target(
+    name = hosp_summary,
+    command = hosp_fit_obj$summary,
+    deployment = "main"
+  ),
+  tar_target(
     name = errors,
     command = hosp_fit_obj$error,
     deployment = "main"
+  ),
+  tar_target(
+    name = flags,
+    command = hosp_fit_obj$flags,
+    deployment = "main"
+  ),
+  # Save errors
+  tar_target(
+    name = save_hosp_errors,
+    command = save_table(
+      data_to_save = errors,
+      type_of_output = "errors",
+      output_dir = eval_config$output_dir,
+      scenario = "no_wastewater",
+      forecast_date = forecast_date,
+      model_type = "hosp",
+      location = location
+    )
+  ),
+  # Save flags
+  tar_target(
+    name = save_hosp_flags,
+    command = save_table(
+      data_to_save = flags,
+      type_of_output = "flags",
+      output_dir = eval_config$output_dir,
+      scenario = "no_wastewater",
+      forecast_date = forecast_date,
+      model_type = "hosp",
+      location = location
+    )
   ),
 
   # Get evaluation data from hospital admissions and wastewater
@@ -472,12 +622,23 @@ mapped_hosp <- tar_map(
     ),
     deployment = "main"
   ),
-  # @TODO save locally
   tar_target(
     name = hosp_model_quantiles,
     command = full_hosp_model_quantiles |>
       dplyr::filter(period != "calibration"),
     deployment = "main"
+  ),
+  tar_target(
+    name = save_forecasted_quantiles_hosp,
+    command = save_table(
+      data_to_save = hosp_model_quantiles,
+      type_of_output = "quantiles",
+      output_dir = eval_config$output_dir,
+      scenario = "no_wastewater",
+      forecast_date = forecast_date,
+      model_type = "hosp",
+      location = location
+    )
   ),
   ### Plot the draw comparison-------------------------------------
   tar_target(
@@ -490,13 +651,43 @@ mapped_hosp <- tar_map(
     deployment = "main"
   ),
   ## Score the hospital admissions only model-------------------------
-  # @TODO save locally
   tar_target(
     name = hosp_scores,
     command = get_full_scores(hosp_model_hosp_draws,
       scenario = "no_wastewater"
     ),
     deployment = "main"
+  ),
+  tar_target(
+    name = save_scores_hosp,
+    command = save_table(
+      data_to_save = hosp_scores,
+      type_of_output = "scores",
+      output_dir = eval_config$output_dir,
+      scenario = "no_wastewater",
+      forecast_date = forecast_date,
+      model_type = "hosp",
+      location = location
+    )
+  ),
+  tar_target(
+    name = hosp_scores_quantiles,
+    command = get_scores_from_quantiles(hosp_model_quantiles,
+      scenario = "no_wastewater"
+    ),
+    deployment = "main"
+  ),
+  tar_target(
+    name = save_scores_hosp_quantiles,
+    command = save_table(
+      data_to_save = hosp_scores,
+      type_of_output = "scores_quantiles",
+      output_dir = eval_config$output_dir,
+      scenario = "no_wastewater",
+      forecast_date = forecast_date,
+      model_type = "hosp",
+      location = location
+    )
   )
 ) # end tar map
 
@@ -524,12 +715,17 @@ combined_ww_errors <- tar_combine(
 )
 combined_ww_hosp_quantiles <- tar_combine(
   name = all_ww_hosp_quantiles,
-  mapped_ww$hosp_quantiles,
+  mapped_ww$full_hosp_quantiles,
   command = dplyr::bind_rows(!!!.x, .id = "method")
 )
 combined_hosp_model_quantiles <- tar_combine(
   name = all_hosp_model_quantiles,
-  mapped_hosp$hosp_model_quantiles,
+  mapped_hosp$full_hosp_model_quantiles,
+  command = dplyr::bind_rows(!!!.x, .id = "method")
+)
+combined_ww_quantiles <- tar_combine(
+  name = all_ww_quantiles,
+  mapped_ww$full_ww_quantiles,
   command = dplyr::bind_rows(!!!.x, .id = "method")
 )
 
@@ -543,9 +739,6 @@ downstream_targets <- list(
     name = all_errors,
     command = rbind(all_hosp_errors, all_ww_errors)
   ),
-  # @TODO add a target that takes the scores when wastewater data is missing
-  # and creates the score on the would have been submitted forecast for
-  # that date
 
   ## Raw scores-----------------------------------------
   # These are the scores from each scenario and location without buffering
@@ -610,19 +803,38 @@ downstream_targets <- list(
   ## Plots----------------------------------------------------
   tar_target(
     name = plot_raw_scores,
-    command = get_plot_raw_scores(all_raw_scores)
+    command = get_plot_raw_scores(all_raw_scores),
+    deployment = "main"
   ),
   tar_target(
     name = plot_summarized_raw_scores,
     command = get_plot_summarized_scores(grouped_all_raw_scores),
     pattern = map(grouped_all_raw_scores),
-    iteration = "list"
+    iteration = "list",
+    deployment = "main"
   ),
   tar_target(
     name = plot_summarized_scores,
     command = get_plot_summarized_scores(grouped_submission_scores),
     pattern = map(grouped_submission_scores),
-    iteration = "list"
+    iteration = "list",
+    deployment = "main"
+  ),
+  tar_target(
+    name = plot_summarized_scores_w_data,
+    command = get_plot_scores_w_data(
+      grouped_submission_scores,
+      eval_hosp_data
+    ),
+    pattern = map(grouped_submission_scores),
+    iteration = "list",
+    deployment = "main"
+  ),
+  tar_target(
+    name = heatmap_scores,
+    command = get_heatmap_scores(
+      mock_submission_scores
+    )
   ),
   tar_target(
     name = final_plot,
@@ -642,9 +854,25 @@ downstream_targets <- list(
   tar_target(
     name = plot_quantile_comparison,
     command = get_plot_quantile_comparison(
-      all_hosp_quantiles
+      all_hosp_quantiles,
+      eval_hosp_data
     ),
     pattern = map(all_hosp_quantiles),
+    iteration = "list"
+  ),
+  tar_target(
+    name = grouped_ww_quantiles,
+    command = all_ww_quantiles |>
+      dplyr::group_by(location, scenario) |>
+      targets::tar_group(),
+    iteration = "group"
+  ),
+  tar_target(
+    name = plot_ww_quantile_comparison,
+    command = get_plot_ww_comparison(
+      grouped_ww_quantiles
+    ),
+    pattern = map(grouped_ww_quantiles),
     iteration = "list"
   )
 )
@@ -660,5 +888,6 @@ list(
   combined_hosp_errors,
   combined_ww_hosp_quantiles,
   combined_hosp_model_quantiles,
+  combined_ww_quantiles,
   downstream_targets
 )
