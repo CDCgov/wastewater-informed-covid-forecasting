@@ -1,13 +1,6 @@
 #' Fit the model
 #'
 #' @description
-#' This function takes in the data for stan, the lists of initial values for the
-#' parameters, and the path to the cmdstan model. It compiles the model and
-#' then it fits the model using the specified MCMC parameters. If the sampling
-#' errors, it returns a list with the error message. If the sampling does not
-#' error, it returns a list containing the draws, diagnostics, and diagnostic
-#' summary
-#' @details
 #' This code was adapted from code written
 #' (under an MIT license) as part of the `epidist`
 #' paper (https://github.com/parksw3/epidist-paper).
@@ -18,9 +11,14 @@
 #'
 #' @param standata a list of elements to pass to stan
 #' @param stan_model_path the path to the main stan model
-#' @param stan_models_dir the path to the folder with the stan models needed
-#' for the include paths
+#' @param stan_models_dir the path to the folder with the stan models
+#' needed for the include paths
 #' @param init_lists nested list of initial parameter values for each chain
+#' @param target_dir Directory in which to save the compiled
+#' stan model binary. Passed as the `target_dir` keyword argument to
+#' [cfaforecastrenewalww::compile_model()].
+#' Defaults to a temporary directory for the R session
+#' (the output of [tempdir()]).
 #' @param iter_warmup number of iterations to save in MCMC sampling,
 #' default = 250
 #' @param iter_sampling number of iterations to save in MCMC sampling,
@@ -38,6 +36,7 @@ sample_model <- function(standata,
                          stan_model_path,
                          stan_models_dir,
                          init_lists,
+                         target_dir = tempdir(),
                          iter_warmup = 250,
                          iter_sampling = 250,
                          max_treedepth = 12,
@@ -46,7 +45,8 @@ sample_model <- function(standata,
                          seed = 123) {
   compiled_model <- cfaforecastrenewalww::compile_model(
     model_filepath = stan_model_path,
-    include_paths = stan_models_dir
+    include_paths = stan_models_dir,
+    target_dir = target_dir
   )
 
   if (!inherits(compiled_model, "CmdStanModel")) {
@@ -56,7 +56,6 @@ sample_model <- function(standata,
       "{class(compiled_model)} object instead"
     ))
   }
-
 
   # Set up failure tolerant model fitting
   fit_model <- function(compiled_model,
@@ -97,23 +96,38 @@ sample_model <- function(standata,
     seed
   )
 
+  # If the model doesn't immediately error, get diagnostics
+  if (is.null(fit$error)) {
+    # Get the diagnostics using thresholds set in production pipeline
+    flag_df <- get_diagnostic_flags(fit$result, n_chains, iter_sampling)
+    any_flags <- any(flag_df)
+  }
+
+
 
   if (!is.null(fit$error)) { # If the model errors, return a list with the
     # error and everything else NULL
     out <- list(
       error = fit$error[[1]]
     )
+  } else if (any_flags) { # If there are model convergence issues, pass dataframe of flags
+    out <- list(
+      flags = flag_df,
+      summary = fit$result$summary()
+    )
+    message("Model convergence issues")
   } else {
     draws <- fit$result$draws()
     diagnostics <- fit$result$sampler_diagnostics(format = "df")
     summary_diagnostics <- fit$result$diagnostic_summary()
+    summary <- fit$result$summary()
 
     out <- list(
       draws = draws,
       diagnostics = diagnostics,
-      summary_diagnostics = summary_diagnostics
+      summary_diagnostics = summary_diagnostics,
+      summary = summary
     )
   }
-
   return(out)
 }

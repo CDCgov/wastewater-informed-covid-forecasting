@@ -62,8 +62,6 @@ create_mock_submission_scores <- function(all_scores,
       if (!sjmisc::is_empty(needed_locs)) {
         stopifnot("Replacement scores unavailable" = nrow(replacement_scores) > 0)
       }
-
-
       submission_scores <- rbind(
         scores_from_model,
         replacement_scores
