@@ -28,7 +28,8 @@ generate_simulated_data(
   sd_reporting_latency = 5,
   mean_log_lod = 3.8,
   sd_log_lod = 0.2,
-  set_seed = TRUE
+  example_params_path = fs::path_package("extdata", "example_params.toml", package =
+    "cfaforecastrenewalww")
 )
 }
 \arguments{
@@ -40,8 +41,8 @@ each site}
 site-level concentration each day, if FALSE, then the relationship from infection
 to concentration in each site is the same across sites}
 
-\item{r_in_weeks}{The weekly R(t) that drives infection dynamics at the state-
-level}
+\item{r_in_weeks}{The mean weekly R(t) that drives infection dynamics at the state-
+level. This gets jittered with random noise to add week-to-week variation.}
 
 \item{n_sites}{Number of sites}
 
@@ -50,7 +51,7 @@ level}
 \item{pop_size}{Population size in the state}
 
 \item{n_lab_sites}{NUmber of unique combinations of labs and sites. Must be
-greater than or equal to `n_sites`}
+greater than or equal to \code{n_sites}}
 
 \item{map_site_to_lab}{Vector mapping the sites to the lab-sites in order
 of the sites}
@@ -77,7 +78,7 @@ lab level multiplier determining how much variation there is systematically
 in site-labs from the state mean}
 
 \item{mean_obs_error_in_ww_lab_site}{mean day to day variation in observed
-wastewater concentraitons across all lab-sites}
+wastewater concentrations across all lab-sites}
 
 \item{mean_reporting_freq}{mean frequency of wastewater measurements across
 sites in per day (e.g. 1/7 is once per week)}
@@ -95,7 +96,16 @@ date to the last wastewater sample collection date, across sites}
 
 \item{sd_log_lod}{standard deviation in the log of the LOD across sites}
 
-\item{set_seed}{whether or not we want to set the seed}
+\item{example_params_path}{path to the toml file with the parameters to use to
+generate the simulated data}
+}
+\value{
+a list containing two dataframes. example_df is a dataframe containing
+all the columns needed to get the stan data needed for the infection dynamics
+model. It contains values for every site-lab-day combination, with NAs
+when the wastewater concentrations aren't observed. Hospital admissions
+are therefore repeated N site-lab times. param_df is a single row data
+frame of all the static parameters used to generate the model
 }
 \description{
 Function that allows the user to generate hospital admissions and site-level

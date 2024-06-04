@@ -10,6 +10,9 @@ This README is organized into the following sections:
 - [Standard CDCGov open source repository information, notices, and disclaimers](#standard-cdcgov-open-source-repository-information-notices-and-disclaimers)
 
 # Our workflow for Covid-19 Forecast Hub submissions
+### Update on Covid-19 Forecast Hub Submissions
+As of May 2024, the  [COVID-19 Forecast Hub](https://github.com/reichlab/covid19-forecast-hub/tree/master) has paused submission of forecasts. We plan to resume submitting wastewater-informed forecasts to the Hub when it reopens submissions.
+
 To produce our submissions to the Covid-19 Forecast Hub, we run a [forecasting pipeline](#forecasting-pipeline) every Saturday evening at 9:10 pm EST. In addition to pulling the latest data and using it to fit our inference models, the pipeline generates summary figures, produces a diagnostic report of Markov Chain Monte Carlo convergence diagnostics, and performs data quality checks on the wastewater data. We examine these outputs manually to check for data or model convergence issues.
 
 We produce forecasts of COVID-19 hospital admissions for the 50 states, Puerto Rico, District of Columbia (DC), and the United States. Most forecasts use both wastewater data and hospital admission data, but if a location does not have any wastewater data, the wastewater input data for the model are deemed unreliable, or the model fails to converge, we use the hospital admissions-only model instead. If that model is also unreliable, we do not submit a forecast for that location. In all cases, we record our choice and the reason for it in a run-specific `metadata.yaml` file, as follows:
@@ -64,50 +67,48 @@ Model outputs are written to individual folders after each model is run, and the
 		+-- {forecast_date}.tsv
 		+-- metadata.yaml
 		+-- wastewater_metdata_table.tsv
-    +-- raw
-        +-- {individual_state}
-            +-- {model_type}
-                    +-- draws
-                        +-- {forecast_date}
-                            +-- run-on-{date_of_run}-{run_id}-draws.parquet
-                    +-- quantiles
-                        +-- {forecast_date}
-                            +-- run-on-{date_of_run}-{run_id}-quantiles.parquet
-                    +-- parameters
-                        +-- {forecast_date}
-                            +-- run-on-{date_of_run}-{run_id}-parameters.parquet
-                    +-- future_hosp_draws
-                        +-- {forecast_date}
-                            +-- run-on-{date_of_run}-{run_id}-future_hops_draws.parquet
-                    +-- stan_objects
-                        +--{forecast_date}
-                            +-- run-on-{date_of_run}-{run_id}-{model_name}-{time_stamp}-{unique_id}.csv
-                    +-- diagnostics
-                        +-- {forecast_date}
-                            +--run-on-{date_of_run}-{run_id}-diagnostics.csv
-    +-- figures
-        +-- {forecast_date}-run-on-{date-run}
-                +--{individual state}
-                    +-- {individual plots of generated quantities + data for all models}
-    +-- cleaned
-        +-- {forecast_date}-run-on-{date_run}
-            +-- external
-                +-- {submitted/test}_forecasts
-                    +-- {forecast_date}-CDC_CFA-renewal_ww.csv
-                +-- {submitted/test}_metadata
-                    +--metadata-CDC_CFA-renewal_ww.yaml
-            +-- internal
-                +-- combined quantiles + data for GQ Kate and Eric want
-                +-- diagnostic_report.html
-                +-- pdfs of combined quantiles forecasts, hospital admissions forecasts for mult models, wastewater estimates, R(t), etc.v
-   +-- pipeline_run_metadata
-        +-- test
-            +--{forecast_date}-run-on-{date_run}
-                    +--{run_id}
-        +-- prod
-            +--{forecast_date}-run-on-{date_run}
-                    +--{run_id}
-
++-- {forecast_date}
+	+-- run-on-{date_of_run}-{run_id}
+    		+-- raw
+			+-- {individual_state}
+				+-- {model_type}
+                    			+-- draws.parquet
+					+-- quantiles.parquet
+					+-- parameters.parquet
+					+-- future_hosp_draws.parquet
+					+-- diagnostics.csv
+					+-- stan_objects
+						+-- {model_name}-{timestamp}-{chain}.csv
+    		+-- figures
+                	+--{individual state}
+                    		+-- individual plots of generated quantities + data for all models
+    		+-- cleaned
+			+-- external
+				+--cfa-wwrenewal
+					+-- {forecast_date}-cfa-wwrenewal.csv
+					+-- pdf of hub submissions
+				+--cfa-wwrenewal_hosp_only
+					+-- {forecast_date}-cfa-wwrenewal_hosp_only.csv
+					+-- pdf of what we would have submitted to hub had we submitted all hosp_only model
+				+--cfa-wwrenewal_all_ww
+					+-- {forecast_date}-cfa-wwrenewal_all_ww.csv
+					+-- pdf of what we would have submitted to hub had we submitted wastewater model in all cases
+            		+-- internal
+                		+-- diagnostic_report.html
+				+-- pdfs of combined quantiles forecasts, hospital admissions forecasts for mult models, wastewater estimates, R(t), etc.
+			+-- {submitted/test}_forecasts
+				+-- {forecast_date}-cfa-wwrenewal.csv
+			+-- all_wastewater_submission
+				+-- test_forecasts
+					+--cfa_wwrenewal_all_ww
+						+{forecast_date}_cfa-wwrenewal_all_ww.csv
+			+-- hospital_admissions_only_submission
+				+-- test_forecasts
+					+--cfa_wwrenewal_hosp_only
+						+{forecast_date}_cfa-wwrenewal_hosp_only.csv
+  		 +-- pipeline_run_metadata
+        		+-- {test/prod}
+                   		 +-- {run_id}.yaml
 ```
 
 # Forecasting pipeline
@@ -154,8 +155,8 @@ If you do, you can then install `CmdStan` by running:
 cmdstanr::install_cmdstan()
 ```
 If installation succeeds, you should see a message like the following:
-```R
-* Finished installing CmdStan to <a filepath on your system>
+```
+CmdStan path set to: {a path on your file system}
 ```
 
 If you run into trouble, consult the official [`cmdstanr`](https://mc-stan.org/cmdstanr/index.html) website for further installation guides and help.
@@ -187,14 +188,11 @@ NHSN_API_KEY_SECRET: {key}
 nwss_data_token: {token}
 data_rid: {rid}
 ```
-Directions to obtain the covidcast api are found [here](https://cmu-delphi.github.io/delphi-epidata/api/covidcast_clients.html).
 
-Directions to obtain an NHSN key are described in the `forecasttools` repo [here](https://potential-engine-5mz851o.pages.github.io/articles/pullnhsn.html).
-
-Note that you will need to have access to the dataset on DCIPHER to obtain the credentials stored as `nwss_data_token` and `data_rid`.
-Once you have DCIPHER access, you will need to go [here](https://dcipher.cdc.gov/workspace/settings/tokens) to create a new token.
-Name it whatever you like, then be sure to copy the one-time token and place it in `secrets.yaml` as your `nwss_data_token`.
-The dataset RID is obtained when the data use agreement is approved and the link to the dataset on DCIPHER is provided.
+- covidcast: Go to the CMU Delphi [website](https://cmu-delphi.github.io/delphi-epidata/api/api_keys.html) and request an API key using [their form](https://api.delphi.cmu.edu/epidata/admin/registration_form). The key will come in an email.
+- NSHN: Log into HealthData.gov's [developer settings page](https://healthdata.gov/login). At the profile page, click the pencil next to the abstract avatar image, then "Developer Settings," then create an API key. Be sure to copy the key secret to a safe place because you won't be able to see it again.
+- NWSS: Ensure you have access to DCIPHER first. Then go to the [tokens page](https://dcipher.cdc.gov/workspace/settings/tokens) to create a new token. Be sure to copy the token to a safe place because you won't be able to see it again.
+- RID: The dataset RID is obtained when the data use agreement is approved and the link to the dataset on DCIPHER is provided.
 
 ## Run the pipeline
 To run the pipeline, type the following at a command prompt from the top-level project directory:
@@ -207,6 +205,8 @@ Alternatively, in an interactive R session with your R working directory set to 
 ```R
 targets::tar_make()
 ```
+
+The first time you run the pipeline after installing `cfaforecastrenewalww`, `cmdstan` will compile the model source `.stan` files to executible binaries, which by default are stored in a subdirectory `bin/` of the top-level project directory. Subsequent runs should use those precompiled executibles, without need for recompilation. To force recompilation, delete the binaries stored in the `bin/` directory or reinstall the `cfaforecastrenewalww` R package.
 
 # Contributing to this project
 

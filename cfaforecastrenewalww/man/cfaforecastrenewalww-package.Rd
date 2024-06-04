@@ -6,7 +6,7 @@
 \alias{cfaforecastrenewalww-package}
 \title{cfaforecastrenewalww: Wastewater informed COVID-19 hospital admissions forecasting}
 \description{
-Put something here
+Semi-mechanistic renewal approach jointly calibrating to state-level hospital admissions and site-level wastewater concentrations
 }
 \seealso{
 Useful links:
@@ -17,15 +17,20 @@ Useful links:
 
 }
 \author{
-\strong{Maintainer}: Kaitlyn Johnson \email{uox1@cdc.gov}
+\strong{Maintainer}: Kaitlyn Johnson \email{uox1@cdc.gov} (\href{https://orcid.org/0000-0001-8011-0012}{ORCID})
 
 Authors:
 \itemize{
   \item Sam Abbott \email{contact@samabbott.co.uk} (\href{https://orcid.org/0000-0001-8057-8037}{ORCID})
   \item Zachary Susswein \email{utb2@cdc.gov}
   \item Andrew Magee \email{rzg0@cdc.gov}
-  \item Dylan Morris \email{dylan@dylanhmorris.com}
+  \item Dylan Morris \email{dylan@dylanhmorris.com} (\href{https://orcid.org/0000-0002-3655-406X}{ORCID})
   \item Scott Olesen \email{ulp7@cdc.gov}
+}
+
+Other contributors:
+\itemize{
+  \item George Vega Yon \email{g.vegayon@gmail.com} (\href{https://orcid.org/0000-0002-3171-0844}{ORCID}) [contributor]
 }
 
 }

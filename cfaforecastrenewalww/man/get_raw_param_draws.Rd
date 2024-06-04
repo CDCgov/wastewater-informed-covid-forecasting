@@ -4,7 +4,7 @@
 \alias{get_raw_param_draws}
 \title{Get raw parameter draws}
 \usage{
-get_raw_param_draws(stan_output_draws, n_draws = 500, ...)
+get_raw_param_draws(stan_output_draws, model_type, n_draws = 500, ...)
 }
 \arguments{
 \item{...}{}

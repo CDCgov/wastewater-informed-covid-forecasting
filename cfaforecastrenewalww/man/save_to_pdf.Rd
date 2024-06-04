@@ -6,6 +6,7 @@
 \usage{
 save_to_pdf(
   list_of_plots,
+  model_name,
   type_of_output,
   pdf_file_path,
   forecast_date,
@@ -32,7 +33,7 @@ save_to_pdf(
 
 \item{...}{}
 
-\item{output_file_path}{where to save the output}
+\item{output_dir}{where to save the output}
 }
 \description{
 Saves pdf containing the concatenated figures

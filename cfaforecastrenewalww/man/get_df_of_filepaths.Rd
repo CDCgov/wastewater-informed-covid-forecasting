@@ -2,20 +2,19 @@
 % Please edit documentation in R/fit_model.R
 \name{get_df_of_filepaths}
 \alias{get_df_of_filepaths}
-\title{Get dataframe of filepaths}
+\title{This code was adapted from code written
+(under an MIT license) as part of the \code{epinowcast}
+package (https://github.com/epinowcast/epinowcast)
+Get dataframe of filepaths}
 \usage{
-get_df_of_filepaths(
-  location,
-  model_type,
-  forecast_date,
-  date_run,
-  run_id,
-  output_file_path
-)
+get_df_of_filepaths(output_dir, forecast_date, location, model_type)
 }
 \arguments{
-\item{output_file_path}{}
+\item{model_type}{}
 }
 \description{
+This code was adapted from code written
+(under an MIT license) as part of the \code{epinowcast}
+package (https://github.com/epinowcast/epinowcast)
 Get dataframe of filepaths
 }

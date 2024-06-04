@@ -10,6 +10,7 @@ get_df_for_hub_submission(
   submission_file_path,
   repo_file_path,
   prod_run,
+  is_for_public_repo = TRUE,
   write_files = TRUE,
   ...
 )
@@ -19,6 +20,15 @@ get_df_for_hub_submission(
 
 \item{submitting_model_name}{name of the model that we will set as the
 folder name}
+
+\item{submission_file_path}{path to where we will write the submission csv}
+
+\item{repo_file_path}{path for public repo}
+
+\item{prod_run}{whether this is a test or production run}
+
+\item{is_for_public_repo}{whether we want to save into the repo file path
+to ultimately get pushed to prod. Defaults to TRUE}
 
 \item{write_files}{whether or not to write to the forecast submission
 file path}

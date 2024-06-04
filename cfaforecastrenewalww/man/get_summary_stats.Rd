@@ -2,31 +2,13 @@
 % Please edit documentation in R/process_model_outputs.R
 \name{get_summary_stats}
 \alias{get_summary_stats}
-\title{Get the lists of states with different flags (both data and model)}
+\title{Get sumamry stats of diagnostics}
 \usage{
-get_summary_stats(
-  df,
-  ebmfi_tolerance = 0.2,
-  divergences_tolerance = 20,
-  p_high_rhat_tolerance = 0.05,
-  n_max_tree_depth_tol = 20
-)
+get_summary_stats(df)
 }
 \arguments{
-\item{df}{long table containing diagnostic, value, location, forecast_date,
-and model_type}
-
-\item{ebmfi_tolerance}{tolerance for mean EBMFI, default of 0.2}
-
-\item{divergences_tolerance}{tolerance for number of divergent transitions
-assuming 2000 iterations, default 20}
-
-\item{p_high_rhat_tolerance}{tolerance for probability of high p_hat,
-default 0.05}
-
-\item{n_max_tree_depth_tol}{tolerance for number of draws that
-hit the maximum tree depth, default 20}
+\item{df}{}
 }
 \description{
-Get the lists of states with different flags (both data and model)
+Takes the long dataframes of diagnostics by location and outputs summaries
 }

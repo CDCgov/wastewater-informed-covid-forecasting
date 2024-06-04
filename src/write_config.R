@@ -34,10 +34,7 @@ write_config <- function(run_id,
                            "input",
                            "locations.csv"
                          ),
-                         path_to_save_metadata =
-                           file.path("output", "pipeline_run_metadata"),
-                         output_file_path =
-                           file.path("output"), # nolint
+                         param_file_path = file.path("input", "params.toml"),
                          prod_run = FALSE, # TRUE if running for submission
                          ww_data_path = file.path(
                            "input", "ww_data", "nwss_data",
@@ -53,7 +50,7 @@ write_config <- function(run_id,
     if (model_type == "state-level aggregated wastewater") {
       location <- c(
         "AK", "AL", "AR", "AZ", "CA",
-        "CO", "CT", "DC", "DE", "FL", "GA", "GU", "ND",
+        "CO", "CT", "DC", "DE", "FL", "GA", "ND",
         "HI", "IA", "ID", "IL", "IN", "KS", "KY", "LA", "MA",
         "MD", "ME", "MI", "MN", "MO", "MS", "MT", "NC",
         "NE", "NH", "NJ", "NM", "NV", "NY", "OH", "OK", "OR",
@@ -61,7 +58,6 @@ write_config <- function(run_id,
         "VT", "WA", "WI", "WV", "WY", "US"
       )
     } else {
-      # put NY back in
       location <- c(
         "AK", "AL", "AR", "AZ", "CA",
         "CO", "CT", "DC", "DE", "FL", "GA", "ND",
@@ -76,9 +72,19 @@ write_config <- function(run_id,
 
   # More transient vals
   forecast_date <- lubridate::ymd(forecast_date)
+  date_run <- as.character(lubridate::ymd(date_run))
   calibration_time <- 90
   forecast_time <- 28
   n_draws <- 100 # draws from the posterior to save
+
+
+  output_dir <-
+    file.path(
+      "output", forecast_date,
+      stringr::str_glue("run-on-{date_run}-{run_id}")
+    ) # nolint
+  dir_to_save_metadata <-
+    file.path(output_dir, "pipeline_run_metadata")
 
   # Pre-specified delay distributions
   generation_interval <- read.csv(here::here(
@@ -94,27 +100,42 @@ write_config <- function(run_id,
 
   # Assign the dates and locations for hospital admissions to be manually
   # removed
-  dates_for_hosp_removal <- c(seq(
-    from = lubridate::ymd("2024-01-23"),
-    to = lubridate::ymd("2024-01-26"),
-    by = "days"
-  ))
 
-  states_for_hosp_removal <- c(rep(
-    "PA",
-    4
-  ))
+  dates_for_hosp_removal <- c(
+    seq(
+      from = lubridate::ymd("2024-02-27"),
+      to = lubridate::ymd("2024-02-29"),
+      by = "days"
+    ), # NM exclude repeats
+    seq(
+      from = lubridate::ymd("2024-03-16"),
+      to = lubridate::ymd("2024-03-22"),
+      by = "days"
+    ) # OR anomalies
+  )
 
+  states_for_hosp_removal <- c(
+    rep("NM", 3),
+    rep("OR", 7)
+  )
+
+
+  # Assign the dates and locations for wastewater data to be removed manually
+  first_date <- forecast_date - lubridate::days(calibration_time) - hosp_reporting_delay
+
+  dates_for_ww_removal <- c()
+  states_for_ww_removal <- c()
 
   # How to fit the model
   compute_likelihood <- 1 # if want to use data, else just priors
   include_hosp <- 1 # if want to use hosp
-  iter_warmup <- 250
+  iter_warmup <- 750
   iter_sampling <- 500
   n_chains <- 4
   n_parallel_chains <- 4
-  adapt_delta <- 0.99
+  adapt_delta <- 0.95
   max_treedepth <- 12
+  seed <- 123
   model_file_name <- get_model_file_name(model_type, include_ww)
 
   if (prod_run == TRUE) {
@@ -138,13 +159,14 @@ write_config <- function(run_id,
     forecast_date = as.character(lubridate::ymd(forecast_date)),
     location = location,
     run_id = run_id,
-    date_run = as.character(lubridate::ymd(date_run)),
+    date_run = date_run,
     calibration_time = calibration_time,
     forecast_time = forecast_time,
     hosp_reporting_delay = hosp_reporting_delay,
     geo_type = geo_type,
     hosp_data_source = hosp_data_source,
     train_data_dir = train_data_dir,
+    param_file_path = param_file_path,
     ww_data_source = ww_data_source,
     compute_likelihood = compute_likelihood,
     include_ww = include_ww,
@@ -155,8 +177,9 @@ write_config <- function(run_id,
     n_parallel_chains = n_parallel_chains,
     adapt_delta = adapt_delta,
     max_treedepth = max_treedepth,
+    seed = seed,
     n_draws = n_draws,
-    output_file_path = output_file_path,
+    output_dir = output_dir,
     ww_data_path = ww_data_path,
     hosp_data_dir = hosp_data_dir,
     population_data_path = population_data_path,
@@ -165,14 +188,16 @@ write_config <- function(run_id,
     ww_geo_type = ww_geo_type,
     pull_from_local = pull_from_local,
     model_type = model_type,
-    vector_of_dates = dates_for_hosp_removal,
-    vector_of_states = states_for_hosp_removal,
+    dates_for_hosp_removal = as.character(lubridate::ymd(dates_for_hosp_removal)),
+    states_for_hosp_removal = states_for_hosp_removal,
+    dates_for_ww_removal = as.character(lubridate::ymd(dates_for_ww_removal)),
+    states_for_ww_removal = states_for_ww_removal,
     generation_interval = generation_interval,
     infection_feedback_pmf = generation_interval,
     inf_to_hosp = inf_to_hosp,
     submitting_model_name = submitting_model_name,
     prod_run = prod_run,
-    path_to_save_metadata = path_to_save_metadata,
+    dir_to_save_metadata = dir_to_save_metadata,
     config_file_path = fp
   )
 

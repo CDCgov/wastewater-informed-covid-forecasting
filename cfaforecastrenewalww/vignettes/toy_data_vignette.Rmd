@@ -9,7 +9,11 @@ This vignette steps through the pre-processing and fitting procedure to forecast
 state-level hospital admissions using simulated data. The code can be adapted
 for your own datasets by replacing the joined hospital admissions + site-lab
 level wastewater dataset, here called, `example_df`, with your own dataset and
-varying the parameters that are pre-specified.
+varying the parameters that are pre-specified. See the documentation for
+`example_df` to format your data in a similar manner. For an example of how to
+do this from the raw generated outputs, see the `generate_simulated_data.R`
+function. Note that if using real data, the part about comparing the inferred
+parameters to the known truth parameters will not be relevant as this information will not be available.
 
 ```{r setup, include=FALSE}
 knitr::opts_chunk$set(echo = TRUE)
@@ -28,26 +32,26 @@ library(tidybayes)
 # by calling `generate_simulated_data()`
 # See function documentation to modify R(t), number of sites, etc.
 example_df <- cfaforecastrenewalww::example_df
-param_df <- cfaforecastrenewalww::param_df
 ```
 The `generate_simulated_data.R` file can be used to generate this simulated
-data, using the most complex model, where individual sites
-exhibit their own site-level infection dynamics, site-level time-varying
-concentrations of wastewater, and lab-site level measurement effects. There
-are options to
-turn off all but the lab-site measurement effects. Setting `n_sites` to one
+data where individual sites exhibit their own site-level infection dynamics.
+Setting `n_sites` to one
 allows the user to generate data amenable to the state-level aggregated
 wastewater model, or alternatively, site-level data can be generated and then
 aggregated using population weighted averaging of the concentration to generate
-a single state-level wastewater data stream.
+a single state-level wastewater data stream. However, this vignette assumes you
+have wastewater data from one or more sites that represent some subset of the
+population for which you have hospital admissions data for.
 
 # Data exploration
-The example dataframe is a tidy data frame with hospital admissions alongside
+The example dataframe is a long tidy data frame with hospital admissions alongside
 site-level wastewater data, corresponding to a single observation for each
 lab-site-day. We assign an arbitrary date to the time series so that we can
 assign a week day to each day. We additionally include a column containing
-the daily hospital admissions through the forecast period. This will
+the daily hospital admissions through the forecast period
+`daily_hosp_admits_for_eval`. This will
 be used for evaluating our simulated data inference procedure.
+See documentation of `example_df` for a full description of each column.
 ```{r}
 head(example_df)
 ```
@@ -92,21 +96,31 @@ ggplot(example_df) +
   geom_point(aes(x = date, y = daily_hosp_admits)) +
   geom_vline(aes(xintercept = forecast_date), linetype = "dashed") +
   xlab("") +
-  ylab("Daily hospital admssions") +
+  ylab("Daily hospital admissions") +
   ggtitle("State level hospital admissions") +
   theme_bw()
 ```
 
 # Format data for inference in stan
-The model expects input data in a certain format, we will use a built in function
-that requires a few other pieces of information that can be derived directly
-from the input data set. We pre-specify the priors in the `get_params()`
-function. Priors can be adjusted by directly modifying the value in the `params`
-dataframe or by directly modifying the `stan_data` list (or alternatively, by
-directly editing the stan file but this isn't recommended as the current
-workflow keeps parameters consistent across the related models).
+The model expects input data in a certain format. The `cfaforecastrenewalww`
+R package provides helper functions to facilitate preparing data for ingestion by the model.
+
+Hyperparameters for prior distributions and other fixed quantites should be specified in a `.toml` file, which the function `get_params()` reads and validates. We have provided an example parameter file, `example_params.toml`, with the package.
+
+We'll read it in and examine it here:
+
 ```{r}
-params <- get_params()
+params <- get_params(
+  system.file("extdata", "example_params.toml",
+    package = "cfaforecastrenewalww"
+  )
+)
+params
+```
+
+The example values in `example_params.toml` are the same as those stored in `cfaforecastrenewalww::param_df` and used (via prior predictive simulation to generate the simulated data in `cfaforecastrenewalww::example_df`.
+
+```{r}
 forecast_date <- example_df %>%
   pull(forecast_date) %>%
   unique()
@@ -117,7 +131,7 @@ forecast_time <- as.integer(max(example_df$date) - forecast_date)
 model_type <- "site-level infection dynamics"
 model_file_path <- get_model_file_path(model_type)
 # Compile the model
-model <- ww_model(file.path(here(
+model <- compile_model(file.path(here(
   model_file_path
 )))
 
@@ -144,7 +158,7 @@ train_data <- flag_ww_outliers(train_data_raw)
 # delay distribution to pass to stan.
 # Use the same values as we do in the
 # generation of these vectors in the generate simulated data function....
-# See Song Woo Park et al
+# See Park et al
 # https://www.medrxiv.org/content/10.1101/2024.01.12.24301247v1 for why
 # we use a double-censored pmf here
 generation_interval <- simulate_double_censored_pmf(
@@ -178,17 +192,24 @@ init_fun <- function() {
 }
 ```
 # Fit the wastewaster informed model
+Here we will use MCMC settings with 500 warmup iterations and 750 sampling
+iterations, with settings for the maximum treedepth (referred to as
+`max_treedepth`) of 12 and an acceptance probability (referred to as
+`adapt_delta`) of 0.95. This matches the production-level settings specified in
+`src/write_config.R`.
 ```{r}
 fit_dynamic_rt <- model$sample(
   data = stan_data,
   seed = 123,
   init = init_fun,
   iter_sampling = 500,
-  iter_warmup = 250,
+  iter_warmup = 750,
+  max_treedepth = 12,
   chains = 4,
   parallel_chains = 4
 )
 ```
+
 # Look at the model outputs: generated quantities
 Plot the model predicted hospital admissions vs the simulated forecasted
 hospital admissions and the model estimated wastewater concentration in each
@@ -196,13 +217,15 @@ site vs the simulated wastewater data.
 ```{r}
 all_draws <- fit_dynamic_rt$draws()
 
+
 # Predicted observed hospital admissions
 exp_obs_hosp <- all_draws %>%
   spread_draws(pred_hosp[t]) %>%
   select(pred_hosp, `.draw`, t) %>%
   rename(draw = `.draw`)
+sampled_draws <- sample(1:max(exp_obs_hosp$draw), 100)
 
-# Predicted observed wastewaster concentrations in each lab site
+# Predicted observed wastewater concentrations in each lab site
 exp_obs_conc <- all_draws %>%
   spread_draws(pred_ww[lab_wwtp_unique_id, t]) %>%
   select(pred_ww, `.draw`, t, lab_wwtp_unique_id) %>%
@@ -215,7 +238,7 @@ output_df <- exp_obs_conc %>%
   left_join(exp_obs_hosp,
     by = c("t", "draw")
   ) %>%
-  filter(draw %in% sample(1:max(draw), 100)) # sample the draws for plotting
+  filter(draw %in% sampled_draws) # sample the draws for plotting
 
 ggplot(output_df) +
   geom_line(aes(x = date, y = pred_hosp, group = draw),
@@ -227,7 +250,7 @@ ggplot(output_df) +
   geom_point(aes(x = date, y = daily_hosp_admits)) +
   geom_vline(aes(xintercept = forecast_date), linetype = "dashed") +
   xlab("") +
-  ylab("Daily hospital admssions") +
+  ylab("Daily hospital admissions") +
   ggtitle("State level hospital admissions estimated with wastewater") +
   theme_bw()
 
@@ -285,25 +308,29 @@ ggplot(output_df) +
 ```
 <br>
 
-# Model outputs: parameters
-Get a dataframe of all of the key estimate model paramters combined with the key
+# Model outputs: compare inferred parameters to known parameters
+Get a dataframe of all of the key estimated model parameters combined with the key
 "known" model parameters to get a sense of
 which parameters we can recover and which might be unidentifiable (just as a
 first pass, eventually we will probably want to do a full sensitivity analysis
 to identify the regions of parameter space that are non-identifiable).
+
+Note that if you are modifying this vignette to run on your own data skip this
+part-- in the case of real data, we don't know the true underlying model
+parameters.
 ```{r}
 static_params <- c(
   "eta_sd", "autoreg_rt",
   "autoreg_rt_site",
   "log_r_mu_intercept",
-  "log_i0_over_n", "initial_growth",
+  "i0_over_n", "initial_growth",
   "inv_sqrt_phi_h", "sigma_ww_site_mean", "sigma_ww_site_sd",
-  "p_hosp_int", "p_hosp_w_sd", "t_peak", "viral_peak",
+  "p_hosp_mean", "p_hosp_w_sd", "t_peak", "viral_peak",
   "dur_shed", "log10_g", "ww_site_mod_sd",
   "infection_feedback"
 )
 vector_params <- c(
-  "w", "p_hosp_w", "rt", "new_i", "p_hosp",
+  "w", "p_hosp_w", "rt", "state_inf_per_capita", "p_hosp",
   "sigma_ww_site_raw", "ww_site_mod_raw",
   "ww_site_mod", "sigma_ww_site",
   "hosp_wday_effect"
@@ -318,6 +345,8 @@ full_param_df <- get_full_param_distrib(
 )
 
 # Compare to the knows parameters
+param_df <- cfaforecastrenewalww::param_df # A set of the set static and dynamic
+# from the `generate_simulated_data()` function default args. This is package data
 comp_df <- full_param_df %>%
   left_join(param_df,
     by = c("name", "index_rows", "index_cols")
@@ -358,8 +387,9 @@ fit_dynamic_rt_hosp_only <- model$sample(
   seed = 123,
   init = init_fun,
   iter_sampling = 500,
-  iter_warmup = 250,
+  iter_warmup = 750,
   chains = 4,
+  max_treedepth = 12,
   parallel_chains = 4
 )
 ```
@@ -371,12 +401,20 @@ exp_obs_hosp <- all_draws_hosp_only %>%
   spread_draws(pred_hosp[t]) %>%
   select(pred_hosp, `.draw`, t) %>%
   rename(draw = `.draw`)
+sampled_draws <- sample(1:max(exp_obs_hosp$draw), 100)
+
 
 output_df_hosp_only <- exp_obs_hosp %>%
-  left_join(train_data,
+  left_join(
+    train_data %>%
+      select(
+        date, t, daily_hosp_admits,
+        daily_hosp_admits_for_eval
+      ) %>%
+      distinct(),
     by = c("t")
   ) %>%
-  filter(draw %in% sample(1:max(draw), 100)) # sample the draws for plotting
+  filter(draw %in% sampled_draws) # sample the draws for plotting
 
 ggplot(output_df_hosp_only) +
   geom_line(aes(x = date, y = pred_hosp, group = draw),
@@ -391,7 +429,10 @@ ggplot(output_df_hosp_only) +
   ylab("Daily hospital admssions") +
   ggtitle("State level hospital admissions fit to only hospital admissions") +
   theme_bw()
-
+```
+# Model outputs: compare inferred parameters to known parameters
+This time just for the IHR and R(t)
+```{r}
 # Get the full posterior parameter distribution from the real data
 full_param_df_hosp_only <- get_full_param_distrib(
   all_draws_hosp_only, static_params, vector_params, matrix_params
@@ -403,7 +444,7 @@ comp_df_hosp_only <- full_param_df_hosp_only %>%
     by = c("name", "index_rows", "index_cols")
   )
 
-ggplot(comp_df_hosp_only %>% filter(name %in% c("R", "p_hosp"))) +
+ggplot(comp_df_hosp_only %>% filter(name %in% c("rt", "p_hosp"))) +
   geom_line(aes(x = index_cols, y = value, group = draw), size = 0.05, alpha = 0.05) +
   geom_line(aes(x = index_cols, y = median), color = "black") +
   geom_line(aes(x = index_cols, y = true_value), color = "red") +

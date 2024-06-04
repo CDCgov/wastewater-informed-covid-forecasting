@@ -15,7 +15,7 @@ location, model type, and data scenario)}
 \value{
 dataframe with the following parameters: phi_h, phi_w, eta_sd, G,
 p_hosp, i0, initial_growth, dur_shed, viral_peak, t_peak, with n_draws from
-the posterior alongside median and 50% and 95% credible intervals
+the posterior alongside median and 50\% and 95\% credible intervals
 }
 \description{
 Reads in model_draws, parameters, and training data and gets summary

@@ -2,7 +2,7 @@ repos:
 #####
 # Basic file cleanliness
 -   repo: https://github.com/pre-commit/pre-commit-hooks
-    rev: v4.5.0
+    rev: v4.6.0
     hooks:
     -   id: check-added-large-files
         args: ['--maxkb=4000']
@@ -14,7 +14,7 @@ repos:
 #####
 # R
 -   repo: https://github.com/lorenzwalthert/precommit
-    rev: v0.3.2.9023
+    rev: v0.4.2
     hooks:
     -   id: style-files
     -   id: lintr

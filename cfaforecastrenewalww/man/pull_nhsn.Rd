@@ -24,56 +24,56 @@ pull_nhsn(
 use. Defaults to the HTTPS:// Socrata
 endpoint for HHS Protect / NHSN
 on HealthData.gov as of 2023-10-23, namely
-`[https://healthdata.gov/resource/g62h-syeh]`}
+\verb{[https://healthdata.gov/resource/g62h-syeh]}}
 
 \item{api_key_id}{Key ID of an API key to use
 when querying the dataset. Not required,
 but polite and reduces throttling.
 You can create one at
-[https://healthdata.gov/profile/edit/developer_settings].
-Default `NULL` (no API key).}
+\link{https://healthdata.gov/profile/edit/developer_settings}.
+Default \code{NULL} (no API key).}
 
 \item{api_key_secret}{Associated key secret
-for the API key given in `api_key_id`.
-Default `NULL` (no API key).}
+for the API key given in \code{api_key_id}.
+Default \code{NULL} (no API key).}
 
 \item{start_date}{Pull only rows with dates
-greater than or equal to this date. If `NULL`,
-no minimum date. Default `NULL`.}
+greater than or equal to this date. If \code{NULL},
+no minimum date. Default \code{NULL}.}
 
 \item{end_date}{Pull only rows with dates
-less than or equal to this date. If `NULL`,
-no maximum date. Default `NULL`.}
+less than or equal to this date. If \code{NULL},
+no maximum date. Default \code{NULL}.}
 
 \item{columns}{Vector of columns to retrieve, in
-addition to `date` and `state`, which are always
-retrieved. If `NULL`, retrieve all columns.
-Default `NULL`.}
+addition to \code{date} and \code{state}, which are always
+retrieved. If \code{NULL}, retrieve all columns.
+Default \code{NULL}.}
 
-\item{states}{value or values to filter on for the `state` column
-of the NHSN dataset. If `NULL`, do not filter on that column.
-Default `NULL`.}
+\item{states}{value or values to filter on for the \code{state} column
+of the NHSN dataset. If \code{NULL}, do not filter on that column.
+Default \code{NULL}.}
 
 \item{order_by}{column or columns to order (sort) by.
-Default `c("state", "date")` (sort first by state,
+Default \code{c("state", "date")} (sort first by state,
 then by date).}
 
 \item{desc}{Boolean. Whether to order descending instead of
-ascending. Default `FALSE` (order ascending).}
+ascending. Default \code{FALSE} (order ascending).}
 
-\item{limit}{maximum number of rows to return. Default `1e5`
+\item{limit}{maximum number of rows to return. Default \code{1e5}
 (100000)}
 
 \item{error_on_limit}{Boolean. Raise an error if the number
-of rows returned is equal to the maximum? Default `TRUE`.
+of rows returned is equal to the maximum? Default \code{TRUE}.
 This ensures that one does not silently end up with a
 subset of the total set of rows matching the query. If a subset
-is desired, one can set `error_on_limit = FALSE`.}
+is desired, one can set \code{error_on_limit = FALSE}.}
 
-\item{...}{other arguments passed to [nhsn_soda_query()]}
+\item{...}{other arguments passed to \code{\link[=nhsn_soda_query]{nhsn_soda_query()}}}
 }
 \value{
-the pulled data, as a [tibble::tibble()].
+the pulled data, as a \code{\link[tibble:tibble]{tibble::tibble()}}.
 }
 \description{
 Pull relevant epidemiological

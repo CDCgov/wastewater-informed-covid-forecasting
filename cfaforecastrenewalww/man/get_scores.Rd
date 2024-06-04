@@ -6,7 +6,7 @@
 \usage{
 get_scores(
   quantiles,
-  output_file_path,
+  output_dir,
   scores_file_path = file.path("summaries", "scores"),
   grouping_vars = c("hosp_reporting_delay", "location_name", "period", "forecast_date",
     "name", "model"),

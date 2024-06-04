@@ -19,8 +19,8 @@ Given a vector of state/territory two-letter
 USPS short names (e.g. MA, TX, PR), return
 the corresponding FluSight challenge location
 code (legacy FIPS code for states and territories,
-`US` for the US).
+\code{US} for the US).
 }
 \seealso{
-[loc_flusight_code_to_abbr()]
+\code{\link[=loc_flusight_code_to_abbr]{loc_flusight_code_to_abbr()}}
 }

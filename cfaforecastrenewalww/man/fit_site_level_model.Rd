@@ -2,21 +2,22 @@
 % Please edit documentation in R/fit_model.R
 \name{fit_site_level_model}
 \alias{fit_site_level_model}
-\title{Fit the stan model to a single slice of data}
+\title{Fit site-level model}
 \usage{
 fit_site_level_model(
   train_data,
   params,
   model_file,
   forecast_date,
-  run_id,
-  date_run,
   forecast_time,
   generation_interval,
   inf_to_hosp,
   infection_feedback_pmf,
   model_type,
-  output_file_path,
+  output_dir,
+  adapt_delta,
+  max_treedepth,
+  seed,
   include_hosp = 1,
   compute_likelihood = 1,
   n_draws = 100,
@@ -30,19 +31,73 @@ fit_site_level_model(
 )
 }
 \arguments{
-\item{train_data}{for a single location}
+\item{train_data}{dataframe containing the hospital admissions on each day,
+the wastewater concentrations in each site and lab, and other metadata needed
+to pass to stan to run the model}
 
-\item{params}{of the model, these should be the same across all runs}
+\item{params}{disease-specific parameters, including hyperparameters for priors.}
 
-\item{model_file}{compiled stan model (an upstream target)}
+\item{model_file}{the compiled stan model}
 
-\item{config_vars}{tells the model whether or not to include WW,
-include hosp, compute likelihood, and what damp type.}
+\item{forecast_date}{date of the forecast}
+
+\item{forecast_time}{duration of the forecast period}
+
+\item{generation_interval}{a discretized (in days) normalized pmf indexed
+starting at 1 of the probability of each time from initial infection to
+secondary transmission}
+
+\item{inf_to_hosp}{a discretized (in days) normalized pmf indexed starting at
+0 of the probability of time from initial infection to hospital admissions}
+
+\item{infection_feedback_pmf}{a discretized (in days) normalized pmf
+that dictates the distribution of delays from incident infection to incidence
+feedback}
+
+\item{model_type}{name of the model being fit. Options are
+\code{"site-level infection dynamics"}, \code{"site-level observation error"},
+\code{"site-level time-varying concentration"}}
+
+\item{output_dir}{location to save the model outputs}
+
+\item{adapt_delta}{dapt_delta target proposal acceptance probability for the No-U-Turn Sampler.}
+
+\item{max_treedepth}{max value in exponents of 2 of what the binary tree size
+in the NUTS algorithm should have}
+
+\item{seed}{random seed for the sampler}
+
+\item{include_hosp}{whether or not to include hospital admissions data in
+the likelihood (default = 1) to include}
+
+\item{compute_likelihood}{whether or not to include any data in the
+likelihood (default = 1), if set to 0 returns prior predictions}
+
+\item{n_draws}{number of draws to save in the draws.parquet, default = 100}
+
+\item{n_chains}{number of independent MCMC chains to run, default = 4}
+
+\item{iter_sampling}{number of iterations to save in MCMC sampling,
+default = 500}
+
+\item{iter_warmup}{number of iterations to discard in MCMC sampling,
+default = 250}
+
+\item{n_parallel_chains}{number of chains to run in parallel, default = 4}
+
+\item{write_files}{whether or not to save the outputs, default = 1 to save}
+
+\item{output_full_df}{whether or not to have targets return the full
+dataframe of draws, default = FALSE to just return a dataframe of filepaths}
+
+\item{...}{Additional named arguments (ignored) to allow \code{\link[=do.call]{do.call()}} on
+lists with additional entries}
 }
 \value{
-a dataframe with 100 model draws for all time points for WW
- concentraiton, hospitalizaitons, hosp per 100k, and the matched data
+a dataframe with model draws for all time points for WW
+concentraiton, hospitalizaitons, hosp per 100k, and the matched data
 }
 \description{
-Fit the stan model to a single slice of data
+Wrapper function to take a location's training data and fit to the
+site-level model
 }

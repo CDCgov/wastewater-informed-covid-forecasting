@@ -7,8 +7,8 @@
 get_low_case_count_diagnostic(calib_data)
 }
 \arguments{
-\item{calib_data}{A dataframe. It has `date` column of type `Date`,
-`daily_hosp_admits` column of type numeric and `period`
+\item{calib_data}{A dataframe. It has \code{date} column of type \code{Date},
+\code{daily_hosp_admits} column of type numeric and \code{period}
 column of type character.}
 }
 \value{
@@ -16,7 +16,7 @@ Returns TRUE if less than 10 hospital admissions in either of
 the last two weeks
 }
 \description{
-The diagnostic flag is TRUE if either of the _last_ two weeks of the dataset
+The diagnostic flag is TRUE if either of the \emph{last} two weeks of the dataset
 have fewer than an aggregate 10 hospital admissions per week.
 This aggregation excludes the
 count from confirmed outliers, which have been set to NA in the data.
@@ -24,6 +24,6 @@ count from confirmed outliers, which have been set to NA in the data.
 \details{
 Adapted from https://github.com/cdcent/cfa-nnh-pipelines/blob/7f1c89d2eecfed89cc3f1be1771d93540ffd6eb4/NHSN/Rt/R/disease_process.R #nolint
 
-This function assumes that the `calib_data` input dataset has been
+This function assumes that the \code{calib_data} input dataset has been
 "completed": that any implicit missingness has been made explicit.
 }

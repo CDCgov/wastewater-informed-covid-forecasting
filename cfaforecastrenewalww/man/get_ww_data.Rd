@@ -12,6 +12,8 @@ get_ww_data(
   ww_target_type,
   ww_geo_type,
   ww_data_path,
+  dates_for_ww_removal = c(),
+  states_for_ww_removal = c(),
   ...
 )
 }

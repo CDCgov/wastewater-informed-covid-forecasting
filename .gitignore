@@ -8,24 +8,39 @@ targets.log
 .DS_Store
 *.Rproj
 *.swp
-*.yaml
 
-# Don't track compiled model executable
+# default secrets file
+secrets.yaml
 
-cfaforecastrenewalww/inst/stan/renewal_ww_hosp
-cfaforecastrenewalww/inst/stan/renewal_ww_hosp_hierarchical_w_dispersion
-cfaforecastrenewalww/inst/stan/renewal_ww_hosp_site_level_phi
-cfaforecastrenewalww/inst/stan/renewal_ww_hosp_site_level_phi_varying_C
-cfaforecastrenewalww/inst/stan/renewal_ww_hosp_hierarchical
-cfaforecastrenewalww/inst/stan/renewal_ww_hosp_site_level_inf_dynamics
+# Azure batch configuration
+batch_config.toml
 
-# Don't track data!
-diagnostic_report.html
-repo_data
-input
-output
+# rendered documents ignored by default
+*.html
+*.pdf
+*.docx
 
-scratch/EDA.html
+# Don't track compiled model executables
+bin
+
+# Don't track data by default
+repo_data/
+input/*
+output/*
+
+# Do track certain static data
+!input/saved_pmfs
+!input/locations.csv
+!input/params.toml
+
+# Do track the output/forecasts directory
+!output/forecasts
+!output/forecasts/*
+
+# Do track the output/decision_archive directory
+!output/decision_archive
+!output/decision_archive/*
+
 # compiled test executables
 test/test_expgamma_lpdf
 
@@ -43,3 +58,16 @@ test/test_expgamma_lpdf
 
 # R tempfiles
 Rplots.pdf
+
+# Make sentinel files
+.*_up_to_date
+
+# python
+__pycache__
+*.pyc
+
+# python venv
+lib/*
+lib64
+pyvenv.cfg
+bin/*

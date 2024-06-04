@@ -5,16 +5,21 @@
 \title{Manual removal of hopsital admissions
 data points in particular states}
 \usage{
-manual_removal_of_hosp_data(train_data, vector_of_states, vector_of_dates, ...)
+manual_removal_of_hosp_data(
+  train_data,
+  states_for_hosp_removal,
+  dates_for_hosp_removal,
+  ...
+)
 }
 \arguments{
 \item{train_data}{original training dataset
 with hopsitalizations in tact}
 
-\item{vector_of_states}{states in the order
+\item{states_for_hosp_removal}{states in the order
 of the corresponding dates we want to remove}
 
-\item{vector_of_dates}{dates lining up with the
+\item{dates_for_hosp_removal}{dates lining up with the
 states we want to remove from}
 }
 \value{

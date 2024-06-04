@@ -19,7 +19,7 @@ plot_quantiles(
 \item{data}{timeseries of quantiles as tidy data,
 with one row per timepoint per quantile level}
 
-\item{time_column}{name of the column in `data`
+\item{time_column}{name of the column in \code{data}
 containing timepoints}
 
 \item{observation_column}{name of the column
@@ -27,19 +27,19 @@ in data containing observed values at the
 given quantile levels}
 
 \item{quantile_level_column}{name of the column
-in `data` giving the quantile level (e.g.
-`0.01` for the 0.01 quantile / 1st percentile)}
+in \code{data} giving the quantile level (e.g.
+\code{0.01} for the 0.01 quantile / 1st percentile)}
 
-\item{linesize}{`size` parameter passed to [ggplot2::geom_line()].
+\item{linesize}{\code{size} parameter passed to \code{\link[ggplot2:geom_path]{ggplot2::geom_line()}}.
 Default 2.}
 
-\item{pointsize}{`size` parameter passed to [ggplot2::geom_point()]
+\item{pointsize}{\code{size} parameter passed to \code{\link[ggplot2:geom_point]{ggplot2::geom_point()}}
 Default 4.}
 
-\item{pointcolor}{`color` parameter passed to [ggplot2::geom_point()]
+\item{pointcolor}{\code{color} parameter passed to \code{\link[ggplot2:geom_point]{ggplot2::geom_point()}}
 Default "darkblue".}
 
-\item{linecolor}{`color` parameter passed to [ggplot2::geom_line()].
+\item{linecolor}{\code{color} parameter passed to \code{\link[ggplot2:geom_path]{ggplot2::geom_line()}}.
 Default "darkblue.}
 }
 \value{

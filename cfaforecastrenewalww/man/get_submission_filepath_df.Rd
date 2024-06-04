@@ -7,36 +7,26 @@ file path for the necesary outputs.}
 \usage{
 get_submission_filepath_df(
   prod_model_type,
-  hosp_only_states,
-  df_of_filepaths_inf_dyn = NA,
-  df_of_filepaths_site_obs = NA,
-  df_of_filepaths_hosp_only = NA,
-  df_of_filepaths_agg = NA,
-  df_of_filepaths_varying_conc = NA
+  loc_model_map,
+  df_of_filepaths_inf_dyn = NULL,
+  df_of_filepaths_hosp_only = NULL,
+  df_of_filepaths_agg = NULL
 )
 }
 \arguments{
 \item{prod_model_type}{the model type we want to submit, default is
 "site-level infection dynamics"}
 
-\item{hosp_only_states}{the states that we want to manually
-specify to use the hospital admissions only model instead of the wastewater
-informed model}
+\item{loc_model_map}{two column dataframe with location and desired model type}
 
 \item{df_of_filepaths_inf_dyn}{the output filepaths resulting after running
-the infection dynamics model targets, default is NA}
-
-\item{df_of_filepaths_site_obs}{the output filepaths resulting after running
-the site-level observation error model targets, default is NA}
+the infection dynamics model targets, default is NULL}
 
 \item{df_of_filepaths_hosp_only}{the output filepaths resulting after running
-the hospital admissions only model targets, default is NA}
+the hospital admissions only model targets, default is NULL}
 
 \item{df_of_filepaths_agg}{the output filepaths resulting after running the
-national aggreated model target, default is NA}
-
-\item{df_of_filepaths_varying_conc}{the output filepaths resulting after
-running the time varying concentration model targets, default is NA}
+national aggreated model target, default is NULL}
 }
 \value{
 a dataframe of length of the number of locations (will message if
