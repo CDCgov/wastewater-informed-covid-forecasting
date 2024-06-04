@@ -29,7 +29,9 @@
 #' @param seed seed of random number generator default = 123
 #'
 #'
-#' @return a list containing draws, diagnostics, and summary_diagnostics
+#' @return a list containing draws, diagnostics, and summary_diagnostics  +
+#' flags if the model failed to pass convergence tests. If the model errored,
+#' just contains a list with errors
 #' @export
 
 sample_model <- function(standata,
@@ -96,27 +98,17 @@ sample_model <- function(standata,
     seed
   )
 
-  # If the model doesn't immediately error, get diagnostics
-  if (is.null(fit$error)) {
-    # Get the diagnostics using thresholds set in production pipeline
-    flag_df <- get_diagnostic_flags(fit$result, n_chains, iter_sampling)
-    any_flags <- any(flag_df)
-  }
-
-
 
   if (!is.null(fit$error)) { # If the model errors, return a list with the
     # error and everything else NULL
     out <- list(
       error = fit$error[[1]]
     )
-  } else if (any_flags) { # If there are model convergence issues, pass dataframe of flags
-    out <- list(
-      flags = flag_df,
-      summary = fit$result$summary()
-    )
-    message("Model convergence issues")
   } else {
+    # Get the diagnostics using thresholds set in production pipeline
+    flag_df <- get_diagnostic_flags(fit$result, n_chains, iter_sampling)
+    any_flags <- any(flag_df)
+
     draws <- fit$result$draws()
     diagnostics <- fit$result$sampler_diagnostics(format = "df")
     summary_diagnostics <- fit$result$diagnostic_summary()
@@ -128,6 +120,12 @@ sample_model <- function(standata,
       summary_diagnostics = summary_diagnostics,
       summary = summary
     )
+
+    if (any_flags) { # If there are model convergence issues, pass
+      # flags alongside the draws and summaries
+      out <- c(out, flags = list(flag_df))
+      message("Model convergence issues")
+    }
   }
   return(out)
 }

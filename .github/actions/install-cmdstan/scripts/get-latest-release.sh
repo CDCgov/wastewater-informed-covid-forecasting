@@ -11,32 +11,35 @@ else
     exit 1
 fi
 
-# Function to get the latest CmdStan version using GitHub API
-get_latest_version() {
-    local retries=3
-    local wait_time=5
-    local status=0
-    local version=""
+retries=3
+wait_time=5
+status=0
+version=""
 
-    for ((i=0; i<retries; i++)); do
-        version=$(curl -s https://api.github.com/repos/stan-dev/cmdstan/releases/latest | jq -r '.tag_name' | tr -d 'v')
-        status=$?
-        if [ $status -eq 0 ] && [ -n "$version" ]; then
-            echo $version
-            return 0
-        fi
-        sleep $wait_time
-        wait_time=$((wait_time*2))
-    done
+for ((i=0; i<retries; i++)); do
+    echo "Attempt $((i+1)) of $retries"
+    # Save the response body to a temporary file and capture HTTP status code separately
+    response=$(curl -s -w "%{http_code}" -o temp.json https://api.github.com/repos/stan-dev/cmdstan/releases/latest)
+    http_code=$(echo $response | tail -n1)  # Extract the HTTP status code
+    version=$(jq -r '.tag_name' temp.json | tr -d 'v')
+    rm temp.json
+    echo "HTTP status code: $http_code"
+    echo "Fetched version: $version"
 
-    return 1
-}
+    if [[ $http_code == 200 ]] && [ -n "$version" ]; then
+        echo "Successfully fetched version: $version"
+        break
+    else
+        echo "Failed to fetch version or bad HTTP status. HTTP status: $http_code, Version fetched: '$version'"
+    fi
 
-# Fetch the latest release version of CmdStan
-version=$(get_latest_version)
+    sleep $wait_time
+    echo "Sleeping for $wait_time seconds before retrying..."
+    wait_time=$((wait_time*2))
+done
 
-if [ $? -ne 0 ] || [ -z "$version" ]; then
-    echo "Failed to fetch the latest CmdStan version"
+if [ $status -ne 0 ] || [ -z "$version" ]; then
+    echo "Failed to fetch the latest CmdStan version after $retries attempts."
     exit 1
 fi
 

@@ -131,7 +131,7 @@ See our [model definition page](model_definition.md) for further details on the 
 To run our code, you will need a working installation of [R](https://www.r-project.org/) (version `4.3.0` or later). You can find instructions for installing R on the official [R project website](https://www.r-project.org/).
 
 ## Install `cmdstanr` and `CmdStan`
-We do inference from our models using [`CmdStan`](https://mc-stan.org/users/interfaces/cmdstan) (version `2.34.1` or later) via its R interface [`cmdstanr`](https://mc-stan.org/cmdstanr/) (version `0.7.1` or later).
+We do inference from our models using [`CmdStan`](https://mc-stan.org/users/interfaces/cmdstan) (version `2.35.0` or later) via its R interface [`cmdstanr`](https://mc-stan.org/cmdstanr/) (version `0.8.0` or later).
 
 Open an R session and run the following command to install `cmdstanr` per that package's [official installation guide](https://mc-stan.org/cmdstanr/#installation).
 

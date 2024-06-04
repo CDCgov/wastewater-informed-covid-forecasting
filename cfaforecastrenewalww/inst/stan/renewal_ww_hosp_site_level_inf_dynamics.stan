@@ -6,6 +6,7 @@ functions {
 #include functions/infections.stan
 #include functions/observation_model.stan
 #include functions/utils.stan
+
 }
 
 // The fixed input data
@@ -16,8 +17,8 @@ data {
   real<lower=0> mwpd; // mL of ww produced per person per day
   int<lower=1> if_l; // length of infection feedback pmf
   vector<lower=0,upper=1>[if_l] infection_feedback_pmf; // infection feedback pmf
-  int<lower=0> ot; // number of days of observed hospital admissions
-  int<lower=0> oht; // number of days with observed hospital admissions
+  int<lower=0> ot; // maximum time index for the hospital admissions (max number of days we could have observations)
+  int<lower=0> oht; // number of days that we have hospital admissions observations
   int<lower=0> n_subpops; // number of WW sites
   int<lower=0> n_ww_lab_sites; // number of unique ww-lab combos
   int<lower=0> n_censored; // numer of observed WW data points that are below the LOD
@@ -54,6 +55,8 @@ data {
   vector[6] viral_shedding_pars;// tpeak, viral peak, shedding duration mean and sd
   real<lower=0> autoreg_rt_a;
   real<lower=0> autoreg_rt_b;
+  real<lower=0> autoreg_rt_site_a;
+  real<lower=0> autoreg_rt_site_b;
   real<lower=0> autoreg_p_hosp_a;
   real<lower=0> autoreg_p_hosp_b;
   real inv_sqrt_phi_prior_mean;
@@ -273,7 +276,8 @@ model {
   vector[7] effect_mean = rep_vector(wday_effect_prior_mean, 7);
   w ~ std_normal();
   eta_sd ~ normal(0, eta_sd_sd);
-  autoreg_rt_site ~ beta(autoreg_rt_a, autoreg_rt_b);
+  autoreg_rt_site ~ beta(autoreg_rt_site_a, autoreg_rt_site_b);
+
   autoreg_rt ~ beta(autoreg_rt_a, autoreg_rt_b);
   autoreg_p_hosp ~ beta(autoreg_p_hosp_a, autoreg_p_hosp_b);
   log_r_mu_intercept ~ normal(r_logmean, r_logsd);

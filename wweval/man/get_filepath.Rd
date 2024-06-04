@@ -38,5 +38,5 @@ string of the full filepath
 \description{
 A function to return a character string for each item to either be saved or
 read in, based on the nesting that is specified in this function. To change
-the nesting, we will change this funciton
+the nesting, we will change this function
 }

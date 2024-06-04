@@ -21,7 +21,7 @@
 #' type, joined with the evaluation data and the input calibration data
 #' @export
 get_model_draws_w_data <- function(model_output,
-                                   model_type,
+                                   model_type = c("ww", "hosp"),
                                    draws,
                                    forecast_date,
                                    scenario,
@@ -31,6 +31,7 @@ get_model_draws_w_data <- function(model_output,
                                    last_hosp_data_date,
                                    ot,
                                    forecast_time = 28) {
+  model_type <- arg_match(model_type)
   nowcast_time <- as.integer(ymd(forecast_date) - ymd(last_hosp_data_date))
   ht <- nowcast_time + forecast_time
   # Date spine for joining data
@@ -172,7 +173,6 @@ get_state_level_quantiles <- function(draws) {
   return(quantiles)
 }
 
-
 #' Get quantiles for site-lab level wastewater
 #'
 #' @param ww_draws a dataframe containing all the draws from the model estimated
@@ -238,8 +238,9 @@ save_table <- function(data_to_save,
                        output_dir,
                        scenario,
                        forecast_date,
-                       model_type,
+                       model_type = c("ww", "hosp"),
                        location) {
+  model_type <- arg_match(model_type)
   if (!is.null(data_to_save)) {
     full_dir <- file.path(
       output_dir,

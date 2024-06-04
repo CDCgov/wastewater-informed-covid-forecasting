@@ -6,7 +6,7 @@
 \usage{
 get_model_draws_w_data(
   model_output,
-  model_type,
+  model_type = c("ww", "hosp"),
   draws,
   forecast_date,
   scenario,

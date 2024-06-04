@@ -35,5 +35,5 @@ to get an overall score, we can just take the scores directly from the
 add it to the dataframe, and continue to concatenate until we get a full
 score dataframe with all combinations of forecast dates, locations, and
 scenarios, labeled according to scenario. We will still know which ones
-are from which model with the `model`` colum
+are from which model with the `model`` column
 }

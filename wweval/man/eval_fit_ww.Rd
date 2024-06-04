@@ -2,9 +2,9 @@
 % Please edit documentation in R/eval_fit.R
 \name{eval_fit_ww}
 \alias{eval_fit_ww}
-\title{Evaluate Wastewater Fit}
+\title{Fit Wastewater Model for Evaluation}
 \usage{
-eval_fit_ww(config_index, eval_config_path, params_path, output_dir)
+eval_fit_ww(config_index, eval_config_path, params_path)
 }
 \arguments{
 \item{config_index}{Index of eval_config to evaluate}
@@ -12,9 +12,7 @@ eval_fit_ww(config_index, eval_config_path, params_path, output_dir)
 \item{eval_config_path}{Path to eval_config (created with \code{write_eval_config})}
 
 \item{params_path}{Path to params.toml}
-
-\item{output_dir}{Path to directory for storing output}
 }
 \description{
-Evaluate Wastewater Fit
+Fit Wastewater Model for Evaluation
 }

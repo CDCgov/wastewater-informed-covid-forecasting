@@ -18,8 +18,8 @@ data {
   real<lower=0> mwpd; // mL of WW produced per person per day
   int<lower=1> if_l; // length of infection feedback pmf
   vector[if_l] infection_feedback_pmf; // infection feedback pmf
-  int<lower=0> ot; // total time span where we have hospital admissions
-  int<lower=0> oht; // number of days with observed hospital admissions
+  int<lower=0> ot; // maximum time index for the hospital admissions (max number of days we could have observations)
+  int<lower=0> oht; // number of days that we have hospital admissions observations
   int<lower=0> owt; // number of days of observed WW (should be roughly ot/7)
   int<lower=0> uot; // unobserved time before we observe hospital admissions/ WW
   int<lower=0> ht; // horizon time (nowcast + forecast time)

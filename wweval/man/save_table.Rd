@@ -10,7 +10,7 @@ save_table(
   output_dir,
   scenario,
   forecast_date,
-  model_type,
+  model_type = c("ww", "hosp"),
   location
 )
 }

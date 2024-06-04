@@ -18,7 +18,8 @@ write_eval_config <- function(locations, forecast_dates,
                               scenarios,
                               config_dir,
                               scenario_dir,
-                              eval_date) {
+                              eval_date,
+                              overwrite_summary_table) {
   # Will need to load in the files corresponding to the input scenarios, so we
   # get the list of locations that are relevant for each scenario. We will bind
   # these all together to create the full eval config.
@@ -61,11 +62,19 @@ write_eval_config <- function(locations, forecast_dates,
   scenario_dir <- file.path("input", "config", "eval", "scenarios")
   hosp_data_dir <- file.path("input", "hosp_data", "vintage_datasets")
   population_data_path <- file.path("input", "locations.csv")
+  baseline_score_table_dir <- file.path("output", "baseline_score")
   # stan_models_dir <- system.file("stan", package = "cfaforecastrenewalww") #nolint
   stan_models_dir <- file.path("cfaforecastrenewalww", "inst", "stan")
   init_dir <- file.path("input", "init_lists")
   output_dir <- file.path("output", "eval")
-
+  figure_dir <- file.path("output", "eval", "plots")
+  hub_subdir <- file.path("output", "eval", "hub")
+  score_subdir <- file.path("output", "eval", "hub")
+  hub_model_names <- c(
+    "COVIDhub-4_week_ensemble", "UMass-trends_ensemble",
+    "UT-Osiris", "COVIDhub-baseline"
+  )
+  raw_output_dir <- file.path(output_dir, "raw_output")
   ww_data_mapping <- "Monday: Monday, Wednesday: Monday"
   calibration_time <- 90
   forecast_time <- 28
@@ -95,6 +104,15 @@ write_eval_config <- function(locations, forecast_dates,
   )) |>
     dplyr::pull(probability_mass)
 
+  # Table of hospital admissions outliers by location-forecast-date-admissions-date:
+  # This is currently fake/a test. We will replace with a load in to a path
+  # to a saved csv eventually.
+  table_of_exclusions <- data.frame(
+    location = c("TX", "TX", "TX", "TX"),
+    forecast_date = "2024-02-26",
+    dates_to_exclude = c("2024-01-30", "2024-01-31", "2024-02-01", "2024-02-02")
+  )
+
   config <- list(
     location_ww = df_ww |> dplyr::pull(location) |> as.vector(),
     forecast_date_ww = df_ww |> dplyr::pull(forecast_date) |> as.vector(),
@@ -106,13 +124,21 @@ write_eval_config <- function(locations, forecast_dates,
     scenario_dir = scenario_dir,
     hosp_data_dir = hosp_data_dir,
     stan_models_dir = stan_models_dir,
+    baseline_score_table_dir = baseline_score_table_dir,
     output_dir = output_dir,
+    hub_subdir = hub_subdir,
+    score_subdir = score_subdir,
+    raw_output_dir = raw_output_dir,
+    figure_dir = figure_dir,
+    hub_model_names = hub_model_names,
     population_data_path = population_data_path,
     init_dir = init_dir,
     init_fps = init_fps,
+    overwrite_summary_table = overwrite_summary_table,
     calibration_time = calibration_time,
     forecast_time = forecast_time,
     ww_data_mapping = ww_data_mapping,
+    table_of_exclusions = table_of_exclusions,
     # MCMC settings
     iter_warmup = iter_warmup,
     iter_sampling = iter_sampling,
