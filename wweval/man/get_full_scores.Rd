@@ -4,11 +4,7 @@
 \alias{get_full_scores}
 \title{Get the scores for ever day for a particular location and forecast date}
 \usage{
-get_full_scores(
-  draws,
-  scenario,
-  metrics = c("crps", "dss", "bias", "mad", "ae_median", "se_mean")
-)
+get_full_scores(draws, scenario, metrics = NULL)
 }
 \arguments{
 \item{draws}{a dataframe of the model estimated  quantity you are evaluating
@@ -18,7 +14,8 @@ alongside the evaluation data}
 running}
 
 \item{metrics}{Vector of scoring metrics to output, passed as the
-\code{metrics} argument to \code{\link[scoringutils:score]{scoringutils::score()}}. Default
+\code{metrics} argument to \code{\link[scoringutils:score]{scoringutils::score()}}. Default is NULL,
+which returns all options for samples including:
 \code{c("crps", "dss", "bias", "mad", "ae_median", "se_mean")}.}
 }
 \value{

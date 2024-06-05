@@ -17,7 +17,7 @@ the estimated wastewater concentrations in each site joined with both the data
 the model was calibrated to and the later observed data for evaluating the
 future predicted concentrations against.}
 
-\item{location}{the jursidiction the data is from}
+\item{location}{the jurisdiction the data is from}
 
 \item{model_type}{type of model the output is from, default is \code{ww}}
 

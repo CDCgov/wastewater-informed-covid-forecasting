@@ -8,7 +8,7 @@ sigma_rt_prior = 0.3
 dur_inf = 7
 
 sigma_i0_prior_mode = 0
-sigma_i0_prior_sd = 0.5
+sigma_i0_prior_sd = 0.1
 i0_certainty = 5
   ## effective number of binomial trials
   ## in beta prior centered on estimated i0/n
@@ -18,6 +18,10 @@ initial_growth_prior_sd = 0.01
 autoreg_rt_a = 2 # shape1 parameter of autoreg term on Rt trend
 autoreg_rt_b = 40 # shape2 parameter of autoreg on Rt trend
   # mean = a/(a+b) = 0.05, stdv = sqrt(a)/b = sqrt(2)/40 = 0.035
+autoreg_rt_site_a = 1 # shape1 parameter of autoreg term on difference between
+  # R(t) state and R(t) site
+autoreg_rt_site_b = 4 # shape2 parameter of autoreg term on difference between
+# R(t) state and R(t) site
 autoreg_p_hosp_a = 1 # shape1 parameter of autoreg term on IHR(t) trend
 autoreg_p_hosp_b = 100 # shape2 parameter of autoreg term on IHR(t) trend
 eta_sd_sd = 0.01
@@ -55,7 +59,7 @@ log_g_prior_sd = 4.60517 # 2 * log(10)
 
 sigma_ww_prior_sd = 0.5
 
-sigma_ww_site_prior_mean_mean = 0.5
+sigma_ww_site_prior_mean_mean = 1
 sigma_ww_site_prior_mean_sd = 1
 sigma_ww_site_prior_sd_mean = 0
 sigma_ww_site_prior_sd_sd = 1

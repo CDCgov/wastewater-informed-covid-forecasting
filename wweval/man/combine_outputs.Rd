@@ -5,7 +5,8 @@
 \title{Combine outputs}
 \usage{
 combine_outputs(
-  output_type,
+  output_type = c("quantiles", "scores", "ww_quantiles", "scores_quantiles",
+    "hosp_quantiles", "flags", "errors"),
   scenarios,
   forecast_dates,
   locations,
@@ -14,8 +15,9 @@ combine_outputs(
 )
 }
 \arguments{
-\item{output_type}{the type of output that is saved, either \code{"quantiles"} or
-\code{"scores"} or \verb{"ww_quantiles}.}
+\item{output_type}{the type of output that is saved, one of \code{"quantiles"}, \code{"scores"},
+\code{"ww_quantiles"}, \code{"scores_quantiles"}, \code{"hosp_quantiles"},\code{"errors"},
+or \code{"flags"}.}
 
 \item{scenarios}{The vector of character strings of all the scenarios}
 
@@ -33,7 +35,7 @@ forecast_dates, locations, and scenarios
 }
 \description{
 This function is a helper function specific to the current nested file
-stucture specified by the functions that save the quantiles and scores
+structure specified by the functions that save the quantiles and scores
 for each of the model runs to disk. The function takes in the
 vectors of scenarios, forecast dates, and locations with output model runs,
 checks if they exist in the current file structure, and if they do

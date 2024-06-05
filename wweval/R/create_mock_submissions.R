@@ -8,7 +8,7 @@
 #' add it to the dataframe, and continue to concatenate until we get a full
 #' score dataframe with all combinations of forecast dates, locations, and
 #' scenarios, labeled according to scenario. We will still know which ones
-#' are from which model with the `model`` colum
+#' are from which model with the `model`` column
 #'
 #' @param all_scores This a dataframe of scores for all the successful model runs.
 #' Because there are locations in each scenario where the wastewater data is
@@ -59,9 +59,7 @@ create_mock_submission_scores <- function(all_scores,
           location %in% needed_locs
         ) |>
         dplyr::mutate(scenario = scenarios[j])
-      if (!sjmisc::is_empty(needed_locs)) {
-        stopifnot("Replacement scores unavailable" = nrow(replacement_scores) > 0)
-      }
+
       submission_scores <- rbind(
         scores_from_model,
         replacement_scores
@@ -76,7 +74,45 @@ create_mock_submission_scores <- function(all_scores,
     nrow()
   n_expected_combos <- length(forecast_dates) * length(locations) * length(scenarios)
 
-  stopifnot("Number of combinations not what is expected" = n_combos == n_expected_combos)
+  message("Number of expected combos:", n_expected_combos)
+  message("Number of actual combos:", n_combos)
 
-  return(all_submission_scores)
+  # If there are locations/forecast dates with less than the unique number of
+  # scenarios, this is because the hospital admissions only model didn't
+  # converge. If this is the case, we probably want to exclude that location
+  # forecast date bc we can't compare across scenarios.
+
+  exclusions <- all_submission_scores |>
+    dplyr::distinct(location, forecast_date, scenario) |>
+    count(location, forecast_date) |>
+    arrange(n) |>
+    dplyr::filter(n < length(unique(all_submission_scores$scenario)))
+
+  # Function that excludes rows based on one combination of exclusions
+  exclude_combination <- function(df, exclusion) {
+    filtered_df <- df |> dplyr::filter(
+      !(location == exclusion$location & forecast_date == exclusion$forecast_date)
+    )
+    return(filtered_df)
+  }
+
+  # Apply the exclusion function for each row in the exclusions dataframe
+  filtered_scores <- all_submission_scores
+  for (i in seq_len(nrow(exclusions))) {
+    filtered_scores <- exclude_combination(filtered_scores, exclusions[i, ])
+  }
+
+  # check that all ns are n_unique combos
+  test <- filtered_scores |>
+    dplyr::distinct(location, forecast_date, scenario) |>
+    count(location, forecast_date) |>
+    arrange(n)
+
+  stopifnot(
+    "Check that all locations forecast dates have full set of scenarios" =
+      min(test$n) == length(unique(all_submission_scores$scenario))
+  )
+
+
+  return(filtered_scores)
 }

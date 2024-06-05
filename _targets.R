@@ -403,6 +403,17 @@ list(
     deployment = "main"
   ),
   tar_target(
+    name = plot_autoreg_rt_site,
+    command = get_plot_single_param(
+      grouped_df_id,
+      param_name = "autoreg_rt_site",
+      figure_output_subdirectory
+    ),
+    pattern = map(grouped_df_id),
+    iteration = "list",
+    deployment = "main"
+  ),
+  tar_target(
     name = plot_p_hosp_mean,
     command = get_plot_single_param(
       grouped_df_id,

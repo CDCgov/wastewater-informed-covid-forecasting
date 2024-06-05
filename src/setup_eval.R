@@ -14,14 +14,19 @@ write_eval_config(
       "PA", "PR", "RI", "SC", "SD", "TN", "TX", "UT", "VA",
       "VT", "WA", "WI", "WV", "WY"
     ),
-  forecast_dates = c(
-    "2023-10-16", "2023-10-30", "2023-11-06", "2023-11-13",
-    "2023-11-27", "2023-12-04", "2023-12-11", "2023-12-25",
-    "2024-01-01", "2024-01-08", "2024-01-22", "2024-01-29",
-    "2024-02-05", "2024-02-19", "2024-02-26", "2024-03-04"
+  forecast_dates = as.character(
+    seq(
+      from = lubridate::ymd("2023-10-16"),
+      to = lubridate::ymd("2024-03-11"),
+      by = "week"
+    )
   ),
-  scenarios = c("coe_proxy", "coe_regional", "max_40", "fed_funded"), # nolint
+  scenarios = c(
+    "status_quo"
+  ),
   config_dir = file.path("input", "config", "eval"),
   scenario_dir = file.path("input", "config", "eval", "scenarios"),
-  eval_date = "2024-04-29"
+  eval_date = "2024-04-29",
+  overwrite_summary_table = FALSE # Set as TRUE if trying to get a baseline
+  # score for all locations one forecast date
 )

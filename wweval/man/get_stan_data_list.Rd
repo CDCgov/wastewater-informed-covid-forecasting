@@ -8,6 +8,7 @@ get_stan_data_list(
   model_type,
   forecast_date,
   forecast_time,
+  calibration_time,
   input_ww_data,
   input_hosp_data,
   generation_interval,
@@ -30,6 +31,9 @@ Options are \code{ww} or \code{hosp}}
 
 \item{forecast_time}{integer indicating the number of days to make a forecast
 for}
+
+\item{calibration_time}{integer indicating the max duration in days that
+the model is calibrated to hospital admissions for}
 
 \item{input_ww_data}{a dataframe with the input wastewater data}
 
@@ -66,7 +70,7 @@ natural scale, default is \code{ww}}
 in the input_ww_data that indicates the value of the LOD in natural scale,
 default is \code{lod_sewage}}
 
-\item{hosp_value_col_name}{A string represeting the name of the column in the
+\item{hosp_value_col_name}{A string representing the name of the column in the
 input_hosp-data that indicates the number of daily hospital admissions,
 default is \code{daily_hosp_admits}}
 }

@@ -7,7 +7,7 @@
 get_plot_hosp_data_comparison(
   draws_w_data,
   location,
-  model_type,
+  model_type = c("ww", "hosp"),
   n_draws = 100
 )
 }

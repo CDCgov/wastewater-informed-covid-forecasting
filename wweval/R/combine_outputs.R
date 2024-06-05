@@ -1,7 +1,7 @@
 #' Combine outputs
 #' @description
 #' This function is a helper function specific to the current nested file
-#' stucture specified by the functions that save the quantiles and scores
+#' structure specified by the functions that save the quantiles and scores
 #' for each of the model runs to disk. The function takes in the
 #' vectors of scenarios, forecast dates, and locations with output model runs,
 #' checks if they exist in the current file structure, and if they do
@@ -9,8 +9,9 @@
 #' all of the outputs row binded
 #'
 #'
-#' @param output_type the type of output that is saved, either `"quantiles"` or
-#' `"scores"` or `"ww_quantiles`.
+#' @param output_type the type of output that is saved, one of `"quantiles"`, `"scores"`,
+#' `"ww_quantiles"`, `"scores_quantiles"`, `"hosp_quantiles"`,`"errors"`,
+#'  or `"flags"`.
 #' @param scenarios The vector of character strings of all the scenarios
 #' @param forecast_dates The vector of character strings of all the forecast dates
 #' @param locations The vector of character strings of all the locations
@@ -21,12 +22,17 @@
 #' forecast_dates, locations, and scenarios
 #' @export
 #'
-combine_outputs <- function(output_type,
+combine_outputs <- function(output_type =
+                              c(
+                                "quantiles", "scores", "ww_quantiles", "scores_quantiles",
+                                "hosp_quantiles", "flags", "errors"
+                              ),
                             scenarios,
                             forecast_dates,
                             locations,
                             eval_output_subdir,
                             model_type) {
+  output_type <- arg_match(output_type)
   df <- tibble(
     scenario = scenarios,
     forecast_date = forecast_dates,

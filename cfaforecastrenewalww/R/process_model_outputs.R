@@ -1076,11 +1076,22 @@ get_raw_param_draws <- function(stan_output_draws, model_type,
       mutate(value = plogis(p_hosp_mean)) %>%
       select(name, t, value, draw)
 
+    autoreg_rt_site <- stan_output_draws %>%
+      spread_draws(autoreg_rt_site) %>%
+      sample_draws(ndraws = n_draws) %>%
+      mutate(draw = `.draw`) %>%
+      mutate(
+        name = "autoreg_rt_site",
+        t = NA
+      ) %>%
+      rename(value = autoreg_rt_site) %>%
+      select(name, t, value, draw)
+
     posterior_params <- rbind(
       phi_h, eta_sd, log10_g, i0,
       infection_feedback,
       autoreg_rt, initial_growth, p_hosp_sd,
-      p_hosp_mean
+      p_hosp_mean, autoreg_rt_site
     )
   }
 
