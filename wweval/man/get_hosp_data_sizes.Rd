@@ -8,6 +8,7 @@ get_hosp_data_sizes(
   input_hosp_data,
   forecast_date,
   forecast_time,
+  calibration_time,
   last_hosp_data_date,
   uot,
   hosp_value_col_name = "daily_hosp_admits"
@@ -20,6 +21,9 @@ get_hosp_data_sizes(
 
 \item{forecast_time}{integer indicating the number of days to make a forecast
 for}
+
+\item{calibration_time}{integer indicating the max duration in days that
+the model is calibrated to hospital admissions for}
 
 \item{last_hosp_data_date}{string indicating the date of the last observed
 hospital admission}

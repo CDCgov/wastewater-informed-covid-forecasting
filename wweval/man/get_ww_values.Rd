@@ -29,7 +29,7 @@ the ww_data that indicates the number of people represented by that wastewater
 catchment}
 
 \item{one_pop_per_site}{a boolean variable indicating if there should only
-be on catchment area population per site, default is \code{TRUE} bc this is what
+be on catchment area population per site, default is \code{TRUE} because this is what
 the stan model expects}
 }
 \value{

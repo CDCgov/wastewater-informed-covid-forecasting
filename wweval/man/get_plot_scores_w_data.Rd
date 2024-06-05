@@ -4,7 +4,13 @@
 \alias{get_plot_scores_w_data}
 \title{Get plot scores with evaluation data overlaid}
 \usage{
-get_plot_scores_w_data(all_scores, eval_data, score_metric = "crps")
+get_plot_scores_w_data(
+  all_scores,
+  eval_data,
+  figure_file_path,
+  score_metric = "crps",
+  save_files = TRUE
+)
 }
 \arguments{
 \item{all_scores}{a dataframe containing daily scores for each scenario,
@@ -13,8 +19,13 @@ and forecast date, for a single location}
 \item{eval_data}{a dataframe containing the hospital admissions data
 that the forecasts are evaluated against}
 
+\item{figure_file_path}{Outer directory for plots to go in}
+
 \item{score_metric}{A string indicating the score metric to plot,
 default is "crps"}
+
+\item{save_files}{Whether or not to write to a folder of plots,
+default is \code{TRUE}}
 }
 \value{
 a ggplot object plotting the scores summarized by forecast date

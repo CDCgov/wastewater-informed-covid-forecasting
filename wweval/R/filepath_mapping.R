@@ -2,7 +2,7 @@
 #'
 #' @param model_type string specifying the model to be run, options are either
 #' 'hosp' for the hospital admissions only model or
-#' 'ww' for the site-level infection dyanmics model using wastewater
+#' 'ww' for the site-level infection dynamics model using wastewater
 #' @param stan_models_dir directory where stan files are located
 #'
 #' @return string indicating path to correct stan file
@@ -30,7 +30,7 @@ get_model_path <- function(model_type, stan_models_dir) {
 #' @description
 #' A function to return a character string for each item to either be saved or
 #' read in, based on the nesting that is specified in this function. To change
-#' the nesting, we will change this funciton
+#' the nesting, we will change this function
 #'
 #'
 #' @param output_subdir Character string to upper level directory where outputs

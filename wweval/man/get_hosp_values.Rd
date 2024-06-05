@@ -20,7 +20,7 @@ model has available calibration data in days}
 \item{ht}{integer indicating the number of days to produce hospital admissions
 outside the calibration period (forecast + nowcast time) in days}
 
-\item{hosp_value_col_name}{A string represeting the name of the column in the
+\item{hosp_value_col_name}{A string representing the name of the column in the
 input_hosp-data that indicates the number of daily hospital admissions,
 default is \code{daily_hosp_admits}}
 }

@@ -9,7 +9,7 @@ get_model_path(model_type, stan_models_dir)
 \arguments{
 \item{model_type}{string specifying the model to be run, options are either
 'hosp' for the hospital admissions only model or
-'ww' for the site-level infection dyanmics model using wastewater}
+'ww' for the site-level infection dynamics model using wastewater}
 
 \item{stan_models_dir}{directory where stan files are located}
 }

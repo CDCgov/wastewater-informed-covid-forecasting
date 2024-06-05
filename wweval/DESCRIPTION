@@ -49,6 +49,7 @@ Imports:
     tidybayes,
     lubridate,
     ggplot2,
+    colorspace,
     stats,
     yaml,
     tidyr,

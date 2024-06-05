@@ -46,7 +46,7 @@ Imports:
     here,
     yaml,
     tidybayes,
-    cmdstanr (>= 0.7.1),
+    cmdstanr (>= 0.8.0),
     zoo,
     lubridate,
     ggplot2,
@@ -81,7 +81,7 @@ Suggests:
     knitr,
     withr,
     testthat
-SystemRequirements: CmdStan (>=2.34.1)
+SystemRequirements: CmdStan (>=2.35.0)
 RoxygenNote: 7.3.1
 Encoding: UTF-8
 LazyData: true

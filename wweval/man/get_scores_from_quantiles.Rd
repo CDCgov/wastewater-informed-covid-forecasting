@@ -5,11 +5,7 @@
 \title{Get the scores for every day for a location, forecast date, and scenario
 from the quantiles during the forecast period}
 \usage{
-get_scores_from_quantiles(
-  quantiles,
-  scenario,
-  metrics = c("coverage", "dispersion", "bias", "range")
-)
+get_scores_from_quantiles(quantiles, scenario, metrics = NULL)
 }
 \arguments{
 \item{quantiles}{a dataframe of the model estimated quantiles alongside
@@ -20,8 +16,9 @@ only}
 running}
 
 \item{metrics}{Vector of scoring metrics to output, passed as the
-\code{metrics} argument to \code{\link[scoringutils:score]{scoringutils::score()}}. Default
-\code{c("coverage", "dispersion", "bias", "range")}.}
+\code{metrics} argument to \code{\link[scoringutils:score]{scoringutils::score()}}. Default is NULL which will
+include all scoring metrics for quantiles by default, including
+\code{c("interval_score", "coverage", "dispersion", "bias")}.}
 }
 \value{
 a dataframe containing a score for each day in the nowcast

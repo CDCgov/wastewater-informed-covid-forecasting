@@ -7,7 +7,9 @@
 get_plot_quantile_comparison(
   hosp_quantiles,
   eval_data,
-  days_to_show_forecast = 28
+  figure_file_path,
+  days_to_show_forecast = 28,
+  save_files = TRUE
 )
 }
 \arguments{
@@ -15,8 +17,13 @@ get_plot_quantile_comparison(
 
 \item{eval_data}{Hospital admissions data for visual comparison}
 
+\item{figure_file_path}{Outer directory for plots to go in}
+
 \item{days_to_show_forecast}{Number of days to show the forecast, default
 vlaue is 28}
+
+\item{save_files}{Whether or not to write to a folder of plots,
+default is \code{TRUE}}
 }
 \value{
 a ggplot object with forecasts overlaid with evaluation data for

@@ -473,6 +473,8 @@ get_stan_data_site_level_model <- function(train_data,
     # duration shedding
     autoreg_rt_a = autoreg_rt_a,
     autoreg_rt_b = autoreg_rt_b,
+    autoreg_rt_site_a = autoreg_rt_site_a,
+    autoreg_rt_site_b = autoreg_rt_site_b,
     autoreg_p_hosp_a = autoreg_p_hosp_a,
     autoreg_p_hosp_b = autoreg_p_hosp_b,
     inv_sqrt_phi_prior_mean = inv_sqrt_phi_prior_mean,
