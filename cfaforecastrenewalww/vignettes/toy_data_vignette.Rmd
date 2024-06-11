@@ -197,7 +197,7 @@ iterations, with settings for the maximum treedepth (referred to as
 `max_treedepth`) of 12 and an acceptance probability (referred to as
 `adapt_delta`) of 0.95. This matches the production-level settings specified in
 `src/write_config.R`.
-```{r}
+```{r warning=FALSE, message=FALSE}
 fit_dynamic_rt <- model$sample(
   data = stan_data,
   seed = 123,
@@ -378,7 +378,7 @@ ggplot(comp_df %>% filter(name %in% c("log10_g"))) +
 # Try fitting the model without wastewater
 The switch `include_ww = 0` tells the model not to evaluate the likelihood on
 the wastewater data.
-```{r}
+```{r warning=FALSE, message=FALSE}
 stan_data_hosp_only <- stan_data
 stan_data_hosp_only$include_ww <- 0
 
@@ -430,8 +430,11 @@ ggplot(output_df_hosp_only) +
   ggtitle("State level hospital admissions fit to only hospital admissions") +
   theme_bw()
 ```
+
 # Model outputs: compare inferred parameters to known parameters
+
 This time just for the IHR and R(t)
+
 ```{r}
 # Get the full posterior parameter distribution from the real data
 full_param_df_hosp_only <- get_full_param_distrib(
