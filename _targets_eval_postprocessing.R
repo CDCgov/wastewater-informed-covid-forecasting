@@ -52,9 +52,7 @@ setup_interactive_dev_run <- function() {
       "cmdstanr",
       "tidybayes",
       "cfaforecastrenewalww",
-      "data.table",
-      "ggridges",
-      "ggdist"
+      "data.table"
     )
   )
 }
@@ -123,7 +121,7 @@ combined_targets <- list(
       scenarios = eval_config$scenario,
       forecast_dates = eval_config$forecast_date_ww,
       locations = eval_config$location_ww,
-      eval_output_subdir = eval_config$output_dir,
+      eval_output_subdir = file.path("output", "eval"),
       model_type = "ww"
     )
   ),
@@ -134,52 +132,9 @@ combined_targets <- list(
       scenarios = "no_wastewater",
       forecast_dates = eval_config$forecast_date_hosp,
       locations = eval_config$location_hosp,
-      eval_output_subdir = eval_config$output_dir,
+      eval_output_subdir = file.path("output", "eval"),
       model_type = "hosp"
     )
-  ),
-  ## Flags------------------------------------------------------------------
-  tar_target(
-    name = all_flags_ww,
-    command =
-      combine_outputs(
-        output_type = "flags",
-        scenarios = eval_config$scenario,
-        forecast_dates = eval_config$forecast_date_ww,
-        locations = eval_config$location_ww,
-        eval_output_subdir = eval_config$output_dir,
-        model_type = "ww"
-      )
-  ),
-  tar_target(
-    name = all_flags_hosp,
-    command = combine_outputs(
-      output_type = "flags",
-      scenarios = "no_wastewater",
-      forecast_dates = eval_config$forecast_date_hosp,
-      locations = eval_config$location_hosp,
-      eval_output_subdir = eval_config$output_dir,
-      model_type = "hosp"
-    )
-  ),
-  tar_target(
-    name = all_flags,
-    command = dplyr::bind_rows(all_flags_ww, all_flags_hosp)
-  ),
-  tar_target(
-    name = convergence_df_ww,
-    command = get_convergence_df(
-      all_flags_ww,
-      default_scenario = "status_quo"
-    ) |>
-      dplyr::rename(any_flags_ww = any_flags)
-  ),
-  tar_target(
-    name = convergence_df_hosp,
-    command = get_convergence_df(all_flags_hosp,
-      default_scenario = "no_wastewater"
-    ) |>
-      dplyr::rename(any_flags_hosp = any_flags)
   ),
   ### Scores from quantiles-------------------------------------------------
   tar_target(
@@ -189,7 +144,7 @@ combined_targets <- list(
       scenarios = eval_config$scenario,
       forecast_dates = eval_config$forecast_date_ww,
       locations = eval_config$location_ww,
-      eval_output_subdir = eval_config$output_dir,
+      eval_output_subdir = file.path("output", "eval"),
       model_type = "ww"
     )
   ),
@@ -200,7 +155,7 @@ combined_targets <- list(
       scenarios = "no_wastewater",
       forecast_dates = eval_config$forecast_date_hosp,
       locations = eval_config$location_hosp,
-      eval_output_subdir = eval_config$output_dir,
+      eval_output_subdir = file.path("output", "eval"),
       model_type = "hosp"
     )
   ),
@@ -212,7 +167,7 @@ combined_targets <- list(
       scenarios = eval_config$scenario,
       forecast_dates = eval_config$forecast_date_ww,
       locations = eval_config$location_ww,
-      eval_output_subdir = eval_config$output_dir,
+      eval_output_subdir = file.path("output", "eval"),
       model_type = "ww"
     )
   ),
@@ -223,7 +178,7 @@ combined_targets <- list(
       scenarios = "no_wastewater",
       forecast_dates = eval_config$forecast_date_hosp,
       locations = eval_config$location_hosp,
-      eval_output_subdir = eval_config$output_dir,
+      eval_output_subdir = file.path("output", "eval"),
       model_type = "hosp"
     )
   ),
@@ -234,7 +189,7 @@ combined_targets <- list(
       scenarios = eval_config$scenario,
       forecast_dates = eval_config$forecast_date_ww,
       locations = eval_config$location_ww,
-      eval_output_subdir = eval_config$output_dir,
+      eval_output_subdir = file.path("output", "eval"),
       model_type = "ww"
     )
   ),
@@ -246,7 +201,7 @@ combined_targets <- list(
       scenarios = eval_config$scenario,
       forecast_dates = eval_config$forecast_date_ww,
       locations = eval_config$location_ww,
-      eval_output_subdir = eval_config$output_dir,
+      eval_output_subdir = file.path("output", "eval"),
       model_type = "ww"
     )
   ),
@@ -257,110 +212,15 @@ combined_targets <- list(
       scenarios = "no_wastewater",
       forecast_dates = eval_config$forecast_date_hosp,
       locations = eval_config$location_hosp,
-      eval_output_subdir = eval_config$output_dir,
+      eval_output_subdir = file.path("output", "eval"),
       model_type = "hosp"
     )
   )
 )
 
-# Head-to-head comparison targets-------------------------------------------
-# This set of targets will be conditioned on the presence of sufficient
-# wastewater, whereas the below targets assume that for every location and
-# forecast date we had to submit a forecast, and so we used the hospital
-# admissions only model if wastewater was missing.
-# These are only relevant for the status quo scenario
-head_to_head_targets <- list(
-  tar_target(
-    name = all_ww_quantiles_sq,
-    command = all_ww_quantiles |>
-      dplyr::filter(scenario == "status_quo")
-  ),
-  # Get a table of locations and forecast dates with sufficient wastewater
-  tar_target(
-    name = table_of_loc_dates_w_ww,
-    command = get_table_sufficient_ww(all_ww_quantiles)
-  ),
-  # Get a table indicating whether there are locations and forecast dates with
-  # convergence issues
-  tar_target(
-    name = convergence_df,
-    command = convergence_df_hosp |>
-      dplyr::left_join(convergence_df_ww,
-        by = c("location", "forecast_date")
-      )
-  ),
-  # Get the full set of quantiles, filtered down to only states and
-  # forecast dates with sufficient wastewater for both ww model and hosp only
-  # model. Then join the convergence df
-  tar_target(
-    name = hosp_quantiles_filtered,
-    command = dplyr::bind_rows(
-      all_ww_hosp_quantiles,
-      all_hosp_model_quantiles
-    ) |>
-      dplyr::left_join(table_of_loc_dates_w_ww,
-        by = c("location", "forecast_date")
-      ) |>
-      dplyr::filter(
-        ww_sufficient # filters to location forecast dates with sufficient ww
-      ) |>
-      dplyr::left_join(
-        convergence_df,
-        by = c(
-          "location",
-          "forecast_date"
-        )
-      )
-  ),
-  # Do the same thing for the sampled scores, combining ww and hosp under
-  # the status quo scenario, filtering to the locations and forecast dates
-  # with sufficient wastewater, and then joining the convergence flags
-  tar_target(
-    name = scores_filtered,
-    command = dplyr::bind_rows(
-      all_hosp_scores,
-      all_ww_scores |>
-        dplyr::filter(scenario == "status_quo")
-    ) |>
-      dplyr::left_join(table_of_loc_dates_w_ww,
-        by = c("location", "forecast_date")
-      ) |>
-      dplyr::filter(ww_sufficient) |>
-      dplyr::left_join(
-        convergence_df,
-        by = c(
-          "location",
-          "forecast_date"
-        )
-      )
-  ),
-  # Repeat for the quantile-based scores
-  tar_target(
-    name = scores_quantiles_filtered,
-    command = dplyr::bind_rows(
-      all_hosp_scores_quantiles,
-      all_ww_scores_quantiles |>
-        dplyr::filter(scenario == "status_quo")
-    ) |>
-      dplyr::left_join(table_of_loc_dates_w_ww,
-        by = c("location", "forecast_date")
-      ) |>
-      dplyr::filter(
-        isTRUE(ww_sufficient)
-      ) |>
-      dplyr::left_join(
-        convergence_df,
-        by = c(
-          "location",
-          "forecast_date"
-        )
-      )
-  )
-)
 
-
-# Scenario targets------------------------------------------------
-scenario_targets <- list(
+# Downstream targets-------------------------------------------------------
+downstream_targets <- list(
   tar_target(
     name = all_raw_scores,
     command = data.table::as.data.table(
@@ -377,7 +237,6 @@ scenario_targets <- list(
     name = all_errors,
     command = dplyr::bind_rows(all_hosp_errors, all_ww_errors)
   ),
-
 
   ## Raw scores-----------------------------------------
   # These are the scores from each scenario and location without buffering
@@ -441,7 +300,7 @@ scenario_targets <- list(
       )
     )
   ),
-  ## Plots----------------------------------------------------
+  # Plots----------------------------------------------------
   tar_target(
     name = plot_raw_scores,
     command = get_plot_raw_scores(all_raw_scores,
@@ -555,198 +414,11 @@ hub_targets <- list(
         from = lubridate::ymd(
           min(eval_config$forecast_date_hosp)
         ),
-        to = lubridate::ymd(max(eval_config$forecast_date_hosp)),
+        to = lubridate::ymd("2024-01-29"),
         by = "week"
       ),
-      hub_subdir = eval_config$hub_subdir,
+      hub_subdir = file.path("output", "eval", "hub"),
       model_name = "cfa-wwrenewal"
-    )
-  ),
-  tar_target(
-    name = metadata_hosp_hub_submissions,
-    command = create_hub_submissions(all_hosp_model_quantiles,
-      all_hosp_model_quantiles,
-      forecast_dates = seq(
-        from = lubridate::ymd(
-          min(eval_config$forecast_date_hosp)
-        ),
-        to = lubridate::ymd(max(eval_config$forecast_date_hosp)),
-        by = "week"
-      ),
-      hub_subdir = eval_config$hub_subdir,
-      model_name = "cfa-hosponlyrenewal"
-    )
-  ),
-  # Write a function that will get hub scores + all the metadata
-  # horizon by week, location, forecast_date + eval data alongside it
-  # for the models specified in the eval config
-  tar_target(
-    name = scores_list_retro_hub_submissions,
-    command = score_hub_submissions(
-      model_name = c("cfa-wwrenewal", "cfa-hosponlyrenewal"),
-      hub_subdir = eval_config$hub_subdir,
-      pull_from_github = FALSE,
-      dates = seq(
-        from = lubridate::ymd(
-          min(eval_config$forecast_date_hosp)
-        ),
-        to = lubridate::ymd(max(eval_config$forecast_date_hosp)),
-        by = "week"
-      )
-    )
-  ),
-  tar_target(
-    name = scores_list_hub_submission_oct_mar,
-    command = score_hub_submissions(
-      model_name = eval_config$hub_model_names,
-      pull_from_github = TRUE,
-      dates = seq(
-        from = lubridate::ymd(
-          min(eval_config$forecast_date_hosp)
-        ),
-        to = lubridate::ymd(max(eval_config$forecast_date_hosp)),
-        by = "week"
-      )
-    )
-  ),
-  tar_target(
-    name = combine_scores_oct_mar_raw,
-    command = dplyr::bind_rows(
-      scores_list_retro_hub_submissions$log_scale_scores,
-      scores_list_hub_submission_oct_mar$log_scale_scores
-    )
-  ),
-  # Rename the model as retrospective
-  tar_target(
-    name = combine_scores_oct_mar_full,
-    command = combine_scores_oct_mar_raw |> dplyr::mutate(
-      model = dplyr::case_when(
-        model == "cfa-wwrenewal" ~ "cfa-wwrenewal(retro)",
-        model == "cfa-hosponlyrenewal" ~ "cfa-hosponlyrenewal(retro)",
-        TRUE ~ model
-      )
-    )
-  ),
-  # Filter out the states that not every model has estimates for,
-  # start by doing this manually, can write functions if needed as
-  # we expand to other models
-  tar_target(
-    name = combine_scores_oct_mar,
-    command = combine_scores_oct_mar_full |>
-      dplyr::filter(!location_name %in% c(
-        "Virgin Islands",
-        "American Samoa",
-        "United States"
-      ))
-  ),
-  tar_target(
-    name = save_scores_oct_mar,
-    command = readr::write_csv(
-      combine_scores_oct_mar,
-      file.path(eval_config$score_subdir, "scores_oct_mar.csv")
-    )
-  ),
-  tar_target(
-    name = scores_list_cfa_ww_real_time,
-    command = score_hub_submissions(
-      model_name = "cfa-wwrenewal",
-      pull_from_github = TRUE,
-      dates = seq(
-        from = lubridate::ymd(
-          "2024-02-05"
-        ),
-        to = lubridate::ymd(max(eval_config$forecast_date_hosp)),
-        by = "week"
-      )
-    )
-  ),
-  tar_target(
-    name = cfa_real_time_scores,
-    command = scores_list_cfa_ww_real_time$log_scale_scores |>
-      dplyr::mutate(
-        model = ifelse(
-          model == "cfa-wwrenewal", "cfa-wwrenewal(real-time)", model
-        )
-      )
-  ),
-  tar_target(
-    name = combine_scores_feb_mar,
-    command = dplyr::bind_rows(
-      cfa_real_time_scores,
-      combine_scores_oct_mar |> dplyr::filter(
-        forecast_date >= lubridate::ymd("2024-02-05")
-      )
-    )
-  ),
-  tar_target(
-    name = save_scores_feb_mar,
-    command = readr::write_csv(
-      combine_scores_feb_mar,
-      file.path(eval_config$score_subdir, "scores_feb_mar.csv")
-    )
-  )
-)
-## Hub comparison plots ------------------------------------------------------
-hub_comparison_plots <- list(
-  tar_target(
-    name = plot_wis_over_time,
-    command = get_plot_wis_over_time(
-      all_scores = combine_scores_oct_mar,
-      cfa_real_time_scores = cfa_real_time_scores,
-      figure_file_path = eval_config$figure_dir
-    )
-  ),
-  tar_target(
-    name = plot_overall_performance,
-    command = get_plot_hub_performance(
-      all_scores = combine_scores_oct_mar,
-      cfa_real_time_scores = cfa_real_time_scores,
-      all_time_period = "Oct 2023-Mar 2024",
-      real_time_period = "Feb 2024-Mar 2024",
-      figure_file_path = eval_config$figure_dir
-    )
-  ),
-  tar_target(
-    name = heatmap_relative_wis_all_time,
-    command = get_heatmap_relative_wis(
-      scores = combine_scores_oct_mar,
-      time_period = "Oct 2023-Mar 2024",
-      baseline_model = "COVIDhub-baseline",
-      figure_file_path = eval_config$figure_dir
-    )
-  ),
-  tar_target(
-    name = heatmap_relative_wis_ensemble,
-    command = get_heatmap_relative_wis(
-      scores = combine_scores_oct_mar,
-      time_period = "Oct 2023-Mar 2024",
-      baseline_model = "COVIDhub-4_week_ensemble",
-      figure_file_path = eval_config$figure_dir
-    )
-  ),
-  tar_target(
-    name = heatmap_relative_wis_hosp_only,
-    command = get_heatmap_relative_wis(
-      scores = combine_scores_oct_mar,
-      time_period = "Oct 2023-Mar 2024",
-      baseline_model = "cfa-hosponlyrenewal(retro)",
-      figure_file_path = eval_config$figure_dir
-    )
-  ),
-  tar_target(
-    name = qq_plot_all_time,
-    command = get_qq_plot(
-      scores = combine_scores_oct_mar,
-      time_period = "Oct 2023-Mar 2024",
-      figure_file_path = eval_config$figure_dir
-    )
-  ),
-  tar_target(
-    name = qq_plot_feb_mar,
-    command = get_qq_plot(
-      scores = combine_scores_feb_mar,
-      time_period = "Feb 2024-Mar 2024",
-      figure_file_path = eval_config$figure_dir
     )
   )
 )
@@ -757,8 +429,6 @@ hub_comparison_plots <- list(
 list(
   upstream_targets,
   combined_targets,
-  head_to_head_targets,
-  scenario_targets,
-  hub_targets,
-  hub_comparison_plots
+  downstream_targets,
+  hub_targets
 )

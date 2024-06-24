@@ -5,8 +5,6 @@
 #' @param forecast_date string indicating the forecast date
 #' @param forecast_time integer indicating the number of days to make a forecast
 #' for
-#' @param calibration_time integer indicating the max duration in days that
-#' the model is calibrated to hospital admissions for
 #' @param input_ww_data a dataframe with the input wastewater data
 #' @param input_hosp_data a dataframe with the input hospital admissions data
 #' @param generation_interval a vector with a zero-truncated normalized pmf of
@@ -40,7 +38,6 @@
 get_stan_data_list <- function(model_type,
                                forecast_date,
                                forecast_time,
-                               calibration_time,
                                input_ww_data,
                                input_hosp_data,
                                generation_interval,
@@ -138,13 +135,12 @@ get_stan_data_list <- function(model_type,
   # Get the remaining things needed for both models
   hosp_data <- add_time_indexing(input_hosp_data)
   hosp_data_sizes <- get_hosp_data_sizes(
-    input_hosp_data = hosp_data,
-    forecast_date = forecast_date,
-    forecast_time = forecast_time,
-    calibration_time = calibration_time,
-    last_hosp_data_date = last_hosp_data_date,
-    uot = uot,
-    hosp_value_col_name = hosp_value_col_name
+    hosp_data,
+    forecast_date,
+    forecast_time,
+    last_hosp_data_date,
+    uot,
+    hosp_value_col_name
   )
   hosp_indices <- get_hosp_indices(hosp_data)
   hosp_values <- get_hosp_values(
@@ -224,8 +220,6 @@ get_stan_data_list <- function(model_type,
       viral_shedding_pars = viral_shedding_pars, # tpeak, viral peak, dur_shed
       autoreg_rt_a = autoreg_rt_a,
       autoreg_rt_b = autoreg_rt_b,
-      autoreg_rt_site_a = autoreg_rt_site_a,
-      autoreg_rt_site_b = autoreg_rt_site_b,
       autoreg_p_hosp_a = autoreg_p_hosp_a,
       autoreg_p_hosp_b = autoreg_p_hosp_b,
       inv_sqrt_phi_prior_mean = inv_sqrt_phi_prior_mean,
@@ -754,8 +748,6 @@ get_subpop_data <- function(add_auxiliary_site,
 #' @param forecast_date string indicating the forecast date
 #' @param forecast_time integer indicating the number of days to make a forecast
 #' for
-#' @param calibration_time integer indicating the max duration in days that
-#' the model is calibrated to hospital admissions for
 #' @param last_hosp_data_date string indicating the date of the last observed
 #' hospital admission
 #' @param uot integer indicating the time of model initialization when there are
@@ -778,7 +770,6 @@ get_subpop_data <- function(add_auxiliary_site,
 get_hosp_data_sizes <- function(input_hosp_data,
                                 forecast_date,
                                 forecast_time,
-                                calibration_time,
                                 last_hosp_data_date,
                                 uot,
                                 hosp_value_col_name = "daily_hosp_admits") {
@@ -792,7 +783,7 @@ get_hosp_data_sizes <- function(input_hosp_data,
   tot_weeks <- ceiling((ot + uot + ht) / 7)
   hosp_data_sizes <- list(
     ht = ht,
-    ot = calibration_time,
+    ot = ot,
     oht = oht,
     n_weeks = n_weeks,
     tot_weeks = tot_weeks

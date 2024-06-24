@@ -46,7 +46,6 @@ setup_interactive_dev_run <- function() {
   tar_option_set(
     packages = c(
       "cmdstanr",
-      "rlang",
       "tibble",
       "ggplot2",
       "dplyr",
@@ -106,10 +105,6 @@ upstream_targets <- list(
       last_hosp_data_date = eval_config$eval_date,
       ww_data_mapping = eval_config$ww_data_mapping
     )
-  ),
-  tar_target(
-    name = table_of_exclusions,
-    command = tibble::as_tibble(eval_config$table_of_exclusions)
   )
 )
 
@@ -142,7 +137,7 @@ mapped_ww <- tar_map(
     priority = 1
   ),
   tar_target(
-    name = raw_input_hosp_data,
+    name = input_hosp_data,
     command = get_input_hosp_data(forecast_date, location,
       hosp_data_dir = eval_config$hosp_data_dir,
       calibration_time = eval_config$calibration_time
@@ -151,24 +146,15 @@ mapped_ww <- tar_map(
     priority = 1
   ),
   tar_target(
-    name = input_hosp_data,
-    command = exclude_hosp_outliers(
-      raw_input_hosp_data = raw_input_hosp_data,
-      forecast_date = forecast_date,
-      table_of_exclusions = table_of_exclusions
-    )
-  ),
-  tar_target(
     name = last_hosp_data_date,
     command = get_last_hosp_data_date(input_hosp_data),
     deployment = "main",
     priority = 1
   ),
   tar_target(input_ww_data,
-    command = get_input_ww_data(
-      forecast_date = forecast_date,
-      location = location,
-      scenario = scenario,
+    command = get_input_ww_data(forecast_date,
+      location,
+      scenario,
       scenario_dir = eval_config$scenario_dir,
       ww_data_dir = eval_config$ww_data_dir,
       calibration_time = eval_config$calibration_time,
@@ -183,11 +169,8 @@ mapped_ww <- tar_map(
     name = standata,
     command = get_stan_data_list(
       model_type = "ww",
-      forecast_date = forecast_date,
-      forecast_time = eval_config$forecast_time,
-      calibration_time = eval_config$calibration_time,
-      input_ww_data = input_ww_data,
-      input_hosp_data = input_hosp_data,
+      forecast_date, eval_config$forecast_time,
+      input_ww_data, input_hosp_data,
       generation_interval = eval_config$generation_interval,
       inf_to_hosp = eval_config$inf_to_hosp,
       infection_feedback_pmf = eval_config$infection_feedback_pmf,
@@ -501,20 +484,12 @@ mapped_hosp <- tar_map(
     deployment = "main"
   ),
   tar_target(
-    name = raw_input_hosp_data,
+    name = input_hosp_data,
     command = get_input_hosp_data(forecast_date, location,
       hosp_data_dir = eval_config$hosp_data_dir,
       calibration_time = eval_config$calibration_time
     ),
     deployment = "main"
-  ),
-  tar_target(
-    name = input_hosp_data,
-    command = exclude_hosp_outliers(
-      raw_input_hosp_data = raw_input_hosp_data,
-      forecast_date = forecast_date,
-      table_of_exclusions = table_of_exclusions
-    )
   ),
   tar_target(
     name = last_hosp_data_date,
@@ -526,15 +501,13 @@ mapped_hosp <- tar_map(
     name = standata,
     command = get_stan_data_list(
       model_type = "hosp",
-      forecast_date = forecast_date,
-      forecast_time = eval_config$forecast_time,
-      calibration_time = eval_config$calibration_time,
+      forecast_date, eval_config$forecast_time,
       input_ww_data = NA,
       input_hosp_data = input_hosp_data,
       generation_interval = eval_config$generation_interval,
       inf_to_hosp = eval_config$inf_to_hosp,
       infection_feedback_pmf = eval_config$infection_feedback_pmf,
-      params = params
+      params
     ),
     deployment = "main"
   ),
@@ -869,8 +842,7 @@ downstream_targets <- list(
     name = plot_summarized_scores_w_data,
     command = get_plot_scores_w_data(
       grouped_submission_scores,
-      eval_hosp_data,
-      eval_config$figure_dir
+      eval_hosp_data
     ),
     pattern = map(grouped_submission_scores),
     iteration = "list",
@@ -901,8 +873,7 @@ downstream_targets <- list(
     name = plot_quantile_comparison,
     command = get_plot_quantile_comparison(
       all_hosp_quantiles,
-      eval_hosp_data,
-      eval_config$figure_dir
+      eval_hosp_data
     ),
     pattern = map(all_hosp_quantiles),
     iteration = "list"

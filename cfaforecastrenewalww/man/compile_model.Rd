@@ -31,7 +31,7 @@ Default \code{FALSE} (use single-threaded compilation).}
 \item{target_dir}{Directory in which to save the compiled
 stan model binary. Passed as the \code{dir} keyword argument to
 \code{\link[cmdstanr:cmdstan_model]{cmdstanr::cmdstan_model()}}. Defaults to a temporary directory
-for the R session (the output of \code{\link[=tempdir]{tempdir()}}).}
+for the R sessions (the output of \code{\link[=tempdir]{tempdir()}}).}
 
 \item{stanc_options}{Options for the stan compiler passed to
 \code{\link[cmdstanr:cmdstan_model]{cmdstanr::cmdstan_model()}}, as a list. See that function's

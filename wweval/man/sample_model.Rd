@@ -49,9 +49,7 @@ default = 250}
 \item{seed}{seed of random number generator default = 123}
 }
 \value{
-a list containing draws, diagnostics, and summary_diagnostics  +
-flags if the model failed to pass convergence tests. If the model errored,
-just contains a list with errors
+a list containing draws, diagnostics, and summary_diagnostics
 }
 \description{
 This code was adapted from code written

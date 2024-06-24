@@ -68,9 +68,5 @@ combine_outputs <- function(output_type =
       )
     }
   }
-
-  if (nrow(combined_output) == 0) {
-    combined_output <- NULL
-  }
   return(combined_output)
 }

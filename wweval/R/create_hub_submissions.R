@@ -99,9 +99,7 @@ create_hub_submissions <- function(hosp_quantiles_ww,
     if (isTRUE(save_files)) {
       stopifnot(
         "Don't have forecasts for all locations, not writing to disk" =
-          n_locs >= 51 # temporarily relax bc model convergence flags can
-        # lead to missing models for hosp model as well, in which case we wouldn't
-        # have submitted
+          n_locs == 52
       )
 
       cfaforecastrenewalww::create_dir(file.path(hub_subdir, model_name))
@@ -111,7 +109,7 @@ create_hub_submissions <- function(hosp_quantiles_ww,
         glue::glue("{forecast_date}-{model_name}.csv")
       ))
     }
-  } # end loop over forecast dates
+  }
 
   return(metadata_df)
 }
@@ -167,6 +165,4 @@ format_for_hub <- function(quantiles,
       target, location, forecast_date, target_end_date,
       quantile, value, type
     )
-
-  return(formatted_quantiles)
 }

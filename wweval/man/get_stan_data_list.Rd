@@ -8,7 +8,6 @@ get_stan_data_list(
   model_type,
   forecast_date,
   forecast_time,
-  calibration_time,
   input_ww_data,
   input_hosp_data,
   generation_interval,
@@ -31,9 +30,6 @@ Options are \code{ww} or \code{hosp}}
 
 \item{forecast_time}{integer indicating the number of days to make a forecast
 for}
-
-\item{calibration_time}{integer indicating the max duration in days that
-the model is calibrated to hospital admissions for}
 
 \item{input_ww_data}{a dataframe with the input wastewater data}
 

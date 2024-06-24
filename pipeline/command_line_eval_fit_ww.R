@@ -12,6 +12,8 @@ parsed_args <- arg_parser("Run eval pipeline for one config") |>
   add_argument("config_index", help = "index of entry in eval_config to use", type = "integer") |>
   add_argument("eval_config_path", help = "path to eval_config.yaml") |>
   add_argument("params_path", help = "path to params.toml") |>
+  add_argument("output_dir", help = "directory to store output") |>
+  add_argument("raw_output_dir", help = "directory to store raw output") |>
   parse_args()
 
 eval_fit_ww(

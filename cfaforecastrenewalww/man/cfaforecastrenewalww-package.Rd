@@ -6,7 +6,7 @@
 \alias{cfaforecastrenewalww-package}
 \title{cfaforecastrenewalww: Wastewater informed COVID-19 hospital admissions forecasting}
 \description{
-Semi-mechanistic renewal approach jointly calibrating to state-level hospital admissions and site-level wastewater concentrations.
+Semi-mechanistic renewal approach jointly calibrating to state-level hospital admissions and site-level wastewater concentrations
 }
 \seealso{
 Useful links:
