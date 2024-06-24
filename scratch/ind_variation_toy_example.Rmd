@@ -1,0 +1,622 @@
+---
+title: "Individual variation toy examples"
+author: "Kaitlyn Johnson"
+date: "2024-05-13"
+output: html_document
+---
+
+The purpose of this document is to set up a toy example of a model that tries
+to estimate the mean and coefficient of variation of an individual random variable
+drawn from a gamma distribution using draws from the sum of gammas of a different
+and known number of individual components. This relies on the following:
+
+$$Y \sim \sum_{i=1}^{i= N} Gamma(\alpha = \frac{1}{cv^2}, \beta =  \frac{1}{cv^2}) =  Gamma(\alpha = \frac{N}{cv^2}, \beta =  \frac{1}{cv^2})
+$$
+We will first implement this using a linear scale implementation, then will try
+using log scale, and then a non-centered normal approximation adopted from
+[EpiSewer](https://github.com/adrian-lison/EpiSewer/blob/main/README.md)
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+library(rstan)
+library(ggplot2)
+library(tidybayes)
+library(bayesplot)
+```
+
+
+Write a function generate the data with a specified individual mean, individual
+coefficient of variation, population sizes of the individual things we're
+summing over, and the number of draws from each population size. We'll start
+with a simple example where individual components have a mean 1 and coefficient
+of variation of 2, and we have observations of the sum of their components from
+population sizes of 5, 20, and 100.
+```{r}
+get_data <- function(mu = 1,
+                     cv = 2,
+                     pop = c(5, 20, 100),
+                     n_draws = 10,
+                     prior_mu = 1,
+                     prior_cv = 1) {
+  pop_vector <- rep(pop, each = n_draws)
+  y <- rep(0, n_draws * length(pop))
+  for (i in seq_along(pop_vector)) {
+    alpha <- pop_vector[i] / cv^2
+    beta <- 1 / (mu * (cv^2))
+    y[i] <- rgamma(1, alpha, beta)
+  }
+
+  data <- list(
+    N = length(pop_vector),
+    y = y,
+    pop_vector = pop_vector,
+    prior_mu = prior_mu,
+    prior_cv = prior_cv
+  )
+
+  return(data)
+}
+
+standata <- get_data()
+```
+#Linear scale implementation
+Next we will write a linear scale stan model to fit this data. We will use
+`rstan` just for this example because it interfaces well with Rmd and will
+give us the diagnostic outputs in the format we want them.
+```{stan, output.var = "model"}
+
+data {
+  int<lower=0> N;
+  vector[N] y;
+  vector[N] pop_vector;
+  real prior_mu;
+  real<lower=0> prior_cv;
+}
+
+// The parameters accepted by the model. Our model
+// accepts two parameters 'mu' and 'cv', the mean and coefficient of variation
+// in the individual R.V.s
+parameters {
+  real <lower=0> mu;                        // mean of individual component
+  real<lower=0> cv;               // coefficent of variation in individual data
+}
+
+
+// The model to be estimated.
+model {
+ // Assume we have a truncated half N prior with a standard deviation of 2 times the mean
+ // not sure if thats reasonable...
+  mu ~ normal(prior_mu, 2*prior_mu);
+  cv ~ normal( prior_cv, 2*prior_cv);
+
+  //Formula for the sum of N gammas: Y ~ gamma(N*alpha, beta)
+  y ~ gamma(pop_vector./cv^2, 1 / (mu * (cv^2)));
+
+}
+
+```
+Fit the model using `rstan`
+```{r}
+fit <- sampling(model,
+  standata,
+  warmup = 200,
+  iter = 500,
+  chains = 4
+)
+```
+Analyze the outputs using `bayesplot` and `tidybayes`.
+In this example we will make pairs plots, trace plots, and also plots
+that compare the posterior estimate to the known true parameter.
+```{r}
+# Extract posterior draws for later use
+posterior <- as.array(fit)
+np <- nuts_params(fit)
+
+mcmc_pairs(posterior,
+  np = np, pars = c("mu", "cv"),
+  off_diag_args = list(size = 0.75)
+)
+color_scheme_set("mix-brightblue-gray")
+mcmc_trace(posterior, pars = c("mu", "cv"), np = np) +
+  xlab("Post-warmup iteration")
+
+
+params <- fit |>
+  tidybayes::spread_draws(mu, cv) |>
+  dplyr::mutate(
+    mu_true = 1,
+    cv_true = 2
+  )
+
+ggplot(params, aes(x = mu)) +
+  stat_halfeye() +
+  geom_vline(aes(xintercept = mu_true)) +
+  theme_bw() +
+  xlab("Mean") +
+  ylab("")
+
+ggplot(params, aes(x = cv)) +
+  stat_halfeye() +
+  geom_vline(aes(xintercept = cv_true)) +
+  theme_bw() +
+  xlab("Coefficient of Variation") +
+  ylab("")
+```
+
+
+The results don't look great in terms of estimating the correct posterior,
+but we aren't able to replicate the convergence issues that we see in the real
+data. Let's try to get closer to the wastewater problem by making the orders
+of magnitude of the `mu` the  number of genomes shed and the `pop` the
+number of infected individuals in the population more realistic.
+```{r}
+cv_set <- 2
+mu_set <- exp(7)
+standata <- get_data(
+  mu = 1.2 * mu_set, # make priors imperfect but on the same scale
+  cv = 0.9 * cv_set,
+  prior_mu = exp(7),
+  prior_cv = cv_set,
+  n_draws = 10,
+  pop = c(10, 1000, 1e5)
+)
+df <- data.frame(y = standata$y, pop = rep(standata$pop_vector))
+# Quick plot of the data
+ggplot(df) +
+  geom_point(aes(x = pop, y = y)) +
+  scale_x_continuous(trans = "log") +
+  scale_y_continuous(trans = "log")
+
+
+fit <- sampling(model,
+  standata,
+  warmup = 200,
+  iter = 500,
+  chains = 4
+)
+```
+
+Looking at the outputs from the fit of the model
+```{r}
+# Extract posterior draws for later use
+posterior <- as.array(fit)
+np <- nuts_params(fit)
+
+mcmc_pairs(posterior,
+  np = np, pars = c("mu", "cv"),
+  off_diag_args = list(size = 0.75)
+)
+color_scheme_set("mix-brightblue-gray")
+mcmc_trace(posterior, pars = c("mu", "cv"), np = np) +
+  xlab("Post-warmup iteration")
+
+
+params <- fit |>
+  tidybayes::spread_draws(mu, cv) |>
+  dplyr::mutate(
+    mu_true = mu_set,
+    cv_true = cv_set
+  )
+
+ggplot(params, aes(x = mu)) +
+  stat_halfeye() +
+  geom_vline(aes(xintercept = mu_true)) +
+  theme_bw() +
+  xlab("Mean") +
+  ylab("")
+
+ggplot(params, aes(x = cv)) +
+  stat_halfeye() +
+  geom_vline(aes(xintercept = cv_true)) +
+  theme_bw() +
+  xlab("Coefficient of Variation") +
+  ylab("")
+```
+
+Now we can reproduces the low EBFMI warnings, and we see that we aren't
+able to estimate the mean well.
+
+We probably need to do some log transforming and rescaling of the model
+to properly search parameter space
+
+# Log scale implementation using `expgamma` function
+Let's see if we log transform the data and rescale to estimate
+the mean and the relative variation in shedding, if we can improve the estimates
+
+```{r}
+# First write a function to get the data in log scale
+get_log_scale_data <- function(log_mu = 1,
+                               cv = 2,
+                               pop = c(5, 20, 100),
+                               n_draws = 10,
+                               log_prior_mu = 1,
+                               prior_cv = 1) {
+  pop_vector <- rep(pop, each = n_draws)
+  log_y <- rep(0, n_draws * length(pop))
+  mu <- exp(log_mu)
+  for (i in seq_along(pop_vector)) {
+    alpha <- pop_vector[i] / cv^2
+    beta <- 1 / (mu * (cv^2))
+    log_y[i] <- log(rgamma(1, alpha, beta))
+  }
+
+  data <- list(
+    N = length(pop_vector),
+    log_y = log_y,
+    pop_vector = pop_vector,
+    log_prior_mu = log_prior_mu,
+    prior_cv = prior_cv
+  )
+
+  return(data)
+}
+```
+Now generate the log scaled data
+```{r}
+mu_set <- exp(7)
+cv_set <- 2
+standata <- get_log_scale_data(
+  log_mu = log(mu_set), cv = cv_set,
+  log_prior_mu = log(mu_set),
+  prior_cv = cv_set,
+  pop = c(10, 1000, 1e5)
+)
+df <- data.frame(log_y = standata$log_y, pop = rep(standata$pop_vector))
+# Quick plot of the data
+ggplot(df) +
+  geom_point(aes(x = pop, y = log_y)) +
+  scale_x_continuous(trans = "log")
+```
+
+Modify the stan model to fit the log data and to estimate separately a a relative
+shedding variation and the lean in log scale
+```{stan, output.var = "log_model"}
+functions{
+real expgamma_lpdf(vector xs,
+                   vector shapes_k,
+		   vector scales_theta){
+
+    return(sum(
+	-shapes_k .* log(scales_theta) -
+        lgamma(shapes_k) +
+        shapes_k .* xs - (exp(xs) ./ scales_theta)));
+}
+real expgamma_lpdf(vector x, real shape_k, real scale_theta){
+
+    return(sum(
+	-shape_k * log(scale_theta) -
+        lgamma(shape_k) +
+        shape_k * x - (exp(x) / scale_theta)));
+}
+
+real expgamma_lpdf(real x, real shape_k, real scale_theta){
+
+    return(
+	-shape_k * log(scale_theta) -
+        lgamma(shape_k) +
+        shape_k * x - (exp(x) / scale_theta));
+}
+
+}
+
+
+data {
+  int<lower=0> N;
+  vector[N] log_y;
+  vector[N] pop_vector;
+  real log_prior_mu;
+  real<lower=0> prior_cv;
+}
+
+
+// The parameters accepted by the model. Our model
+// accepts two parameters 'mu' and 'cv', the mean and coefficient of variation
+// in the individual R.V.s
+parameters {
+  real log_mu;                        // mean of individual component
+  real<lower=0> cv;               // coefficent of variation in individual data
+}
+
+transformed parameters{
+  real <lower=0> mu = exp(log_mu ); // We can transform the mean before passing to the gamma
+}
+
+
+// The model to be estimated.
+model {
+  log_mu ~ normal(log_prior_mu, 2*log_prior_mu); // lognormal prior
+  cv ~ normal(prior_cv, 2*prior_cv);
+
+  //Formula for the sum of N gammas: Y ~ gamma(N*alpha, beta)
+  for(i in 1:N){
+  log_y[i] ~ expgamma(pop_vector[i]./cv^2, 1 / (mu * (cv^2)));
+}
+
+
+}
+
+```
+
+```{r}
+fit <- sampling(log_model,
+  standata,
+  warmup = 200,
+  iter = 500,
+  chains = 4
+)
+```
+Look at the parameter estimates
+```{r}
+posterior <- as.array(fit)
+np <- nuts_params(fit)
+
+mcmc_pairs(posterior,
+  np = np, pars = c("mu", "cv"),
+  off_diag_args = list(size = 0.75)
+)
+color_scheme_set("mix-brightblue-gray")
+mcmc_trace(posterior, pars = c("mu", "cv"), np = np) +
+  xlab("Post-warmup iteration")
+
+
+params <- fit |>
+  tidybayes::spread_draws(mu, cv) |>
+  dplyr::mutate(
+    mu_true = mu_set,
+    cv_true = cv_set
+  )
+
+ggplot(params, aes(x = mu)) +
+  stat_halfeye() +
+  geom_vline(aes(xintercept = mu_true)) +
+  theme_bw() +
+  xlab("Mean") +
+  ylab("")
+
+ggplot(params, aes(x = cv)) +
+  stat_halfeye() +
+  geom_vline(aes(xintercept = cv_true)) +
+  theme_bw() +
+  xlab("Coefficient of Variation") +
+  ylab("")
+```
+
+This clearly didn't converge. We can try again with "easier" settings and see what happens.
+Something still isn't working right here. Probably a math error in the stan model?
+```{r}
+mu_set <- 2
+cv_set <- 1
+standata <- get_log_scale_data(
+  log_mu = log(mu_set), cv = cv_set,
+  log_prior_mu = log(mu_set),
+  prior_cv = cv_set,
+  pop = c(10, 1000, 1e5)
+)
+df <- data.frame(log_y = standata$log_y, pop = rep(standata$pop_vector))
+# Quick plot of the data
+ggplot(df) +
+  geom_point(aes(x = pop, y = log_y)) +
+  scale_x_continuous(trans = "log")
+
+fit <- sampling(log_model,
+  standata,
+  warmup = 200,
+  iter = 500,
+  chains = 4
+)
+
+posterior <- as.array(fit)
+np <- nuts_params(fit)
+
+mcmc_pairs(posterior,
+  np = np, pars = c("mu", "cv"),
+  off_diag_args = list(size = 0.75)
+)
+color_scheme_set("mix-brightblue-gray")
+mcmc_trace(posterior, pars = c("mu", "cv"), np = np) +
+  xlab("Post-warmup iteration")
+
+
+params <- fit |>
+  tidybayes::spread_draws(mu, cv) |>
+  dplyr::mutate(
+    mu_true = mu_set,
+    cv_true = cv_set
+  )
+
+ggplot(params, aes(x = mu)) +
+  stat_halfeye() +
+  geom_vline(aes(xintercept = mu_true)) +
+  theme_bw() +
+  xlab("Mean") +
+  ylab("")
+
+ggplot(params, aes(x = cv)) +
+  stat_halfeye() +
+  geom_vline(aes(xintercept = cv_true)) +
+  theme_bw() +
+  xlab("Coefficient of Variation") +
+  ylab("")
+```
+
+
+Abandoning that, let's now try for a non-centered parameterization on the natural
+scale.
+
+#Non-centered parameterization
+This relies on an approximation to the sum of iid gammas as implemented in
+EpiSewer.
+
+```{stan, output.var = "ncp_model"}
+
+functions {
+
+// Non-centered paramaterization of a normal approximation for the
+// sum of N i.i.d. Gamma distributed RVs with mean 1 and a specified cv
+vector gamma_sum_approx(real cv, vector N, vector noise_noncentered) {
+  // sqrt(N) * cv is the standard deviation of the sum of Gamma distributions
+  return N + noise_noncentered .* sqrt(N) * cv;
+}
+
+
+}
+
+data {
+  int<lower=0> N;
+  vector[N] y;
+  vector[N] pop_vector;
+  real prior_mu;
+  real<lower=0> prior_cv;
+}
+
+// The parameters accepted by the model. Our model
+// accepts two parameters 'mu' and 'cv', the mean and coefficient of variation
+// in the individual R.V.s
+parameters {
+  real <lower=0> mu;                        // mean of individual component
+  real<lower=0> cv;               // coefficent of variation in individual data
+  vector[N] zeta_raw;
+}
+
+transformed parameters{
+ vector[N] exp_obs = mu*gamma_sum_approx(cv, pop_vector, zeta_raw);
+}
+
+// The model to be estimated.
+model {
+ // Assume we have a truncated half N prior with a standard deviation of 2 times the mean
+ // not sure if thats reasonable...
+  mu ~ normal(prior_mu, 2*prior_mu);
+  cv ~ normal( prior_cv, 2*prior_cv);
+  zeta_raw ~ normal(0,1);
+
+  //Likelihood
+  y ~ normal(mu*(pop_vector + zeta_raw), sqrt(pop_vector)* cv);
+
+}
+
+```
+
+
+Start with an easy example
+```{r}
+mu_set <- 1
+cv_set <- 0.1
+standata <- get_data(
+  mu = mu_set,
+  pop = c(1e2, 1e3, 1e4), # make sure sufficient pop size
+  cv = cv_set,
+  prior_mu = 0.9 * mu_set,
+  prior_cv = 1.1 * cv_set
+)
+df <- data.frame(y = standata$y, pop = rep(standata$pop_vector))
+# Quick plot of the data
+ggplot(df) +
+  geom_point(aes(x = pop, y = y)) +
+  scale_x_continuous(trans = "log") +
+  scale_y_continuous(trans = "log")
+
+
+fit <- sampling(ncp_model,
+  standata,
+  warmup = 200,
+  iter = 500,
+  chains = 4
+)
+
+posterior <- as.array(fit)
+np <- nuts_params(fit)
+
+mcmc_pairs(posterior,
+  np = np, pars = c("mu", "cv"),
+  off_diag_args = list(size = 0.75)
+)
+color_scheme_set("mix-brightblue-gray")
+mcmc_trace(posterior, pars = c("mu", "cv"), np = np) +
+  xlab("Post-warmup iteration")
+
+
+params <- fit |>
+  tidybayes::spread_draws(mu, cv) |>
+  dplyr::mutate(
+    mu_true = mu_set,
+    cv_true = cv_set
+  )
+
+ggplot(params, aes(x = mu)) +
+  stat_halfeye() +
+  geom_vline(aes(xintercept = mu_true)) +
+  theme_bw() +
+  xlab("Mean") +
+  ylab("")
+
+ggplot(params, aes(x = cv)) +
+  stat_halfeye() +
+  geom_vline(aes(xintercept = cv_true)) +
+  theme_bw() +
+  xlab("Coefficient of Variation") +
+  ylab("")
+```
+
+Make the example a bit harder
+```{r}
+mu_set <- 50
+cv_set <- 1
+standata <- get_data(
+  mu = mu_set,
+  pop = c(10, 1e2, 1e3, 1e4), # make sure sufficient pop size
+  cv = cv_set,
+  n_draws = 100,
+  prior_mu = 0.9 * mu_set,
+  prior_cv = 1.1 * cv_set
+)
+df <- data.frame(y = standata$y, pop = rep(standata$pop_vector))
+# Quick plot of the data
+ggplot(df) +
+  geom_point(aes(x = pop, y = y)) +
+  scale_x_continuous(trans = "log") +
+  scale_y_continuous(trans = "log")
+
+
+fit <- sampling(ncp_model,
+  standata,
+  warmup = 200,
+  iter = 500,
+  chains = 4
+)
+
+posterior <- as.array(fit)
+np <- nuts_params(fit)
+
+mcmc_pairs(posterior,
+  np = np, pars = c("mu", "cv"),
+  off_diag_args = list(size = 0.75)
+)
+color_scheme_set("mix-brightblue-gray")
+mcmc_trace(posterior, pars = c("mu", "cv"), np = np) +
+  xlab("Post-warmup iteration")
+
+
+params <- fit |>
+  tidybayes::spread_draws(mu, cv) |>
+  dplyr::mutate(
+    mu_true = mu_set,
+    cv_true = cv_set
+  )
+
+ggplot(params, aes(x = mu)) +
+  stat_halfeye() +
+  geom_vline(aes(xintercept = mu_true)) +
+  theme_bw() +
+  xlab("Mean") +
+  ylab("")
+
+ggplot(params, aes(x = cv)) +
+  stat_halfeye() +
+  geom_vline(aes(xintercept = cv_true)) +
+  theme_bw() +
+  xlab("Coefficient of Variation") +
+  ylab("")
+```
+
+Looks like here the coefficient of variation is just not identifiable? Despite
+the wide range of population sizes that we are summing over.

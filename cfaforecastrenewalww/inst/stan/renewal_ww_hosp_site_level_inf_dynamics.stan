@@ -6,6 +6,58 @@ functions {
 #include functions/infections.stan
 #include functions/observation_model.stan
 #include functions/utils.stan
+#include functions/gamma_sum_approx.stan
+
+/**
+  * The log of the lognormal density given mean on log scale and sigma on unit
+  * scale
+  *
+  * @param y vector with observed data
+  *
+  * @param mean_log vector of log of means
+  *
+  * @param sigma scale of the lognormal - not the standard deviation!
+  *
+  * @return The log of the lognormal density of y
+  */
+real lognormal3_lpdf(vector y, vector mean_log, vector sigma) {
+  int n = num_elements(y);
+  vector[n] mu = mean_log - square(sigma)/2;
+  return lognormal_lpdf(y | mu, sigma);
+}
+
+/**
+  * The log of the lognormal cumulative density given mean on log scale
+  * and sigma on unit scale
+  *
+  * @param y vector with observed data
+  *
+  * @param mean_log vector of log of means
+  *
+  * @param sigma scale of the lognormal - not the standard deviation!
+  *
+  * @return The log of the lognormal density of y
+  */
+real lognormal3_lcdf(vector y, vector mean_log, vector sigma) {
+  int n = num_elements(y);
+  vector[n] mu = mean_log - square(sigma)/2;
+  return lognormal_lcdf(y | mu, sigma);
+}
+
+/**
+  * Generate lognormal variate given mean on log scale and sigma on unit scale
+  *
+  * @param mean_log vector of log of means
+  *
+  * @param sigma scale of the lognormal - not the standard deviation!
+  *
+  * @return Vector of lognormal variates
+  */
+array[] real lognormal3_rng(vector mean_log, real sigma) {
+  int n = num_elements(mean_log);
+  vector[n] mu = mean_log - square(sigma)/2;
+  return lognormal_rng(mu, sigma);
+}
 
 }
 
@@ -17,8 +69,8 @@ data {
   real<lower=0> mwpd; // mL of ww produced per person per day
   int<lower=1> if_l; // length of infection feedback pmf
   vector<lower=0,upper=1>[if_l] infection_feedback_pmf; // infection feedback pmf
-  int<lower=0> ot; // maximum time index for the hospital admissions (max number of days we could have observations)
-  int<lower=0> oht; // number of days that we have hospital admissions observations
+  int<lower=0> ot; // number of days of observed hospital admissions
+  int<lower=0> oht; // number of days with observed hospital admissions
   int<lower=0> n_subpops; // number of WW sites
   int<lower=0> n_ww_lab_sites; // number of unique ww-lab combos
   int<lower=0> n_censored; // numer of observed WW data points that are below the LOD
@@ -106,6 +158,8 @@ transformed data {
   // reversed generation interval
   vector<lower=0,upper=1>[gt_max] gt_rev_pmf = reverse(generation_interval);
   vector<lower=0,upper=1>[if_l] infection_feedback_rev_pmf = reverse(infection_feedback_pmf);
+  vector<lower=0>[owt] conc = exp(log_conc);
+  vector<lower=0>[owt] ww_lod = exp(ww_log_lod);
 }
 
 // The parameters accepted by the model.
@@ -118,6 +172,9 @@ parameters {
   real<lower=0, upper=1> autoreg_rt_site;
   real<lower=0, upper=1> autoreg_p_hosp;
   matrix[n_subpops, n_weeks] error_site; // matrix of subpopulations
+  matrix[n_subpops, uot+ot+ht] zeta_raw;
+  //matrix<lower = 0>[n_subpops, uot + ot + ht] zeta_bar; // total number of genomes shed for all incident infections at time t
+  real<lower=0> cv; // coefficient of variation in individual dispersion
   real<lower=0,upper=1> i0_over_n; // initial per capita
   // infection incidence
   vector[n_subpops] eta_i0; // z-score on logit scale of state
@@ -130,7 +187,7 @@ parameters {
   real<lower=1/sqrt(5000)> inv_sqrt_phi_h;
   real<lower=0> sigma_ww_site_mean; //mean of site level stdev
   real<lower=0> sigma_ww_site_sd; // stdev of site level stdev
-  vector<lower=0>[n_ww_lab_sites]sigma_ww_site_raw; // let each lab-site combo have its own observation error
+  vector[n_ww_lab_sites]sigma_ww_site_raw; // let each lab-site combo have its own observation error
   real p_hosp_mean; // Estimated mean IHR
   vector[tot_weeks] p_hosp_w; // weekly random walk for IHR
   real<lower=0> p_hosp_w_sd; // Estimated IHR sd
@@ -156,31 +213,32 @@ transformed parameters {
   vector[owt] exp_obs_log_v_true = rep_vector(0, owt); // expected observations at each site in log scale
   vector[owt] exp_obs_log_v = rep_vector(0, owt); // expected observations at each site with modifier in log scale
   vector[n_ww_lab_sites] ww_site_mod; // site specific WW mod
-  row_vector [ot + uot + ht] model_net_i; // number of net infected individuals shedding on each day (sum of individuals in dift stages of infection)
+  //row_vector [ot + uot + ht] model_net_i; // number of net infected individuals shedding on each day (sum of individuals in dift stages of infection)
   real<lower=0> phi_h = inv_square(inv_sqrt_phi_h);
   vector[n_ww_lab_sites] sigma_ww_site;
   vector[n_weeks] log_r_mu_t_in_weeks; // log of state level mean R(t) in weeks
   vector[n_weeks] log_r_site_t_in_weeks; // log of site level mean R(t) in weeks, used as a placeholder in loop
   vector<lower=0>[ot + ht] unadj_r; // state level R(t) before damping
   matrix[n_subpops, ot+ht] r_site_t; // site_level R(t)
+  //matrix[n_subpops, uot+ot+ht] total_g; // total number of genomes shed in each site at each time
+  matrix[n_subpops, uot+ot+ht] log_total_g;
+  matrix[n_subpops, uot+ot+ht] zeta;
   row_vector[ot + ht] unadj_r_site_t; // site_level R(t) before damping
   row_vector[ot + uot + ht] new_i_site; // site level incident infections per capita
+  //matrix<lower=0>[n_subpops, uot + ot + ht] shape_g_bar; // the shape pararameter for the sum of gamma distributed ind genomes
+  //matrix[n_subpops, uot + ot + ht] scale_g_bar; // the theta pararameter for the sum of gamma distributed ind genomes
   real<lower=0> pop_fraction; // proportion of state population that the subpopulation represents
   vector[ot + uot + ht] state_inf_per_capita = rep_vector(0, uot + ot + ht); // state level incident infections per capita
   matrix[n_subpops, ot + ht] model_log_v_ot; // expected observed viral genomes/mL at all observed and forecasted times
-  real<lower=0> g = pow(log10_g, 10); // Estimated genomes shed per infected individual
+  matrix[n_subpops, uot + ot + ht] i_site_t; // number of new infections at each time point in each subpopulation
+  real<lower=0> mu_g = exp(log(10)*log10_g); // Estimated genomes shed per infected individual
+  //print("Mean number of genomes per infection:", mu_g);
   real<lower=0> i0 = i0_over_n * state_pop; // Initial absolute infection incidence
   vector[n_subpops] i0_site_over_n; // site-level initial
   // per capita infection incidence
   vector[n_subpops] growth_site;
-
-
   // State-leve R(t) AR + RW implementation:
-  log_r_mu_t_in_weeks = diff_ar1(log_r_mu_intercept,
-                                 autoreg_rt,
-				 eta_sd,
-				 w,
-				 0);
+  log_r_mu_t_in_weeks = diff_ar1(log_r_mu_intercept, autoreg_rt, eta_sd, w, 0);
   unadj_r = ind_m*log_r_mu_t_in_weeks;
   unadj_r = exp(unadj_r);
 
@@ -221,13 +279,24 @@ transformed parameters {
     pop_fraction = subpop_size[i] / norm_pop;
     state_inf_per_capita +=  pop_fraction * to_vector(new_i_site);
 
-    model_net_i = to_row_vector(convolve_dot_product(to_vector(new_i_site),
-                               reverse(s), (uot + ot + ht)));
+    // Sum of iid gammas over all infections using non-centered parameterization
+    // and normal approximation
+    i_site_t[i] = new_i_site.*subpop_size[i];
 
+    zeta[i] = to_row_vector(
+      gamma_sum_approx(
+        cv,
+        to_vector(i_site_t[i]),
+        to_vector(zeta_raw[i])
+        )
+      );
 
-    model_log_v_ot[i] = log(10) * log10_g +
-      log(model_net_i[(uot+1):(uot + ot + ht) ] + 1e-8) -
-      log(mwpd);
+    log_total_g[i] = log10_g*log(10) +
+      log(to_row_vector(convolve_dot_product(to_vector(zeta[i]),
+                                reverse(s), (uot + ot + ht))));
+
+    model_log_v_ot[i] = log_total_g[i, (uot+1):(uot + ot + ht)] - log(mwpd) - log(subpop_size[i]);
+
   }
 
 
@@ -282,6 +351,8 @@ model {
   autoreg_p_hosp ~ beta(autoreg_p_hosp_a, autoreg_p_hosp_b);
   log_r_mu_intercept ~ normal(r_logmean, r_logsd);
   to_vector(error_site) ~ std_normal();
+  to_vector(zeta_raw) ~ std_normal(); // for ncp
+  cv ~ normal(0.1, 0.3);
   sigma_rt ~ normal(0, sigma_rt_prior);
   i0_over_n ~ beta(i0_over_n_prior_a,
                    i0_over_n_prior_b);
@@ -292,8 +363,8 @@ model {
   eta_growth ~ std_normal();
   initial_growth ~ normal(initial_growth_prior_mean, initial_growth_prior_sd);
   inv_sqrt_phi_h ~ normal(inv_sqrt_phi_prior_mean, inv_sqrt_phi_prior_sd);
-  sigma_ww_site_mean ~ normal(sigma_ww_site_prior_mean_mean, sigma_ww_site_prior_mean_sd);
-  sigma_ww_site_sd ~ normal(sigma_ww_site_prior_sd_mean, sigma_ww_site_prior_sd_sd);
+  sigma_ww_site_mean ~ normal(0.5*sigma_ww_site_prior_mean_mean, sigma_ww_site_prior_mean_sd);
+  sigma_ww_site_sd ~ normal(sigma_ww_site_prior_sd_mean, 0.2*sigma_ww_site_prior_sd_sd);
   sigma_ww_site_raw ~ std_normal();
   log10_g ~ normal(log10_g_prior_mean, log10_g_prior_sd);
   hosp_wday_effect ~ normal(effect_mean, wday_effect_prior_sd);
@@ -313,10 +384,20 @@ model {
       // Both genomes/person/day and observation error are now vectors
       //log_conc ~ normal(exp_obs_log_v, sigma_ww_site[ww_sampled_lab_sites]);
       // if non-censored: P(log_conc | expected log_conc)
-      log_conc[ww_uncensored] ~ normal(exp_obs_log_v[ww_uncensored], sigma_ww_site[ww_sampled_lab_sites[ww_uncensored]]);
+      //log_conc[ww_uncensored] ~ normal(exp_obs_log_v[ww_uncensored], sigma_ww_site[ww_sampled_lab_sites[ww_uncensored]]);
       // The stdev is at the lab-site-level
       // if censored: P(expected_log_conc <= LOD)
-      target +=  normal_lcdf(ww_log_lod[ww_censored]| exp_obs_log_v[ww_censored],
+      //target +=  normal_lcdf(ww_log_lod[ww_censored]| exp_obs_log_v[ww_censored],
+                            //sigma_ww_site[ww_sampled_lab_sites[ww_censored]]);
+
+
+    // Try parameterizing with mean on log scale and sigma (scale param of
+    // lognormal) on the unit scale
+    // This is now written in terms of the lognormal so:
+    // y ~ lognormal(log_conc, sigma) rather than log(y) ~ normal(log_conc, sigma)
+    conc[ww_uncensored] ~ lognormal3(exp_obs_log_v[ww_uncensored], sigma_ww_site[ww_sampled_lab_sites[ww_uncensored]]);
+    // if censored: P(expected_log_conc <= LOD)
+    target +=  lognormal3_lcdf(ww_lod[ww_censored]| exp_obs_log_v[ww_censored],
                             sigma_ww_site[ww_sampled_lab_sites[ww_censored]]);
     }
 
@@ -335,6 +416,7 @@ generated quantities {
   vector[uot + ot + ht] state_model_net_i;
   vector [n_subpops] site_i0_over_n_start;
   vector<lower=0>[ot + ht] rt; // state level R(t)
+  real log_genomes_shed_per_inf = log(gamma_rng( 1/(cv^2), 1/(mu_g*(cv^2))));
 
   for(i in 1:n_subpops) {
     site_i0_over_n_start[i] = i0_site_over_n[i] *
@@ -351,8 +433,13 @@ generated quantities {
   // Here need to iterate through each lab-site, find the corresponding site
   // and apply the expected lab-site error
   for(i in 1:n_ww_lab_sites) {
-    pred_ww[i] = normal_rng(model_log_v_ot[lab_site_to_site_map[i], 1 : ot + ht] + ww_site_mod[i],
-                            sigma_ww_site[i]);
+    //pred_ww[i] = normal_rng(model_log_v_ot[lab_site_to_site_map[i], 1 : ot + ht] + ww_site_mod[i],
+    //                        sigma_ww_site[i]);
+    //print("log of expected concentration: ", model_log_v_ot[1, 105] + ww_site_mod[1]);
+    //print("scale of lognormal distribution: ", sigma_ww_site[1]);
+    pred_ww[i] = log(lognormal3_rng(to_vector(
+      model_log_v_ot[lab_site_to_site_map[i], 1 : ot + ht] + ww_site_mod[i]),
+                            sigma_ww_site[i]));
   }
 
   state_model_net_i = convolve_dot_product(state_inf_per_capita,
