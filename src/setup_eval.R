@@ -14,13 +14,14 @@ write_eval_config(
       "PA", "PR", "RI", "SC", "SD", "TN", "TX", "UT", "VA",
       "VT", "WA", "WI", "WV", "WY"
     ),
-  forecast_dates = as.character(
-    seq(
-      from = lubridate::ymd("2023-10-16"),
-      to = lubridate::ymd("2024-03-11"),
-      by = "week"
-    )
-  ),
+  forecast_dates = "2024-02-12",
+  #   as.character(
+  #   seq(
+  #     from = lubridate::ymd("2023-10-16"),
+  #     to = lubridate::ymd("2024-03-11"),
+  #     by = "week"
+  #   )
+  # ),
   scenarios = c(
     "status_quo"
   ),
