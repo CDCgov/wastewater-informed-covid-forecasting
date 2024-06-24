@@ -107,7 +107,6 @@ sample_model <- function(standata,
   } else {
     # Get the diagnostics using thresholds set in production pipeline
     flag_df <- get_diagnostic_flags(fit$result, n_chains, iter_sampling)
-    any_flags <- any(flag_df)
 
     draws <- fit$result$draws()
     diagnostics <- fit$result$sampler_diagnostics(format = "df")
@@ -118,14 +117,9 @@ sample_model <- function(standata,
       draws = draws,
       diagnostics = diagnostics,
       summary_diagnostics = summary_diagnostics,
-      summary = summary
+      summary = summary,
+      flags = list(flag_df)
     )
-
-    if (any_flags) { # If there are model convergence issues, pass
-      # flags alongside the draws and summaries
-      out <- c(out, flags = list(flag_df))
-      message("Model convergence issues")
-    }
   }
   return(out)
 }

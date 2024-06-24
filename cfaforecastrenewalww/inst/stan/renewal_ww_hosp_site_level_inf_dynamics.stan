@@ -6,6 +6,56 @@ functions {
 #include functions/infections.stan
 #include functions/observation_model.stan
 #include functions/utils.stan
+#include functions/expgamma_lpdf.stan
+
+real gamma3_lpdf(vector y, vector mean, real cv) {
+  int n = num_elements(y);
+  real alpha = 1 / (cv^2);
+  vector[n] beta = 1 / (mean * (cv^2));
+  return gamma_lpdf(y | alpha, beta);
+}
+
+real gamma3_sum_lpdf(row_vector y, real mean, real cv, vector N) {
+  int n = num_elements(y);
+  vector[n] alpha = N / (cv^2); // sum of gammas with same shape and scale
+  real beta = 1 / (mean * (cv^2));
+  return gamma_lpdf(y | alpha, beta);
+}
+
+/**
+  * Efficient dot product on log scale
+  */
+  real log_dot_product(vector x, vector y) {
+    return(log_sum_exp(x + y));
+  }
+
+    /**
+* Convolution of a time series for T time steps on log scale
+**
+* @param f The weight function, e.g. the incubation period distribution
+*
+* @param g The time series to be convolved, e.g. infections
+*
+* @return The convolved log time series. The first length(f)-1 elements are NA
+* because the convolved values can only be computed starting from length(f).
+*/
+vector log_convolve(vector f, vector g) {
+  int f_length = num_elements(f);
+  int g_length = num_elements(g);
+  vector[g_length] fg;
+  for (t in f_length:g_length) {
+    fg[t] = log_dot_product(f, g[(t-f_length+1):t]);
+  }
+  return(fg);
+}
+
+// Non-centered paramaterization of a normal approximation for the
+// sum of N i.i.d. Gamma distributed RVs with mean 1 and a specified cv
+vector gamma_sum_approx(real cv, vector N, vector noise_noncentered) {
+  // sqrt(N) * cv is the standard deviation of the sum of Gamma distributions
+  return N + noise_noncentered .* sqrt(N) * cv;
+}
+
 
 }
 
@@ -118,6 +168,9 @@ parameters {
   real<lower=0, upper=1> autoreg_rt_site;
   real<lower=0, upper=1> autoreg_p_hosp;
   matrix[n_subpops, n_weeks] error_site; // matrix of subpopulations
+  matrix[n_subpops, uot+ot+ht] zeta_raw;
+  //matrix<lower = 0>[n_subpops, uot + ot + ht] zeta_bar; // total number of genomes shed for all incident infections at time t
+  real<lower=0> cv; // coefficient of variation in individual dispersion
   real<lower=0,upper=1> i0_over_n; // initial per capita
   // infection incidence
   vector[n_subpops] eta_i0; // z-score on logit scale of state
@@ -156,23 +209,36 @@ transformed parameters {
   vector[owt] exp_obs_log_v_true = rep_vector(0, owt); // expected observations at each site in log scale
   vector[owt] exp_obs_log_v = rep_vector(0, owt); // expected observations at each site with modifier in log scale
   vector[n_ww_lab_sites] ww_site_mod; // site specific WW mod
-  row_vector [ot + uot + ht] model_net_i; // number of net infected individuals shedding on each day (sum of individuals in dift stages of infection)
+  //row_vector [ot + uot + ht] model_net_i; // number of net infected individuals shedding on each day (sum of individuals in dift stages of infection)
   real<lower=0> phi_h = inv_square(inv_sqrt_phi_h);
   vector[n_ww_lab_sites] sigma_ww_site;
   vector[n_weeks] log_r_mu_t_in_weeks; // log of state level mean R(t) in weeks
   vector[n_weeks] log_r_site_t_in_weeks; // log of site level mean R(t) in weeks, used as a placeholder in loop
   vector<lower=0>[ot + ht] unadj_r; // state level R(t) before damping
   matrix[n_subpops, ot+ht] r_site_t; // site_level R(t)
+  //matrix[n_subpops, uot+ot+ht] total_g; // total number of genomes shed in each site at each time
+  matrix[n_subpops, uot+ot+ht] log_total_g;
+  matrix[n_subpops, uot+ot+ht] zeta;
   row_vector[ot + ht] unadj_r_site_t; // site_level R(t) before damping
   row_vector[ot + uot + ht] new_i_site; // site level incident infections per capita
+  //matrix<lower=0>[n_subpops, uot + ot + ht] shape_g_bar; // the shape pararameter for the sum of gamma distributed ind genomes
+  //matrix[n_subpops, uot + ot + ht] scale_g_bar; // the theta pararameter for the sum of gamma distributed ind genomes
   real<lower=0> pop_fraction; // proportion of state population that the subpopulation represents
   vector[ot + uot + ht] state_inf_per_capita = rep_vector(0, uot + ot + ht); // state level incident infections per capita
   matrix[n_subpops, ot + ht] model_log_v_ot; // expected observed viral genomes/mL at all observed and forecasted times
-  real<lower=0> g = pow(log10_g, 10); // Estimated genomes shed per infected individual
+  matrix[n_subpops, uot + ot + ht] i_site_t; // number of new infections at each time point in each subpopulation
+  real<lower=0> mu_g = exp(log(10)*log10_g); // Estimated genomes shed per infected individual
+  //print("Mean number of genomes per infection:", mu_g);
   real<lower=0> i0 = i0_over_n * state_pop; // Initial absolute infection incidence
   vector[n_subpops] i0_site_over_n; // site-level initial
   // per capita infection incidence
   vector[n_subpops] growth_site;
+  // Start with basically no individual variation
+  //g_i ~ Gamma(kappa = exp(log_g), theta = 1) roughly
+  // eventually we will want to change this to add variance so maybe
+  // g_i ~ Gamma(kappa = exp(2), theta = exp(log_g - 2))
+  //mean = exp(27), variance = exp(2+25*2)
+  // hard coding the coefficient of variation for now...
 
 
   // State-leve R(t) AR + RW implementation:
@@ -221,13 +287,44 @@ transformed parameters {
     pop_fraction = subpop_size[i] / norm_pop;
     state_inf_per_capita +=  pop_fraction * to_vector(new_i_site);
 
-    model_net_i = to_row_vector(convolve_dot_product(to_vector(new_i_site),
-                               reverse(s), (uot + ot + ht)));
+    // Sum of iid gammas over all infections
+    // g_bar_i ~ Gamma(I(t)*kappa, theta)
+    //G_i = \sum_{t=0}^{t=tau} s(tau)g_bar_i(t-tau) Convolving shedding kinetics
+    i_site_t[i] = new_i_site.*subpop_size[i];
+    //print("mu_g*i_site_t: ", mu_g*i_site_t[1, (uot+2)]);
+    //print("new infections in first site at 2nd time point: ", i_site_t[1, uot + 2]);
+    // with RV that is sum of gammas representing number of genomes at each time
+    // point. Doing this manually to start!
+    // This is actually sum of iids of relative shedding intensities
+    //total_g[i] = to_row_vector(convolve_dot_product(to_vector(zeta_bar[i]),
+    //                            reverse(s), (uot + ot + ht)));
+    //print("Log(total_g): ", log10_g*log(10)+ log(total_g[i, uot +2]));
+    zeta[i] = to_row_vector(
+      gamma_sum_approx(
+        cv,
+        to_vector(i_site_t[i]),
+        to_vector(zeta_raw[i])
+        )
+      );
+    log_total_g[i] = to_row_vector(
+      log_convolve(
+         reverse(log(s)),
+         log10_g*log(10) + to_vector(log(zeta[i]))
+      )
+    );
+    //print("log_total_g: ", log_total_g[i,uot+2]);
+    //print("Output after convolution of number of genomes from day of peak shedding:", total_g[1, uot +7]);
+    // log(C_i(t)) = log(G_i(t)/(alpha*N_i))
+    model_log_v_ot[i] = log_total_g[i, (uot+1):(uot + ot + ht)] - log(mwpd) - log(subpop_size[i]);
 
 
-    model_log_v_ot[i] = log(10) * log10_g +
-      log(model_net_i[(uot+1):(uot + ot + ht) ] + 1e-8) -
-      log(mwpd);
+    // model_net_i = to_row_vector(convolve_dot_product(to_vector(new_i_site),
+    //                            reverse(s), (uot + ot + ht)));
+    //
+    //
+    // model_log_v_ot[i] = log(10) * log10_g +
+    //   log(model_net_i[(uot+1):(uot + ot + ht) ] + 1e-8) -
+    //   log(mwpd);
   }
 
 
@@ -282,6 +379,8 @@ model {
   autoreg_p_hosp ~ beta(autoreg_p_hosp_a, autoreg_p_hosp_b);
   log_r_mu_intercept ~ normal(r_logmean, r_logsd);
   to_vector(error_site) ~ std_normal();
+  to_vector(zeta_raw) ~ std_normal();
+  cv ~ normal(0.1, 0.025);
   sigma_rt ~ normal(0, sigma_rt_prior);
   i0_over_n ~ beta(i0_over_n_prior_a,
                    i0_over_n_prior_b);
@@ -310,6 +409,15 @@ model {
   //Compute log likelihood
   if (compute_likelihood == 1) {
     if (include_ww == 1) {
+      // for (i in 1:n_subpops){
+      //     g_bar[i] ~ gamma(1/(0.025^2), 1/(mu_g*i_site_t[i]*(0.025^2))); //
+      //   }
+      // for (i in 1:n_subpops){
+      //     for (j in 1:(uot + ot + ht)){
+      //       zeta_bar[i,j] ~ expgamma(i_site_t[i,j]/(cv^2), 1/((cv^2))); // Sum of iid gamma individual relative shedding intensities
+      //     }
+      //   }
+      //print("Output of gamma of number of genomes from first day:", g_bar[1, (uot+2)]);
       // Both genomes/person/day and observation error are now vectors
       //log_conc ~ normal(exp_obs_log_v, sigma_ww_site[ww_sampled_lab_sites]);
       // if non-censored: P(log_conc | expected log_conc)
@@ -335,6 +443,7 @@ generated quantities {
   vector[uot + ot + ht] state_model_net_i;
   vector [n_subpops] site_i0_over_n_start;
   vector<lower=0>[ot + ht] rt; // state level R(t)
+  real log_genomes_shed_per_inf = log(gamma_rng( 1/(cv^2), 1/(mu_g*(cv^2))));
 
   for(i in 1:n_subpops) {
     site_i0_over_n_start[i] = i0_site_over_n[i] *
