@@ -141,14 +141,15 @@ combined_targets <- list(
   ## Flags------------------------------------------------------------------
   tar_target(
     name = all_flags_ww,
-    command = combine_outputs(
-      output_type = "flags",
-      scenarios = eval_config$scenario,
-      forecast_dates = eval_config$forecast_dates,
-      locations = eval_config$location_ww,
-      eval_output_subdir = eval_config$output_dir,
-      model_type = "ww"
-    )
+    command =
+      combine_outputs(
+        output_type = "flags",
+        scenarios = eval_config$scenario,
+        forecast_dates = eval_config$forecast_date_ww,
+        locations = eval_config$location_ww,
+        eval_output_subdir = eval_config$output_dir,
+        model_type = "ww"
+      )
   ),
   tar_target(
     name = all_flags_hosp,
@@ -161,6 +162,25 @@ combined_targets <- list(
       model_type = "hosp"
     )
   ),
+  tar_target(
+    name = all_flags,
+    command = dplyr::bind_rows(all_flags_ww, all_flags_hosp)
+  ),
+  tar_target(
+    name = convergence_df_ww,
+    command = get_convergence_df(
+      all_flags_ww,
+      default_scenario = "status_quo"
+    ) |>
+      dplyr::rename(any_flags_ww = any_flags)
+  ),
+  tar_target(
+    name = convergence_df_hosp,
+    command = get_convergence_df(all_flags_hosp,
+      default_scenario = "no_wastewater"
+    ) |>
+      dplyr::rename(any_flags_hosp = any_flags)
+  ),
   ### Scores from quantiles-------------------------------------------------
   tar_target(
     name = all_ww_scores_quantiles,
@@ -169,7 +189,7 @@ combined_targets <- list(
       scenarios = eval_config$scenario,
       forecast_dates = eval_config$forecast_date_ww,
       locations = eval_config$location_ww,
-      eval_output_subdir = file.path("output", "eval"),
+      eval_output_subdir = eval_config$output_dir,
       model_type = "ww"
     )
   ),
@@ -180,7 +200,7 @@ combined_targets <- list(
       scenarios = "no_wastewater",
       forecast_dates = eval_config$forecast_date_hosp,
       locations = eval_config$location_hosp,
-      eval_output_subdir = file.path("output", "eval"),
+      eval_output_subdir = eval_config$output_dir,
       model_type = "hosp"
     )
   ),
@@ -192,7 +212,7 @@ combined_targets <- list(
       scenarios = eval_config$scenario,
       forecast_dates = eval_config$forecast_date_ww,
       locations = eval_config$location_ww,
-      eval_output_subdir = file.path("output", "eval"),
+      eval_output_subdir = eval_config$output_dir,
       model_type = "ww"
     )
   ),
@@ -203,7 +223,7 @@ combined_targets <- list(
       scenarios = "no_wastewater",
       forecast_dates = eval_config$forecast_date_hosp,
       locations = eval_config$location_hosp,
-      eval_output_subdir = file.path("output", "eval"),
+      eval_output_subdir = eval_config$output_dir,
       model_type = "hosp"
     )
   ),
@@ -214,7 +234,7 @@ combined_targets <- list(
       scenarios = eval_config$scenario,
       forecast_dates = eval_config$forecast_date_ww,
       locations = eval_config$location_ww,
-      eval_output_subdir = file.path("output", "eval"),
+      eval_output_subdir = eval_config$output_dir,
       model_type = "ww"
     )
   ),
@@ -226,7 +246,7 @@ combined_targets <- list(
       scenarios = eval_config$scenario,
       forecast_dates = eval_config$forecast_date_ww,
       locations = eval_config$location_ww,
-      eval_output_subdir = file.path("output", "eval"),
+      eval_output_subdir = eval_config$output_dir,
       model_type = "ww"
     )
   ),
@@ -237,15 +257,110 @@ combined_targets <- list(
       scenarios = "no_wastewater",
       forecast_dates = eval_config$forecast_date_hosp,
       locations = eval_config$location_hosp,
-      eval_output_subdir = file.path("output", "eval"),
+      eval_output_subdir = eval_config$output_dir,
       model_type = "hosp"
     )
   )
 )
 
+# Head-to-head comparison targets-------------------------------------------
+# This set of targets will be conditioned on the presence of sufficient
+# wastewater, whereas the below targets assume that for every location and
+# forecast date we had to submit a forecast, and so we used the hospital
+# admissions only model if wastewater was missing.
+# These are only relevant for the status quo scenario
+head_to_head_targets <- list(
+  tar_target(
+    name = all_ww_quantiles_sq,
+    command = all_ww_quantiles |>
+      dplyr::filter(scenario == "status_quo")
+  ),
+  # Get a table of locations and forecast dates with sufficient wastewater
+  tar_target(
+    name = table_of_loc_dates_w_ww,
+    command = get_table_sufficient_ww(all_ww_quantiles)
+  ),
+  # Get a table indicating whether there are locations and forecast dates with
+  # convergence issues
+  tar_target(
+    name = convergence_df,
+    command = convergence_df_hosp |>
+      dplyr::left_join(convergence_df_ww,
+        by = c("location", "forecast_date")
+      )
+  ),
+  # Get the full set of quantiles, filtered down to only states and
+  # forecast dates with sufficient wastewater for both ww model and hosp only
+  # model. Then join the convergence df
+  tar_target(
+    name = hosp_quantiles_filtered,
+    command = dplyr::bind_rows(
+      all_ww_hosp_quantiles,
+      all_hosp_model_quantiles
+    ) |>
+      dplyr::left_join(table_of_loc_dates_w_ww,
+        by = c("location", "forecast_date")
+      ) |>
+      dplyr::filter(
+        ww_sufficient # filters to location forecast dates with sufficient ww
+      ) |>
+      dplyr::left_join(
+        convergence_df,
+        by = c(
+          "location",
+          "forecast_date"
+        )
+      )
+  ),
+  # Do the same thing for the sampled scores, combining ww and hosp under
+  # the status quo scenario, filtering to the locations and forecast dates
+  # with sufficient wastewater, and then joining the convergence flags
+  tar_target(
+    name = scores_filtered,
+    command = dplyr::bind_rows(
+      all_hosp_scores,
+      all_ww_scores |>
+        dplyr::filter(scenario == "status_quo")
+    ) |>
+      dplyr::left_join(table_of_loc_dates_w_ww,
+        by = c("location", "forecast_date")
+      ) |>
+      dplyr::filter(ww_sufficient) |>
+      dplyr::left_join(
+        convergence_df,
+        by = c(
+          "location",
+          "forecast_date"
+        )
+      )
+  ),
+  # Repeat for the quantile-based scores
+  tar_target(
+    name = scores_quantiles_filtered,
+    command = dplyr::bind_rows(
+      all_hosp_scores_quantiles,
+      all_ww_scores_quantiles |>
+        dplyr::filter(scenario == "status_quo")
+    ) |>
+      dplyr::left_join(table_of_loc_dates_w_ww,
+        by = c("location", "forecast_date")
+      ) |>
+      dplyr::filter(
+        isTRUE(ww_sufficient)
+      ) |>
+      dplyr::left_join(
+        convergence_df,
+        by = c(
+          "location",
+          "forecast_date"
+        )
+      )
+  )
+)
 
-# Head-to-head-scenario targets------------------------------------------------
-head_to_head_scenario_targets <- list(
+
+# Scenario targets------------------------------------------------
+scenario_targets <- list(
   tar_target(
     name = all_raw_scores,
     command = data.table::as.data.table(
@@ -262,18 +377,7 @@ head_to_head_scenario_targets <- list(
     name = all_errors,
     command = dplyr::bind_rows(all_hosp_errors, all_ww_errors)
   ),
-  tar_target(
-    name = all_flags,
-    command = dplyr::bind_rows(all_flags_ww, all_flags_hosp)
-  ),
-  tar_target(
-    name = nonconverge_df,
-    command = all_flags |> distinct(
-      location, forecast_date, model, scenario
-    ) |>
-      dplyr::mutate(convergence = FALSE) # Add a column that indicates did not pass
-    # convergence. We will use this in the head-to-head comparison to statify by convergence
-  ),
+
 
   ## Raw scores-----------------------------------------
   # These are the scores from each scenario and location without buffering
@@ -653,7 +757,8 @@ hub_comparison_plots <- list(
 list(
   upstream_targets,
   combined_targets,
-  head_to_head_scenario_targets,
+  head_to_head_targets,
+  scenario_targets,
   hub_targets,
   hub_comparison_plots
 )

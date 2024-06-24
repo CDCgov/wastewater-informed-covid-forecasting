@@ -56,13 +56,21 @@ eval_post_process_ww <- function(config_index,
   save_object("ww_summary", output_file_suffix)
   errors <- ww_fit_obj$error
   save_object("errors", output_file_suffix)
-  flags <- ww_fit_obj$flags
-  save_object("flags", output_file_suffix)
+  raw_flags <- data.frame(ww_fit_obj$flags)
+  save_object("raw_flags", output_file_suffix)
   # Save errors
   save_table(
     data_to_save = errors,
     type_of_output = "errors",
     output_dir = output_dir,
+    scenario = scenario,
+    forecast_date = forecast_date,
+    model_type = "ww",
+    location = location
+  )
+  # Get evaluation data from hospital admissions and wastewater
+  # Join draws and flags with data and metadata
+  flags <- raw_flags |> dplyr::mutate(
     scenario = scenario,
     forecast_date = forecast_date,
     model_type = "ww",
@@ -78,8 +86,7 @@ eval_post_process_ww <- function(config_index,
     model_type = "ww",
     location = location
   )
-  # Get evaluation data from hospital admissions and wastewater
-  # Join draws with data
+
   hosp_draws <- {
     if (is.null(ww_raw_draws)) {
       NULL
@@ -291,13 +298,23 @@ eval_post_process_hosp <- function(config_index,
   save_object("hosp_summary", output_file_suffix)
   errors <- hosp_fit_obj$error
   save_object("errors", output_file_suffix)
-  flags <- hosp_fit_obj$flags
-  save_object("flags", output_file_suffix)
+  raw_flags <- data.frame(hosp_fit_obj$flags)
+  save_object("raw_flags", output_file_suffix)
   # Save errors
   save_table(
     data_to_save = errors,
     type_of_output = "errors",
     output_dir = output_dir,
+    scenario = scenario,
+    forecast_date = forecast_date,
+    model_type = "hosp",
+    location = location
+  )
+
+
+  # Get evaluation data from hospital admissions and wastewater
+  # Join draws with flags + data and metadata
+  flags <- raw_flags |> dplyr::mutate(
     scenario = scenario,
     forecast_date = forecast_date,
     model_type = "hosp",
@@ -313,10 +330,6 @@ eval_post_process_hosp <- function(config_index,
     model_type = "hosp",
     location = location
   )
-
-
-  # Get evaluation data from hospital admissions and wastewater
-  # Join draws with data
   hosp_model_hosp_draws <- get_model_draws_w_data(
     model_output = "hosp",
     model_type = "hosp",
