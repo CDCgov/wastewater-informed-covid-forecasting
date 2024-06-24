@@ -751,6 +751,11 @@ site_level_inf_inits <- function(train_data, params, stan_data) {
     autoreg_rt = abs(rnorm(1, autoreg_rt_a / (autoreg_rt_a + autoreg_rt_b), 0.05)),
     log_r_mu_intercept = rnorm(1, convert_to_logmean(1, 0.1), convert_to_logsd(1, 0.1)),
     error_site = matrix(rnorm(n_subpops * n_weeks, mean = 0, sd = 0.1), n_subpops, n_weeks),
+    zeta_bar = abs(matrix(
+      rnorm(n_subpops * (uot + ot + ht), mean = 0, sd = 0.1),
+      n_subpops, (uot + ot + ht)
+    )),
+    cv = abs(rnorm(1, 0.025, 0.005)),
     autoreg_rt_site = abs(rnorm(1, 0.5, 0.05)),
     autoreg_p_hosp = abs(rnorm(1, 1 / 100, 0.001)),
     sigma_rt = abs(rnorm(1, 0, 0.01)),

@@ -51,3 +51,36 @@ get_diagnostic_flags <- function(stan_fit_object,
   )
   return(flag_df)
 }
+
+
+#' Get convergence dataframe
+#' @description This function takes the larger dataframe of convergence
+#' flags for each location, forecast date, and scenario and checks if any of
+#' the flags are TRUE, and returns a dataframe with just a column indicating
+#' whether any flags are true
+#'
+#'
+#' @param all_flags a dataframe containing the flags for each location,
+#' forecast_date, and scenario
+#' @param scenario The scenario to filter to, since some eval output will include multiple
+#' scenarios
+#'
+#' @return a dataframe with a column `any_flags` indicating whether any of the
+#' flags in the original full descriptive set of congerence flags are TRUE.
+#' @export
+#'
+get_convergence_df <- function(all_flags,
+                               scenario) {
+  convergence_df <- all_flags |>
+    dplyr::filter(scenario == {{ scenario }}) |>
+    tidyr::gather(key, value, starts_with("flag")) |>
+    dplyr::group_by(location, forecast_date, scenario, model_type) |>
+    dplyr::mutate(any_flags = any(value == TRUE)) |>
+    tidyr::spread(key, value) |>
+    dplyr::ungroup() |>
+    dplyr::select(
+      location, forecast_date, any_flags
+    )
+
+  return(convergence_df)
+}
