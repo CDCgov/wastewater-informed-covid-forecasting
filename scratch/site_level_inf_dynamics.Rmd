@@ -1,0 +1,1347 @@
+---
+title: "Site level hierarchical model"
+author: "Kaitlyn Johnson"
+date: "2023-09-01"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+library(cfaforecastrenewalww)
+library(cmdstanr)
+library(lubridate)
+library(ggplot2)
+library(dplyr)
+library(here)
+library(tidybayes)
+source(here::here("src/write_config.R"))
+knitr::opts_chunk$set(echo = TRUE)
+cfaforecastrenewalww::setup_secrets(here::here("secrets.yaml"))
+```
+
+# Motivation
+- This is an implementation of a renewal approach for inference of hospitalization and wastewater viral concentrations by estimating a time-varying effective reproductive number $R(t)$. Specifically
+this Rmd is focused on implementing a hierarchical site-level infectious disease
+dynamics model. This assumes that at each time step, the $R(t)$ at each site is
+drawn from a shared lognormal distribution with mean $\mu_{R(t)state}$.
+This means functionally that each site is allowed to have its own disease dyanmics
+that are informed by information from the other sites and constrained by the
+overall state-level hospital admissions. We will
+continue to allow for site level observation error and a site level multiplier
+on the observed wastewater concentration.
+
+# Approach
+- For each state, we will treat the combination of sites/measurements as observations
+from the underlying wastewater concentration in the whole date
+- For the hospital admissions data, we use state-level total hospital admission data
+that was available as of the forecast date, using the covidcast package and the
+`as_of` input. We impose a 9 day reporting delay to mirror the current data scenario.
+
+
+Note: This Rmd mirrors the single model, single location, single forecast date pipeline
+set up in the `_targets.R` file. We will use the Rmd format to continue to refine the model.
+
+
+# Get the state level data from NWSS
+```{r}
+ww_data_path <- save_timestamped_nwss_data(
+  ww_path_to_save =
+    here::here(
+      "input", "ww_data",
+      "nwss_data"
+    )
+)
+
+config_written <- write_config(
+  save_config = TRUE,
+  config_path = here::here("input", "config"),
+  location = "MA",
+  prod_run = FALSE,
+  run_id = "test",
+  date_run = lubridate::today(),
+  model_type = "site-level infection dynamics",
+  forecast_date = "2024-04-22",
+  hosp_data_source = "NHSN",
+  pull_from_local = FALSE,
+  hosp_data_dir = here::here("input", "hosp_data", "vintage_datasets"),
+  population_data_path = here::here("input", "locations.csv"),
+  param_file_path = here::here("input", "params.toml"),
+  include_ww = 1,
+  hosp_reporting_delay = 5,
+  ww_data_path = here::here(
+    "input", "ww_data",
+    "nwss_data", "2024-04-21.csv"
+  )
+)
+
+
+config_vars_ss <- get_config_vals(config_written)
+# Site level WW data from NWSS
+
+ww_data_raw <- do.call(get_ww_data, config_vars_ss)
+
+ww_data <- ww_data_raw %>% filter(location == config_vars_ss$location)
+```
+# Subsample sites
+We want to be able to compare the model forecasts (R(t) and hospital admissions forecasts) for a state
+with a large number of sites fit to all of them vs fit to a subset of them, and see if this meaningfully impacts results.
+```{r}
+ww_data_subsampled <- subsample_sites(ww_data,
+  prop_sites = 0.2
+)
+```
+
+```{r}
+# Get training data
+train_data_orig <- do.call(
+  get_all_training_data,
+  c(list(ww_data_raw = ww_data), config_vars_ss,
+    subsample_sites = 1,
+    prop_sites = 0.2
+  )
+)
+train_data <- flag_ww_outliers(train_data_orig)
+train_data <- train_data %>% mutate(
+  site_lab = stringr::str_glue("Site: {site}, Lab: {lab}")
+)
+
+ggplot(train_data %>% filter(period != "forecast", !is.na(site))) +
+  geom_line(aes(x = date, y = ww, color = as.factor(site), group = site),
+    show.legend = FALSE
+  ) +
+  geom_point(aes(x = date, y = ww, color = as.factor(site), group = site),
+    show.legend = FALSE
+  ) +
+  theme_bw() +
+  facet_wrap(~site) +
+  xlab("") +
+  ylab("Genome copies per mL") +
+  scale_y_continuous(trans = "log") +
+  guides(color = guide_legend(title = "Site")) +
+  scale_x_date(
+    date_breaks = "2 weeks",
+    labels = scales::date_format("%Y-%m-%d")
+  )
+ggplot(train_data %>% filter(period != "forecast", !is.na(site))) +
+  geom_line(aes(x = date, y = ww, color = as.factor(site_lab), group = site_lab)) +
+  geom_point(aes(x = date, y = ww, color = as.factor(site_lab), group = site),
+    show.legend = FALSE
+  ) +
+  geom_vline(aes(xintercept = forecast_date), linetype = "dashed") +
+  theme_bw() +
+  # facet_wrap(~site_lab, scales = "free")+
+  xlab("") +
+  ylab("Genome copies per mL") +
+  # scale_y_continuous(trans = "log") +
+  guides(color = guide_legend(title = "")) +
+  scale_x_date(
+    date_breaks = "2 weeks",
+    labels = scales::date_format("%Y-%m-%d")
+  ) +
+  theme(
+    axis.text.x = element_text(
+      size = 10, vjust = 1,
+      hjust = 1, angle = 45
+    ),
+    axis.title.x = element_text(size = 10),
+    axis.title.y = element_text(size = 10),
+    plot.title = element_text(
+      size = 9,
+      vjust = 0.5, hjust = 0.5
+    )
+  )
+
+
+ggplot(train_data) +
+  geom_density(aes(
+    x = log(ww),
+    fill = as.factor(flag_as_ww_outlier)
+  ), alpha = 0.3) +
+  theme_bw() +
+  guides(fill = guide_legend(title = "Outlier?"))
+
+ggplot(train_data) +
+  geom_density(aes(x = log(ww), ), alpha = 0.3, fill = "gray") +
+  theme_bw()
+```
+<br/>
+# Model description
+
+We have observed data from 90 days of hospital admissions and 14 weeks of wastewater measurements for a single state. We are going to make all of the simplifying assumptions:
+- the population shedding into the WW is the same as those captured by the hospital admissions
+- the IHR is constant during the period of inference
+- the shedding kinetics and shedding amount are constant during the period of inference
+- for now, we will assume that the number of genomes shed per individual is constant
+across infected individuals, since the population is large enough that we don't expect
+inter-individual variability to add too much noise to the signal
+
+This model builds heavily off of (and in some instances borrows functions from) the
+[EpiNow2 R package](https://github.com/epiforecasts/EpiNow2)
+
+## Renewal Equation Stan Model
+In brief, this model assumes that incident infections $I(t)$ are generated from a vector of $R(t)$ values and an initial number of infections $I(0)$ seeded on day 0:
+$$I(t) = R(t) \sum_{s=1}^{t}I(t-s)g(s)$$
+Where $g(s)$ is the generation interval, which describes the distribution of times
+from incident infection to secondary infection (i.e. infectiousness profile) and $R(t)$ describes the number of expected secondary infections of an index case at time $t$. Because the data does not start at the initial seeding event, we assume that prior to the first observation initial infections grow exponentially to give rise to the early observations such that $I(t') = I(0)exp(rt')$ where $t'$ is the "unobserved time" before the first observed data point. <br>
+
+The model estimates $R(t)$ by estimating a weekly random walk such that $R(k) = R(k-1)\eta$, where $\eta ~N(0, \eta_{sd}$, $k$ is the week, and the magnitude of the step size, $eta_{sd}$ is estimated in the model calibration. For the $R(t)$ during the forecast period, we assume $R(t)$ is dampened in proportion to the number of cumulative infections following an SIR approximation, which is implemented when damp_type =1 (see EpiNow2 documentation for details) or we assume that the R(t) is dampened by the current number of infections with a drift term, per Jason's Ebola model. We will likely modify both of these significantly, particularly if we observe consisteny over or underprediction in the forecasts. <br/>
+
+
+We model the process of generating two type of observations. First the hospital admissions: Each infectee is assumed to have some (independent) chance of getting hospitalizated $p_{hosp}$, and *if* they will eventually be hospitalized then the probability distribution for days after infection before observation and reporting is $d(t)$. Therefore, conditional on some time series of state level daily infections generated by one of the models, $I_{state\mu}(t)$, the *expected* number of state-level reported hospitalizations on each day $t$ is,
+
+$$H[t] = p_{hosp}\sum_{\tau\geq 0}d[\tau] I_{state\mu}[t-\tau]$$
+We estimate $p_{hosp}$ and for now are setting the hospital admissions delay distribution $d(t)$. We assume that the observation process is negative binomial, such that:
+$$\overline{H}[t] \sim NegBinom(H[t], \phi_h)$$
+<br/>
+
+In a similar fashion for generated the expected WW observations, we assume that each individual follows the same shaped shedding kinetics distribution $S(t)$. We assume the shedding kinetics follows a hinge function
+in log10 space.
+$$\begin{align*}
+log10(S[t]) =
+
+    \begin{cases}
+        \frac{V_{peak}}{t_{peak}}t & t\leq t_{peak} \\
+        V_{peak} + wt_{peak} - wt & t \geq t_{peak} \\
+ \end{cases}
+ \end{align*}
+$$
+
+Where $V_{peak}$ is the log10 peak viral load that occurs at $t_{peak}$ days since infection onset, and $w$ is the rate at which viral load wanes after $t_{peak}$. We convert to natural scale with $S[t] = 10^{log10(S[t])}$. The parameters of this hinge function are estimated (with relatively strong priors taken from fecal shedding literature and literature on viral loads in nasal passages). The individual level viral kinetics $S[t]$ of each infected individual are normalized to sum to 1 over the course of the infection and are multiplied by  $G$, the number of genome copies shed by each infected individual throughout their infection. Therefore, conditional on some time series of daily infections in each site $I_j(t)$, the *expected* number of viral genomes shed in WW on each day $t$ is,
+
+$$V_{j}[t] = \  G\sum_{\tau\geq 0}  S(\tau)I_j(t-\tau)$$
+Where $\sum_{\tau\geq 0}  S(\tau)I_j(t-\tau)$ is the net number of infected
+individuals in site $j$ on each day $t$, which we will call $\iota_j(t)$.
+While $S[t]$ describes the kinetics of how an infected individual sheds over the course of
+their infection, there is also individual variabilty in the total amount of virus shed per infected individual over the course of their infection, $G$. </br>
+
+## Dispersion in viral genomes shed per infected individual
+We will assume that an individual sheds $G_i$ genomes per infection and $G_i$ is negative binomially distributed with mean $\mu_G$ and dispersion $phi$,
+$$ G_i \sim NegBinom(\mu_G, \phi) $$
+Then we can write the expected sum of the genomes shed from the infected individuals in site $j$
+as, $G_j(t) = \sum_{i=1}^\iota_j(t) G_i$:
+$$ G_j(t) \sim NegBinom(\iota_j(t)\mu_G, \iota_j(t)\phi) $$
+where $N_j$ is the number of infected individuals in each site on each day. This is is a result of a fun trick that the sum of Negative Binomials are Negative Binomials.
+What it means is rather intuitive,
+that as you have a larger population of infected individuals shedding into the WW,
+you observe lower overall dispersion ($\phi$ increases). $G_j(t)$ is the expected
+number of viral genomes shed in each site on each day. To implement this, we will
+use the Gaussian approximation described [here](https://academic.oup.com/jrsssa/article/185/Supplement_1/S65/7069481?login=true#rssa12971-sec-0020).
+
+
+In practice, each site
+processes samples differently, which adds both a site-level scaling factor $M_j$
+and site level variability, which we will call $\phi_j$. If we assume observation
+are also Negative Binomial, then the observed genomes in each site on each day
+$\overline{G}_j(t)$ can be defined as:
+$$ \overline{G}_j(t) \sim NegBinom(M_jG_j(t), \phi_j) $$
+This defines a model with a site-level scaling factor and a site-level measurement error.
+Our observations will be in terms of genomes per person per day, so $\overline{G*}_j(t) = \frac{\overline{G}_j(t)}{N_j}$ where $N_j$ is the population in the WW catchment area. Note the observation errors don't have to be Negative Binomially distributed, could also use
+something like a student t.
+</br>
+
+
+
+
+## Hierarchical infectious disease dynamics
+We will assume that at each time step, the site level infections $I_j(t) = R_j(t) \sum_{s=1}^{t}I_j(t-s)g(s)$ are drawn from a shared distribution of state-level $R(t)$ such that:
+$$ R_j(t) \sim  logNormal(R_{state\mu}(t), \sigma_{R(t)})$$
+
+
+
+# Assign parameters
+```{r}
+# This contains all the model priors and parameter settings. Informative priors
+# include the shedding viral kinetic parameters (timing of peak viral shedding,
+# magnitude of peak viral shedding, and duration of viral shedding). These
+# were informed in combination from literature on fecal shedding and viral loads
+# in the nasal package.
+params <- get_params(config_vars_ss$param_file_path) #
+print(params)
+
+params$p_hosp_w_sd_sd <- 0.05
+# Pull the prior hyperparameters into the global environment so you can create
+# the init_fun to be passed to stan
+par_names <- colnames(params)
+for (i in seq_along(par_names)) {
+  assign(par_names[i], as.double(params[i]))
+}
+
+
+stan_data <- do.call(get_stan_data_site_level_model, c(
+  config_vars_ss,
+  list(params = params),
+  list(train_data = train_data)
+))
+
+pop <- train_data %>%
+  select(pop) %>%
+  unique() %>%
+  pull(pop)
+stopifnot("More than one population size in training data" = length(pop) == 1)
+
+n_weeks <- as.numeric(stan_data$n_weeks)
+tot_weeks <- as.numeric(stan_data$tot_weeks)
+n_ww_sites <- as.numeric(stan_data$n_ww_sites)
+n_ww_lab_sites <- as.numeric(stan_data$n_ww_lab_sites)
+ot <- stan_data$ot
+ht <- stan_data$ht
+
+# Estimate of number of initial infections
+i0 <- mean(train_data$daily_hosp_admits[1:7]) / p_hosp_mean
+```
+
+
+
+
+# Initialize the parameter search using center of the priors + a bit of noise
+```{r}
+init_fun <- function() {
+  site_level_inf_inits(train_data, params, stan_data)
+}
+```
+
+# Compile the model
+```{r, echo = FALSE}
+model_file_path <- here::here(
+  "cfaforecastrenewalww", "inst",
+  "stan", "renewal_ww_hosp_site_level_inf_dynamics.stan"
+)
+
+model <- compile_model(model_filepath = model_file_path)
+```
+
+# Fit the model
+```{r, echo = FALSE}
+fit_dynamic_rt <- model$sample(
+  data = stan_data,
+  seed = 123,
+  init = init_fun,
+  iter_sampling = 500,
+  iter_warmup = 750,
+  adapt_delta = 0.95,
+  max_treedepth = 12,
+  chains = 4,
+  parallel_chains = 4
+)
+```
+Quick test
+```{r}
+all_draws <- fit_dynamic_rt$draws()
+
+
+autoreg_rt_site <- all_draws %>%
+  spread_draws(autoreg_rt_site) %>%
+  mutate(draw = `.draw`) %>%
+  mutate(
+    name = "autoreg_rt_site",
+    t = NA
+  ) %>%
+  rename(value = autoreg_rt_site) %>%
+  select(name, t, value, draw)
+
+prior_autoreg_rt_site <- data.frame(value = rbeta(1000, autoreg_rt_a, autoreg_rt_b))
+prior_autoreg_rt_site <- data.frame(value = rbeta(1000, 1, 4))
+
+sigma_rt <- all_draws %>%
+  spread_draws(sigma_rt) %>%
+  sample_draws(ndraws = 100) %>%
+  mutate(draw = row_number()) %>%
+  mutate(
+    name = "sigma_rt",
+  ) %>%
+  rename(value = sigma_rt) %>%
+  select(name, value, draw)
+
+sigma_rt_prior <- data.frame(value = rnorm(1000, 0, params$sigma_rt_prior))
+ggplot() +
+  geom_density(data = sigma_rt_prior, aes(x = value), fill = "blue", alpha = 0.1) +
+  geom_density(data = sigma_rt, aes(x = value), fill = "red", alpha = 0.1) +
+  theme_bw() +
+  ggtitle("Average deviation of site and state R(t)") +
+  coord_cartesian(xlim = c(0, 1))
+
+ggplot() +
+  geom_density(data = prior_autoreg_rt_site, aes(x = value), fill = "blue", alpha = 0.1) +
+  geom_density(data = autoreg_rt_site, aes(x = value), fill = "red", alpha = 0.1) +
+  theme_bw() +
+  ggtitle("Autoreg coefficient in site level R(t) deviation") +
+  coord_cartesian(xlim = c(0, 0.8))
+```
+```{r}
+r_state <- all_draws %>%
+  spread_draws(rt[t]) %>%
+  rename(value = rt) %>%
+  mutate(
+    draw = `.draw`,
+    name = "r_state"
+  ) %>%
+  select(name, t, value, draw) %>%
+  group_by(t, name) %>%
+  summarise(
+    median_Rt = quantile(value, 0.5, na.rm = TRUE),
+    lb = quantile(value, 0.025, na.rm = TRUE),
+    ub = quantile(value, 0.975, na.rm = TRUE),
+    ub_50th = quantile(value, 0.75, na.rm = TRUE),
+    lb_50th = quantile(value, 0.25, na.rm = TRUE)
+  ) %>%
+  left_join(train_data %>% select(forecast_date, t, date) %>% distinct())
+
+
+site_map <- train_data %>%
+  select(site, site_index, ww_pop) %>%
+  distinct() %>%
+  filter(!is.na(site))
+
+if (sum(stan_data$subpop_size) < stan_data$state_pop) {
+  subpop_map <- site_map %>%
+    rbind(c(1, stan_data$subpop_size[stan_data$n_subpops])) %>%
+    rename(subpop_size = ww_pop)
+} else {
+  subpop_map <- site_map %>%
+    rename(subpop_size = ww_pop)
+}
+
+r_site <- all_draws %>%
+  spread_draws(r_site_t[site_index, t]) %>%
+  rename(value = r_site_t) %>%
+  mutate(
+    draw = `.draw`,
+    name = "r_site"
+  ) %>%
+  select(name, t, value, site_index, draw) %>%
+  group_by(t, site_index, name) %>%
+  summarise(
+    median_Rt = quantile(value, 0.5, na.rm = TRUE),
+    lb = quantile(value, 0.025, na.rm = TRUE),
+    ub = quantile(value, 0.975, na.rm = TRUE),
+    ub_50th = quantile(value, 0.75, na.rm = TRUE),
+    lb_50th = quantile(value, 0.25, na.rm = TRUE)
+  ) %>%
+  left_join(subpop_map) %>%
+  left_join(
+    train_data %>%
+      select(forecast_date, t, date) %>%
+      distinct()
+  ) %>%
+  mutate(
+    site_name = paste0("Site: ", site)
+  )
+
+ggplot(r_state) +
+  geom_line(aes(x = date, y = median_Rt)) +
+  geom_ribbon(aes(x = date, ymin = lb, ymax = ub), alpha = 0.2) +
+  geom_ribbon(aes(x = date, ymin = lb_50th, ymax = ub_50th), alpha = 0.2) +
+  geom_hline(aes(yintercept = 1), linetype = "dashed") +
+  ylab("State R(t)") +
+  xlab("") + # scale_y_continuous(trans = "log") +
+  # coord_cartesian(ylim = c(0.5, 2.2))+
+  theme_bw()
+
+ggplot(r_site) +
+  geom_line(aes(x = date, y = median_Rt, color = as.factor(site_name))) +
+  geom_ribbon(aes(x = date, ymin = lb, ymax = ub, fill = as.factor(site_name)), alpha = 0.2) +
+  geom_ribbon(
+    aes(
+      x = date,
+      ymin = lb_50th, ymax = ub_50th,
+      fill = as.factor(site_name)
+    ),
+    alpha = 0.2
+  ) +
+  geom_hline(aes(yintercept = 1), linetype = "dashed") +
+  facet_wrap(~site_name) +
+  ylab("Site R(t)") +
+  xlab("") +
+  theme_bw()
+
+sites_to_display <- train_data |>
+  dplyr::select(site) |>
+  dplyr::filter(!is.na(site)) |>
+  unique() |>
+  pull() |>
+  head(2)
+
+ggplot(r_site %>% filter(site %in% sites_to_display)) +
+  geom_line(aes(x = date, y = median_Rt, color = as.factor(site_name)),
+    show.legend = FALSE
+  ) +
+  geom_ribbon(aes(x = date, ymin = lb, ymax = ub, fill = as.factor(site_name)),
+    alpha = 0.2, show.legend = FALSE
+  ) +
+  geom_ribbon(aes(x = date, ymin = lb_50th, ymax = ub_50th, fill = as.factor(site_name)),
+    alpha = 0.2, show.legend = FALSE
+  ) +
+  geom_hline(aes(yintercept = 1), linetype = "dashed") +
+  facet_wrap(~site_name) +
+  ylab("Site R(t)") +
+  xlab("") +
+  theme_bw()
+
+ggplot() +
+  geom_line(
+    data = r_site %>% filter(site %in% sites_to_display[1]),
+    aes(x = date, y = median_Rt), color = "darkorange2",
+    show.legend = FALSE
+  ) +
+  geom_ribbon(
+    data = r_site %>% filter(site %in% sites_to_display[1]),
+    aes(x = date, ymin = lb, ymax = ub), fill = "darkorange2",
+    alpha = 0.2, show.legend = FALSE
+  ) +
+  geom_ribbon(
+    data = r_site %>% filter(site %in% sites_to_display[1]),
+    aes(x = date, ymin = lb_50th, ymax = ub_50th), fill = "darkorange2",
+    alpha = 0.2, show.legend = FALSE
+  ) +
+  geom_line(
+    data = r_site %>% filter(site %in% sites_to_display[2]),
+    aes(x = date, y = median_Rt), color = "darkgreen",
+    show.legend = FALSE
+  ) +
+  geom_ribbon(
+    data = r_site %>% filter(site %in% sites_to_display[2]),
+    aes(x = date, ymin = lb, ymax = ub), fill = "darkgreen",
+    alpha = 0.2, show.legend = FALSE
+  ) +
+  geom_ribbon(
+    data = r_site %>% filter(site %in% sites_to_display[2]),
+    aes(x = date, ymin = lb_50th, ymax = ub_50th), fill = "darkgreen",
+    alpha = 0.2, show.legend = FALSE
+  ) +
+  geom_hline(aes(yintercept = 1), linetype = "dashed") +
+  ylab("Site R(t)") +
+  xlab("") +
+  scale_y_continuous(trans = "log") +
+  coord_cartesian(ylim = c(0.5, 2.2)) +
+  theme_bw()
+```
+
+Time-varying IHR
+```{r}
+p_hosp <- all_draws %>%
+  spread_draws(p_hosp[t]) %>%
+  sample_draws(ndraws = 20) %>%
+  rename(value = p_hosp) %>%
+  mutate(
+    draw = `.draw`,
+    name = "p_hosp"
+  ) %>%
+  select(name, t, value, draw)
+
+ggplot(p_hosp) +
+  geom_line(aes(x = t, y = value, group = draw), size = 0.1) +
+  xlab("Time (days)") +
+  ylab("IHR(t)")
+
+p_hosp_mean <- all_draws %>%
+  spread_draws(p_hosp_mean) %>%
+  mutate(draw = row_number()) %>%
+  mutate(
+    name = "p_hosp_mean",
+  ) %>%
+  mutate(value = plogis(p_hosp_mean)) %>%
+  select(name, value, draw)
+ggplot(p_hosp_mean) +
+  aes(x = value) +
+  stat_halfeye() +
+  xlab("Mean of IHR")
+
+p_hosp_w_sd <- all_draws %>%
+  spread_draws(p_hosp_w_sd) %>%
+  mutate(draw = row_number()) %>%
+  mutate(
+    name = "p_hosp_w_sd",
+  ) %>%
+  rename(value = p_hosp_w_sd) %>%
+  select(name, value, draw)
+ggplot(p_hosp_w_sd) +
+  aes(x = value) +
+  stat_halfeye() +
+  xlab("Stdev of step size of IHR(t)")
+
+cv <- all_draws %>%
+  spread_draws(cv) %>%
+  mutate(draw = row_number()) %>%
+  mutate(
+    name = "cv",
+  ) %>%
+  rename(value = cv) %>%
+  select(name, value, draw)
+ggplot(cv) +
+  aes(x = value) +
+  stat_halfeye() +
+  xlab("Coefficient of variation in individual dispersion in number of genomes shed")
+mu_g <- all_draws %>%
+  spread_draws(mu_g) %>%
+  mutate(draw = row_number()) %>%
+  mutate(
+    name = "mu_g",
+  ) %>%
+  rename(value = mu_g) %>%
+  select(name, value, draw)
+ggplot(mu_g) +
+  aes(x = value) +
+  stat_halfeye() +
+  xlab("Mean number of genomes shed per infection")
+
+log_genomes_shed_per_inf <- all_draws %>%
+  spread_draws(log_genomes_shed_per_inf) %>%
+  mutate(draw = row_number()) %>%
+  mutate(
+    name = "log_genomes_shed_per_inf",
+  ) %>%
+  rename(value = log_genomes_shed_per_inf) %>%
+  select(name, value, draw)
+ggplot(log_genomes_shed_per_inf) +
+  aes(x = value) +
+  stat_halfeye() +
+  xlab("Log of individual's number of genomes shed per infection ")
+
+genomes_shed_per_inf <- all_draws %>%
+  spread_draws(log_genomes_shed_per_inf) %>%
+  mutate(draw = row_number()) %>%
+  mutate(
+    name = "genomes_shed_per_inf",
+  ) %>%
+  mutate(value = exp(log_genomes_shed_per_inf)) %>%
+  select(name, value, draw)
+ggplot(genomes_shed_per_inf) +
+  aes(x = value) +
+  stat_halfeye() +
+  xlab("Individual's number of genomes shed per infection ")
+```
+Hospital admissions
+```{r}
+hosp_state <- all_draws %>%
+  spread_draws(pred_hosp[t]) %>%
+  rename(value = pred_hosp) %>%
+  mutate(
+    draw = `.draw`,
+    name = "pred_hosp"
+  ) %>%
+  select(name, t, value, draw) %>%
+  group_by(t, name) %>%
+  summarise(
+    median_hosp = quantile(value, 0.5, na.rm = TRUE),
+    lb = quantile(value, 0.025, na.rm = TRUE),
+    ub = quantile(value, 0.975, na.rm = TRUE),
+    ub_50th = quantile(value, 0.75, na.rm = TRUE),
+    lb_50th = quantile(value, 0.25, na.rm = TRUE)
+  ) %>%
+  left_join(train_data %>% select(forecast_date, daily_hosp_admits, t, date) %>% distinct())
+
+
+ggplot(hosp_state) +
+  geom_line(aes(x = date, y = median_hosp)) +
+  geom_point(aes(x = date, y = daily_hosp_admits)) +
+  geom_ribbon(aes(x = date, ymin = lb, ymax = ub), alpha = 0.2) +
+  geom_ribbon(aes(x = date, ymin = lb_50th, ymax = ub_50th), alpha = 0.2) +
+  geom_vline(aes(xintercept = forecast_date), linetype = "dashed") +
+  ylab("State-level hospital admissions") +
+  xlab("") +
+  theme_bw()
+
+hosp_state_draws <- all_draws %>%
+  spread_draws(pred_hosp[t]) %>%
+  sample_draws(ndraws = 100) %>%
+  rename(value = pred_hosp) %>%
+  mutate(
+    draw = `.draw`,
+    name = "pred_hosp"
+  ) %>%
+  select(name, t, value, draw) %>%
+  left_join(train_data %>% select(forecast_date, daily_hosp_admits, t, date) %>% distinct())
+
+ggplot(hosp_state_draws) +
+  geom_line(aes(x = date, y = value, group = draw), size = 0.1, alpha = 0.1) +
+  geom_point(aes(x = date, y = daily_hosp_admits)) +
+  geom_vline(aes(xintercept = forecast_date), linetype = "dashed") +
+  ylab("State-level hospital admissions") +
+  xlab("") +
+  theme_bw()
+```
+Site-lab concentrations
+
+```{r}
+lab_site_map <- train_data %>%
+  dplyr::select(lab_wwtp_unique_id, lab_site_index, site, lab) %>%
+  dplyr::mutate(
+    lab_site = glue::glue("Site: {site} Lab: {lab}")
+  ) %>%
+  dplyr::distinct()
+
+conc <- all_draws %>%
+  spread_draws(pred_ww[lab_site_index, t]) %>%
+  rename(value = pred_ww) %>%
+  mutate(
+    draw = `.draw`,
+    name = "log_conc"
+  ) %>%
+  select(name, t, value, lab_site_index, draw) %>%
+  group_by(t, lab_site_index, name) %>%
+  summarise(
+    median_conc = quantile(value, 0.5, na.rm = TRUE),
+    lb = quantile(value, 0.025, na.rm = TRUE),
+    ub = quantile(value, 0.975, na.rm = TRUE),
+    ub_50th = quantile(value, 0.75, na.rm = TRUE),
+    lb_50th = quantile(value, 0.25, na.rm = TRUE)
+  ) %>%
+  left_join(lab_site_map) %>%
+  left_join(
+    train_data %>%
+      select(forecast_date, t, date) %>%
+      distinct()
+  ) %>%
+  left_join(
+    train_data %>% select(
+      ww, t, lab_site_index, ww_pop, below_LOD, lod_sewage,
+      flag_as_ww_outlier
+    ),
+    by = c("t", "lab_site_index")
+  )
+
+ggplot(conc) +
+  geom_line(aes(x = date, y = median_conc, color = lab_site), show.legend = FALSE) +
+  geom_ribbon(aes(x = date, ymin = lb, ymax = ub, fill = lab_site),
+    alpha = 0.2, show.legend = FALSE
+  ) +
+  geom_point(aes(x = date, y = log(ww)), show.legend = FALSE) +
+  geom_ribbon(aes(x = date, ymin = lb_50th, ymax = ub_50th, fill = lab_site),
+    alpha = 0.2, show.legend = FALSE
+  ) +
+  geom_vline(aes(xintercept = forecast_date), linetype = "dashed") +
+  facet_wrap(~lab_site) +
+  ylab("Site Concentration(t)") +
+  xlab("") +
+  theme_bw()
+
+ggplot(data = conc %>% filter(site == sites_to_display[1])) +
+  geom_line(aes(x = date, y = median_conc), color = "darkorange2") +
+  geom_ribbon(aes(x = date, ymin = lb, ymax = ub), fill = "darkorange2", alpha = 0.2) +
+  geom_point(aes(x = date, y = log(ww))) +
+  geom_ribbon(aes(x = date, ymin = lb_50th, ymax = ub_50th), fill = "darkorange2", alpha = 0.2) +
+  geom_vline(aes(xintercept = forecast_date), linetype = "dashed") +
+  facet_wrap(~lab_site) +
+  ylab("Site-level genome copies per mL") +
+  xlab("") +
+  theme_bw()
+
+ggplot(data = conc %>% filter(site == sites_to_display[2])) +
+  geom_line(aes(x = date, y = median_conc), color = "darkgreen") +
+  geom_ribbon(aes(x = date, ymin = lb, ymax = ub), fill = "darkgreen", alpha = 0.2) +
+  geom_point(aes(x = date, y = log(ww))) +
+  geom_ribbon(aes(x = date, ymin = lb_50th, ymax = ub_50th), fill = "darkgreen", alpha = 0.2) +
+  geom_vline(aes(xintercept = forecast_date), linetype = "dashed") +
+  facet_wrap(~lab_site) +
+  ylab("Site-level genome copies per mL") +
+  xlab("") +
+  theme_bw()
+```
+
+
+
+```{r}
+log_r_state <- all_draws %>%
+  spread_draws(log_r_mu_t_in_weeks[t]) %>%
+  rename(value = log_r_mu_t_in_weeks) %>%
+  mutate(
+    draw = `.draw`,
+    name = "log_r_state"
+  ) %>%
+  select(name, t, value, draw)
+
+log_r_site <- all_draws %>%
+  spread_draws(log_r_site_t_in_weeks[t]) %>%
+  rename(value = log_r_site_t_in_weeks) %>%
+  mutate(
+    draw = `.draw`,
+    name = "log_r_state"
+  ) %>%
+  select(name, t, value, draw)
+
+sigma_rt <- all_draws %>%
+  spread_draws(sigma_rt) %>%
+  sample_draws(ndraws = 100) %>%
+  mutate(draw = row_number()) %>%
+  mutate(
+    name = "sigma_rt",
+  ) %>%
+  rename(value = sigma_rt) %>%
+  select(name, value, draw)
+ggplot(sigma_rt) +
+  aes(x = value) +
+  stat_halfeye() +
+  xlab("Standard deviation between site and state level R(t)s")
+
+infection_feedback <- all_draws %>%
+  spread_draws(infection_feedback) %>%
+  sample_draws(ndraws = 100) %>%
+  mutate(draw = row_number()) %>%
+  mutate(
+    name = "infection_feedback",
+  ) %>%
+  rename(value = infection_feedback) %>%
+  select(name, value, draw)
+ggplot(infection_feedback) +
+  aes(x = value) +
+  stat_halfeye() +
+  xlab("Infection feedback")
+
+autoreg_rt_site <- all_draws %>%
+  spread_draws(autoreg_rt_site) %>%
+  sample_draws(ndraws = 100) %>%
+  mutate(draw = row_number()) %>%
+  mutate(
+    name = "autoreg_rt_site",
+  ) %>%
+  rename(value = autoreg_rt_site) %>%
+  select(name, value, draw)
+ggplot(autoreg_rt_site) +
+  aes(x = value) +
+  stat_halfeye() +
+  xlab("AR term on Rt between sites and state mean")
+
+autoreg_rt <- all_draws %>%
+  spread_draws(autoreg_rt) %>%
+  sample_draws(ndraws = 100) %>%
+  mutate(draw = row_number()) %>%
+  mutate(
+    name = "autoreg_rt",
+  ) %>%
+  rename(value = autoreg_rt) %>%
+  select(name, value, draw)
+ggplot(autoreg_rt) +
+  aes(x = value) +
+  stat_halfeye() +
+  xlab("AR term on Rt between previous time step R(t)")
+```
+
+
+# Look at the generated quantitities
+
+```{r}
+all_draws <- fit_dynamic_rt$draws()
+
+# Dataframes with ndraws (long format)
+hosp_draws <- all_draws %>%
+  spread_draws(pred_hosp[t]) %>%
+  rename(value = pred_hosp) %>%
+  mutate(
+    draw = row_number(),
+    name = "pred_hosp"
+  ) %>%
+  select(name, t, value, draw)
+
+
+site_map <- train_data %>%
+  select(site, site_index, ww_pop) %>%
+  distinct()
+lab_site_map <- train_data %>%
+  select(lab_wwtp_unique_id, lab_site_index, site) %>%
+  distinct()
+
+ww_draws <- all_draws %>%
+  spread_draws(pred_ww[lab_site_index, t]) %>%
+  rename(value = pred_ww) %>%
+  group_by(lab_site_index, t) %>%
+  mutate(
+    draw = row_number(),
+    name = "pred_ww",
+    value = exp(value)
+  ) %>%
+  select(name, lab_site_index, t, value, draw)
+
+sampled_draws <- sample(length(unique(ww_draws$draw)), 100)
+
+# Gather R(t)
+site_level_rt <- all_draws %>%
+  spread_draws(r_site_t[site_index, t]) %>%
+  rename(value = r_site_t) %>%
+  group_by(site_index, t) %>%
+  mutate(
+    draw = row_number(),
+    name = "R_site_t"
+  ) %>%
+  ungroup() %>%
+  select(name, site_index, t, value, draw) %>%
+  filter(draw %in% sampled_draws) %>%
+  left_join(site_map, by = "site_index") %>%
+  left_join(
+    train_data %>%
+      select(-ww, -site, -site_index, -ww_pop) %>%
+      distinct()
+  ) %>%
+  left_join(
+    train_data %>%
+      select(ww, site_index, t),
+    by = c("t", "site_index")
+  )
+
+site_level_rt_summary <- site_level_rt %>%
+  group_by(t, site_index) %>%
+  summarise(
+    site_level_rt_median = quantile(value, 0.5),
+    site_level_rt_lb = quantile(value, 0.025),
+    site_level_rt_ub = quantile(value, 0.975)
+  ) %>%
+  left_join(site_map, by = "site_index") %>%
+  left_join(
+    train_data %>%
+      select(-ww, -site, -site_index, -ww_pop) %>%
+      distinct()
+  ) %>%
+  left_join(train_data %>% select(ww, site_index, t), by = c("t", "site_index"))
+
+
+state_rt <- all_draws %>%
+  spread_draws(rt[t]) %>%
+  rename(value = rt) %>%
+  group_by(t) %>%
+  mutate(
+    draw = row_number(),
+    name = "rt"
+  ) %>%
+  select(name, t, value, draw) %>%
+  left_join(train_data %>% select(forecast_date, t, date, period) %>% distinct())
+
+state_rt_summary <- state_rt %>%
+  group_by(t) %>%
+  summarise(
+    exp_rt_median = quantile(value, 0.5),
+    exp_rt_lb = quantile(value, 0.025),
+    exp_rt_ub = quantile(value, 0.975)
+  ) %>%
+  left_join(
+    train_data %>%
+      select(forecast_date, t, date) %>%
+      distinct()
+  )
+
+state_rt <- state_rt %>%
+  filter(draw %in% sampled_draws)
+
+
+ggplot(site_level_rt_summary %>% filter(date <= forecast_date)) +
+  geom_line(aes(x = date, y = site_level_rt_median, color = as.factor(site))) +
+  geom_ribbon(
+    aes(
+      x = date,
+      ymin = site_level_rt_lb, ymax = site_level_rt_ub,
+      fill = as.factor(site)
+    ),
+    alpha = 0.2
+  ) +
+  geom_line(
+    data = state_rt_summary %>% filter(date <= forecast_date),
+    aes(x = date, y = exp_rt_median), color = "black"
+  ) +
+  geom_ribbon(
+    data = state_rt_summary %>% filter(date <= forecast_date),
+    aes(
+      x = date, ymin = exp_rt_lb,
+      ymax = exp_rt_ub
+    ), fill = "black", alpha = 0.1
+  ) +
+  facet_wrap(~site) +
+  ylab("Estimated R(t)") +
+  xlab("") +
+  ggtitle("Estimated site level R(t)") +
+  theme_bw()
+
+
+# Cross-sectional R(t) d
+d <- 3
+site_level_rt_end <- site_level_rt %>%
+  filter(date == forecast_date - days(d)) %>%
+  left_join(
+    site_level_rt %>%
+      filter(date == forecast_date - days(d)) %>%
+      group_by(site) %>%
+      summarise(median_rt = quantile(value, 0.5)),
+    by = "site"
+  )
+state_rt_end <- state_rt %>%
+  filter(date == forecast_date - days(d)) %>%
+  left_join(
+    state_rt %>%
+      filter(date == forecast_date - days(d)) %>%
+      summarise(median_rt = quantile(value, 0.5)),
+    by = "t"
+  )
+
+
+ggplot() +
+  geom_density(
+    data = site_level_rt_end,
+    aes(x = value, fill = as.factor(site), group = as.factor(site)), alpha = 0.3
+  ) +
+  geom_vline(data = site_level_rt_end, aes(xintercept = median_rt, color = as.factor(site))) +
+  geom_density(
+    data = state_rt_end,
+    aes(x = value), fill = "black", alpha = 0.3
+  ) +
+  facet_wrap(~site) +
+  geom_vline(data = state_rt_end, aes(xintercept = median_rt), color = "black") +
+  ggtitle("R(t) estimates at forecast date by site and overall")
+```
+
+
+
+
+Site-level ww genome copies per mL vs observations
+```{r}
+ww_draws_w_data <- ww_draws %>%
+  filter(draw %in% sampled_draws) %>%
+  left_join(lab_site_map, by = "lab_site_index") %>%
+  left_join(train_data %>% select(
+    date, location, pop, daily_hosp_admits_for_eval,
+    daily_hosp_admits, t, hosp_reporting_delay,
+    period,
+    forecast_date, day_of_week, include_ww
+  ) %>%
+    distinct()) %>%
+  left_join(
+    train_data %>% select(
+      ww, t, lab_site_index, ww_pop, below_LOD, lod_sewage,
+      flag_as_ww_outlier
+    ),
+    by = c("t", "lab_site_index")
+  )
+
+sites_to_plot <- unique(lab_site_map$lab_wwtp_unique_id)
+
+ggplot(ww_draws_w_data %>% filter(
+  date <= forecast_date + days(7),
+  lab_wwtp_unique_id %in% sites_to_plot
+)) +
+  geom_line(
+    aes(
+      x = date, y = value, group = draw,
+      color = as.factor(lab_wwtp_unique_id)
+    ),
+    linewidth = 0.1, alpha = 0.1, show.legend = FALSE
+  ) +
+  geom_line(
+    data = ww_draws_w_data %>% filter(
+      period != "forecast",
+      lab_wwtp_unique_id %in% sites_to_plot
+    ),
+    aes(
+      x = date, y = value, group = draw,
+      color = as.factor(lab_wwtp_unique_id)
+    ),
+    linewidth = 0.1, alpha = 0.3, show.legend = FALSE
+  ) +
+  geom_point(
+    data = ww_draws_w_data %>% filter(
+      period != "forecast",
+      lab_wwtp_unique_id %in% sites_to_plot
+    ),
+    aes(x = date, y = lod_sewage, group = draw), color = "navy"
+  ) +
+  geom_point(aes(x = date, y = ww), size = 1, shape = 21) +
+  geom_point(
+    data = ww_draws_w_data %>% filter(flag_as_ww_outlier == 1),
+    aes(x = date, y = ww), size = 1.5, shape = 21, color = "purple"
+  ) +
+  geom_point(
+    data = ww_draws_w_data %>% filter(below_LOD == 1),
+    aes(x = date, y = ww), size = 1.5, shape = 21, color = "red"
+  ) +
+  geom_point(
+    data = ww_draws_w_data %>% filter(
+      period != "forecast",
+      lab_wwtp_unique_id %in% sites_to_plot
+    ),
+    aes(x = date, y = ww),
+    fill = "black", size = 1, shape = 21
+  ) +
+  geom_vline(aes(xintercept = forecast_date), linetype = "dashed") +
+  facet_wrap(~lab_wwtp_unique_id, scales = "free") +
+  theme_bw() +
+  xlab("") +
+  ylab("Genome copies/mL")
+
+ggplot(ww_draws_w_data %>% filter(
+  date <= forecast_date + days(7),
+  lab_wwtp_unique_id %in% sites_to_plot
+)) +
+  geom_line(
+    aes(
+      x = date, y = log(value), group = draw,
+      color = as.factor(lab_wwtp_unique_id)
+    ),
+    linewidth = 0.1, alpha = 0.1, show.legend = FALSE
+  ) +
+  geom_line(
+    data = ww_draws_w_data %>% filter(
+      period != "forecast",
+      lab_wwtp_unique_id %in% sites_to_plot
+    ),
+    aes(
+      x = date, y = log(value), group = draw,
+      color = as.factor(lab_wwtp_unique_id)
+    ),
+    linewidth = 0.1, alpha = 0.3, show.legend = FALSE
+  ) +
+  geom_point(
+    data = ww_draws_w_data %>% filter(
+      period != "forecast",
+      lab_wwtp_unique_id %in% sites_to_plot
+    ),
+    aes(x = date, y = log(lod_sewage), group = draw), color = "navy"
+  ) +
+  geom_point(aes(x = date, y = log(ww)), size = 1, shape = 21) +
+  geom_point(
+    data = ww_draws_w_data %>% filter(flag_as_ww_outlier == 1),
+    aes(x = date, y = log(ww)), size = 1.5, shape = 21, color = "purple"
+  ) +
+  geom_point(
+    data = ww_draws_w_data %>% filter(below_LOD == 1),
+    aes(x = date, y = log(ww)), size = 1.5, shape = 21, color = "red"
+  ) +
+  geom_point(
+    data = ww_draws_w_data %>% filter(
+      period != "forecast",
+      lab_wwtp_unique_id %in% sites_to_plot
+    ),
+    aes(x = date, y = log(ww)),
+    fill = "black", size = 1, shape = 21
+  ) +
+  geom_vline(aes(xintercept = forecast_date), linetype = "dashed") +
+  facet_wrap(~lab_wwtp_unique_id, scales = "free") +
+  theme_bw() +
+  xlab("") +
+  ylab("log(genome copies/mL)")
+
+sites_to_plot <- ww_draws_w_data %>%
+  ungroup() %>%
+  select(site) %>%
+  filter(!is.na(site)) %>%
+  unique() %>%
+  pull()
+ggplot(ww_draws_w_data %>% filter(
+  date <= forecast_date + days(7),
+  site %in% sites_to_plot
+)) +
+  geom_line(
+    aes(
+      x = date, y = log(value), group = draw,
+      color = as.factor(site)
+    ),
+    linewidth = 0.1, alpha = 0.1, show.legend = FALSE
+  ) +
+  geom_line(
+    data = ww_draws_w_data %>% filter(
+      period != "forecast",
+      site %in% sites_to_plot
+    ),
+    aes(
+      x = date, y = log(value), group = draw,
+      color = as.factor(site)
+    ),
+    linewidth = 0.1, alpha = 0.3, show.legend = FALSE
+  ) +
+  geom_point(aes(x = date, y = log(ww)), size = 1, shape = 21) +
+  geom_point(
+    data = ww_draws_w_data %>% filter(flag_as_ww_outlier == 1),
+    aes(x = date, y = log(ww)), size = 1.5, shape = 21, color = "purple"
+  ) +
+  geom_point(
+    data = ww_draws_w_data %>% filter(below_LOD == 1),
+    aes(x = date, y = log(ww)), size = 1.5, shape = 21, color = "red"
+  ) +
+  geom_point(
+    data = ww_draws_w_data %>% filter(
+      period != "forecast",
+      site %in% sites_to_plot
+    ),
+    aes(x = date, y = log(ww)),
+    fill = "black", size = 1, shape = 21
+  ) +
+  geom_vline(aes(xintercept = forecast_date), linetype = "dashed") +
+  facet_wrap(~site, scales = "free") +
+  theme_bw() +
+  xlab("") +
+  ylab("log(genome copies/mL)") +
+  ggtitle("Observed and estimated site-level wastewater concentrations")
+```
+
+Diagnostics
+```{r}
+fit_dynamic_Rt$save_object(file = "fit.RDS")
+fit <- readRDS("fit.RDS")
+posterior_cp <- as.array(fit)
+np_cp <- nuts_params(fit_cp)
+
+mcmc_pairs(posterior_cp,
+  np = np_cp, pars = c("sigma_ww_site[1]", "cv"),
+  off_diag_args = list(size = 0.75)
+)
+```
+
+
+```{r}
+ww_site_modifier_draws <- all_draws %>%
+  spread_draws(ww_site_mod[site_index]) %>%
+  # sample_draws(ndraws = n_draws) %>%
+  rename(value = ww_site_mod) %>%
+  mutate(
+    draw = `.draw`,
+    name = "ww site multiplier"
+  ) %>%
+  select(name, site_index, value, draw) %>%
+  left_join(site_map)
+
+i0_ww_site <- all_draws %>%
+  spread_draws(i0_site_over_n[site_index]) %>%
+  rename(value = i0_site_over_n) %>%
+  mutate(
+    draw = `.draw`,
+    name = "i0/N ww site"
+  ) %>%
+  select(name, site_index, value, draw) %>%
+  left_join(site_map)
+
+growth_site <- all_draws %>%
+  spread_draws(growth_site[site_index]) %>%
+  rename(value = growth_site) %>%
+  mutate(
+    draw = `.draw`,
+    name = "initial growth rate"
+  ) %>%
+  select(name, site_index, value, draw) %>%
+  left_join(site_map)
+
+i_at_site <- all_draws %>%
+  spread_draws(site_i0_over_n_start[site_index]) %>%
+  rename(value = site_i0_over_n_start) %>%
+  mutate(
+    draw = `.draw`,
+    name = "site i0 over N at start"
+  ) %>%
+  select(name, site_index, value, draw) %>%
+  left_join(site_map)
+
+ggplot(ww_site_modifier_draws) +
+  geom_density(aes(
+    x = exp(value), fill = as.factor(site),
+    group = site
+  ), alpha = 0.5) +
+  theme_bw() +
+  xlab("Site level multiplier")
+
+ggplot(i0_ww_site) +
+  geom_density(aes(
+    x = value, fill = as.factor(site),
+    group = site
+  ), alpha = 0.5) +
+  theme_bw() +
+  xlab("log(i0/N) in each site")
+
+ggplot(i_at_site) +
+  geom_density(aes(
+    x = log(value), fill = as.factor(site),
+    group = site
+  ), alpha = 0.5) +
+  theme_bw() +
+  xlab("log(i0/N) in each site at start of R(t)")
+
+ggplot(growth_site) +
+  geom_density(aes(
+    x = value, fill = as.factor(site),
+    group = site
+  ), alpha = 0.5) +
+  theme_bw() +
+  xlab("Initial growth rate in each site")
+
+ww_site_sigma_draws <- all_draws %>%
+  spread_draws(sigma_ww_site[site_index]) %>%
+  # sample_draws(ndraws = n_draws) %>%
+  rename(value = sigma_ww_site) %>%
+  mutate(
+    draw = row_number(),
+    name = "ww site sigma"
+  ) %>%
+  select(name, site_index, value, draw) %>%
+  left_join(site_map)
+
+ww_site_sigma_summary <- ww_site_sigma_draws %>%
+  group_by(site) %>%
+  summarise(
+    sigma_median = quantile(value, 0.5),
+    sigma_lb = quantile(value, 0.025),
+    sigma_ub = quantile(value, 0.975)
+  ) %>%
+  left_join(ww_site_sigma_draws %>% select(name, site, ww_pop) %>% distinct(),
+    by = "site"
+  )
+
+
+ggplot(ww_site_sigma_draws) +
+  geom_density(aes(
+    x = value, fill = as.factor(site),
+    group = site
+  ), alpha = 0.5) +
+  scale_x_log10() +
+  theme_bw() +
+  xlab("Site level standard deviation")
+
+theme_set(theme_ggdist())
+ggplot(data = ww_site_sigma_draws, aes(y = as.factor(ww_pop), x = value)) +
+  stat_halfeye() +
+  ylab("Catchment area population") +
+  xlab("Phi") +
+  ggtitle("WW site-level stdev vs population size")
+
+
+ggplot(ww_site_sigma_summary) +
+  geom_linerange(aes(
+    x = ww_pop, ymin = sigma_lb,
+    ymax = sigma_ub
+  )) +
+  geom_point(aes(x = ww_pop, y = sigma_median)) +
+  scale_x_log10() +
+  theme_bw() +
+  xlab("Population served by WW catchment") +
+  ylab("phi of WW site (~1/error)")
+
+hosp_draws_sampled <- hosp_draws %>%
+  filter(draw %in% sampled_draws) %>%
+  left_join(train_data, by = c("t"))
+
+ggplot(hosp_draws_sampled %>% filter(
+  date <= forecast_date + days(10)
+)) +
+  geom_line(aes(x = date, y = value, group = draw),
+    linewidth = 0.1, alpha = 0.1,
+    color = "darkred", show.legend = FALSE
+  ) +
+  geom_line(
+    data = hosp_draws_sampled %>% filter(
+      period != "forecast"
+    ),
+    aes(x = date, y = value, group = draw),
+    linewidth = 0.1, alpha = 0.3,
+    color = "darkred", show.legend = FALSE
+  ) +
+  geom_point(aes(x = date, y = daily_hosp_admits_for_eval),
+    size = 1, shape = 21
+  ) +
+  geom_point(
+    data = hosp_draws_sampled %>% filter(
+      period != "forecast"
+    ),
+    aes(x = date, y = daily_hosp_admits_for_eval), fill = "black",
+    size = 1, shape = 21
+  ) +
+  geom_vline(aes(xintercept = forecast_date), linetype = "dashed") +
+  theme_bw() +
+  xlab("") +
+  ylab("Hospital admissions")
+```
+<br>
+We now don't expect the sigma inherent to the WW site to be correlated with population size,
+because in theory this is taken care of by the sum of negative binomials in the
+site level expected true genomes (being a sum of the individuals infected at that
+time points dispersion). So the site level phi is now just additional
+variability introduced by the site independent of population shedding.
