@@ -869,7 +869,8 @@ downstream_targets <- list(
     name = plot_summarized_scores_w_data,
     command = get_plot_scores_w_data(
       grouped_submission_scores,
-      eval_hosp_data
+      eval_hosp_data,
+      eval_config$figure_dir
     ),
     pattern = map(grouped_submission_scores),
     iteration = "list",
@@ -900,7 +901,8 @@ downstream_targets <- list(
     name = plot_quantile_comparison,
     command = get_plot_quantile_comparison(
       all_hosp_quantiles,
-      eval_hosp_data
+      eval_hosp_data,
+      eval_config$figure_dir
     ),
     pattern = map(all_hosp_quantiles),
     iteration = "list"
