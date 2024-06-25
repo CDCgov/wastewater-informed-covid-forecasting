@@ -1,0 +1,433 @@
+---
+title: "State level model"
+author: "Kaitlyn Johnson"
+date: "2023-08-22"
+output: html_document
+---
+
+```{r setup, include = FALSE}
+library(cfaforecastrenewalww)
+library(lubridate)
+library(ggplot2)
+library(dplyr)
+library(tidybayes)
+library(httr)
+library(tidybayes)
+source(here::here("src", "write_config.R"))
+knitr::opts_chunk$set(echo = FALSE, message = FALSE, warning = FALSE)
+cfaforecastrenewalww::setup_secrets(here::here("secrets.yaml"))
+```
+# Motivation
+- This is a first attempt at implementing a renewal approach for inference of hospitalization and wastewater viral concentrations by estimating a time-varying effective reproductive number $R(t)$.
+
+# Approach
+- As a first pass, we aggregate the WW viral concentration (`pcr_target_avg_conc`
+in NWSS data) to a single weekly value for each site (assigned to Wednesday)
+and calculate a population weighted average, thresholding at population sizes of
+300,000 to not overweight large catchment areas
+- For the hospital admissions data, we use state-level total hospital admission data
+that was available as of the forecast date, using the covidcast package and the
+`as_of` input. We impose a 9 day reporting delay to mirror the current data scenario.
+
+
+Note: This Rmd mirrors the single model, single location, single forecast date pipeline
+set up in the `_targets.R` file. We will use the Rmd format to continue to refine the model.
+
+
+# Get the state level data from NWSS
+```{r}
+# Get the config file
+config_written <- write_config(
+  save_config = TRUE,
+  config_path = here::here("input", "config"),
+  location = "AK",
+  prod_run = FALSE,
+  run_id = "test",
+  date_run = ymd("2024-03-06"),
+  model_type = "state-level aggregated wastewater",
+  ww_geo_type = "state",
+  forecast_date = ymd("2024-03-06"),
+  hosp_data_source = "NHSN",
+  population_data_path = here::here("input", "locations.csv"),
+  pull_from_local = FALSE,
+  include_ww = 1,
+  hosp_reporting_delay = 4,
+  ww_data_path = here::here("input", "ww_data", "nwss_data", "2024-03-05.csv")
+)
+
+
+config_vars_ss <- get_config_vals(config_written)
+# WW data from NWSS (using methods described in slide deck, weekly values aggregated
+# to the state level)
+ww_data_raw <- do.call(get_ww_data, config_vars_ss)
+
+# Combined WW data with hospitalizations from vintage dataset to train the model
+train_data <- do.call(get_all_training_data, c(list(ww_data_raw = ww_data_raw), config_vars_ss))
+
+# Get data spine for joining to stan outputs
+min_date <- min(train_data$date)
+max_date <- ymd(config_vars_ss$forecast_date + days(config_vars_ss$forecast_time))
+dates <- seq(
+  from = min_date,
+  to = max_date,
+  by = "days"
+)
+t <- seq(from = 1, to = length(dates), by = 1)
+
+date_df <- data.frame(date = dates, t = t)
+
+plot_data <- plot_combined_data(
+  comb = train_data, figure_file_path = NA,
+  write_files = FALSE
+)
+plot_data
+```
+
+# Model description
+```{r}
+```
+
+We have observed data from 90 days of hospital admissions and 14 weeks of wastewater measurements for a single state. We are going to make all of the simplifying assumptions:
+- the population shedding into the WW is the same as those captured by the hospital admissions
+- the IHR is constant during the period of inference
+- the shedding kinetics and shedding amount are constant during the period of inference
+- for now, we will assume that the number of genomes shed per individual is constant
+across infected individuals, since the population is large enough that we don't expect
+inter-individual variability to add too much noise to the signal
+
+This model builds heavily off of (and in some instances borrows functions from) the
+[EpiNow2 R package](https://github.com/epiforecasts/EpiNow2)
+
+## Renewal Equation Stan Model
+In brief, this model assumes that incident infections $I(t)$ are generated from a vector of $R(t)$ values and an initial number of infections $I(0)$ seeded on day 0:
+$$I(t) = R(t) \sum_{s=1}^{t}I(t-s)g(s)$$
+Where $g(s)$ is the generation interval, which describes the changes over time in infectiousness of an index case over the course of their infection and $R(t)$ describes the number of expected secondary infections of an index case at time $t$. Because the data does not start at the initial seeding event, we assume that prior to the first observation initial infections grow exponentially to give rise to the early observations such that $I(t') = I(0)exp(rt')$ where $t'$ is the "unobserved time" before the first observed data point. <br>
+
+The model estimates $R(t)$ by estimating a weekly random walk such that $R(k) = R(k-1)\eta$, where $\eta ~N(0, \eta_{sd}$, $k$ is the week, and the magnitude of the step size, $eta_{sd}$ is estimated in the model calibration. For the $R(t)$ during the forecast period, we assume $R(t)$ is dampened in proportion to the number of cumulative infections following an SIR approximation, which is implemented when damp_type =1 (see EpiNow2 documentation for details) or we assume that the R(t) is dampened by the current number of infections with a drift term, per Jason's Ebola model. We will likely modify both of these significantly, particularly if we observe consisteny over or underprediction in the forecasts. <br/>
+
+
+We model the process of generating two type of observations. First the hospital admissions: Each infectee is assumed to have some (independent) chance of getting hospitalizated $p_{hosp}$, and *if* they will eventually be hospitalized then the probability distribution for days after infection before observation and reporting is $d(t)$. Therefore, conditional on some time series of daily infections generated by one of the models, $I(t)$, the *expected* number of reported hospitalizations on each day $t$ is,
+
+$$\overline{H}[t] = p_{hosp}\sum_{\tau\geq 0}d[\tau] I[t-\tau]$$
+We estimate $p_{hosp}$ and for now are setting the hospital admissions delay distribution $d(t)$. <br/>
+
+In a similar fashion for generated the expected WW observations, we assume that each individual follows the same shaped shedding kinetics distribution $S(t)$. We assume the shedding kinetics follows a hinge function
+in log10 space.
+$$\begin{align*}
+S'[t] =
+
+    \begin{cases}
+        \frac{V_{peak}}{t_{peak}}t & t\leq t_{peak} \\
+        V_{peak} + wt_{peak} - wt & t \geq t_{peak} \\
+ \end{cases}
+ \end{align*}
+
+
+$$
+
+Where $V_{peak}$ is the log10 peak viral load that occurs at $t_{peak}$ days since infection onset, and $w$ is the rate at which viral load wanes after $t_{peak}$. We convert to natural scale with $S[t] = 10^{S'[t]}$. The parameters of this hinge function are estimated (with relatively strong priors taken from fecal shedding literature and literature on viral loads in nasal passages). The individual level viral kinetics $S[t]$ of each infected individual are normalized to sum to 1 over the course of the infection, and are multiplied by  $G$, the number of genome copies shed by each infected individual throughout their infection. Therefore, conditional on some time series of daily infections generated by one of the models, $I(t)$, the *expected* number of viral genomes shed in WW on each day $t$ is,
+
+$$\overline{V}[t] = \  G\sum_{\tau\geq 0}  S(\tau)I(t-\tau)$$
+While this initial formulation describes $G$, the amount of virus shed per infected individual, as a constant, we know the individual viral shedding amount is highly dispersed across infected individuals (with perhaps 1% of infectees producing 100x more viral genomes than the remaining infected individuals). However, in this first pass, we just assume that every individual sheds at the same rate $G$. In practice, we will likely need this to be site/location specific <br/>.
+
+<br/>Lastly, we expect to observe the data in terms of a concentration, so we assume:
+
+$$\overline{C}[t] = \ \frac{ \overline{V}[t]}{NW}$$
+In practice, we fit $\frac{G}{W}$ the number of genomes shed per mL of WW produced
+per person per day.
+
+# Assign parameters
+```{r}
+# This contains all the model priors and parameter settings. Informative priors
+# include the shedding viral kinetic parameters (timing of peak viral shedding,
+# magnitude of peak viral shedding, and duration of viral shedding). These
+# were informed in combination from literature on fecal shedding and viral loads
+# in the nasal package.
+params <- get_params(here::here("input", "params.toml")) #
+print(params)
+
+stan_data <- do.call(get_stan_data, c(
+  list(train_data = train_data),
+  list(params = params), config_vars_ss
+))
+
+# Pull the prior hyperparameters into the global environment so you can create
+# the init_fun to be passed to stan
+par_names <- colnames(params)
+for (i in seq_along(par_names)) {
+  assign(par_names[i], as.double(params[i]))
+}
+
+
+# Get other variables needed from data
+pop <- train_data %>%
+  select(pop) %>%
+  unique() %>%
+  pull(pop)
+stopifnot("More than one population size in training data" = length(pop) == 1)
+
+n_weeks <- as.numeric(stan_data$n_weeks)
+tot_weeks <- as.numeric(stan_data$tot_weeks)
+
+# Estimate of number of initial infections
+i0 <- mean(train_data$daily_hosp_admits[1:7]) / p_hosp_mean
+```
+
+# Initialize the parameter search using center of the priors + a bit of noise
+```{r}
+init_fun <- function() {
+  state_agg_inits(train_data, params, stan_data)
+}
+```
+
+# Compile the model
+```{r, include = FALSE}
+model_file_path <- here::here("cfaforecastrenewalww", "inst", "stan", "renewal_ww_hosp.stan")
+model <- compile_model(model_file_path)
+```
+# Fit the model
+```{r, include = FALSE}
+fit_dynamic_rt <- model$sample(
+  data = stan_data,
+  seed = 123,
+  init = init_fun,
+  iter_sampling = 500,
+  iter_warmup = 250,
+  chains = 4,
+  parallel_chains = 4
+)
+```
+
+# Look at the parameter draws (for static parameters)
+```{r}
+all_draws <- fit_dynamic_rt$draws()
+phi_h <- all_draws %>%
+  spread_draws(phi_h) %>%
+  sample_draws(ndraws = 100) %>%
+  mutate(draw = `.draw`) %>%
+  mutate(
+    name = "phi_h",
+  ) %>%
+  rename(value = phi_h) %>%
+  select(name, value, draw)
+ggplot(phi_h) +
+  aes(x = value) +
+  stat_halfeye() +
+  xlab("Dispersion in observed error in hospitalizations")
+
+autoreg_p_hosp <- all_draws %>%
+  spread_draws(autoreg_p_hosp) %>%
+  sample_draws(ndraws = 100) %>%
+  mutate(draw = `.draw`) %>%
+  mutate(
+    name = "autoreg_p_hosp",
+  ) %>%
+  rename(value = autoreg_p_hosp) %>%
+  select(name, value, draw)
+ggplot(autoreg_p_hosp) +
+  aes(x = value) +
+  stat_halfeye() +
+  xlab("Time-varying IHR autoregulation coefficient")
+
+infection_feedback <- all_draws %>%
+  spread_draws(infection_feedback) %>%
+  mutate(draw = `.draw`) %>%
+  mutate(
+    name = "infection_feedback",
+  ) %>%
+  rename(value = infection_feedback) %>%
+  select(name, value, draw)
+ggplot(infection_feedback) +
+  aes(x = value) +
+  stat_halfeye() +
+  xlab("Estimated infection feedback")
+
+autoreg_rt <- all_draws %>%
+  spread_draws(autoreg_rt) %>%
+  sample_draws(ndraws = 100) %>%
+  mutate(draw = `.draw`) %>%
+  mutate(
+    name = "autoreg_rt",
+  ) %>%
+  rename(value = autoreg_rt) %>%
+  select(name, value, draw)
+ggplot(autoreg_rt) +
+  aes(x = value) +
+  stat_halfeye() +
+  xlab("autoregressive term on R(t)")
+
+eta_sd <- all_draws %>%
+  spread_draws(eta_sd) %>%
+  sample_draws(ndraws = 100) %>%
+  mutate(draw = `.draw`) %>%
+  mutate(
+    name = "eta_sd",
+  ) %>%
+  rename(value = eta_sd) %>%
+  select(name, value, draw)
+ggplot(eta_sd) +
+  aes(x = value) +
+  stat_halfeye() +
+  xlab("RW step size (eta)")
+```
+# Draws from generated quantities
+```{r}
+gen_quantities_draws <- get_generated_quantities_draws(all_draws, config_vars_ss$model_type)
+gen_quantities_draws_metadata <- gen_quantities_draws %>%
+  mutate(
+    forecast_date = config_vars_ss$forecast_date,
+    location = config_vars_ss$location,
+    include_ww = config_vars_ss$include_ww,
+    hosp_reporting_delay = config_vars_ss$hosp_reporting_delay
+  ) %>%
+  filter(name %in% c("pred_hosp", "pred_ww", "R(t)", "p_hosp")) %>%
+  left_join(date_df, by = "t") %>%
+  left_join(train_data %>% select(
+    t, date, ww, daily_hosp_admits,
+    daily_hosp_admits_for_eval, pop
+  ), by = c("date", "t"))
+hosp_per_100k <- gen_quantities_draws_metadata %>%
+  filter(name == "pred_hosp") %>% # grab the generated quantities
+  mutate(
+    name = "pred_hosp_per_100k",
+    value = 1e5 * value / pop
+  )
+gen_quants_draws <- rbind(gen_quantities_draws_metadata, hosp_per_100k)
+
+metadata_df <- get_metadata(train_data)
+last_hosp_data_date <- metadata_df$last_hosp_data_date
+
+# Make a column for matched observed data
+model_draws <- gen_quants_draws %>%
+  mutate(
+    obs_data = case_when(
+      name == "pred_hosp" ~ daily_hosp_admits_for_eval,
+      name == "pred_hosp_per_100k" ~ 1e5 * daily_hosp_admits_for_eval / pop,
+      name == "pred_ww" ~ ww,
+      TRUE ~ NA
+    ),
+    # Column for period
+    period = case_when(
+      date <= last_hosp_data_date ~ "calibration",
+      (date > last_hosp_data_date & date <= forecast_date) ~ "nowcast",
+      date > forecast_date ~ "forecast"
+    ),
+    model_type = config_vars_ss$model_type
+  )
+
+subsetted_model_draws <- model_draws %>%
+  ungroup() %>%
+  filter(draw %in% sample(1:max(draw), 100))
+ww_draws <- subsetted_model_draws %>% filter(name == "pred_ww")
+
+
+plot_hosp_draws <- get_plot_draws(subsetted_model_draws,
+  "pred_hosp",
+  figure_file_path = config_vars_ss$output_dir,
+  from_full_df = TRUE,
+  days_pre_forecast_date_plot = 365,
+  show_calibration_data = FALSE,
+  write_files = FALSE,
+  show_median = FALSE
+)
+plot_hosp_draws
+
+
+plot_ww_draws <- get_plot_draws(subsetted_model_draws,
+  "pred_ww",
+  figure_file_path = config_vars_ss$output_dir,
+  from_full_df = TRUE,
+  config_vars_ss$output_file_path,
+  days_pre_forecast_date_plot = 150,
+  write_files = FALSE
+)
+plot_ww_draws
+
+p_hosp_t <- gen_quantities_draws_metadata %>% filter(name == "p_hosp")
+ggplot(p_hosp_t) +
+  geom_line(aes(x = date, y = value, group = draw), size = 0.1, alpha = 0.1)
+```
+Plot R(t)
+```{r}
+rt_draws <- model_draws %>% filter(name == "R(t)")
+rt_quantiles <- rt_draws %>%
+  group_by(date, period) %>%
+  summarise(
+    R_t_median = quantile(value, 0.5),
+    R_t_25th = quantile(value, 0.25),
+    R_t_75th = quantile(value, 0.75),
+    R_t_975th = quantile(value, 0.975),
+    R_t_025th = quantile(value, 0.025)
+  )
+plot_color <- "blue3"
+last_ww_data_date <- max(
+  model_draws$date[!is.na(model_draws$ww) & model_draws$period != "forecast"]
+)
+last_hosp_data_date <- max(model_draws$date[!is.na(model_draws$daily_hosp_admits)])
+last_obs_data_date <- max(last_ww_data_date, last_hosp_data_date)
+
+plot <- ggplot(rt_quantiles) +
+  geom_line(aes(x = date, y = R_t_median, color = period)) +
+  geom_ribbon(aes(x = date, ymin = R_t_25th, ymax = R_t_75th, fill = period), alpha = 0.2) +
+  geom_ribbon(aes(x = date, ymin = R_t_025th, ymax = R_t_975th, fill = period), alpha = 0.4) +
+  geom_vline(aes(xintercept = last_obs_data_date), linetype = "dashed") +
+  geom_hline(aes(yintercept = 1), linetype = "dotted") +
+  xlab("") +
+  ylab("R(t)") +
+  theme_bw() +
+  scale_x_date(
+    date_breaks = "2 weeks",
+    labels = scales::date_format("%Y-%m-%d")
+  ) +
+  theme(
+    axis.text.x = element_text(
+      size = 10, vjust = 0.5,
+      hjust = 1, angle = 90
+    ),
+    axis.title.x = element_text(size = 10),
+    axis.title.y = element_text(size = 10),
+    plot.title = element_text(
+      size = 9,
+      vjust = 0.5, hjust = 0.5
+    )
+  ) +
+  # coord_cartesian(ylim = c(0.8, 1.3))+
+  ggtitle("R(t) estimates")
+plot
+sampled_draws <- sample(1:max(rt_draws$draw), 100)
+plot <- ggplot(rt_draws %>% filter(draw %in% sampled_draws)) +
+  geom_line(aes(x = date, y = value, group = draw, color = period), alpha = 0.3) +
+  geom_vline(aes(xintercept = last_obs_data_date), linetype = "dashed") +
+  geom_hline(aes(yintercept = 1), linetype = "dotted") +
+  xlab("") +
+  ylab("R(t)") +
+  theme_bw() +
+  scale_x_date(
+    date_breaks = "2 weeks",
+    labels = scales::date_format("%Y-%m-%d")
+  ) +
+  theme(
+    axis.text.x = element_text(
+      size = 10, vjust = 0.5,
+      hjust = 1, angle = 90
+    ),
+    axis.title.x = element_text(size = 10),
+    axis.title.y = element_text(size = 10),
+    plot.title = element_text(
+      size = 9,
+      vjust = 0.5, hjust = 0.5
+    )
+  ) +
+  scale_y_continuous(trans = "log") +
+  # coord_cartesian(ylim = c(0.8, 1.3))+
+  ggtitle("R(t) estimates")
+plot
+
+
+# Estimate of R(t) on forecast date
+rt <- rt_quantiles %>% filter(date == config_vars_ss$forecast_date)
+print(paste0(
+  "R(t) = ", round(rt$R_t_median, 3),
+  " [", round(rt$R_t_025th, 3), " , ", round(rt$R_t_975th, 3), "]"
+))
+```
