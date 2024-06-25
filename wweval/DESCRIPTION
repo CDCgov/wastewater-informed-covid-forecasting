@@ -1,39 +1,43 @@
 Package: wweval
 Title: Evaluation of wastewater informed COVID-19 hospital admissions forecasting
 Version: 0.0.0.9000
-Authors@R:
-     c(person(given = "Kaitlyn",
+Authors@R: c(
+    person(given = "Kaitlyn",
            family = "Johnson",
            role = c("aut", "cre"),
            email = "uox1@cdc.gov",
            comment = c(ORCID = "0000-0001-8011-0012")),
-  person(given = "Sam",
+    person(given = "Sam",
            family = "Abbott",
            role = c("aut"),
            email = "contact@samabbott.co.uk",
            comment = c(ORCID = "0000-0001-8057-8037")),
-  person(given = "Zachary",
+    person(given = "Zachary",
            family = "Susswein",
            role = c("aut"),
            email = "utb2@cdc.gov"),
-  person(given = "Andrew",
+    person(given = "Andrew",
            family = "Magee",
            role = c("aut"),
            email = "rzg0@cdc.gov"),
-  person(given = "Dylan",
+    person(given = "Dylan",
            family = "Morris",
            role = c("aut"),
            email = "dylan@dylanhmorris.com",
            comment = c(ORCID = "0000-0002-3655-406X")),
-  person(given = "Scott",
+    person(given = "Scott",
            family = "Olesen",
            role = c("aut"),
            email = "ulp7@cdc.gov"),
-  person(given = "George",
-  	   family = "Vega Yon",
-	   role = c("ctb"),
-	   email = "g.vegayon@gmail.com",
-	   comment = c(ORCID = "0000-0002-3171-0844"))
+    person(given = "George",
+           family = "Vega Yon",
+           role = c("ctb"),
+           email = "g.vegayon@gmail.com",
+           comment = c(ORCID = "0000-0002-3171-0844")),
+    person(given = "Damon",
+           family = "Bayer",
+           role = c("aut"),
+           email = "xum8@cdc.gov")
 	)
 Description: This package provides helper functions designed to
  preprocess, postprocess, and analyze outputs from fitting a
