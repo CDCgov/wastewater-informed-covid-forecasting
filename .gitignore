@@ -15,12 +15,6 @@ secrets.yaml
 # Azure batch configuration
 batch_config.toml
 
-# batch
-batch/
-Makefile
-Containerfile
-.containerignore
-
 # rendered documents ignored by default
 *.html
 *.pdf

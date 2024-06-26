@@ -69,6 +69,7 @@ write_eval_config <- function(locations, forecast_dates,
   output_dir <- file.path("output", "eval")
   figure_dir <- file.path("output", "eval", "plots")
   hub_subdir <- file.path("output", "eval", "hub")
+  retro_rt_path <- file.path("input", "retro_Rt", "Rt_draws.parquet")
   score_subdir <- file.path("output", "eval", "hub")
   hub_model_names <- c(
     "COVIDhub-4_week_ensemble", "UMass-trends_ensemble",
@@ -127,6 +128,7 @@ write_eval_config <- function(locations, forecast_dates,
     baseline_score_table_dir = baseline_score_table_dir,
     output_dir = output_dir,
     hub_subdir = hub_subdir,
+    retro_rt_dir = retro_rt_dir,
     score_subdir = score_subdir,
     raw_output_dir = raw_output_dir,
     figure_dir = figure_dir,

@@ -1,0 +1,324 @@
+---
+title: "Sites sum to states recover infections"
+author: "Kaitlyn Johnson"
+date: "2024-03-15"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+library(cfaforecastrenewalww)
+library(cmdstanr)
+library(lubridate)
+library(ggplot2)
+library(dplyr)
+library(here)
+library(tidybayes)
+library(scoringutils)
+source(here::here("src/write_config.R"))
+knitr::opts_chunk$set(echo = TRUE)
+cfaforecastrenewalww::setup_secrets(here::here("secrets.yaml"))
+```
+# Motivation
+The purpose of this Rmd is to generate simulated data with known per capita
+infections and hospital admissions using the `generate_simulated_data()`
+function. We want to compare the ability to accurately recover the known
+input values of per capita infections and hospital admissions for two models:
+1. The proposed model formulation (subpopulations sum to state infections,
+which accounts for the sites subpopulation size properly)
+2. The new model formulation (sites are random draws from the state, model
+doesn't know site populaiton size)
+
+# Generate simulated data if needed
+```{r}
+set.seed(1)
+toy_data_and_params <- generate_simulated_data(
+  r_in_weeks = c(
+    rep(1.1, 5), rep(0.9, 5),
+    1 + 0.007 * 1:5, rep(0.95, 5),
+    rep(1.01, 6)
+  ),
+  n_sites = 4,
+  # Set up sites to cover a relatively
+  # small subset of the state population
+  ww_pop_sites = c(1e6, 5e5, 1e5, 5e4),
+  pop_size = 10e6
+)
+
+
+sim_data_df <- toy_data_and_params$example_df
+param_df <- toy_data_and_params$param_df
+
+saveRDS(sim_data_df, here::here("input", "sim_data_df"))
+```
+
+# Set the output path based on the model you're testing
+```{r}
+output_file_path <- file.path(here::here("output", "tests", "sites_sum_to_states")) # OR
+# output_file_path <- file.path(here::here("output", "tests", "original")) #nolint
+```
+# If running on old model, read in the simulated data because generate data
+is outdated in how it generates data
+
+```{r}
+# Read in the simulated data
+sim_data_df <- readRDS(here::here("input", "sim_data_df"))
+```
+
+# Visualize the data
+```{r}
+ggplot(sim_data_df) +
+  geom_point(
+    aes(
+      x = date, y = exp(log_conc),
+      color = as.factor(lab_wwtp_unique_id)
+    ),
+    show.legend = FALSE
+  ) +
+  geom_point(
+    data = sim_data_df %>% filter(below_LOD == 1),
+    aes(x = date, y = exp(log_conc), color = "red"),
+    show.legend = FALSE
+  ) +
+  geom_hline(aes(yintercept = exp(lod_sewage)), linetype = "dashed") +
+  facet_wrap(~lab_wwtp_unique_id, scales = "free") +
+  geom_vline(aes(xintercept = forecast_date), linetype = "dashed") +
+  xlab("") +
+  ylab("Genome copies/mL") +
+  ggtitle("Lab-site level wastewater concentration") +
+  theme_bw()
+
+ggplot(sim_data_df) +
+  geom_point(aes(x = date, y = daily_hosp_admits_for_eval),
+    shape = 21, color = "black", fill = "white"
+  ) +
+  geom_point(aes(x = date, y = daily_hosp_admits)) +
+  geom_vline(aes(xintercept = forecast_date), linetype = "dashed") +
+  xlab("") +
+  ylab("Daily hospital admissions") +
+  ggtitle("State level hospital admissions") +
+  theme_bw()
+
+ggplot(sim_data_df) +
+  geom_point(aes(x = date, y = inf_per_capita), color = "black") +
+  geom_vline(aes(xintercept = forecast_date), linetype = "dashed") +
+  xlab("") +
+  ylab("State infections per capita") +
+  ggtitle("True state infections per capita") +
+  theme_bw()
+```
+# Pre-process fake data to fit the model
+```{r}
+params <- get_params(
+  system.file("extdata", "example_params.toml",
+    package = "cfaforecastrenewalww"
+  )
+)
+params
+
+forecast_date <- sim_data_df %>%
+  pull(forecast_date) %>%
+  unique()
+forecast_time <- as.integer(max(sim_data_df$date) - forecast_date)
+
+# Assign the model that we want to fit to  so that we grab the correct
+# model and initialization list
+model_type <- "site-level infection dynamics"
+model_file_path <- get_model_file_path(model_type)
+# Compile the model
+model <- compile_model(file.path(here(
+  model_file_path
+)))
+
+
+# Function calls for linear scale ww data
+train_data_raw <- sim_data_df %>%
+  mutate(
+    ww = exp(log_conc),
+    period = case_when(
+      !is.na(daily_hosp_admits) ~ "calibration",
+      is.na(daily_hosp_admits) & date <= forecast_date ~
+        "nowcast",
+      TRUE ~ "forecast"
+    ),
+    include_ww = 1,
+    site_index = site,
+    lab_site_index = lab_wwtp_unique_id
+  )
+
+# Apply outliers to data
+train_data <- flag_ww_outliers(train_data_raw)
+
+# Get the generation interval and time from infection to hospital admission
+# delay distribution to pass to stan.
+# Use the same values as we do in the
+# generation of these vectors in the generate simulated data function....
+# See Song Woo Park et al
+# https://www.medrxiv.org/content/10.1101/2024.01.12.24301247v1 for why
+# we use a double-censored pmf here
+generation_interval <- simulate_double_censored_pmf(
+  max = params$gt_max, meanlog = params$mu_gi,
+  sdlog = params$sigma_gi, fun_dist = rlnorm, n = 5e6
+) %>% drop_first_and_renormalize()
+
+inc <- make_incubation_period_pmf(
+  params$backward_scale, params$backward_shape, params$r
+)
+sym_to_hosp <- make_hospital_onset_delay_pmf(
+  params$neg_binom_mu,
+  params$neg_binom_size
+)
+inf_to_hosp <- make_reporting_delay_pmf(inc, sym_to_hosp)
+
+# Format as a list for stan
+stan_data <- get_stan_data_site_level_model(
+  train_data,
+  params,
+  forecast_date,
+  forecast_time,
+  model_type = model_type,
+  generation_interval = generation_interval,
+  inf_to_hosp = inf_to_hosp,
+  infection_feedback_pmf = generation_interval
+)
+
+init_fun <- function() {
+  site_level_inf_inits(train_data, params, stan_data)
+}
+```
+# Model fit
+```{r}
+fit_dynamic_rt <- model$sample(
+  data = stan_data,
+  seed = 123,
+  init = init_fun,
+  iter_sampling = 500,
+  iter_warmup = 250,
+  chains = 4,
+  parallel_chains = 4
+)
+```
+
+```{r}
+all_draws <- fit_dynamic_rt$draws()
+
+# Predicted observed hospital admissions
+exp_obs_hosp <- all_draws %>%
+  spread_draws(pred_hosp[t]) %>%
+  select(pred_hosp, `.draw`, t) %>%
+  rename(draw = `.draw`)
+
+# Estimate of latent incident inf per capita
+est_inf <- all_draws %>%
+  spread_draws(state_inf_per_capita[t]) %>%
+  filter(t > params$uot) %>%
+  mutate(t = t - params$uot) %>%
+  select(state_inf_per_capita, `.draw`, t) %>%
+  rename(draw = `.draw`)
+
+
+
+input_df <- sim_data_df %>%
+  select(
+    t, date, daily_hosp_admits_for_eval,
+    inf_per_capita, pop
+  ) %>%
+  distinct()
+
+inf <- est_inf %>% left_join(
+  input_df %>%
+    select(t, date, inf_per_capita),
+  by = "t"
+)
+hosp <- exp_obs_hosp %>% left_join(
+  input_df %>%
+    select(
+      t, date,
+      daily_hosp_admits_for_eval
+    ),
+  by = "t"
+)
+```
+# Score and plot estimates vs known truth data
+```{r}
+# Scoring
+inf_scores <- inf %>%
+  rename(
+    true_value = inf_per_capita,
+    prediction = state_inf_per_capita,
+    sample = draw
+  ) %>%
+  mutate(model = "ww_model") %>%
+  scoringutils::score()
+summarized_inf_scores <- inf_scores %>% scoringutils::summarise_scores(by = "model")
+print(summarized_inf_scores)
+
+hosp_scores <- hosp %>%
+  rename(
+    true_value = daily_hosp_admits_for_eval,
+    prediction = pred_hosp,
+    sample = draw
+  ) %>%
+  mutate(model = "ww_model") %>%
+  scoringutils::score()
+summarized_hosp_scores <- hosp_scores %>% scoringutils::summarise_scores(by = "model")
+print(summarized_hosp_scores)
+
+samples <- sample(1:max(hosp$draw), 100)
+inf_subset <- inf %>% filter(draw %in% samples) # sample the draws for plotting
+
+inf_plot <- ggplot(inf_subset) +
+  geom_line(aes(x = date, y = state_inf_per_capita, group = draw),
+    color = "gray", alpha = 0.2, size = 0.5
+  ) +
+  geom_point(aes(x = date, y = inf_per_capita)) +
+  xlab("") +
+  ylab("Infections per capita") +
+  theme_bw()
+inf_plot
+
+samples <- sample(1:max(hosp$draw), 100)
+hosp_subset <- hosp %>% filter(draw %in% samples) # sample the draws for plotting
+
+hosp_plot <- ggplot(hosp_subset) +
+  geom_line(aes(x = date, y = pred_hosp, group = draw),
+    color = "darkred", alpha = 0.2, size = 0.5
+  ) +
+  geom_point(aes(x = date, y = daily_hosp_admits_for_eval)) +
+  xlab("") +
+  ylab("Daily hospital admissions") +
+  theme_bw()
+hosp_plot
+```
+
+# Save the scores and figures for model
+Output file path will be "sites_sum_to_states" unless run the laod in of the sim data
+which should be run from branch in an old model
+```{r}
+create_dir(output_file_path)
+write.csv(summarized_inf_scores, here::here(output_file_path, "inf_scores.csv"),
+  row.names = FALSE
+)
+write.csv(summarized_hosp_scores, here::here(output_file_path, "hosp_scores.csv"),
+  row.names = FALSE
+)
+ggsave(
+  file.path(here::here(
+    output_file_path,
+    "inf_per_capita.png"
+  )),
+  plot = inf_plot,
+  width = 8,
+  height = 5,
+  bg = "white"
+)
+ggsave(
+  file.path(here::here(
+    output_file_path,
+    "hosp.png"
+  )),
+  plot = hosp_plot,
+  width = 8,
+  height = 5,
+  bg = "white"
+)
+```
