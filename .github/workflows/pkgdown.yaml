@@ -44,7 +44,9 @@ jobs:
           extra-packages: any::pkgdown local::.
           needs: website
       - name: "Install cmdstan via cmdstanr"
-        uses: ./.github/actions/install-cmdstan
+        uses: epinowcast/actions/install-cmdstan@v1
+        with:
+          cmdstan-version: "latest"
 
       - name: Build site
         run: "pkgdown::build_site_github_pages('cfaforecastrenewalww', new_process = FALSE, install = FALSE)"
