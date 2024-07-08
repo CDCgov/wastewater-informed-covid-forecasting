@@ -2,7 +2,7 @@
 #'
 #' @param model_type string indicating which model we are getting data for
 #' Options are `ww` or `hosp`
-#' @param forecast_date string indicating the forecast date in ISO8 convention
+#' @param forecast_date string indicating the forecast date in ISO 8601 convention
 #' e.g. YYYY-MM-DD
 #' @param forecast_time integer indicating the number of days to make a forecast
 #' for
