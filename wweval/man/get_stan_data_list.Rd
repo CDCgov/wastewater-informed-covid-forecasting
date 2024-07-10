@@ -27,7 +27,8 @@ get_stan_data_list(
 \item{model_type}{string indicating which model we are getting data for
 Options are \code{ww} or \code{hosp}}
 
-\item{forecast_date}{string indicating the forecast date}
+\item{forecast_date}{string indicating the forecast date in ISO 8601 convention
+e.g. YYYY-MM-DD}
 
 \item{forecast_time}{integer indicating the number of days to make a forecast
 for}
