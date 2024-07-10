@@ -8,6 +8,8 @@
 #'
 #' @param locations A vector of the state abbreviations
 #' @param retro_rt_path  A path to the parquet file of retrospective R(t) estimates
+#' @param location_col_name A string indicating the name of the column
+#' indicating location, default is `state_abb`
 #' @param prob_threshold A numeric between 0 and 1 that defines the threshold
 #' probability R(t) >= 1 or R(t) <= 1. Default is `0.9` from the above paper.
 #'
@@ -17,8 +19,10 @@
 #'
 get_epidemic_phases_from_rt <- function(locations,
                                         retro_rt_path,
+                                        location_col_name = "state_abb",
                                         prob_threshold = 0.9) {
   retro_rt <- arrow::read_parquet(retro_rt_path) |>
+    dplyr::rename(state_abbr = !!sym(location_col_name)) |>
     dplyr::filter(state_abbr %in% locations) |>
     dplyr::mutate(
       week_start_date = cut(reference_date, "week")
