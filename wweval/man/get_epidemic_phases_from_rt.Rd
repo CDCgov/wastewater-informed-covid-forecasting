@@ -4,12 +4,20 @@
 \alias{get_epidemic_phases_from_rt}
 \title{Get epidemic phases from R(t)}
 \usage{
-get_epidemic_phases_from_rt(locations, retro_rt_path, prob_threshold = 0.9)
+get_epidemic_phases_from_rt(
+  locations,
+  retro_rt_path,
+  location_col_name = "state_abb",
+  prob_threshold = 0.9
+)
 }
 \arguments{
 \item{locations}{A vector of the state abbreviations}
 
 \item{retro_rt_path}{A path to the parquet file of retrospective R(t) estimates}
+
+\item{location_col_name}{A string indicating the name of the column
+indicating location, default is \code{state_abb}}
 
 \item{prob_threshold}{A numeric between 0 and 1 that defines the threshold
 probability R(t) >= 1 or R(t) <= 1. Default is \code{0.9} from the above paper.}
@@ -21,6 +29,6 @@ to be daily, for each location, based on the retrospective R(t) estimate.
 \description{
 This function loads in the posterior estimate of the retrospective R(t)
 from NNH. Then it categorizes each week into an epidemic phase based on the
-algorithm used inhttps://journals.plos.org/ploscompbiol/article?id=10.1371/journal.pcbi.1011200 #nolint
+algorithm used in https://journals.plos.org/ploscompbiol/article?id=10.1371/journal.pcbi.1011200 #nolint
 in the S5 appendix. Code available here: https://github.com/cdcepi/Evaluation-of-case-forecasts-submitted-to-COVID19-Forecast-Hub/blob/b3c379dfd48e8c673f67996014f151ce44cbd8fa/Code/Supplement\%205_Rt_Epi\%20Phases.R #nolint
 }
