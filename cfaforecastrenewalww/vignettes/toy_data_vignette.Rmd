@@ -209,6 +209,20 @@ fit_dynamic_rt <- model$sample(
   parallel_chains = 4
 )
 ```
+## Save the cmdstan csvs
+Here's an example of how to save the cmdstanR csvs that are generated.
+These will be labeled by chain, and cmdstan will print a message to let you
+know that the files were moved from a temporary to a permanent location.
+```{r}
+dir_to_save <- file.path(here::here(
+  "output", "cmdstan_csvs", "vignette_ww_model"
+))
+cfaforecastrenewalww::create_dir(dir_to_save)
+
+fit_dynamic_rt$save_output_files(
+  dir = file.path(dir_to_save)
+)
+```
 
 # Look at the model outputs: generated quantities
 Plot the model predicted hospital admissions vs the simulated forecasted
@@ -391,6 +405,20 @@ fit_dynamic_rt_hosp_only <- model$sample(
   chains = 4,
   max_treedepth = 12,
   parallel_chains = 4
+)
+```
+
+## Save the cmdstan csvs for the hospital only model
+Again, let's save the csvs
+```{r}
+dir_to_save <- file.path(here::here(
+  "output", "cmdstan_csvs",
+  "vignette_hosp_only_model"
+))
+cfaforecastrenewalww::create_dir(dir_to_save)
+
+fit_dynamic_rt_hosp_only$save_output_files(
+  dir = file.path(dir_to_save)
 )
 ```
 ```{r}
