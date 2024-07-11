@@ -179,14 +179,14 @@ combined_targets <- list(
     name = convergence_df_ww,
     command = get_convergence_df(
       all_flags_ww,
-      default_scenario = "status_quo"
+      scenario = "status_quo"
     ) |>
       dplyr::rename(any_flags_ww = any_flags)
   ),
   tar_target(
     name = convergence_df_hosp,
     command = get_convergence_df(all_flags_hosp,
-      default_scenario = "no_wastewater"
+      scenario = "no_wastewater"
     ) |>
       dplyr::rename(any_flags_hosp = any_flags)
   ),
@@ -783,7 +783,7 @@ hub_comparison_plots <- list(
 
 
 
-# Run the targets pipeline
+# Run the targets pipeline----------------------------------------------------
 list(
   upstream_targets,
   combined_targets,
