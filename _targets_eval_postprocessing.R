@@ -388,6 +388,45 @@ head_to_head_targets <- list(
   )
 )
 
+# Manuscript figures------------------------------------------------
+# Note that these are just the components of the figures, not the full
+# ggarranged, properly formatted figures, and currently require
+# specification for the figure components that are examples.
+manuscript_figures <- list(
+  tar_target(
+    name = fig2_hosp_t,
+    command = make_fig2_hosp_t(
+      hosp_quantiles_filtered,
+      locs_to_plot = c("MA", "AL", "WA"),
+      date_to_plot = "2024-01-15"
+    )
+  ),
+  tar_target(
+    name = fig2_ct_1,
+    command = make_fig2_ct(
+      all_ww_quantiles_sq,
+      loc_to_plot = "MA",
+      date_to_plot = "2024-01-15"
+    )
+  ),
+  tar_target(
+    name = fig2_ct_2,
+    command = make_fig2_ct(
+      all_ww_quantiles_sq,
+      loc_to_plot = "AL",
+      date_to_plot = "2024-01-15"
+    )
+  ),
+  tar_target(
+    name = fig2_ct_3,
+    command = make_fig2_ct(
+      all_ww_quantiles_sq,
+      loc_to_plot = "WA",
+      date_to_plot = "2024-01-15"
+    )
+  )
+)
+
 
 # Scenario targets------------------------------------------------
 scenario_targets <- list(
@@ -788,6 +827,7 @@ list(
   upstream_targets,
   combined_targets,
   head_to_head_targets,
+  manuscript_figures,
   scenario_targets,
   hub_targets,
   hub_comparison_plots

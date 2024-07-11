@@ -6,7 +6,13 @@
 from the wastewater and hospital admissions model for a few
 example states}
 \usage{
-make_fig2_hosp_t(hosp_quantiles, locs_to_plot, date_to_plot)
+make_fig2_hosp_t(
+  hosp_quantiles,
+  locs_to_plot,
+  date_to_plot,
+  n_forecast_days = 28,
+  n_calib_days = 90
+)
 }
 \arguments{
 \item{hosp_quantiles}{A tibble containing the calibrated hospital admissions
@@ -16,7 +22,14 @@ calibrated and forecasted admissions}
 \item{locs_to_plot}{A vector of strings indicating the state abbreviations
 for which states to plot}
 
-\item{date_to_plot}{A character string indicating what forecast date to plot}
+\item{date_to_plot}{A character string indicating what forecast date to plot,
+in IS08601 format YYYY-MM-DD}
+
+\item{n_forecast_days}{An integer indicating the number of days to show the
+forecast for, default is \code{28}}
+
+\item{n_calib_days}{An integer indicating the number of days to show the
+calibration data for, default is \code{90}}
 }
 \value{
 a ggplot object containing a faceted vertical plot of the
