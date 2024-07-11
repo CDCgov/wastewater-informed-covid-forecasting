@@ -1,6 +1,18 @@
-# Scratch work for creating manuscript figures
-library(ggplot2)
-
+#' Make a plot comparing the fit and forecasted hospital admissions
+#' from the wastewater and hospital admissions model for a few
+#' example states
+#'
+#' @param hosp_quantiles A tibble containing the calibrated hospital admissions
+#' data, the evaluation hospital admissions data, and the quantiles of the
+#' calibrated and forecasted admissions
+#' @param locs_to_plot A vector of strings indicating the state abbreviations
+#' for which states to plot
+#' @param date_to_plot A character string indicating what forecast date to plot
+#'
+#' @return a ggplot object containing a faceted vertical plot of the
+#' forecasts produced for each state, comparing the wastewater and hospital
+#' admissions models
+#' @export
 make_fig2_hosp_t <- function(hosp_quantiles,
                              locs_to_plot,
                              date_to_plot) {
@@ -51,8 +63,8 @@ make_fig2_hosp_t <- function(hosp_quantiles,
       alpha = 0.1,
       show.legend = FALSE
     ) +
-    geom_vline(aes(xintercept = ymd::lubridate(forecast_date)),
-      lientype = "dashed"
+    geom_vline(aes(xintercept = lubridate::ymd(forecast_date)),
+      linetype = "dashed"
     ) +
     facet_wrap(~location,
       nrow = length(unique(quantiles_wide$location)),
