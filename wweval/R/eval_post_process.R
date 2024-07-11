@@ -356,7 +356,7 @@ eval_post_process_hosp <- function(config_index,
   # Save forecasted quantiles locally as well as via
   # targets caching just for backup
   save_table(
-    data_to_save = hosp_model_quantiles,
+    data_to_save = full_hosp_model_quantiles,
     type_of_output = "quantiles",
     output_dir = output_dir,
     scenario = "no_wastewater",
