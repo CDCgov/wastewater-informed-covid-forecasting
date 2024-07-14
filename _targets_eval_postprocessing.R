@@ -394,10 +394,26 @@ head_to_head_targets <- list(
 # specification for the figure components that are examples.
 manuscript_figures <- list(
   tar_target(
-    name = fig2_hosp_t,
+    name = fig2_hosp_t_1,
     command = make_fig2_hosp_t(
       hosp_quantiles_filtered,
-      locs_to_plot = c("MA", "AL", "WA"),
+      locs_to_plot = c("MA"),
+      date_to_plot = "2024-01-15"
+    )
+  ),
+  tar_target(
+    name = fig2_hosp_t_2,
+    command = make_fig2_hosp_t(
+      hosp_quantiles_filtered,
+      locs_to_plot = c("AL"),
+      date_to_plot = "2024-01-15"
+    )
+  ),
+  tar_target(
+    name = fig2_hosp_t_3,
+    command = make_fig2_hosp_t(
+      hosp_quantiles_filtered,
+      locs_to_plot = c("WA"),
       date_to_plot = "2024-01-15"
     )
   ),
