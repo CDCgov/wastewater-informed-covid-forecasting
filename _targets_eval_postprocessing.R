@@ -440,6 +440,14 @@ manuscript_figures <- list(
       loc_to_plot = "WA",
       date_to_plot = "2024-01-15"
     )
+  ),
+  tar_target(
+    name = fig2_forecast_comparison_nowcast1,
+    command = make_hosp_forecast_comp_fig(
+      hosp_quantiles_filtered,
+      loc_to_plot = "MA",
+      horizon_to_plot = "nowcast"
+    )
   )
 )
 

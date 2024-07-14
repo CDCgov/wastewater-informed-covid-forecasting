@@ -219,3 +219,90 @@ make_fig2_ct <- function(ww_quantiles,
     )
   return(p)
 }
+
+make_hosp_forecast_comp_fig <- function(hosp_quantiles,
+                                        loc_to_plot,
+                                        horizon_to_plot) {
+  hosp_quants_horizons <- hosp_quantiles |>
+    dplyr::filter(location == loc_to_plot) |>
+    dplyr::mutate(
+      horizon = dplyr::case_when(
+        date <= forecast_date & period != "calibration" ~ "nowcast",
+        date > forecast_date & date <= forecast_date +
+          lubridate::days(7) ~ "1 wk",
+        date > forecast_date + lubridate::days(21) &
+          date <= forecast_date + lubridate::days(28) ~ "4 wks"
+      )
+    )
+
+  hosp <- hosp_quants_horizons |>
+    dplyr::filter(horizon == horizon_to_plot) |>
+    dplyr::filter(quantile %in% c(0.025, 0.25, 0.5, 0.75, 0.975)) |>
+    tidyr::pivot_wider(
+      id_cols = c(
+        forecast_date, model_type,
+        date, t, eval_data
+      ),
+      names_from = quantile,
+      values_from = value
+    )
+
+  p <- ggplot(hosp) +
+    geom_point(
+      data = hosp_quants_horizons,
+      aes(x = date, y = eval_data),
+      fill = "black", size = 1, shape = 21,
+      show.legend = FALSE
+    ) +
+    geom_line(
+      aes(
+        x = date, y = `0.5`, group = forecast_date,
+        color = model_type
+      )
+    ) +
+    geom_ribbon(
+      data = hosp,
+      aes(
+        x = date, ymin = `0.025`, ymax = `0.975`,
+        group = as.character(forecast_date),
+        fill = as.character(model_type)
+      ), alpha = 0.1,
+      show.legend = FALSE
+    ) +
+    geom_ribbon(
+      aes(
+        x = date, ymin = `0.25`, ymax = `0.75`,
+        group = as.factor(forecast_date),
+        fill = as.factor(model_type)
+      ),
+      alpha = 0.1,
+      show.legend = FALSE
+    ) +
+    xlab("") +
+    ylab("Daily hospital admissions") +
+    ggtitle(glue::glue(
+      "{horizon_to_plot}"
+    )) +
+    theme_bw() +
+    scale_color_discrete() +
+    scale_fill_discrete() +
+    scale_x_date(
+      date_breaks = "2 weeks",
+      labels = scales::date_format("%Y-%m-%d")
+    ) +
+    theme_bw() +
+    theme(
+      axis.text.x = element_text(
+        size = 8, vjust = 1,
+        hjust = 1, angle = 45
+      ),
+      axis.title.x = element_text(size = 12),
+      axis.title.y = element_text(size = 12),
+      plot.title = element_text(
+        size = 10,
+        vjust = 0.5, hjust = 0.5
+      )
+    )
+
+  return(p)
+}
