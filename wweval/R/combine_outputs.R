@@ -39,6 +39,7 @@ combine_outputs <- function(output_type =
     location = locations
   )
   combined_output <- tibble()
+  flag_failed_output <- tibble()
   for (i in seq_len(nrow(df))) {
     this_scenario <- df$scenario[i]
     this_forecast_date <- df$forecast_date[i]
@@ -66,11 +67,41 @@ combine_outputs <- function(output_type =
         },
         error = function(e) {}
       )
+    } else {
+      # Create a tibble of the combos that are missing, to save
+      this_failed_output <- tibble(
+        scenario = this_scenario,
+        location = this_location,
+        forecast_date = this_forecast_date
+      )
+      flag_failed_output <- rbind(flag_failed_output, this_failed_output)
     }
   }
 
   if (nrow(combined_output) == 0) {
     combined_output <- NULL
   }
+
+  if (nrow(flag_failed_output) != 0) {
+    warning(glue::glue(
+      "File missing for {this_scenario}",
+      "in {this_location} on {this_forecast_date}"
+    ))
+    # Save the missing files in a new subfolder in the eval_output_subdir
+    cfaforecastrenewalww::create_dir(file.path(
+      eval_output_subdir,
+      "files_missing", model_type
+    ))
+
+    write.csv(
+      flag_failed_output,
+      file.path(
+        eval_output_subdir, "files_missing", model_type,
+        glue::glue("{output_type}.csv")
+      )
+    )
+  }
+
+
   return(combined_output)
 }
