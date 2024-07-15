@@ -741,8 +741,8 @@ make_fig3_rel_crps_overall <- function(scores) {
 make_qq_plot_overall <- function(scores_quantiles) {
   p <- scores_quantiles |>
     data.table::as.data.table() |>
-    scoringutils::summarise_scores(by = c("model", "range")) |>
-    scoringutils::plot_interval_coverage() +
+    scoringutils::summarise_scores(by = c("model", "quantile")) |>
+    scoringutils::plot_quantile_coverage() +
     ggtitle(glue::glue("QQ plot"))
 
   return(p)
