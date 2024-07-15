@@ -519,6 +519,13 @@ manuscript_figures <- list(
     command = make_qq_plot_overall(
       scores_quantiles_filtered
     )
+  ),
+  tar_target(
+    name = plot_coverage_range,
+    command = make_plot_coverage_range(
+      scores_quantiles_filtered,
+      c(30, 50, 90)
+    )
   )
 )
 
@@ -912,8 +919,7 @@ hub_comparison_plots <- list(
       time_period = "Feb 2024-Mar 2024",
       figure_file_path = eval_config$figure_dir
     )
-  ),
-  tar_target
+  )
 )
 
 

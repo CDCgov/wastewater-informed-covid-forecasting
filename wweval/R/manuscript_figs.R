@@ -734,7 +734,8 @@ make_fig3_rel_crps_overall <- function(scores) {
 #' Using [scoringutils::plot_interval_coverage()]
 #'
 #'
-#' @param scores_quantiles
+#' @param scores_quantiles A tibble of scores by location, forecast date,
+#'  date and model, the ouput of `scoringutils::score()` on the quantiles.
 #'
 #' @return a ggplot object with the overall QQ plot colored by model.
 #' @export
@@ -745,5 +746,56 @@ make_qq_plot_overall <- function(scores_quantiles) {
     scoringutils::plot_quantile_coverage() +
     ggtitle(glue::glue("QQ plot"))
 
+  return(p)
+}
+
+#' Plot coverage at specified ranges
+#'
+#' @param scores_quantiles A tibble of scores by location, forecast date,
+#' date and model, the ouput of `scoringutils::score()` on the quantiles.
+#'
+#' @param ranges A numeric vector of credible interval ranges to plot.
+#'
+#' @return A ggplot2 object
+#'
+make_plot_coverage_range <- function(scores_quantiles, ranges) {
+  scores_by_horizon <- scores_quantiles |>
+    dplyr::mutate(
+      horizon = dplyr::case_when(
+        date <= forecast_date ~ -1,
+        date > forecast_date & date <= forecast_date +
+          lubridate::days(7) ~ 1,
+        date > forecast_date + lubridate::days(7) &
+          date <= forecast_date + lubridate::days(14) ~ 2,
+        date > forecast_date + lubridate::days(14) &
+          date <= forecast_date + lubridate::days(21) ~ 3,
+        date > forecast_date + lubridate::days(21) &
+          date <= forecast_date + lubridate::days(28) ~ 4
+      )
+    )
+
+  coverage_summarized <- scores_by_horizon |>
+    dplyr::filter(quantile %in% c(ranges / 100)) |>
+    dplyr::group_by(horizon, model, quantile) |>
+    dplyr::summarise(pct_coverage = 100 * mean(coverage))
+
+
+  p <- ggplot(coverage_summarized) +
+    aes(
+      x = horizon, y = pct_coverage, color = model,
+      group = model
+    ) +
+    geom_line() +
+    geom_point() +
+    geom_hline(aes(yintercept = 100 * quantile), linetype = "dashed") +
+    # scale_y_continuous(labels = percent) +
+    facet_wrap(~quantile, scales = "free_y") +
+    # theme_scoringutils() +
+    labs(
+      y = "Proportion of data within forecast interval",
+      x = "Forecast horizon (weeks)",
+      col = "Model"
+    ) +
+    theme_bw()
   return(p)
 }
