@@ -368,9 +368,7 @@ head_to_head_targets <- list(
       dplyr::left_join(table_of_loc_dates_w_ww,
         by = c("location", "forecast_date")
       ) |>
-      dplyr::filter(
-        isTRUE(ww_sufficient)
-      ) |>
+      dplyr::filter(ww_sufficient) |>
       dplyr::left_join(
         convergence_df,
         by = c(
@@ -393,6 +391,7 @@ head_to_head_targets <- list(
 # ggarranged, properly formatted figures, and currently require
 # specification for the figure components that are examples.
 manuscript_figures <- list(
+  ## Fig 2-------------------------------------------------------------
   tar_target(
     name = fig2_hosp_t_1,
     command = make_fig2_hosp_t(
@@ -487,6 +486,38 @@ manuscript_figures <- list(
       scores_filtered,
       loc_to_plot = "MA",
       horizon_to_plot = "4 wks"
+    )
+  ),
+  ## Fig3------------------------------------------------
+  tar_target(
+    name = fig3_rel_crps_over_time,
+    command = make_fig3_crps_density(
+      scores_filtered
+    )
+  ),
+  tar_target(
+    name = fig3_pct_better_w_ww,
+    command = make_fig3_pct_better_w_ww(
+      scores_filtered,
+      eval_hosp_data
+    )
+  ),
+  tar_target(
+    name = fig3_rel_crps_by_location,
+    command = make_fig3_rel_crps_by_location(
+      scores_filtered
+    )
+  ),
+  tar_target(
+    name = fig3_rel_crps_overall,
+    command = make_fig3_rel_crps_overall(
+      scores_filtered
+    )
+  ),
+  tar_target(
+    name = fig3_qq_plot_overall,
+    command = make_qq_plot_overall(
+      scores_quantiles_filtered
     )
   )
 )
@@ -881,7 +912,8 @@ hub_comparison_plots <- list(
       time_period = "Feb 2024-Mar 2024",
       figure_file_path = eval_config$figure_dir
     )
-  )
+  ),
+  tar_target
 )
 
 

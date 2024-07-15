@@ -580,3 +580,170 @@ make_fig3_pct_better_w_ww <- function(scores,
 
   return(p)
 }
+
+#' Make figure that stratifies scores by location across forecast dates
+#'
+#' @param scores A tibble of scores by location, forecast date, date and model,
+#' the ouput of `scoringutils::score()` on samples.
+#'
+#' @return A ggplot object containing plots of the distribution of relative
+#' CRPS scores by location, across forecast dates, colored by location
+#' @export
+make_fig3_rel_crps_by_location <- function(scores) {
+  scores_by_horizon <- scores |>
+    dplyr::mutate(
+      horizon = dplyr::case_when(
+        date <= forecast_date ~ "nowcast",
+        date > forecast_date & date <= forecast_date +
+          lubridate::days(7) ~ "1 wk",
+        date > forecast_date + lubridate::days(21) &
+          date <= forecast_date + lubridate::days(28) ~ "4 wks"
+      )
+    ) |>
+    data.table::as.data.table() |>
+    scoringutils::summarise_scores(by = c(
+      "forecast_date", "location",
+      "model", "horizon"
+    ))
+
+  scores_overall <- scores |>
+    data.table::as.data.table() |>
+    scoringutils::summarise_scores(by = c(
+      "forecast_date", "location",
+      "model"
+    )) |>
+    dplyr::mutate(horizon = "overall")
+
+  scores_comb <- dplyr::bind_rows(scores_by_horizon, scores_overall)
+
+  relative_crps <- scores_comb |>
+    dplyr::select(location, forecast_date, model, horizon, crps) |>
+    dplyr::filter(!is.na(horizon)) |>
+    tidyr::pivot_wider(
+      names_from = model,
+      values_from = crps,
+      id_cols = c(location, forecast_date, horizon)
+    ) |>
+    dplyr::mutate(
+      rel_crps = ww / hosp
+    )
+
+
+  p <- ggplot(relative_crps, aes(
+    x = rel_crps, y = location, color = horizon,
+    fill = horizon
+  )) +
+    geom_violin(alpha = 0.3) +
+    geom_vline(aes(xintercept = 1), linetype = "dashed") +
+    theme_bw() +
+    theme(
+      axis.text.x = element_text(
+        size = 8, vjust = 1,
+        hjust = 1, angle = 45
+      ),
+      axis.title.x = element_text(size = 12),
+      axis.title.y = element_text(size = 10),
+      plot.title = element_text(
+        size = 10,
+        vjust = 0.5, hjust = 0.5
+      )
+    ) +
+    ggtitle("Distribution of CRPS by location, across forecast dates") +
+    ylab("") +
+    xlab("Relative CRPS, lower is better")
+
+  return(p)
+}
+
+#' Make figure that stratifies across location and forecast dates
+#'
+#' @param scores A tibble of scores by location, forecast date, date and model,
+#' the ouput of `scoringutils::score()` on samples.
+#'
+#' @return A ggplot object containing plots of the distribution of relative
+#' CRPS scores across location and forecast dates
+#' @export
+make_fig3_rel_crps_overall <- function(scores) {
+  scores_by_horizon <- scores |>
+    dplyr::mutate(
+      horizon = dplyr::case_when(
+        date <= forecast_date ~ "nowcast",
+        date > forecast_date & date <= forecast_date +
+          lubridate::days(7) ~ "1 wk",
+        date > forecast_date + lubridate::days(21) &
+          date <= forecast_date + lubridate::days(28) ~ "4 wks"
+      )
+    ) |>
+    data.table::as.data.table() |>
+    scoringutils::summarise_scores(by = c(
+      "forecast_date", "location",
+      "model", "horizon"
+    ))
+
+  scores_overall <- scores |>
+    data.table::as.data.table() |>
+    scoringutils::summarise_scores(by = c(
+      "forecast_date", "location",
+      "model"
+    )) |>
+    dplyr::mutate(horizon = "overall")
+
+  scores_comb <- dplyr::bind_rows(scores_by_horizon, scores_overall)
+
+  relative_crps <- scores_comb |>
+    dplyr::select(location, forecast_date, model, horizon, crps) |>
+    dplyr::filter(!is.na(horizon)) |>
+    tidyr::pivot_wider(
+      names_from = model,
+      values_from = crps,
+      id_cols = c(location, forecast_date, horizon)
+    ) |>
+    dplyr::mutate(
+      rel_crps = ww / hosp
+    )
+
+
+  p <- ggplot(relative_crps, aes(
+    x = rel_crps, y = horizon, color = horizon,
+    fill = horizon
+  )) +
+    geom_violin(alpha = 0.3) +
+    geom_vline(aes(xintercept = 1), linetype = "dashed") +
+    theme_bw() +
+    theme(
+      axis.text.x = element_text(
+        size = 8, vjust = 1,
+        hjust = 1, angle = 45
+      ),
+      axis.title.x = element_text(size = 12),
+      axis.title.y = element_text(size = 10),
+      plot.title = element_text(
+        size = 10,
+        vjust = 0.5, hjust = 0.5
+      )
+    ) +
+    ggtitle("Distribution of CRPS across location and forecast dates") +
+    ylab("") +
+    xlab("Relative CRPS, lower is better")
+
+  return(p)
+}
+
+#' Make a qq plot
+#' @description
+#' Using [scoringutils::plot_interval_coverage()]
+#'
+#'
+#' @param scores_quantiles
+#'
+#' @return a ggplot object with the overall QQ plot colored by model.
+#' @export
+make_qq_plot_overall <- function(scores_quantiles) {
+  p <- scores_quantiles |>
+    data.table::as.data.table() |>
+    scoringutils::summarise_scores(by = c("model", "range")) |>
+    scoringutils::plot_interval_coverage() +
+    ggtitle(glue::glue("QQ plot"))
+
+  return(p)
+}
