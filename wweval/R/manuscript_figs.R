@@ -5,8 +5,8 @@
 #' @param hosp_quantiles A tibble containing the calibrated hospital admissions
 #' data, the evaluation hospital admissions data, and the quantiles of the
 #' calibrated and forecasted admissions
-#' @param locs_to_plot A vector of strings indicating the state abbreviations
-#' for which states to plot
+#' @param loc_to_plot A  string indicating the state abbreviations of the state
+#' to plot
 #' @param date_to_plot A character string indicating what forecast date to plot,
 #' in IS08601 format YYYY-MM-DD
 #' @param n_forecast_days An integer indicating the number of days to show the
@@ -19,12 +19,12 @@
 #' admissions models
 #' @export
 make_fig2_hosp_t <- function(hosp_quantiles,
-                             locs_to_plot,
+                             loc_to_plot,
                              date_to_plot,
                              n_forecast_days = 28,
                              n_calib_days = 90) {
   hosp <- hosp_quantiles |>
-    dplyr::filter(location %in% c(locs_to_plot)) |>
+    dplyr::filter(location %in% c(loc_to_plot)) |>
     dplyr::filter(forecast_date == date_to_plot) |>
     dplyr::filter(
       date <= forecast_date + lubridate::days(n_forecast_days),
@@ -220,11 +220,32 @@ make_fig2_ct <- function(ww_quantiles,
   return(p)
 }
 
+#' Title
+#'
+#' @param hosp_quantiles A tibble containing the calibrated hospital admissions
+#' data, the evaluation hospital admissions data, and the quantiles of the
+#' calibrated and forecasted admissions
+#' @param loc_to_plot A  string indicating the state abbreviations of the state
+#' to plot
+#' @param horizon_to_plot A string indicating what horizon period to plot,
+#' either `nowcast`, `1 wk`, or `4 wks`
+#' @param days_to_show_prev_data An ingeger indicating how many days before the
+#' last forecast date to show the data, default is `14`
+#'
+#' @return A ggplot object containing a plot of the retrospective hospital
+#' admissions data compared to the nowcasted/forecasted quantiles and median
+#' for the specified horizon to plot, colored by the model type
+#' @export
 make_hosp_forecast_comp_fig <- function(hosp_quantiles,
                                         loc_to_plot,
-                                        horizon_to_plot) {
+                                        horizon_to_plot,
+                                        days_to_show_prev_data = 14) {
   hosp_quants_horizons <- hosp_quantiles |>
     dplyr::filter(location == loc_to_plot) |>
+    dplyr::filter(date >=
+      min(forecast_date) - lubridate::days(
+        days_to_show_prev_data
+      )) |>
     dplyr::mutate(
       horizon = dplyr::case_when(
         date <= forecast_date & period != "calibration" ~ "nowcast",
@@ -255,26 +276,54 @@ make_hosp_forecast_comp_fig <- function(hosp_quantiles,
       show.legend = FALSE
     ) +
     geom_line(
+      data = hosp |> dplyr::filter(model_type == "ww"),
       aes(
-        x = date, y = `0.5`, group = forecast_date,
-        color = model_type
-      )
+        x = date, y = `0.5`, group = forecast_date
+      ),
+      color = "cornflowerblue"
     ) +
     geom_ribbon(
-      data = hosp,
+      data = hosp |> dplyr::filter(model_type == "ww"),
       aes(
         x = date, ymin = `0.025`, ymax = `0.975`,
-        group = as.character(forecast_date),
-        fill = as.character(model_type)
+        group = as.character(forecast_date)
       ), alpha = 0.1,
+      fill = "cornflowerblue",
       show.legend = FALSE
     ) +
     geom_ribbon(
+      data = hosp |> dplyr::filter(model_type == "ww"),
       aes(
         x = date, ymin = `0.25`, ymax = `0.75`,
-        group = as.factor(forecast_date),
-        fill = as.factor(model_type)
+        group = as.factor(forecast_date)
       ),
+      alpha = 0.1,
+      fill = "cornflowerblue",
+      show.legend = FALSE
+    ) +
+    geom_line(
+      data = hosp |> dplyr::filter(model_type == "hosp"),
+      aes(
+        x = date, y = `0.5`, group = forecast_date
+      ),
+      color = "purple4"
+    ) +
+    geom_ribbon(
+      data = hosp |> dplyr::filter(model_type == "hosp"),
+      aes(
+        x = date, ymin = `0.025`, ymax = `0.975`,
+        group = as.character(forecast_date)
+      ), alpha = 0.1,
+      fill = "purple4",
+      show.legend = FALSE
+    ) +
+    geom_ribbon(
+      data = hosp |> dplyr::filter(model_type == "ww"),
+      aes(
+        x = date, ymin = `0.25`, ymax = `0.75`,
+        group = as.factor(forecast_date)
+      ),
+      fill = "purple4",
       alpha = 0.1,
       show.legend = FALSE
     ) +

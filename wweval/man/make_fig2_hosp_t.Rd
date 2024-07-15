@@ -8,7 +8,7 @@ example states}
 \usage{
 make_fig2_hosp_t(
   hosp_quantiles,
-  locs_to_plot,
+  loc_to_plot,
   date_to_plot,
   n_forecast_days = 28,
   n_calib_days = 90
@@ -19,8 +19,8 @@ make_fig2_hosp_t(
 data, the evaluation hospital admissions data, and the quantiles of the
 calibrated and forecasted admissions}
 
-\item{locs_to_plot}{A vector of strings indicating the state abbreviations
-for which states to plot}
+\item{loc_to_plot}{A  string indicating the state abbreviations of the state
+to plot}
 
 \item{date_to_plot}{A character string indicating what forecast date to plot,
 in IS08601 format YYYY-MM-DD}
