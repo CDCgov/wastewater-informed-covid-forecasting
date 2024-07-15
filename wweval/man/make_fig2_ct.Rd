@@ -2,7 +2,7 @@
 % Please edit documentation in R/manuscript_figs.R
 \name{make_fig2_ct}
 \alias{make_fig2_ct}
-\title{Title}
+\title{Make concentration fit and forecast figure}
 \usage{
 make_fig2_ct(
   ww_quantiles,
@@ -39,5 +39,5 @@ calibrated and forecasted wastewater concentrations for 3 or fewer
 site-lab combinations for a single state
 }
 \description{
-Title
+Make concentration fit and forecast figure
 }

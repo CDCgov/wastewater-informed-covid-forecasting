@@ -2,7 +2,7 @@
 % Please edit documentation in R/manuscript_figs.R
 \name{make_hosp_forecast_comp_fig}
 \alias{make_hosp_forecast_comp_fig}
-\title{Title}
+\title{Make hospital forecast comparison figure}
 \usage{
 make_hosp_forecast_comp_fig(
   hosp_quantiles,
@@ -31,5 +31,5 @@ admissions data compared to the nowcasted/forecasted quantiles and median
 for the specified horizon to plot, colored by the model type
 }
 \description{
-Title
+Make hospital forecast comparison figure
 }

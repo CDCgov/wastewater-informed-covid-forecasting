@@ -397,7 +397,7 @@ manuscript_figures <- list(
     name = fig2_hosp_t_1,
     command = make_fig2_hosp_t(
       hosp_quantiles_filtered,
-      locs_to_plot = c("MA"),
+      loc_to_plot = c("MA"),
       date_to_plot = "2024-01-15"
     )
   ),
@@ -405,7 +405,7 @@ manuscript_figures <- list(
     name = fig2_hosp_t_2,
     command = make_fig2_hosp_t(
       hosp_quantiles_filtered,
-      locs_to_plot = c("AL"),
+      loc_to_plot = c("AL"),
       date_to_plot = "2024-01-15"
     )
   ),
@@ -413,7 +413,7 @@ manuscript_figures <- list(
     name = fig2_hosp_t_3,
     command = make_fig2_hosp_t(
       hosp_quantiles_filtered,
-      locs_to_plot = c("WA"),
+      loc_to_plot = c("WA"),
       date_to_plot = "2024-01-15"
     )
   ),
@@ -447,6 +447,46 @@ manuscript_figures <- list(
       hosp_quantiles_filtered,
       loc_to_plot = "MA",
       horizon_to_plot = "nowcast"
+    )
+  ),
+  tar_target(
+    name = fig2_forecast_comparison_1wk1,
+    command = make_hosp_forecast_comp_fig(
+      hosp_quantiles_filtered,
+      loc_to_plot = "MA",
+      horizon_to_plot = "1 wk"
+    )
+  ),
+  tar_target(
+    name = fig2_forecast_comparison_4wks1,
+    command = make_hosp_forecast_comp_fig(
+      hosp_quantiles_filtered,
+      loc_to_plot = "MA",
+      horizon_to_plot = "4 wks"
+    )
+  ),
+  tar_target(
+    name = fig2_crps_underlay_nowcast1,
+    command = make_crps_underlay_fig(
+      scores_filtered,
+      loc_to_plot = "MA",
+      horizon_to_plot = "nowcast"
+    )
+  ),
+  tar_target(
+    name = fig2_crps_underlay_1wk1,
+    command = make_crps_underlay_fig(
+      scores_filtered,
+      loc_to_plot = "MA",
+      horizon_to_plot = "1 wk"
+    )
+  ),
+  tar_target(
+    name = fig2_crps_underlay_4wks1,
+    command = make_crps_underlay_fig(
+      scores_filtered,
+      loc_to_plot = "MA",
+      horizon_to_plot = "4 wks"
     )
   )
 )

@@ -108,7 +108,7 @@ make_fig2_hosp_t <- function(hosp_quantiles,
 }
 
 
-#' Title
+#' Make concentration fit and forecast figure
 #'
 #' @param ww_quantiles  A tibble containing the calibrated wastewater
 #' concentrations, the evaluation wastewater concentration data, and the
@@ -220,7 +220,7 @@ make_fig2_ct <- function(ww_quantiles,
   return(p)
 }
 
-#' Title
+#' Make hospital forecast comparison figure
 #'
 #' @param hosp_quantiles A tibble containing the calibrated hospital admissions
 #' data, the evaluation hospital admissions data, and the quantiles of the
@@ -329,6 +329,72 @@ make_hosp_forecast_comp_fig <- function(hosp_quantiles,
     ) +
     xlab("") +
     ylab("Daily hospital admissions") +
+    ggtitle(glue::glue(
+      "{horizon_to_plot}"
+    )) +
+    theme_bw() +
+    scale_color_discrete() +
+    scale_fill_discrete() +
+    scale_x_date(
+      date_breaks = "2 weeks",
+      labels = scales::date_format("%Y-%m-%d")
+    ) +
+    theme_bw() +
+    theme(
+      axis.text.x = element_text(
+        size = 8, vjust = 1,
+        hjust = 1, angle = 45
+      ),
+      axis.title.x = element_text(size = 12),
+      axis.title.y = element_text(size = 12),
+      plot.title = element_text(
+        size = 10,
+        vjust = 0.5, hjust = 0.5
+      )
+    )
+
+  return(p)
+}
+
+#' Make CRPS underlay figure
+#'
+#' @param scores A tibble of scores by location, forecast date, date and model,
+#' the ouput of `scoringutils::score()` on samples.
+#' @param loc_to_plot A  string indicating the state abbreviations of the state
+#' to plot
+#' @param horizon_to_plot A string indicating what horizon period to plot,
+#' either `nowcast`, `1 wk`, or `4 wks`
+#'
+#' @return A ggplot object containing a bar chart of the crps score averaged
+#' across the horizon for each forecast date, colored by the model type
+#' @export
+make_crps_underlay_fig <- function(scores,
+                                   loc_to_plot,
+                                   horizon_to_plot) {
+  scores_by_horizon <- scores |>
+    dplyr::filter(location == loc_to_plot) |>
+    dplyr::mutate(
+      horizon = dplyr::case_when(
+        date <= forecast_date ~ "nowcast",
+        date > forecast_date & date <= forecast_date +
+          lubridate::days(7) ~ "1 wk",
+        date > forecast_date + lubridate::days(21) &
+          date <= forecast_date + lubridate::days(28) ~ "4 wks"
+      )
+    ) |>
+    data.table::as.data.table() |>
+    scoringutils::summarise_scores(by = c(
+      "forecast_date", "location",
+      "model", "horizon"
+    )) |>
+    dplyr::filter(horizon == horizon_to_plot)
+
+  p <- ggplot(scores_by_horizon) +
+    geom_bar(aes(x = forecast_date, y = crps, fill = model),
+      stat = "identity", position = "dodge"
+    ) +
+    xlab("") +
+    ylab("CRPS scores") +
     ggtitle(glue::glue(
       "{horizon_to_plot}"
     )) +
