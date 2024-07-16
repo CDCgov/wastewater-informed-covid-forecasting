@@ -25,14 +25,14 @@ add_horizons_to_quantiles <- function(quantiles) {
       )
     ) |>
     dplyr::mutate(
-      horizon = case_when(
+      horizon = dplyr::case_when(
         period == "calibration" ~ "calibration",
         period != "calibration" & horizon_weeks < 0 ~ "nowcast",
         horizon_weeks == 1 ~ "1 wk",
         horizon_weeks == 2 ~ "2 wks",
         horizon_weeks == 3 ~ "3 wks",
         horizon_weeks == 4 ~ "4 wks",
-        TRUE ~ NA
+        TRUE ~ NA_character_
       )
     )
   return(quantiles_w_horizons)
@@ -57,8 +57,8 @@ add_horizons_to_quantiles <- function(quantiles) {
 #' @return a tibble containing the same columns as `scores` plus
 #' `horizon_weeks` and `horizon`
 #' @export
-add_horizons_to_quantiles <- function(scores,
-                                      max_weeks_nowcast = 2) {
+add_horizons_to_scores <- function(scores,
+                                   max_weeks_nowcast = 2) {
   scores_w_horizons <- scores |>
     dplyr::mutate(
       # As written, this generates negative integer weeks for days before the
@@ -70,19 +70,15 @@ add_horizons_to_quantiles <- function(scores,
       )
     ) |>
     dplyr::mutate(
-      horizon = case_when(
+      horizon = dplyr::case_when(
         horizon_weeks < 0 ~ "nowcast",
         horizon_weeks == 1 ~ "1 wk",
         horizon_weeks == 2 ~ "2 wks",
         horizon_weeks == 3 ~ "3 wks",
         horizon_weeks == 4 ~ "4 wks",
-        TRUE ~ NA
+        TRUE ~ NA_character_
       )
     )
 
-  stopifnot(
-    "Check that scores are only for nowcast/forecast period",
-    min(scores_w_horizons$horizon_weeks) < -max_weeks_nowcast
-  )
   return(scores_w_horizons)
 }

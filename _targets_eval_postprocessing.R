@@ -370,9 +370,7 @@ head_to_head_targets <- list(
       dplyr::left_join(table_of_loc_dates_w_ww,
         by = c("location", "forecast_date")
       ) |>
-      dplyr::filter(
-        isTRUE(ww_sufficient)
-      ) |>
+      dplyr::filter(ww_sufficient) |>
       dplyr::left_join(
         convergence_df,
         by = c(
