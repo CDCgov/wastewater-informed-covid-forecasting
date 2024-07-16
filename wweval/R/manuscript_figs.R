@@ -245,16 +245,7 @@ make_hosp_forecast_comp_fig <- function(hosp_quantiles,
     dplyr::filter(date >=
       min(forecast_date) - lubridate::days(
         days_to_show_prev_data
-      )) |>
-    dplyr::mutate(
-      horizon = dplyr::case_when(
-        date <= forecast_date & period != "calibration" ~ "nowcast",
-        date > forecast_date & date <= forecast_date +
-          lubridate::days(7) ~ "1 wk",
-        date > forecast_date + lubridate::days(21) &
-          date <= forecast_date + lubridate::days(28) ~ "4 wks"
-      )
-    )
+      ))
 
   hosp <- hosp_quants_horizons |>
     dplyr::filter(horizon == horizon_to_plot) |>
@@ -373,15 +364,6 @@ make_crps_underlay_fig <- function(scores,
                                    horizon_to_plot) {
   scores_by_horizon <- scores |>
     dplyr::filter(location == loc_to_plot) |>
-    dplyr::mutate(
-      horizon = dplyr::case_when(
-        date <= forecast_date ~ "nowcast",
-        date > forecast_date & date <= forecast_date +
-          lubridate::days(7) ~ "1 wk",
-        date > forecast_date + lubridate::days(21) &
-          date <= forecast_date + lubridate::days(28) ~ "4 wks"
-      )
-    ) |>
     data.table::as.data.table() |>
     scoringutils::summarise_scores(by = c(
       "forecast_date", "location",

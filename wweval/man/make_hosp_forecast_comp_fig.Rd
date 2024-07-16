@@ -20,7 +20,7 @@ calibrated and forecasted admissions}
 to plot}
 
 \item{horizon_to_plot}{A string indicating what horizon period to plot,
-either \code{nowcast}, \verb{1 wk}, or \verb{4 wks}}
+one of \code{nowcast}, \verb{1 wk}, or \verb{4 wks}}
 
 \item{days_to_show_prev_data}{An ingeger indicating how many days before the
 last forecast date to show the data, default is \code{14}}

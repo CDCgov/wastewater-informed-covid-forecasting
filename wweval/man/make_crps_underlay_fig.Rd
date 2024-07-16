@@ -14,7 +14,7 @@ the ouput of \code{scoringutils::score()} on samples.}
 to plot}
 
 \item{horizon_to_plot}{A string indicating what horizon period to plot,
-either \code{nowcast}, \verb{1 wk}, or \verb{4 wks}}
+one of \code{nowcast}, \verb{1 wk}, or \verb{4 wks}}
 }
 \value{
 A ggplot object containing a bar chart of the crps score averaged

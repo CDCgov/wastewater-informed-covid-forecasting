@@ -326,7 +326,8 @@ head_to_head_targets <- list(
           "location" = "state_abbr",
           "date" = "reference_date"
         )
-      )
+      ) |>
+      add_horizons_to_quantiles()
   ),
   # Do the same thing for the sampled scores, combining ww and hosp under
   # the status quo scenario, filtering to the locations and forecast dates
@@ -355,7 +356,8 @@ head_to_head_targets <- list(
           "location" = "state_abbr",
           "date" = "reference_date"
         )
-      )
+      ) |>
+      add_horizons_to_scores()
   ),
   # Repeat for the quantile-based scores
   tar_target(
@@ -384,7 +386,8 @@ head_to_head_targets <- list(
           "location" = "state_abbr",
           "date" = "reference_date"
         )
-      )
+      ) |>
+      add_horizons_to_scores()
   )
 )
 
