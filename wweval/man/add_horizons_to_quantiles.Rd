@@ -12,11 +12,11 @@ required columns: \code{date}, \code{forecast_date}, and \code{period}}
 }
 \value{
 a tibble containing the same columns as \code{quantiles} plus
-\code{horizon_weeks} and \code{horizon}
+\code{horizon_days} and \code{horizon}
 }
 \description{
 This function takes in a tibble of quantiles containing the columns
 \code{date}, \code{forecast_date} and \code{period} and adds the following columns:
-\code{horizon_weeks} (an integer) and \code{horizon} (a string to be used for
+\code{horizon_days} (an integer) and \code{horizon} (a string to be used for
 categorical grouping of horizons)
 }

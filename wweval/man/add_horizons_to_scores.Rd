@@ -4,24 +4,24 @@
 \alias{add_horizons_to_scores}
 \title{Add columns indicating the horizon to the scores}
 \usage{
-add_horizons_to_scores(scores, max_weeks_nowcast = 2)
+add_horizons_to_scores(scores, max_days_nowcast = 14)
 }
 \arguments{
 \item{scores}{A tibble containing the quantiled values and the following
 required columns: \code{date}and \code{forecast_date}}
 
-\item{max_weeks_nowcast}{An integer indicating the expected maximum number
+\item{max_days_nowcast}{An integer indicating the expected maximum number
 of weeks where date < forecast date. If the output contains values beyond
 this threshold, an error will be thrown which may indicate that the scores
 contain scores for calibrated data.}
 }
 \value{
 a tibble containing the same columns as \code{scores} plus
-\code{horizon_weeks} and \code{horizon}
+\code{horizon_days} and \code{horizon}
 }
 \description{
 This function takes in a tibble of scores on the nowcasts/forecasts
 containing the columns \code{date} and \code{forecast_date} and adds the following
-columns: \code{horizon_weeks} (an integer) and \code{horizon} (a string to be used for
+columns: \code{horizon_days} (an integer) and \code{horizon} (a string to be used for
 categorical grouping of horizons)
 }
