@@ -228,7 +228,7 @@ make_fig2_ct <- function(ww_quantiles,
 #' @param loc_to_plot A  string indicating the state abbreviations of the state
 #' to plot
 #' @param horizon_to_plot A string indicating what horizon period to plot,
-#' either `nowcast`, `1 wk`, or `4 wks`
+#' one of `nowcast`, `1 wk`, or `4 wks`
 #' @param days_to_show_prev_data An ingeger indicating how many days before the
 #' last forecast date to show the data, default is `14`
 #'
