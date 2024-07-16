@@ -363,7 +363,7 @@ make_hosp_forecast_comp_fig <- function(hosp_quantiles,
 #' @param loc_to_plot A  string indicating the state abbreviations of the state
 #' to plot
 #' @param horizon_to_plot A string indicating what horizon period to plot,
-#' either `nowcast`, `1 wk`, or `4 wks`
+#' one of `nowcast`, `1 wk`, or `4 wks`
 #'
 #' @return A ggplot object containing a bar chart of the crps score averaged
 #' across the horizon for each forecast date, colored by the model type
