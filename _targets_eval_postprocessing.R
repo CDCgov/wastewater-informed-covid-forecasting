@@ -302,6 +302,10 @@ head_to_head_targets <- list(
   # forecast dates with sufficient wastewater for both ww model and hosp only
   # model. Then join the convergence df
   tar_target(
+    name = last_hosp_data_date_map,
+    command = get_last_hosp_data_date_map(all_hosp_model_quantiles)
+  ),
+  tar_target(
     name = hosp_quantiles_filtered,
     command = dplyr::bind_rows(
       all_ww_hosp_quantiles,
@@ -321,12 +325,17 @@ head_to_head_targets <- list(
         )
       ) |>
       dplyr::left_join(
+        last_hosp_data_date_map,
+        by = c("location", "forecast_date")
+      ) |>
+      dplyr::left_join(
         epidemic_phases,
         by = c(
           "location" = "state_abbr",
           "date" = "reference_date"
         )
-      )
+      ) |>
+      add_horizons()
   ),
   # Do the same thing for the sampled scores, combining ww and hosp under
   # the status quo scenario, filtering to the locations and forecast dates
@@ -350,12 +359,17 @@ head_to_head_targets <- list(
         )
       ) |>
       dplyr::left_join(
+        last_hosp_data_date_map,
+        by = c("location", "forecast_date")
+      ) |>
+      dplyr::left_join(
         epidemic_phases,
         by = c(
           "location" = "state_abbr",
           "date" = "reference_date"
         )
-      )
+      ) |>
+      add_horizons()
   ),
   # Repeat for the quantile-based scores
   tar_target(
@@ -368,9 +382,7 @@ head_to_head_targets <- list(
       dplyr::left_join(table_of_loc_dates_w_ww,
         by = c("location", "forecast_date")
       ) |>
-      dplyr::filter(
-        isTRUE(ww_sufficient)
-      ) |>
+      dplyr::filter(ww_sufficient) |>
       dplyr::left_join(
         convergence_df,
         by = c(
@@ -379,12 +391,120 @@ head_to_head_targets <- list(
         )
       ) |>
       dplyr::left_join(
+        last_hosp_data_date_map,
+        by = c("location", "forecast_date")
+      ) |>
+      dplyr::left_join(
         epidemic_phases,
         by = c(
           "location" = "state_abbr",
           "date" = "reference_date"
         )
-      )
+      ) |>
+      add_horizons()
+  )
+)
+
+# Manuscript figures------------------------------------------------
+# Note that these are just the components of the figures, not the full
+# ggarranged, properly formatted figures, and currently require
+# specification for the figure components that are examples.
+manuscript_figures <- list(
+  tar_target(
+    name = fig2_hosp_t_1,
+    command = make_fig2_hosp_t(
+      hosp_quantiles_filtered,
+      loc_to_plot = c("MA"),
+      date_to_plot = "2024-01-15"
+    )
+  ),
+  tar_target(
+    name = fig2_hosp_t_2,
+    command = make_fig2_hosp_t(
+      hosp_quantiles_filtered,
+      loc_to_plot = c("AL"),
+      date_to_plot = "2024-01-15"
+    )
+  ),
+  tar_target(
+    name = fig2_hosp_t_3,
+    command = make_fig2_hosp_t(
+      hosp_quantiles_filtered,
+      loc_to_plot = c("WA"),
+      date_to_plot = "2024-01-15"
+    )
+  ),
+  tar_target(
+    name = fig2_ct_1,
+    command = make_fig2_ct(
+      all_ww_quantiles_sq,
+      loc_to_plot = "MA",
+      date_to_plot = "2024-01-15"
+    )
+  ),
+  tar_target(
+    name = fig2_ct_2,
+    command = make_fig2_ct(
+      all_ww_quantiles_sq,
+      loc_to_plot = "AL",
+      date_to_plot = "2024-01-15"
+    )
+  ),
+  tar_target(
+    name = fig2_ct_3,
+    command = make_fig2_ct(
+      all_ww_quantiles_sq,
+      loc_to_plot = "WA",
+      date_to_plot = "2024-01-15"
+    )
+  ),
+  tar_target(
+    name = fig2_forecast_comparison_nowcast1,
+    command = make_hosp_forecast_comp_fig(
+      hosp_quantiles_filtered,
+      loc_to_plot = "MA",
+      horizon_to_plot = "nowcast"
+    )
+  ),
+  tar_target(
+    name = fig2_forecast_comparison_1wk1,
+    command = make_hosp_forecast_comp_fig(
+      hosp_quantiles_filtered,
+      loc_to_plot = "MA",
+      horizon_to_plot = "1 wk"
+    )
+  ),
+  tar_target(
+    name = fig2_forecast_comparison_4wks1,
+    command = make_hosp_forecast_comp_fig(
+      hosp_quantiles_filtered,
+      loc_to_plot = "MA",
+      horizon_to_plot = "4 wks"
+    )
+  ),
+  tar_target(
+    name = fig2_crps_underlay_nowcast1,
+    command = make_crps_underlay_fig(
+      scores_filtered,
+      loc_to_plot = "MA",
+      horizon_to_plot = "nowcast"
+    )
+  ),
+  tar_target(
+    name = fig2_crps_underlay_1wk1,
+    command = make_crps_underlay_fig(
+      scores_filtered,
+      loc_to_plot = "MA",
+      horizon_to_plot = "1 wk"
+    )
+  ),
+  tar_target(
+    name = fig2_crps_underlay_4wks1,
+    command = make_crps_underlay_fig(
+      scores_filtered,
+      loc_to_plot = "MA",
+      horizon_to_plot = "4 wks"
+    )
   )
 )
 
@@ -783,11 +903,12 @@ hub_comparison_plots <- list(
 
 
 
-# Run the targets pipeline
+# Run the targets pipeline----------------------------------------------------
 list(
   upstream_targets,
   combined_targets,
   head_to_head_targets,
+  manuscript_figures,
   scenario_targets,
   hub_targets,
   hub_comparison_plots
