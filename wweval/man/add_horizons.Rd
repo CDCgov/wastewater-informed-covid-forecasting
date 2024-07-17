@@ -4,16 +4,12 @@
 \alias{add_horizons}
 \title{Add columns indicating the horizon to the scores}
 \usage{
-add_horizons(df, max_nowcast_days)
+add_horizons(df)
 }
 \arguments{
 \item{df}{A tibble containing either forecasts or scores (or both)
-and the following required columns: \code{date}and \code{forecast_date}}
-
-\item{max_nowcast_days}{An integer indicating the expected maximum number
-of weeks where date < forecast date. If the output contains values beyond
-this threshold, an error will be thrown which may indicate that the scores
-contain scores for calibrated data.}
+and the following required columns: \code{date},\code{forecast_date},
+\code{last_hosp_data_date}}
 }
 \value{
 a tibble containing the same columns as \code{df} plus
@@ -21,7 +17,7 @@ a tibble containing the same columns as \code{df} plus
 }
 \description{
 This function takes in a tibble of scores on the nowcasts/forecasts
-containing the columns \code{date} and \code{forecast_date} and adds the following
-columns: \code{horizon_days} (an integer) and \code{horizon} (a string to be used for
-categorical grouping of horizons)
+containing the columns \code{date}, \code{forecast_date}, and \code{last_hosp_data_date},
+and adds the following columns: \code{horizon_days} (an integer) and
+\code{horizon} (a string to be used for categorical grouping of horizons)
 }

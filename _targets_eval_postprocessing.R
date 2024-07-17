@@ -302,13 +302,8 @@ head_to_head_targets <- list(
   # forecast dates with sufficient wastewater for both ww model and hosp only
   # model. Then join the convergence df
   tar_target(
-    name = max_nowcast_days,
-    command = as.numeric(
-      max(all_ww_hosp_quantiles$forecast_date) -
-        max(all_ww_hosp_quantiles$date[!is.na(
-          all_ww_hosp_quantiles$calib_data
-        )])
-    )
+    name = last_hosp_data_date_map,
+    command = get_last_hosp_data_date_map(all_hosp_model_quantiles)
   ),
   tar_target(
     name = hosp_quantiles_filtered,
@@ -330,13 +325,17 @@ head_to_head_targets <- list(
         )
       ) |>
       dplyr::left_join(
+        last_hosp_data_date_map,
+        by = c("location", "forecast_date")
+      ) |>
+      dplyr::left_join(
         epidemic_phases,
         by = c(
           "location" = "state_abbr",
           "date" = "reference_date"
         )
       ) |>
-      add_horizons(max_nowcast_days = max_nowcast_days)
+      add_horizons()
   ),
   # Do the same thing for the sampled scores, combining ww and hosp under
   # the status quo scenario, filtering to the locations and forecast dates
@@ -360,13 +359,17 @@ head_to_head_targets <- list(
         )
       ) |>
       dplyr::left_join(
+        last_hosp_data_date_map,
+        by = c("location", "forecast_date")
+      ) |>
+      dplyr::left_join(
         epidemic_phases,
         by = c(
           "location" = "state_abbr",
           "date" = "reference_date"
         )
       ) |>
-      add_horizons(max_nowcast_days = max_nowcast_days)
+      add_horizons()
   ),
   # Repeat for the quantile-based scores
   tar_target(
@@ -388,13 +391,17 @@ head_to_head_targets <- list(
         )
       ) |>
       dplyr::left_join(
+        last_hosp_data_date_map,
+        by = c("location", "forecast_date")
+      ) |>
+      dplyr::left_join(
         epidemic_phases,
         by = c(
           "location" = "state_abbr",
           "date" = "reference_date"
         )
       ) |>
-      add_horizons(max_nowcast_days = max_nowcast_days)
+      add_horizons()
   )
 )
 
