@@ -25,7 +25,7 @@ add_horizons <- function(df,
     ) |>
     dplyr::mutate(
       horizon = dplyr::case_when(
-        horizon_days <= -max_nowcast_days ~ "calibration",
+        horizon_days <= -!!max_nowcast_days ~ "calibration",
         horizon_days > -max_nowcast_days & horizon_days <= 0 ~ "nowcast",
         horizon_days > 0 & horizon_days <= 7 ~ "1 wk",
         horizon_days > 7 & horizon_days <= 14 ~ "2 wks",
