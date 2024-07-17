@@ -68,6 +68,10 @@ combine_outputs <- function(output_type =
         error = function(e) {}
       )
     } else {
+      warning(glue::glue(
+        "File missing for {this_scenario}",
+        "in {this_location} on {this_forecast_date}"
+      ))
       # Create a tibble of the combos that are missing, to save
       this_failed_output <- tibble(
         scenario = this_scenario,
@@ -83,10 +87,6 @@ combine_outputs <- function(output_type =
   }
 
   if (nrow(flag_failed_output) != 0) {
-    warning(glue::glue(
-      "File missing for {this_scenario}",
-      "in {this_location} on {this_forecast_date}"
-    ))
     # Save the missing files in a new subfolder in the eval_output_subdir
     cfaforecastrenewalww::create_dir(file.path(
       eval_output_subdir,
