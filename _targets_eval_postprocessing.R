@@ -302,6 +302,15 @@ head_to_head_targets <- list(
   # forecast dates with sufficient wastewater for both ww model and hosp only
   # model. Then join the convergence df
   tar_target(
+    name = max_nowcast_days,
+    command = as.numeric(
+      max(all_ww_hosp_quantiles$forecast_date) -
+        max(all_ww_hosp_quantiles$date[!is.na(
+          all_ww_hosp_quantiles$calib_data
+        )])
+    )
+  ),
+  tar_target(
     name = hosp_quantiles_filtered,
     command = dplyr::bind_rows(
       all_ww_hosp_quantiles,
@@ -327,7 +336,7 @@ head_to_head_targets <- list(
           "date" = "reference_date"
         )
       ) |>
-      add_horizons_to_quantiles()
+      add_horizons(max_nowcast_days = max_nowcast_days)
   ),
   # Do the same thing for the sampled scores, combining ww and hosp under
   # the status quo scenario, filtering to the locations and forecast dates
@@ -357,7 +366,7 @@ head_to_head_targets <- list(
           "date" = "reference_date"
         )
       ) |>
-      add_horizons_to_scores()
+      add_horizons(max_nowcast_days = max_nowcast_days)
   ),
   # Repeat for the quantile-based scores
   tar_target(
@@ -385,7 +394,7 @@ head_to_head_targets <- list(
           "date" = "reference_date"
         )
       ) |>
-      add_horizons_to_scores()
+      add_horizons(max_nowcast_days = max_nowcast_days)
   )
 )
 
