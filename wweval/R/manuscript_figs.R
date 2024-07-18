@@ -678,7 +678,7 @@ make_fig3_rel_crps_by_location <- function(scores,
 #'
 #' @param scores A tibble of scores by location, forecast date, date and model,
 #' the ouput of `scoringutils::score()` on samples.
-#' #' @param horizons_to_show A vector of strings indicating the names of the
+#' @param horizons_to_show A vector of strings indicating the names of the
 #' `horizon` that we want to show on the plot, must be a subset of
 #' `nowcast`, `1 wk`, `2 wks`,`3 wks`, `4 wks` and `overall`
 #'

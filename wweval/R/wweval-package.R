@@ -19,4 +19,5 @@
 #' @importFrom colorspace scale_fill_continuous_diverging
 #' @importFrom cmdstanr cmdstan_model
 #' @importFrom data.table as.data.table
+#' @importFrom forcats fct_reorder
 NULL
