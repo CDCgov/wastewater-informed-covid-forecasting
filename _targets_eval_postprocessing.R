@@ -410,6 +410,7 @@ head_to_head_targets <- list(
 # ggarranged, properly formatted figures, and currently require
 # specification for the figure components that are examples.
 manuscript_figures <- list(
+  ## Fig 2-----------------------------------------------------
   tar_target(
     name = fig2_hosp_t_1,
     command = make_fig2_hosp_t(
@@ -540,7 +541,7 @@ manuscript_figures <- list(
     )
   ),
   tar_target(
-    name = plot_coverage_range,
+    name = fig3_plot_coverage_range,
     command = make_plot_coverage_range(
       scores_quantiles_filtered,
       c(30, 50, 90)

@@ -4,11 +4,17 @@
 \alias{make_fig3_rel_crps_overall}
 \title{Make figure that stratifies across location and forecast dates}
 \usage{
-make_fig3_rel_crps_overall(scores)
+make_fig3_rel_crps_overall(
+  scores,
+  horizons_to_show = c("nowcast", "1 wk", "4 wks", "overall")
+)
 }
 \arguments{
 \item{scores}{A tibble of scores by location, forecast date, date and model,
-the ouput of \code{scoringutils::score()} on samples.}
+the ouput of \code{scoringutils::score()} on samples.
+#' @param horizons_to_show A vector of strings indicating the names of the
+\code{horizon} that we want to show on the plot, must be a subset of
+\code{nowcast}, \verb{1 wk}, \verb{2 wks},\verb{3 wks}, \verb{4 wks} and \code{overall}}
 }
 \value{
 A ggplot object containing plots of the distribution of relative

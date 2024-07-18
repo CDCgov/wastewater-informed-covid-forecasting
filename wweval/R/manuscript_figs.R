@@ -410,21 +410,20 @@ make_crps_underlay_fig <- function(scores,
 #'
 #' @param scores A tibble of scores by location, forecast date, date and model,
 #' the ouput of `scoringutils::score()` on samples.
+#' @param horizons_to_show A vector of strings indicating the names of the
+#' `horizon` that we want to show on the plot, must be a subset of
+#' `nowcast`, `1 wk`, `2 wks`,`3 wks`, `4 wks` and `overall`
 #'
 #' @return a ggplot object that is a vertical facet of violin plots colored
 #' by model type and broken down my horizon
 #' @export
-make_fig3_crps_density <- function(scores) {
+make_fig3_crps_density <- function(scores,
+                                   horizons_to_show = c(
+                                     "nowcast",
+                                     "1 wk", "4 wks",
+                                     "overall"
+                                   )) {
   scores_by_horizon <- scores |>
-    dplyr::mutate(
-      horizon = dplyr::case_when(
-        date <= forecast_date ~ "nowcast",
-        date > forecast_date & date <= forecast_date +
-          lubridate::days(7) ~ "1 wk",
-        date > forecast_date + lubridate::days(21) &
-          date <= forecast_date + lubridate::days(28) ~ "4 wks"
-      )
-    ) |>
     data.table::as.data.table() |>
     scoringutils::summarise_scores(by = c(
       "forecast_date", "location",
@@ -439,24 +438,46 @@ make_fig3_crps_density <- function(scores) {
     )) |>
     dplyr::mutate(horizon = "overall")
 
-  scores_comb <- dplyr::bind_rows(scores_by_horizon, scores_overall)
+  scores_comb <- dplyr::bind_rows(scores_by_horizon, scores_overall) |>
+    dplyr::filter(
+      horizon %in% horizons_to_show
+    ) |>
+    dplyr::mutate(
+      fig_order = dplyr::case_when(
+        horizon == "nowcast" ~ 1,
+        horizon == "1 wk" ~ 2,
+        horizon == "2 wks" ~ 3,
+        horizon == "3 wks" ~ 4,
+        horizon == "4 wks" ~ 5,
+        horizon == "overall" ~ 6
+      )
+    )
 
   relative_crps <- scores_comb |>
-    dplyr::select(location, forecast_date, model, horizon, crps) |>
+    dplyr::select(
+      location, forecast_date, model, horizon,
+      fig_order, crps
+    ) |>
     dplyr::filter(!is.na(horizon)) |>
     tidyr::pivot_wider(
       names_from = model,
       values_from = crps,
-      id_cols = c(location, forecast_date, horizon)
+      id_cols = c(location, forecast_date, horizon, fig_order)
     ) |>
     dplyr::mutate(
       rel_crps = ww / hosp
+    ) |>
+    dplyr::mutate(
+      horizon = forcats::fct_reorder(horizon, fig_order)
     )
 
-  p <- ggplot(relative_crps, aes(
-    x = as.factor(forecast_date), y = rel_crps, color = horizon,
-    fill = horizon
-  )) +
+  p <- ggplot(
+    relative_crps,
+    aes(
+      x = as.factor(forecast_date), y = rel_crps, color = horizon,
+      fill = horizon
+    )
+  ) +
     geom_violin(alpha = 0.3) +
     geom_hline(aes(yintercept = 1), linetype = "dashed") +
     theme_bw() +
@@ -568,21 +589,20 @@ make_fig3_pct_better_w_ww <- function(scores,
 #'
 #' @param scores A tibble of scores by location, forecast date, date and model,
 #' the ouput of `scoringutils::score()` on samples.
+#' @param horizons_to_show A vector of strings indicating the names of the
+#' `horizon` that we want to show on the plot, must be a subset of
+#' `nowcast`, `1 wk`, `2 wks`,`3 wks`, `4 wks` and `overall`
 #'
 #' @return A ggplot object containing plots of the distribution of relative
 #' CRPS scores by location, across forecast dates, colored by location
 #' @export
-make_fig3_rel_crps_by_location <- function(scores) {
+make_fig3_rel_crps_by_location <- function(scores,
+                                           horizons_to_show = c(
+                                             "nowcast",
+                                             "1 wk", "4 wks",
+                                             "overall"
+                                           )) {
   scores_by_horizon <- scores |>
-    dplyr::mutate(
-      horizon = dplyr::case_when(
-        date <= forecast_date ~ "nowcast",
-        date > forecast_date & date <= forecast_date +
-          lubridate::days(7) ~ "1 wk",
-        date > forecast_date + lubridate::days(21) &
-          date <= forecast_date + lubridate::days(28) ~ "4 wks"
-      )
-    ) |>
     data.table::as.data.table() |>
     scoringutils::summarise_scores(by = c(
       "forecast_date", "location",
@@ -597,18 +617,34 @@ make_fig3_rel_crps_by_location <- function(scores) {
     )) |>
     dplyr::mutate(horizon = "overall")
 
-  scores_comb <- dplyr::bind_rows(scores_by_horizon, scores_overall)
+  scores_comb <- dplyr::bind_rows(scores_by_horizon, scores_overall) |>
+    dplyr::filter(
+      horizon %in% horizons_to_show
+    ) |>
+    dplyr::mutate(
+      fig_order = dplyr::case_when(
+        horizon == "nowcast" ~ 1,
+        horizon == "1 wk" ~ 2,
+        horizon == "2 wks" ~ 3,
+        horizon == "3 wks" ~ 4,
+        horizon == "4 wks" ~ 5,
+        horizon == "overall" ~ 6
+      )
+    )
 
   relative_crps <- scores_comb |>
-    dplyr::select(location, forecast_date, model, horizon, crps) |>
+    dplyr::select(location, forecast_date, model, horizon, fig_order, crps) |>
     dplyr::filter(!is.na(horizon)) |>
     tidyr::pivot_wider(
       names_from = model,
       values_from = crps,
-      id_cols = c(location, forecast_date, horizon)
+      id_cols = c(location, forecast_date, horizon, fig_order)
     ) |>
     dplyr::mutate(
       rel_crps = ww / hosp
+    ) |>
+    dplyr::mutate(
+      horizon = forcats::fct_reorder(horizon, fig_order)
     )
 
 
@@ -642,21 +678,20 @@ make_fig3_rel_crps_by_location <- function(scores) {
 #'
 #' @param scores A tibble of scores by location, forecast date, date and model,
 #' the ouput of `scoringutils::score()` on samples.
+#' #' @param horizons_to_show A vector of strings indicating the names of the
+#' `horizon` that we want to show on the plot, must be a subset of
+#' `nowcast`, `1 wk`, `2 wks`,`3 wks`, `4 wks` and `overall`
 #'
 #' @return A ggplot object containing plots of the distribution of relative
 #' CRPS scores across location and forecast dates
 #' @export
-make_fig3_rel_crps_overall <- function(scores) {
+make_fig3_rel_crps_overall <- function(scores,
+                                       horizons_to_show = c(
+                                         "nowcast",
+                                         "1 wk", "4 wks",
+                                         "overall"
+                                       )) {
   scores_by_horizon <- scores |>
-    dplyr::mutate(
-      horizon = dplyr::case_when(
-        date <= forecast_date ~ "nowcast",
-        date > forecast_date & date <= forecast_date +
-          lubridate::days(7) ~ "1 wk",
-        date > forecast_date + lubridate::days(21) &
-          date <= forecast_date + lubridate::days(28) ~ "4 wks"
-      )
-    ) |>
     data.table::as.data.table() |>
     scoringutils::summarise_scores(by = c(
       "forecast_date", "location",
@@ -671,18 +706,34 @@ make_fig3_rel_crps_overall <- function(scores) {
     )) |>
     dplyr::mutate(horizon = "overall")
 
-  scores_comb <- dplyr::bind_rows(scores_by_horizon, scores_overall)
+  scores_comb <- dplyr::bind_rows(scores_by_horizon, scores_overall) |>
+    dplyr::filter(
+      horizon %in% horizons_to_show
+    ) |>
+    dplyr::mutate(
+      fig_order = dplyr::case_when(
+        horizon == "nowcast" ~ 1,
+        horizon == "1 wk" ~ 2,
+        horizon == "2 wks" ~ 3,
+        horizon == "3 wks" ~ 4,
+        horizon == "4 wks" ~ 5,
+        horizon == "overall" ~ 6
+      )
+    )
 
   relative_crps <- scores_comb |>
-    dplyr::select(location, forecast_date, model, horizon, crps) |>
+    dplyr::select(location, forecast_date, model, horizon, fig_order, crps) |>
     dplyr::filter(!is.na(horizon)) |>
     tidyr::pivot_wider(
       names_from = model,
       values_from = crps,
-      id_cols = c(location, forecast_date, horizon)
+      id_cols = c(location, forecast_date, fig_order, horizon)
     ) |>
     dplyr::mutate(
       rel_crps = ww / hosp
+    ) |>
+    dplyr::mutate(
+      horizon = forcats::fct_reorder(horizon, fig_order)
     )
 
 
@@ -744,16 +795,14 @@ make_qq_plot_overall <- function(scores_quantiles) {
 make_plot_coverage_range <- function(scores_quantiles, ranges) {
   scores_by_horizon <- scores_quantiles |>
     dplyr::mutate(
-      horizon = dplyr::case_when(
-        date <= forecast_date ~ -1,
-        date > forecast_date & date <= forecast_date +
-          lubridate::days(7) ~ 1,
-        date > forecast_date + lubridate::days(7) &
-          date <= forecast_date + lubridate::days(14) ~ 2,
-        date > forecast_date + lubridate::days(14) &
-          date <= forecast_date + lubridate::days(21) ~ 3,
-        date > forecast_date + lubridate::days(21) &
-          date <= forecast_date + lubridate::days(28) ~ 4
+      horizon_weeks = dplyr::case_when(
+        horizon_days <= -7 ~ -2,
+        horizon_days > -7 & horizon_days <= 0 ~ -1,
+        horizon_days > 0 & horizon_days <= 6 ~ 1,
+        horizon_days > 6 & horizon_days <= 13 ~ 2,
+        horizon_days > 13 & horizon_days <= 21 ~ 3,
+        horizon_days > 21 ~ 4,
+        TRUE ~ NA
       )
     )
 

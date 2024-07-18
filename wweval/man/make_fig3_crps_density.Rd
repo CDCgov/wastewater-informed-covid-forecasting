@@ -4,11 +4,18 @@
 \alias{make_fig3_crps_density}
 \title{Make a CRPS density plot for a subset of locations}
 \usage{
-make_fig3_crps_density(scores)
+make_fig3_crps_density(
+  scores,
+  horizons_to_show = c("nowcast", "1 wk", "4 wks", "overall")
+)
 }
 \arguments{
 \item{scores}{A tibble of scores by location, forecast date, date and model,
 the ouput of \code{scoringutils::score()} on samples.}
+
+\item{horizons_to_show}{A vector of strings indicating the names of the
+\code{horizon} that we want to show on the plot, must be a subset of
+\code{nowcast}, \verb{1 wk}, \verb{2 wks},\verb{3 wks}, \verb{4 wks} and \code{overall}}
 }
 \value{
 a ggplot object that is a vertical facet of violin plots colored
