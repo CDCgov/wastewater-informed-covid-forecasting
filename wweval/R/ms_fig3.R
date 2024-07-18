@@ -1,27 +1,31 @@
-#' Make a CRPS density plot for a subset of locations
+#' Make head to head CRPS distribution comparison plot for a single location
 #'
 #' @param scores A tibble of scores by location, forecast date, date and model,
 #' the ouput of `scoringutils::score()` on samples.
+#' @param loc_to_plot A  string indicating the state abbreviations of the state
+#' to plot
 #' @param horizons_to_show A vector of strings indicating the names of the
 #' `horizon` that we want to show on the plot, must be a subset of
 #' `nowcast`, `1 wk`, `2 wks`,`3 wks`, `4 wks` and `overall`
 #'
-#' @return a ggplot object that is a vertical facet of violin plots colored
-#' by model type and broken down my horizon
-#' @export
-make_fig3_crps_density <- function(scores,
-                                   horizons_to_show = c(
-                                     "nowcast",
-                                     "1 wk", "4 wks",
-                                     "overall"
-                                   )) {
+#' @return a ggplot object containing violin plots comparing the distribution
+#' of crps scores across forecast dates for a single location, grouped by
+#' horizon and colored by model
+make_fig3_single_loc_comp <- function(scores,
+                                      loc_to_plot,
+                                      horizons_to_show = c(
+                                        "nowcast",
+                                        "1 wk", "4 wks",
+                                        "overall"
+                                      )) {
   scores_by_horizon <- scores |>
+    dplyr::filter(location == loc_to_plot) |>
     data.table::as.data.table() |>
     scoringutils::summarise_scores(by = c(
       "forecast_date", "location",
       "model", "horizon"
-    ))
-
+    )) |>
+    dplyr::filter(horizon %in% horizons_to_show)
   scores_overall <- scores |>
     data.table::as.data.table() |>
     scoringutils::summarise_scores(by = c(
@@ -43,35 +47,23 @@ make_fig3_crps_density <- function(scores,
         horizon == "4 wks" ~ 5,
         horizon == "overall" ~ 6
       )
-    )
-
-  relative_crps <- scores_comb |>
-    dplyr::select(
-      location, forecast_date, model, horizon,
-      fig_order, crps
-    ) |>
-    dplyr::filter(!is.na(horizon)) |>
-    tidyr::pivot_wider(
-      names_from = model,
-      values_from = crps,
-      id_cols = c(location, forecast_date, horizon, fig_order)
-    ) |>
-    dplyr::mutate(
-      rel_crps = ww / hosp
     ) |>
     dplyr::mutate(
       horizon = forcats::fct_reorder(horizon, fig_order)
     )
 
-  p <- ggplot(
-    relative_crps,
-    aes(
-      x = as.factor(forecast_date), y = rel_crps, color = horizon,
-      fill = horizon
-    )
-  ) +
+  p <- ggplot(scores_comb, aes(
+    x = horizon, y = crps, fill = model
+  )) +
     geom_violin(alpha = 0.3) +
-    geom_hline(aes(yintercept = 1), linetype = "dashed") +
+    xlab("") +
+    ylab("CRPS scores") +
+    ggtitle(glue::glue(
+      "{loc_to_plot}"
+    )) +
+    theme_bw() +
+    scale_color_discrete() +
+    scale_fill_discrete() +
     theme_bw() +
     theme(
       axis.text.x = element_text(
@@ -79,174 +71,126 @@ make_fig3_crps_density <- function(scores,
         hjust = 1, angle = 45
       ),
       axis.title.x = element_text(size = 12),
-      axis.title.y = element_text(size = 10),
+      axis.title.y = element_text(size = 12),
       plot.title = element_text(
         size = 10,
         vjust = 0.5, hjust = 0.5
       )
-    ) +
-    ggtitle("CRPS across forecast dates") +
-    xlab("") +
-    ylab("Relative CRPS, lower is better") +
-    scale_y_continuous(trans = "log")
+    )
 
   return(p)
 }
 
-#' Make a figure of the percent of locations with a better forecast with ww
-#' over time
+#' Make hospital forecast comparison figure
 #'
-#' @param scores A tibble of scores by location, forecast date, date and model,
-#' the ouput of `scoringutils::score()` on samples.
-#' @param eval_hosp_data The retrospective hospital admissions data for each
-#' state and for all dates, used to generate national hospital admissions
+#' @param hosp_quantiles A tibble containing the calibrated hospital admissions
+#' data, the evaluation hospital admissions data, and the quantiles of the
+#' calibrated and forecasted admissions
+#' @param loc_to_plot A  string indicating the state abbreviations of the state
+#' to plot
+#' @param horizon_to_plot A string indicating what horizon period to plot,
+#' one of `nowcast`, `1 wk`, or `4 wks`
 #' @param days_to_show_prev_data An ingeger indicating how many days before the
 #' last forecast date to show the data, default is `14`
 #'
-#' @return a ggplot object containing a stacked bar chart of the percent of
-#' states with imprved forecasts from wastewater by forecast date alongside
-#' daily national hospital admissions
+#' @return A ggplot object containing a plot of the retrospective hospital
+#' admissions data compared to the nowcasted/forecasted quantiles and median
+#' for the specified horizon to plot, colored by the model type
 #' @export
-make_fig3_pct_better_w_ww <- function(scores,
-                                      eval_hosp_data,
-                                      days_to_show_prev_data = 14) {
-  pct_better_w_ww <- scores |>
-    data.table::as.data.table() |>
-    scoringutils::summarise_scores(by = c(
-      "forecast_date", "location",
-      "model"
-    )) |>
-    tibble::as_tibble() |>
+make_fig3_forecast_comp_fig <- function(hosp_quantiles,
+                                        loc_to_plot,
+                                        horizon_to_plot,
+                                        days_to_show_prev_data = 14) {
+  hosp_quants_horizons <- hosp_quantiles |>
+    dplyr::filter(location == loc_to_plot) |>
+    dplyr::filter(date >=
+      min(forecast_date) - lubridate::days(
+        days_to_show_prev_data
+      ))
+
+  hosp <- hosp_quants_horizons |>
+    dplyr::filter(horizon == horizon_to_plot) |>
+    dplyr::filter(quantile %in% c(0.025, 0.25, 0.5, 0.75, 0.975)) |>
     tidyr::pivot_wider(
       id_cols = c(
-        forecast_date, location
+        forecast_date, model_type,
+        date, t, eval_data
       ),
-      names_from = model,
-      values_from = crps
-    ) |>
-    dplyr::mutate(
-      better_w_ww = ifelse(ww < hosp, 1, 0)
-    ) |>
-    dplyr::group_by(forecast_date) |>
-    dplyr::summarise(
-      pct_better_w_ww = 100 * mean(better_w_ww),
-      pct_better_w_hosp = 100 - pct_better_w_ww
-    ) |>
-    tidyr::pivot_longer(!forecast_date)
-
-  total_hosp <- eval_hosp_data |>
-    dplyr::filter(date >=
-      min(pct_better_w_ww$forecast_date) - lubridate::days(
-        days_to_show_prev_data
-      )) |>
-    distinct(location, daily_hosp_admits, date) |>
-    dplyr::group_by(date) |>
-    dplyr::summarise(
-      total_hosp = sum(daily_hosp_admits)
+      names_from = quantile,
+      values_from = value
     )
-  max_total_hosp <- max(total_hosp$total_hosp)
 
-  p <- ggplot() +
-    geom_bar(
-      data = pct_better_w_ww,
-      aes(x = forecast_date, y = value, fill = name),
-      stat = "identity", position = "stack"
-    ) +
+  p <- ggplot(hosp) +
     geom_point(
-      data = total_hosp,
-      aes(x = date, y = 100 * total_hosp / max(total_hosp))
+      data = hosp_quants_horizons,
+      aes(x = date, y = eval_data),
+      fill = "black", size = 1, shape = 21,
+      show.legend = FALSE
     ) +
-    theme_bw() +
-    theme(
-      axis.text.x = element_text(
-        size = 8, vjust = 1,
-        hjust = 1, angle = 45
+    geom_line(
+      data = hosp |> dplyr::filter(model_type == "ww"),
+      aes(
+        x = date, y = `0.5`, group = forecast_date
       ),
-      axis.title.x = element_text(size = 12),
-      axis.title.y = element_text(size = 10),
-      plot.title = element_text(
-        size = 10,
-        vjust = 0.5, hjust = 0.5
-      )
+      color = "cornflowerblue"
+    ) +
+    geom_ribbon(
+      data = hosp |> dplyr::filter(model_type == "ww"),
+      aes(
+        x = date, ymin = `0.025`, ymax = `0.975`,
+        group = as.character(forecast_date)
+      ), alpha = 0.1,
+      fill = "cornflowerblue",
+      show.legend = FALSE
+    ) +
+    geom_ribbon(
+      data = hosp |> dplyr::filter(model_type == "ww"),
+      aes(
+        x = date, ymin = `0.25`, ymax = `0.75`,
+        group = as.factor(forecast_date)
+      ),
+      alpha = 0.1,
+      fill = "cornflowerblue",
+      show.legend = FALSE
+    ) +
+    geom_line(
+      data = hosp |> dplyr::filter(model_type == "hosp"),
+      aes(
+        x = date, y = `0.5`, group = forecast_date
+      ),
+      color = "purple4"
+    ) +
+    geom_ribbon(
+      data = hosp |> dplyr::filter(model_type == "hosp"),
+      aes(
+        x = date, ymin = `0.025`, ymax = `0.975`,
+        group = as.character(forecast_date)
+      ), alpha = 0.1,
+      fill = "purple4",
+      show.legend = FALSE
+    ) +
+    geom_ribbon(
+      data = hosp |> dplyr::filter(model_type == "ww"),
+      aes(
+        x = date, ymin = `0.25`, ymax = `0.75`,
+        group = as.factor(forecast_date)
+      ),
+      fill = "purple4",
+      alpha = 0.1,
+      show.legend = FALSE
     ) +
     xlab("") +
-    scale_y_continuous(
-      "Percent better with wastewater",
-      sec.axis = sec_axis(~ . * max_total_hosp / 100, name = "National admissions")
-    )
-
-  return(p)
-}
-
-#' Make figure that stratifies scores by location across forecast dates
-#'
-#' @param scores A tibble of scores by location, forecast date, date and model,
-#' the ouput of `scoringutils::score()` on samples.
-#' @param horizons_to_show A vector of strings indicating the names of the
-#' `horizon` that we want to show on the plot, must be a subset of
-#' `nowcast`, `1 wk`, `2 wks`,`3 wks`, `4 wks` and `overall`
-#'
-#' @return A ggplot object containing plots of the distribution of relative
-#' CRPS scores by location, across forecast dates, colored by location
-#' @export
-make_fig3_rel_crps_by_location <- function(scores,
-                                           horizons_to_show = c(
-                                             "nowcast",
-                                             "1 wk", "4 wks",
-                                             "overall"
-                                           )) {
-  scores_by_horizon <- scores |>
-    data.table::as.data.table() |>
-    scoringutils::summarise_scores(by = c(
-      "forecast_date", "location",
-      "model", "horizon"
-    ))
-
-  scores_overall <- scores |>
-    data.table::as.data.table() |>
-    scoringutils::summarise_scores(by = c(
-      "forecast_date", "location",
-      "model"
-    )) |>
-    dplyr::mutate(horizon = "overall")
-
-  scores_comb <- dplyr::bind_rows(scores_by_horizon, scores_overall) |>
-    dplyr::filter(
-      horizon %in% horizons_to_show
-    ) |>
-    dplyr::mutate(
-      fig_order = dplyr::case_when(
-        horizon == "nowcast" ~ 1,
-        horizon == "1 wk" ~ 2,
-        horizon == "2 wks" ~ 3,
-        horizon == "3 wks" ~ 4,
-        horizon == "4 wks" ~ 5,
-        horizon == "overall" ~ 6
-      )
-    )
-
-  relative_crps <- scores_comb |>
-    dplyr::select(location, forecast_date, model, horizon, fig_order, crps) |>
-    dplyr::filter(!is.na(horizon)) |>
-    tidyr::pivot_wider(
-      names_from = model,
-      values_from = crps,
-      id_cols = c(location, forecast_date, horizon, fig_order)
-    ) |>
-    dplyr::mutate(
-      rel_crps = ww / hosp
-    ) |>
-    dplyr::mutate(
-      horizon = forcats::fct_reorder(horizon, fig_order)
-    )
-
-
-  p <- ggplot(relative_crps, aes(
-    x = rel_crps, y = location, color = horizon,
-    fill = horizon
-  )) +
-    geom_violin(alpha = 0.3) +
-    geom_vline(aes(xintercept = 1), linetype = "dashed") +
+    ylab("Daily hospital admissions") +
+    ggtitle(glue::glue(
+      "{horizon_to_plot}"
+    )) +
+    theme_bw() +
+    scale_color_discrete() +
+    scale_fill_discrete() +
+    scale_x_date(
+      date_breaks = "2 weeks",
+      labels = scales::date_format("%Y-%m-%d")
+    ) +
     theme_bw() +
     theme(
       axis.text.x = element_text(
@@ -254,89 +198,56 @@ make_fig3_rel_crps_by_location <- function(scores,
         hjust = 1, angle = 45
       ),
       axis.title.x = element_text(size = 12),
-      axis.title.y = element_text(size = 10),
+      axis.title.y = element_text(size = 12),
       plot.title = element_text(
         size = 10,
         vjust = 0.5, hjust = 0.5
       )
-    ) +
-    ggtitle("Distribution of CRPS by location, across forecast dates") +
-    ylab("") +
-    xlab("Relative CRPS, lower is better") +
-    scale_x_continuous(trans = "log")
+    )
 
   return(p)
 }
 
-#' Make figure that stratifies across location and forecast dates
+#' Make CRPS underlay figure
 #'
 #' @param scores A tibble of scores by location, forecast date, date and model,
 #' the ouput of `scoringutils::score()` on samples.
-#' @param horizons_to_show A vector of strings indicating the names of the
-#' `horizon` that we want to show on the plot, must be a subset of
-#' `nowcast`, `1 wk`, `2 wks`,`3 wks`, `4 wks` and `overall`
+#' @param loc_to_plot A  string indicating the state abbreviations of the state
+#' to plot
+#' @param horizon_to_plot A string indicating what horizon period to plot,
+#' one of `nowcast`, `1 wk`, or `4 wks`
 #'
-#' @return A ggplot object containing plots of the distribution of relative
-#' CRPS scores across location and forecast dates
+#' @return A ggplot object containing a bar chart of the crps score averaged
+#' across the horizon for each forecast date, colored by the model type
 #' @export
-make_fig3_rel_crps_overall <- function(scores,
-                                       horizons_to_show = c(
-                                         "nowcast",
-                                         "1 wk", "4 wks",
-                                         "overall"
-                                       )) {
+make_fig3_crps_underlay_fig <- function(scores,
+                                        loc_to_plot,
+                                        horizon_to_plot) {
   scores_by_horizon <- scores |>
+    dplyr::filter(location == loc_to_plot) |>
     data.table::as.data.table() |>
     scoringutils::summarise_scores(by = c(
       "forecast_date", "location",
       "model", "horizon"
-    ))
-
-  scores_overall <- scores |>
-    data.table::as.data.table() |>
-    scoringutils::summarise_scores(by = c(
-      "forecast_date", "location",
-      "model"
     )) |>
-    dplyr::mutate(horizon = "overall")
+    dplyr::filter(horizon == horizon_to_plot)
 
-  scores_comb <- dplyr::bind_rows(scores_by_horizon, scores_overall) |>
-    dplyr::filter(
-      horizon %in% horizons_to_show
-    ) |>
-    dplyr::mutate(
-      fig_order = dplyr::case_when(
-        horizon == "nowcast" ~ 1,
-        horizon == "1 wk" ~ 2,
-        horizon == "2 wks" ~ 3,
-        horizon == "3 wks" ~ 4,
-        horizon == "4 wks" ~ 5,
-        horizon == "overall" ~ 6
-      )
-    )
-
-  relative_crps <- scores_comb |>
-    dplyr::select(location, forecast_date, model, horizon, fig_order, crps) |>
-    dplyr::filter(!is.na(horizon)) |>
-    tidyr::pivot_wider(
-      names_from = model,
-      values_from = crps,
-      id_cols = c(location, forecast_date, fig_order, horizon)
-    ) |>
-    dplyr::mutate(
-      rel_crps = ww / hosp
-    ) |>
-    dplyr::mutate(
-      horizon = forcats::fct_reorder(horizon, fig_order)
-    )
-
-
-  p <- ggplot(relative_crps, aes(
-    x = rel_crps, y = horizon, color = horizon,
-    fill = horizon
-  )) +
-    geom_violin(alpha = 0.3) +
-    geom_vline(aes(xintercept = 1), linetype = "dashed") +
+  p <- ggplot(scores_by_horizon) +
+    geom_bar(aes(x = forecast_date, y = crps, fill = model),
+      stat = "identity", position = "dodge"
+    ) +
+    xlab("") +
+    ylab("CRPS scores") +
+    ggtitle(glue::glue(
+      "{horizon_to_plot}"
+    )) +
+    theme_bw() +
+    scale_color_discrete() +
+    scale_fill_discrete() +
+    scale_x_date(
+      date_breaks = "2 weeks",
+      labels = scales::date_format("%Y-%m-%d")
+    ) +
     theme_bw() +
     theme(
       axis.text.x = element_text(
@@ -344,85 +255,12 @@ make_fig3_rel_crps_overall <- function(scores,
         hjust = 1, angle = 45
       ),
       axis.title.x = element_text(size = 12),
-      axis.title.y = element_text(size = 10),
+      axis.title.y = element_text(size = 12),
       plot.title = element_text(
         size = 10,
         vjust = 0.5, hjust = 0.5
       )
-    ) +
-    ggtitle("Distribution of CRPS across location and forecast dates") +
-    ylab("") +
-    xlab("Relative CRPS, lower is better") +
-    scale_x_continuous(trans = "log")
-
-  return(p)
-}
-
-#' Make a qq plot
-#' @description
-#' Using [scoringutils::plot_interval_coverage()]
-#'
-#'
-#' @param scores_quantiles A tibble of scores by location, forecast date,
-#'  date and model, the ouput of `scoringutils::score()` on the quantiles.
-#'
-#' @return a ggplot object with the overall QQ plot colored by model.
-#' @export
-make_qq_plot_overall <- function(scores_quantiles) {
-  p <- scores_quantiles |>
-    data.table::as.data.table() |>
-    scoringutils::summarise_scores(by = c("model", "quantile")) |>
-    scoringutils::plot_quantile_coverage() +
-    ggtitle(glue::glue("QQ plot"))
-
-  return(p)
-}
-
-#' Plot coverage at specified ranges
-#'
-#' @param scores_quantiles A tibble of scores by location, forecast date,
-#' date and model, the ouput of `scoringutils::score()` on the quantiles.
-#'
-#' @param ranges A numeric vector of credible interval ranges to plot.
-#'
-#' @return A ggplot2 object
-#'
-make_plot_coverage_range <- function(scores_quantiles, ranges) {
-  scores_by_horizon <- scores_quantiles |>
-    dplyr::mutate(
-      horizon_weeks = dplyr::case_when(
-        horizon_days <= -7 ~ -2,
-        horizon_days > -7 & horizon_days <= 0 ~ -1,
-        horizon_days > 0 & horizon_days <= 6 ~ 1,
-        horizon_days > 6 & horizon_days <= 13 ~ 2,
-        horizon_days > 13 & horizon_days <= 21 ~ 3,
-        horizon_days > 21 ~ 4,
-        TRUE ~ NA
-      )
     )
 
-  coverage_summarized <- scores_by_horizon |>
-    dplyr::filter(quantile %in% c(ranges / 100)) |>
-    dplyr::group_by(horizon, model, quantile) |>
-    dplyr::summarise(pct_coverage = 100 * mean(coverage))
-
-
-  p <- ggplot(coverage_summarized) +
-    aes(
-      x = horizon, y = pct_coverage, color = model,
-      group = model
-    ) +
-    geom_line() +
-    geom_point() +
-    geom_hline(aes(yintercept = 100 * quantile), linetype = "dashed") +
-    # scale_y_continuous(labels = percent) +
-    facet_wrap(~quantile, scales = "free_y") +
-    # theme_scoringutils() +
-    labs(
-      y = "Proportion of data within forecast interval",
-      x = "Forecast horizon (weeks)",
-      col = "Model"
-    ) +
-    theme_bw()
   return(p)
 }
