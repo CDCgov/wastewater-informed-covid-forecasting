@@ -461,7 +461,7 @@ manuscript_figures <- list(
   ),
   tar_target(
     name = fig2_forecast_comparison_nowcast1,
-    command = make_hosp_forecast_comp_fig(
+    command = make_fig2_forecast_comp_fig(
       hosp_quantiles_filtered,
       loc_to_plot = "MA",
       horizon_to_plot = "nowcast"
@@ -469,7 +469,7 @@ manuscript_figures <- list(
   ),
   tar_target(
     name = fig2_forecast_comparison_1wk1,
-    command = make_hosp_forecast_comp_fig(
+    command = make_fig2_forecast_comp_fig(
       hosp_quantiles_filtered,
       loc_to_plot = "MA",
       horizon_to_plot = "1 wk"
@@ -477,7 +477,7 @@ manuscript_figures <- list(
   ),
   tar_target(
     name = fig2_forecast_comparison_4wks1,
-    command = make_hosp_forecast_comp_fig(
+    command = make_fig2_forecast_comp_fig(
       hosp_quantiles_filtered,
       loc_to_plot = "MA",
       horizon_to_plot = "4 wks"
@@ -485,7 +485,7 @@ manuscript_figures <- list(
   ),
   tar_target(
     name = fig2_crps_underlay_nowcast1,
-    command = make_crps_underlay_fig(
+    command = make_fig2_crps_underlay_fig(
       scores_filtered,
       loc_to_plot = "MA",
       horizon_to_plot = "nowcast"
@@ -493,7 +493,7 @@ manuscript_figures <- list(
   ),
   tar_target(
     name = fig2_crps_underlay_1wk1,
-    command = make_crps_underlay_fig(
+    command = make_fig2_crps_underlay_fig(
       scores_filtered,
       loc_to_plot = "MA",
       horizon_to_plot = "1 wk"
@@ -501,7 +501,7 @@ manuscript_figures <- list(
   ),
   tar_target(
     name = fig2_crps_underlay_4wks1,
-    command = make_crps_underlay_fig(
+    command = make_fig2_crps_underlay_fig(
       scores_filtered,
       loc_to_plot = "MA",
       horizon_to_plot = "4 wks"
