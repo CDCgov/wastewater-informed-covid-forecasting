@@ -302,6 +302,10 @@ head_to_head_targets <- list(
   # forecast dates with sufficient wastewater for both ww model and hosp only
   # model. Then join the convergence df
   tar_target(
+    name = last_hosp_data_date_map,
+    command = get_last_hosp_data_date_map(all_hosp_model_quantiles)
+  ),
+  tar_target(
     name = hosp_quantiles_filtered,
     command = dplyr::bind_rows(
       all_ww_hosp_quantiles,
@@ -321,12 +325,17 @@ head_to_head_targets <- list(
         )
       ) |>
       dplyr::left_join(
+        last_hosp_data_date_map,
+        by = c("location", "forecast_date")
+      ) |>
+      dplyr::left_join(
         epidemic_phases,
         by = c(
           "location" = "state_abbr",
           "date" = "reference_date"
         )
-      )
+      ) |>
+      add_horizons()
   ),
   # Do the same thing for the sampled scores, combining ww and hosp under
   # the status quo scenario, filtering to the locations and forecast dates
@@ -350,12 +359,17 @@ head_to_head_targets <- list(
         )
       ) |>
       dplyr::left_join(
+        last_hosp_data_date_map,
+        by = c("location", "forecast_date")
+      ) |>
+      dplyr::left_join(
         epidemic_phases,
         by = c(
           "location" = "state_abbr",
           "date" = "reference_date"
         )
-      )
+      ) |>
+      add_horizons()
   ),
   # Repeat for the quantile-based scores
   tar_target(
@@ -377,12 +391,17 @@ head_to_head_targets <- list(
         )
       ) |>
       dplyr::left_join(
+        last_hosp_data_date_map,
+        by = c("location", "forecast_date")
+      ) |>
+      dplyr::left_join(
         epidemic_phases,
         by = c(
           "location" = "state_abbr",
           "date" = "reference_date"
         )
-      )
+      ) |>
+      add_horizons()
   )
 )
 
@@ -391,7 +410,6 @@ head_to_head_targets <- list(
 # ggarranged, properly formatted figures, and currently require
 # specification for the figure components that are examples.
 manuscript_figures <- list(
-  ## Fig 2-------------------------------------------------------------
   tar_target(
     name = fig2_hosp_t_1,
     command = make_fig2_hosp_t(
@@ -488,6 +506,7 @@ manuscript_figures <- list(
       horizon_to_plot = "4 wks"
     )
   ),
+
   ## Fig3------------------------------------------------
   tar_target(
     name = fig3_rel_crps_over_time,

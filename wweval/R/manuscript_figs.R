@@ -228,7 +228,7 @@ make_fig2_ct <- function(ww_quantiles,
 #' @param loc_to_plot A  string indicating the state abbreviations of the state
 #' to plot
 #' @param horizon_to_plot A string indicating what horizon period to plot,
-#' either `nowcast`, `1 wk`, or `4 wks`
+#' one of `nowcast`, `1 wk`, or `4 wks`
 #' @param days_to_show_prev_data An ingeger indicating how many days before the
 #' last forecast date to show the data, default is `14`
 #'
@@ -245,16 +245,7 @@ make_hosp_forecast_comp_fig <- function(hosp_quantiles,
     dplyr::filter(date >=
       min(forecast_date) - lubridate::days(
         days_to_show_prev_data
-      )) |>
-    dplyr::mutate(
-      horizon = dplyr::case_when(
-        date <= forecast_date & period != "calibration" ~ "nowcast",
-        date > forecast_date & date <= forecast_date +
-          lubridate::days(7) ~ "1 wk",
-        date > forecast_date + lubridate::days(21) &
-          date <= forecast_date + lubridate::days(28) ~ "4 wks"
-      )
-    )
+      ))
 
   hosp <- hosp_quants_horizons |>
     dplyr::filter(horizon == horizon_to_plot) |>
@@ -363,7 +354,7 @@ make_hosp_forecast_comp_fig <- function(hosp_quantiles,
 #' @param loc_to_plot A  string indicating the state abbreviations of the state
 #' to plot
 #' @param horizon_to_plot A string indicating what horizon period to plot,
-#' either `nowcast`, `1 wk`, or `4 wks`
+#' one of `nowcast`, `1 wk`, or `4 wks`
 #'
 #' @return A ggplot object containing a bar chart of the crps score averaged
 #' across the horizon for each forecast date, colored by the model type
@@ -373,15 +364,6 @@ make_crps_underlay_fig <- function(scores,
                                    horizon_to_plot) {
   scores_by_horizon <- scores |>
     dplyr::filter(location == loc_to_plot) |>
-    dplyr::mutate(
-      horizon = dplyr::case_when(
-        date <= forecast_date ~ "nowcast",
-        date > forecast_date & date <= forecast_date +
-          lubridate::days(7) ~ "1 wk",
-        date > forecast_date + lubridate::days(21) &
-          date <= forecast_date + lubridate::days(28) ~ "4 wks"
-      )
-    ) |>
     data.table::as.data.table() |>
     scoringutils::summarise_scores(by = c(
       "forecast_date", "location",
@@ -421,6 +403,7 @@ make_crps_underlay_fig <- function(scores,
 
   return(p)
 }
+
 
 
 #' Make a CRPS density plot for a subset of locations
