@@ -562,6 +562,7 @@ manuscript_figures <- list(
       c(30, 50, 90)
     )
   )
+  ## Fig 5---------------------------------------------------------------
 )
 
 
@@ -964,8 +965,8 @@ list(
   upstream_targets,
   combined_targets,
   head_to_head_targets,
-  manuscript_figures
+  manuscript_figures,
   # scenario_targets,
-  # hub_targets,
-  # hub_comparison_plots
+  hub_targets,
+  hub_comparison_plots
 )
