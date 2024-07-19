@@ -426,3 +426,82 @@ make_plot_coverage_range <- function(scores_quantiles, ranges) {
     theme_bw()
   return(p)
 }
+
+#' Make figure that stratifies scores by epidemic phase across
+#'
+#' @param scores A tibble of scores by location, forecast date, date and model,
+#' the ouput of `scoringutils::score()` on samples.
+#' @param horizons_to_show A vector of strings indicating the names of the
+#' `horizon` that we want to show on the plot, must be a subset of
+#' `nowcast`, `1 wk`, `2 wks`,`3 wks`, `4 wks` and `overall`
+#'
+#' @return A ggplot object containing plots of the distribution of relative
+#' CRPS scores, colored by horizon, stratified by epidemic phase, across
+#' locations and forecast dates
+#' @export
+make_fig4_rel_crps_by_phase <- function(scores,
+                                        horizons_to_show = c(
+                                          "nowcast",
+                                          "1 wk", "4 wks",
+                                          "overall"
+                                        )) {
+  scores_w_fig_order <- scores |>
+    dplyr::mutate(
+      fig_order = dplyr::case_when(
+        horizon == "nowcast" ~ 1,
+        horizon == "1 wk" ~ 2,
+        horizon == "2 wks" ~ 3,
+        horizon == "3 wks" ~ 4,
+        horizon == "4 wks" ~ 5,
+        horizon == "overall" ~ 6
+      )
+    )
+
+  relative_crps <- scores_w_fig_order |>
+    dplyr::select(
+      location, date, forecast_date, model, horizon,
+      fig_order, phase, crps
+    ) |>
+    dplyr::filter(!is.na(horizon)) |>
+    tidyr::pivot_wider(
+      names_from = model,
+      values_from = crps,
+      id_cols = c(location, date, forecast_date, fig_order, horizon, phase)
+    ) |>
+    dplyr::mutate(
+      rel_crps = ww / hosp
+    ) |>
+    dplyr::mutate(
+      horizon = forcats::fct_reorder(horizon, fig_order)
+    ) |>
+    dplyr::filter(horizon %in% horizons_to_show)
+
+  p <- ggplot(
+    relative_crps,
+    aes(
+      x = as.factor(phase), y = rel_crps, color = horizon,
+      fill = horizon
+    )
+  ) +
+    geom_violin(alpha = 0.3) +
+    geom_hline(aes(yintercept = 1), linetype = "dashed") +
+    theme_bw() +
+    theme(
+      axis.text.x = element_text(
+        size = 8, vjust = 1,
+        hjust = 1, angle = 45
+      ),
+      axis.title.x = element_text(size = 12),
+      axis.title.y = element_text(size = 10),
+      plot.title = element_text(
+        size = 10,
+        vjust = 0.5, hjust = 0.5
+      )
+    ) +
+    ggtitle("CRPS across forecast dates") +
+    xlab("Epidemic phase") +
+    ylab("Relative CRPS, lower is better") +
+    scale_y_continuous(trans = "log")
+
+  return(p)
+}
