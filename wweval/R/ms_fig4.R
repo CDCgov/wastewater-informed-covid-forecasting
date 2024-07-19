@@ -457,6 +457,15 @@ make_fig4_rel_crps_by_phase <- function(scores,
       )
     )
 
+  # Quick warning if there are NAs in epidemic phases
+  missing_phases <- scores |>
+    dplyr::filter(is.na(phase))
+
+  if (nrow(missing_phases) > 0) {
+    warning("There are dates missing epidemic phases")
+  }
+
+
   relative_crps <- scores_w_fig_order |>
     dplyr::select(
       location, date, forecast_date, model, horizon,
@@ -474,7 +483,10 @@ make_fig4_rel_crps_by_phase <- function(scores,
     dplyr::mutate(
       horizon = forcats::fct_reorder(horizon, fig_order)
     ) |>
-    dplyr::filter(horizon %in% horizons_to_show)
+    dplyr::filter(
+      horizon %in% horizons_to_show,
+      !is.na(phase)
+    ) # Exclude NAs in plot
 
   p <- ggplot(
     relative_crps,

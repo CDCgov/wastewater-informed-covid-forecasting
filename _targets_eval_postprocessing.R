@@ -532,6 +532,12 @@ manuscript_figures <- list(
     )
   ),
   tar_target(
+    name = fig4_rel_crps_by_phase,
+    command = make_fig4_rel_crps_by_phase(
+      scores_filtered
+    )
+  ),
+  tar_target(
     name = fig4_rel_crps_by_location,
     command = make_fig4_rel_crps_by_location(
       scores_filtered
@@ -958,8 +964,8 @@ list(
   upstream_targets,
   combined_targets,
   head_to_head_targets,
-  manuscript_figures,
-  scenario_targets,
-  hub_targets,
-  hub_comparison_plots
+  manuscript_figures
+  # scenario_targets,
+  # hub_targets,
+  # hub_comparison_plots
 )
