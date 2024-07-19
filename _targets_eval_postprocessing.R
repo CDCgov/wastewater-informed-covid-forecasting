@@ -562,7 +562,6 @@ manuscript_figures <- list(
       c(30, 50, 90)
     )
   )
-  ## Fig 5---------------------------------------------------------------
 )
 
 
@@ -894,18 +893,19 @@ hub_targets <- list(
   )
 )
 ## Hub comparison plots ------------------------------------------------------
+## Fig 5-------------------------------------------------------------------
 hub_comparison_plots <- list(
   tar_target(
-    name = plot_wis_over_time,
-    command = get_plot_wis_over_time(
+    name = fig5_plot_wis_over_time,
+    command = make_fig5_average_wis(
       all_scores = combine_scores_oct_mar,
       cfa_real_time_scores = cfa_real_time_scores,
       figure_file_path = eval_config$figure_dir
     )
   ),
   tar_target(
-    name = plot_overall_performance,
-    command = get_plot_hub_performance(
+    name = fig5_overall_performance,
+    command = make_fig5_hub_performance(
       all_scores = combine_scores_oct_mar,
       cfa_real_time_scores = cfa_real_time_scores,
       all_time_period = "Oct 2023-Mar 2024",
