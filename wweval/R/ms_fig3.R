@@ -109,7 +109,7 @@ make_fig3_forecast_comp_fig <- function(hosp_quantiles,
       ))
 
   hosp <- hosp_quants_horizons |>
-    dplyr::filter(horizon == horizon_to_plot) |>
+    dplyr::filter(horizon == !!horizon_to_plot) |>
     dplyr::filter(quantile %in% c(0.025, 0.25, 0.5, 0.75, 0.975)) |>
     tidyr::pivot_wider(
       id_cols = c(
