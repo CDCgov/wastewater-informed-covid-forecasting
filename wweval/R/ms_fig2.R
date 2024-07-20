@@ -24,8 +24,8 @@ make_fig2_hosp_t <- function(hosp_quantiles,
                              n_forecast_days = 28,
                              n_calib_days = 90) {
   hosp <- hosp_quantiles |>
-    dplyr::filter(location %in% c(loc_to_plot)) |>
-    dplyr::filter(forecast_date == date_to_plot) |>
+    dplyr::filter(location %in% c(!!loc_to_plot)) |>
+    dplyr::filter(forecast_date == !!date_to_plot) |>
     dplyr::filter(
       date <= forecast_date + lubridate::days(n_forecast_days),
       date >= forecast_date - lubridate::days(n_calib_days)
@@ -135,8 +135,8 @@ make_fig2_ct <- function(ww_quantiles,
                          n_calib_days = 90,
                          max_n_site_labs_to_show = 3) {
   ww <- ww_quantiles |>
-    dplyr::filter(location == loc_to_plot) |>
-    dplyr::filter(forecast_date == date_to_plot) |>
+    dplyr::filter(location == !!loc_to_plot) |>
+    dplyr::filter(forecast_date == !!date_to_plot) |>
     dplyr::filter(
       date <= forecast_date + lubridate::days(n_forecast_days),
       date >= forecast_date - lubridate::days(n_calib_days)
