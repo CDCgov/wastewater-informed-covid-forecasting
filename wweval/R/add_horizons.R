@@ -39,8 +39,8 @@ add_horizons <- function(df) {
 #'
 #' @param df A tibble containing the following columns: `forecast_date`,
 #' `location`,`date`, `calib_data`.
-#' `calib_data` should be `NA` for any dates for which there was 
-#'  not hospital admissions data to fit to. 
+#' `calib_data` should be `NA` for any dates for which there was
+#'  not hospital admissions data to fit to.
 #'
 #' @return A tibble with that maps the unique combinations of `location` and
 #' `forecast` date to the last hospital admissions data date
