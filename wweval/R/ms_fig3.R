@@ -36,7 +36,7 @@ make_fig3_single_loc_comp <- function(scores,
 
   scores_comb <- dplyr::bind_rows(scores_by_horizon, scores_overall) |>
     dplyr::filter(
-      horizon %in% horizons_to_show
+      horizon %in% !!horizons_to_show
     ) |>
     dplyr::mutate(
       fig_order = dplyr::case_when(
