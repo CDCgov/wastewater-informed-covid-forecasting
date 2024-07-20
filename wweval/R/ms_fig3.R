@@ -105,7 +105,7 @@ make_fig3_forecast_comp_fig <- function(hosp_quantiles,
     dplyr::filter(location == !!loc_to_plot) |>
     dplyr::filter(date >=
       min(forecast_date) - lubridate::days(
-        days_to_show_prev_data
+        !!days_to_show_prev_data
       ))
 
   hosp <- hosp_quants_horizons |>
