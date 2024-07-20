@@ -402,7 +402,7 @@ make_plot_coverage_range <- function(scores_quantiles, ranges) {
     )
 
   coverage_summarized <- scores_by_horizon |>
-    dplyr::filter(quantile %in% c(ranges / 100)) |>
+    dplyr::filter(quantile %in% c(!!ranges / 100)) |>
     dplyr::group_by(horizon, model, quantile) |>
     dplyr::summarise(pct_coverage = 100 * mean(coverage))
 
