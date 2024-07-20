@@ -137,7 +137,7 @@ make_fig4_pct_better_w_ww <- function(scores,
   total_hosp <- eval_hosp_data |>
     dplyr::filter(date >=
       min(pct_better_w_ww$forecast_date) - lubridate::days(
-        days_to_show_prev_data
+        !!days_to_show_prev_data
       )) |>
     distinct(location, daily_hosp_admits, date) |>
     dplyr::group_by(date) |>
