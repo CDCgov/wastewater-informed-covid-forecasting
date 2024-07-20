@@ -38,19 +38,7 @@ make_fig3_single_loc_comp <- function(scores,
     dplyr::filter(
       horizon %in% !!horizons_to_show
     ) |>
-    dplyr::mutate(
-      fig_order = dplyr::case_when(
-        horizon == "nowcast" ~ 1,
-        horizon == "1 wk" ~ 2,
-        horizon == "2 wks" ~ 3,
-        horizon == "3 wks" ~ 4,
-        horizon == "4 wks" ~ 5,
-        horizon == "overall" ~ 6
-      )
-    ) |>
-    dplyr::mutate(
-      horizon = forcats::fct_reorder(horizon, fig_order)
-    )
+    order_horizons()
 
   p <- ggplot(scores_comb, aes(
     x = horizon, y = crps, fill = model

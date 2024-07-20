@@ -34,16 +34,7 @@ make_fig4_crps_density <- function(scores,
     dplyr::filter(
       horizon %in% !!horizons_to_show
     ) |>
-    dplyr::mutate(
-      fig_order = dplyr::case_when(
-        horizon == "nowcast" ~ 1,
-        horizon == "1 wk" ~ 2,
-        horizon == "2 wks" ~ 3,
-        horizon == "3 wks" ~ 4,
-        horizon == "4 wks" ~ 5,
-        horizon == "overall" ~ 6
-      )
-    )
+    order_horizons()
 
   relative_crps <- scores_comb |>
     dplyr::select(
@@ -214,16 +205,7 @@ make_fig4_rel_crps_by_location <- function(scores,
     dplyr::filter(
       horizon %in% !!horizons_to_show
     ) |>
-    dplyr::mutate(
-      fig_order = dplyr::case_when(
-        horizon == "nowcast" ~ 1,
-        horizon == "1 wk" ~ 2,
-        horizon == "2 wks" ~ 3,
-        horizon == "3 wks" ~ 4,
-        horizon == "4 wks" ~ 5,
-        horizon == "overall" ~ 6
-      )
-    )
+    order_horizons()
 
   relative_crps <- scores_comb |>
     dplyr::select(location, forecast_date, model, horizon, fig_order, crps) |>
@@ -304,16 +286,7 @@ make_fig4_rel_crps_overall <- function(scores,
     dplyr::filter(
       horizon %in% !!horizons_to_show
     ) |>
-    dplyr::mutate(
-      fig_order = dplyr::case_when(
-        horizon == "nowcast" ~ 1,
-        horizon == "1 wk" ~ 2,
-        horizon == "2 wks" ~ 3,
-        horizon == "3 wks" ~ 4,
-        horizon == "4 wks" ~ 5,
-        horizon == "overall" ~ 6
-      )
-    )
+    order_horizons()
 
   relative_crps <- scores_comb |>
     dplyr::select(location, forecast_date, model, horizon, fig_order, crps) |>
@@ -444,16 +417,7 @@ make_fig4_rel_crps_by_phase <- function(scores,
                                           "overall"
                                         )) {
   scores_w_fig_order <- scores |>
-    dplyr::mutate(
-      fig_order = dplyr::case_when(
-        horizon == "nowcast" ~ 1,
-        horizon == "1 wk" ~ 2,
-        horizon == "2 wks" ~ 3,
-        horizon == "3 wks" ~ 4,
-        horizon == "4 wks" ~ 5,
-        horizon == "overall" ~ 6
-      )
-    )
+    order_phases()
 
   # Quick warning if there are NAs in epidemic phases
   missing_phases <- scores |>
@@ -482,7 +446,7 @@ make_fig4_rel_crps_by_phase <- function(scores,
       horizon = forcats::fct_reorder(horizon, fig_order)
     ) |>
     dplyr::filter(
-      horizon %in% horizons_to_show,
+      horizon %in% !!horizons_to_show,
       !is.na(phase)
     ) # Exclude NAs in plot
 

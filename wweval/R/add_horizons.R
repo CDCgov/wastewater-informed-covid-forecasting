@@ -57,3 +57,30 @@ get_last_hosp_data_date_map <- function(df) {
 
   return(map)
 }
+
+#' Get the order of the categorical horizons for plotting
+#'
+#' @param df a dataframe containing the column name `horizon` which will
+#' contain character strings indicating the horizon (by week, nowcast period,
+#' or overall) of the score/quantile/sample.
+#'
+#' @return a dataframe containing the same columns as `df` but with the
+#' addition of `fig_order` and reordered in terms of `fig_order` for plotting.
+#' @export
+order_horizons <- function(df) {
+  df_w_order <- df |>
+    dplyr::mutate(
+      fig_order = dplyr::case_when(
+        horizon == "nowcast" ~ 1,
+        horizon == "1 wk" ~ 2,
+        horizon == "2 wks" ~ 3,
+        horizon == "3 wks" ~ 4,
+        horizon == "4 wks" ~ 5,
+        horizon == "overall" ~ 6
+      )
+    ) |>
+    dplyr::mutate(
+      horizon = forcats::fct_reorder(horizon, fig_order)
+    )
+  return(df_w_order)
+}
