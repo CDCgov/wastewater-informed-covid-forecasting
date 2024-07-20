@@ -230,7 +230,7 @@ make_fig3_crps_underlay_fig <- function(scores,
       "forecast_date", "location",
       "model", "horizon"
     )) |>
-    dplyr::filter(horizon == horizon_to_plot)
+    dplyr::filter(horizon == !!horizon_to_plot)
 
   p <- ggplot(scores_by_horizon) +
     geom_bar(aes(x = forecast_date, y = crps, fill = model),
