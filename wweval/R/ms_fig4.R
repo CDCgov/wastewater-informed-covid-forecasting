@@ -409,19 +409,12 @@ make_plot_coverage_range <- function(scores_quantiles, ranges) {
 #' @param scores A tibble of scores by location, forecast date, date and model,
 #' containing the outputs of `scoringutils::score()` on samples plus metadata
 #' transformed into a tibble.
-#' @param horizons_to_show A vector of strings indicating the names of the
-#' `horizon` that we want to show on the plot, must be a subset of
-#' `nowcast`, `1 wk`, `2 wks`,`3 wks`, `4 wks` and `overall`
 #'
 #' @return A ggplot object containing plots of the distribution of relative
 #' CRPS scores, colored by horizon, stratified by epidemic phase, across
 #' locations and forecast dates
 #' @export
-make_fig4_rel_crps_by_phase <- function(scores,
-                                        horizons_to_show = c(
-                                          "nowcast",
-                                          "1 wk", "4 wks"
-                                        )) {
+make_fig4_rel_crps_by_phase <- function(scores) {
   scores_w_fig_order <- scores |>
     order_phases()
 
