@@ -415,7 +415,6 @@ make_plot_coverage_range <- function(scores_quantiles, ranges) {
     geom_line() +
     geom_point() +
     geom_hline(aes(yintercept = 100 * quantile), linetype = "dashed") +
-    # scale_y_continuous(labels = percent) +
     facet_wrap(~quantile, scales = "free_y") +
     labs(
       y = "Proportion of data within forecast interval",
