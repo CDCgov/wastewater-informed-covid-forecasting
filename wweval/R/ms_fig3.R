@@ -1,7 +1,8 @@
 #' Make head to head CRPS distribution comparison plot for a single location
 #'
 #' @param scores A tibble of scores by location, forecast date, date and model,
-#' the ouput of `scoringutils::score()` on samples.
+#' containing the outputs of `scoringutils::score()` on samples plus metadata
+#' transformed into a tibble.
 #' @param loc_to_plot A  string indicating the state abbreviations of the state
 #' to plot
 #' @param horizons_to_show A vector of strings indicating the names of the
@@ -199,7 +200,8 @@ make_fig3_forecast_comp_fig <- function(hosp_quantiles,
 #' Make CRPS underlay figure
 #'
 #' @param scores A tibble of scores by location, forecast date, date and model,
-#' the ouput of `scoringutils::score()` on samples.
+#' containing the outputs of `scoringutils::score()` on samples plus metadata
+#' transformed into a tibble.
 #' @param loc_to_plot A  string indicating the state abbreviations of the state
 #' to plot
 #' @param horizon_to_plot A string indicating what horizon period to plot,
