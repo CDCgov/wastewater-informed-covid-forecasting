@@ -65,7 +65,8 @@ make_fig3_single_loc_comp <- function(scores,
         size = 10,
         vjust = 0.5, hjust = 0.5
       )
-    )
+    ) +
+    scale_y_continuous(trans = "log10")
 
   return(p)
 }
@@ -121,7 +122,7 @@ make_fig3_forecast_comp_fig <- function(hosp_quantiles,
       aes(
         x = date, y = `0.5`, group = forecast_date
       ),
-      color = "cornflowerblue"
+      color = "#00BFC4"
     ) +
     geom_ribbon(
       data = hosp |> dplyr::filter(model_type == "ww"),
@@ -129,7 +130,7 @@ make_fig3_forecast_comp_fig <- function(hosp_quantiles,
         x = date, ymin = `0.025`, ymax = `0.975`,
         group = as.character(forecast_date)
       ), alpha = 0.1,
-      fill = "cornflowerblue",
+      fill = "#00BFC4",
       show.legend = FALSE
     ) +
     geom_ribbon(
@@ -139,7 +140,7 @@ make_fig3_forecast_comp_fig <- function(hosp_quantiles,
         group = as.factor(forecast_date)
       ),
       alpha = 0.1,
-      fill = "cornflowerblue",
+      fill = "#00BFC4",
       show.legend = FALSE
     ) +
     geom_line(
@@ -147,7 +148,7 @@ make_fig3_forecast_comp_fig <- function(hosp_quantiles,
       aes(
         x = date, y = `0.5`, group = forecast_date
       ),
-      color = "purple4"
+      color = "#F8766D"
     ) +
     geom_ribbon(
       data = hosp |> dplyr::filter(model_type == "hosp"),
@@ -155,7 +156,7 @@ make_fig3_forecast_comp_fig <- function(hosp_quantiles,
         x = date, ymin = `0.025`, ymax = `0.975`,
         group = as.character(forecast_date)
       ), alpha = 0.1,
-      fill = "purple4",
+      fill = "#F8766D",
       show.legend = FALSE
     ) +
     geom_ribbon(
@@ -164,7 +165,7 @@ make_fig3_forecast_comp_fig <- function(hosp_quantiles,
         x = date, ymin = `0.25`, ymax = `0.75`,
         group = as.factor(forecast_date)
       ),
-      fill = "purple4",
+      fill = "#F8766D",
       alpha = 0.1,
       show.legend = FALSE
     ) +
@@ -224,7 +225,7 @@ make_fig3_crps_underlay_fig <- function(scores,
 
   p <- ggplot(scores_by_horizon) +
     geom_bar(aes(x = forecast_date, y = crps, fill = model),
-      stat = "identity", position = "dodge"
+      stat = "identity", position = "dodge", show.legend = FALSE
     ) +
     xlab("") +
     ylab("CRPS scores") +

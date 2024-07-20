@@ -104,7 +104,7 @@ order_phases <- function(df) {
         phase == "decreasing" ~ 2,
         phase == "peak" ~ 3,
         phase == "nadir" ~ 4,
-        TRUE ~ NA
+        TRUE ~ 5
       )
     ) |>
     dplyr::mutate(

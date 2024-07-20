@@ -227,11 +227,11 @@ make_fig4_rel_crps_by_location <- function(scores,
 
 
   p <- ggplot(relative_crps, aes(
-    x = rel_crps, y = location, color = horizon,
+    x = location, y = rel_crps, color = horizon,
     fill = horizon
   )) +
     geom_violin(alpha = 0.3) +
-    geom_vline(aes(xintercept = 1), linetype = "dashed") +
+    geom_hline(aes(yintercept = 1), linetype = "dashed") +
     theme_bw() +
     theme(
       axis.text.x = element_text(
@@ -246,9 +246,9 @@ make_fig4_rel_crps_by_location <- function(scores,
       )
     ) +
     ggtitle("Distribution of CRPS by location, across forecast dates") +
-    ylab("") +
-    xlab("Relative CRPS, lower is better") +
-    scale_x_continuous(trans = "log")
+    xlab("") +
+    ylab("Relative CRPS, lower is better") +
+    scale_y_continuous(trans = "log")
 
   return(p)
 }
@@ -309,11 +309,11 @@ make_fig4_rel_crps_overall <- function(scores,
 
 
   p <- ggplot(relative_crps, aes(
-    x = rel_crps, y = horizon, color = horizon,
+    x = horizon, y = rel_crps, color = horizon,
     fill = horizon
   )) +
     geom_violin(alpha = 0.3) +
-    geom_vline(aes(xintercept = 1), linetype = "dashed") +
+    geom_hline(aes(yintercept = 1), linetype = "dashed") +
     theme_bw() +
     theme(
       axis.text.x = element_text(
@@ -328,9 +328,9 @@ make_fig4_rel_crps_overall <- function(scores,
       )
     ) +
     ggtitle("Distribution of CRPS across location and forecast dates") +
-    ylab("") +
-    xlab("Relative CRPS, lower is better") +
-    scale_x_continuous(trans = "log")
+    xlab("") +
+    ylab("Relative CRPS, lower is better") +
+    scale_y_continuous(trans = "log")
 
   return(p)
 }
@@ -420,8 +420,7 @@ make_plot_coverage_range <- function(scores_quantiles, ranges) {
 make_fig4_rel_crps_by_phase <- function(scores,
                                         horizons_to_show = c(
                                           "nowcast",
-                                          "1 wk", "4 wks",
-                                          "overall"
+                                          "1 wk", "4 wks"
                                         )) {
   scores_w_fig_order <- scores |>
     order_phases()
@@ -452,10 +451,7 @@ make_fig4_rel_crps_by_phase <- function(scores,
     dplyr::mutate(
       horizon = forcats::fct_reorder(horizon, fig_order)
     ) |>
-    dplyr::filter(
-      horizon %in% !!horizons_to_show,
-      !is.na(phase)
-    ) # Exclude NAs in plot
+    dplyr::filter(!is.na(phase)) # Exclude NAs in plot
 
   p <- ggplot(
     relative_crps,
