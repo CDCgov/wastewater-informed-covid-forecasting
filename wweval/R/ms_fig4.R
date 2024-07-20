@@ -32,7 +32,7 @@ make_fig4_crps_density <- function(scores,
 
   scores_comb <- dplyr::bind_rows(scores_by_horizon, scores_overall) |>
     dplyr::filter(
-      horizon %in% horizons_to_show
+      horizon %in% !!horizons_to_show
     ) |>
     dplyr::mutate(
       fig_order = dplyr::case_when(
@@ -137,7 +137,7 @@ make_fig4_pct_better_w_ww <- function(scores,
   total_hosp <- eval_hosp_data |>
     dplyr::filter(date >=
       min(pct_better_w_ww$forecast_date) - lubridate::days(
-        days_to_show_prev_data
+        !!days_to_show_prev_data
       )) |>
     distinct(location, daily_hosp_admits, date) |>
     dplyr::group_by(date) |>
@@ -212,7 +212,7 @@ make_fig4_rel_crps_by_location <- function(scores,
 
   scores_comb <- dplyr::bind_rows(scores_by_horizon, scores_overall) |>
     dplyr::filter(
-      horizon %in% horizons_to_show
+      horizon %in% !!horizons_to_show
     ) |>
     dplyr::mutate(
       fig_order = dplyr::case_when(
@@ -302,7 +302,7 @@ make_fig4_rel_crps_overall <- function(scores,
 
   scores_comb <- dplyr::bind_rows(scores_by_horizon, scores_overall) |>
     dplyr::filter(
-      horizon %in% horizons_to_show
+      horizon %in% !!horizons_to_show
     ) |>
     dplyr::mutate(
       fig_order = dplyr::case_when(
@@ -402,7 +402,7 @@ make_plot_coverage_range <- function(scores_quantiles, ranges) {
     )
 
   coverage_summarized <- scores_by_horizon |>
-    dplyr::filter(quantile %in% c(ranges / 100)) |>
+    dplyr::filter(quantile %in% c(!!ranges / 100)) |>
     dplyr::group_by(horizon, model, quantile) |>
     dplyr::summarise(pct_coverage = 100 * mean(coverage))
 
@@ -415,9 +415,7 @@ make_plot_coverage_range <- function(scores_quantiles, ranges) {
     geom_line() +
     geom_point() +
     geom_hline(aes(yintercept = 100 * quantile), linetype = "dashed") +
-    # scale_y_continuous(labels = percent) +
     facet_wrap(~quantile, scales = "free_y") +
-    # theme_scoringutils() +
     labs(
       y = "Proportion of data within forecast interval",
       x = "Forecast horizon (weeks)",
