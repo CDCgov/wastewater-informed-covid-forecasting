@@ -538,6 +538,13 @@ manuscript_figures <- list(
     )
   ),
   tar_target(
+    name = sfig_check_epidemic_phases,
+    command = make_fig_phase_comparison(
+      hosp_quantiles_filtered,
+      loc_to_plot = "MA"
+    )
+  ),
+  tar_target(
     name = fig4_rel_crps_by_location,
     command = make_fig4_rel_crps_by_location(
       scores_filtered

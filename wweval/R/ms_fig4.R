@@ -475,3 +475,44 @@ make_fig4_rel_crps_by_phase <- function(scores) {
 
   return(p)
 }
+
+make_fig_phase_comparison <- function(hosp_quantiles,
+                                      loc_to_plot) {
+  hosp <- hosp_quantiles |>
+    dplyr::filter(
+      location == !!loc_to_plot,
+      quantile == 0.5
+    ) |>
+    dplyr::distinct(date, eval_data, phase)
+
+  p <- ggplot(hosp) +
+    geom_point(
+      data = hosp_quants_horizons,
+      aes(x = date, y = eval_data, color = phase)
+    ) +
+    xlab("") +
+    ylab("Daily hospital admissions") +
+    ggtitle(glue::glue(
+      "{loc_to_plot}"
+    )) +
+    theme_bw() +
+    scale_color_discrete() +
+    scale_fill_discrete() +
+    scale_x_date(
+      date_breaks = "2 weeks",
+      labels = scales::date_format("%Y-%m-%d")
+    ) +
+    theme_bw() +
+    theme(
+      axis.text.x = element_text(
+        size = 8, vjust = 1,
+        hjust = 1, angle = 45
+      ),
+      axis.title.x = element_text(size = 12),
+      axis.title.y = element_text(size = 12),
+      plot.title = element_text(
+        size = 10,
+        vjust = 0.5, hjust = 0.5
+      )
+    )
+}
