@@ -476,6 +476,17 @@ make_fig4_rel_crps_by_phase <- function(scores) {
   return(p)
 }
 
+#' Make phase comparison figure
+#'
+#' @param hosp_quantiles A tibble containing the calibrated hospital admissions
+#' data, the evaluation hospital admissions data, and the quantiles of the
+#' calibrated and forecasted admissions
+#' @param loc_to_plot A  string indicating the state abbreviations of the state
+#' to plot
+#'
+#' @return a ggplot object containing the hospital admissions for evaluation
+#' colored by epidemic phase, for visual comparison to the trend in the data
+#' @export
 make_fig_phase_comparison <- function(hosp_quantiles,
                                       loc_to_plot) {
   hosp <- hosp_quantiles |>
@@ -487,7 +498,6 @@ make_fig_phase_comparison <- function(hosp_quantiles,
 
   p <- ggplot(hosp) +
     geom_point(
-      data = hosp_quants_horizons,
       aes(x = date, y = eval_data, color = phase)
     ) +
     xlab("") +
@@ -515,4 +525,5 @@ make_fig_phase_comparison <- function(hosp_quantiles,
         vjust = 0.5, hjust = 0.5
       )
     )
+  return(p)
 }
