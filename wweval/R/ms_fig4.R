@@ -62,7 +62,7 @@ make_fig4_crps_density <- function(scores,
       fill = horizon
     )
   ) +
-    geom_violin(alpha = 0.3) +
+    geom_boxplot(alpha = 0.3) +
     geom_hline(aes(yintercept = 1), linetype = "dashed") +
     theme_bw() +
     theme(
@@ -230,7 +230,7 @@ make_fig4_rel_crps_by_location <- function(scores,
     x = location, y = rel_crps, color = horizon,
     fill = horizon
   )) +
-    geom_violin(alpha = 0.3) +
+    geom_boxplot(alpha = 0.3) +
     geom_hline(aes(yintercept = 1), linetype = "dashed") +
     theme_bw() +
     theme(
@@ -380,10 +380,19 @@ make_plot_coverage_range <- function(scores_quantiles, ranges) {
       )
     )
 
+
+
   coverage_summarized <- scores_by_horizon |>
     dplyr::filter(quantile %in% c(!!ranges / 100)) |>
     dplyr::group_by(horizon, model, quantile) |>
     dplyr::summarise(pct_coverage = 100 * mean(coverage))
+
+  if (nrow(coverage_summarized |> dplyr::filter(is.na(horizon))) > 0) {
+    warning("Horizon is missing for some data points")
+  }
+
+  coverage_summarized <- coverage_summarized |>
+    dplyr::filter(!is.na(horizon))
 
 
   p <- ggplot(coverage_summarized) +
@@ -471,7 +480,9 @@ make_fig4_rel_crps_by_phase <- function(scores) {
     ggtitle("CRPS across forecast dates") +
     xlab("Epidemic phase") +
     ylab("Relative CRPS, lower is better") +
-    scale_y_continuous(trans = "log")
+    scale_y_continuous(trans = "log") +
+    scale_fill_brewer(palette = "Set2") +
+    scale_color_brewer(palette = "Set2")
 
   return(p)
 }
