@@ -72,7 +72,8 @@ Imports:
     tibble,
     cfaforecastrenewalww,
     cmdstanr (>= 0.7.1),
-    forcats
+    forcats,
+    ggridges
 SystemRequirements: CmdStan (>=2.34.1)
 Encoding: UTF-8
 Roxygen: list(markdown = TRUE)
