@@ -7,7 +7,6 @@
 make_fig5_average_wis(
   all_scores,
   cfa_real_time_scores,
-  figure_file_path,
   horizon_time_in_weeks = NULL
 )
 }
@@ -18,13 +17,8 @@ the retrospective cfa model}
 \item{cfa_real_time_scores}{Real-time scores from Feb - Mar for the cfa ww
 model submitted to the hub}
 
-\item{figure_file_path}{directory to save figures in}
-
 \item{horizon_time_in_weeks}{horizon time in weeks to summarize over, default
 is \code{NULL} which means that the scores are summarized over 4 weeks}
-
-\item{save_files}{bolean indicating whether or not to save the files, default
-is \code{TRUE}}
 }
 \value{
 a ggplot object of WIS scores over time colored by model, for the

@@ -4,11 +4,8 @@
 #' the retrospective cfa model
 #' @param cfa_real_time_scores Real-time scores from Feb - Mar for the cfa ww
 #' model submitted to the hub
-#' @param figure_file_path directory to save figures in
 #' @param horizon_time_in_weeks horizon time in weeks to summarize over, default
 #' is `NULL` which means that the scores are summarized over 4 weeks
-#' @param save_files bolean indicating whether or not to save the files, default
-#' is `TRUE`
 #'
 #' @return a ggplot object of WIS scores over time colored by model, for the
 #' real-time cfa model from Feb - Mar and the retrospective CFA model over
@@ -17,7 +14,6 @@
 #'
 make_fig5_average_wis <- function(all_scores,
                                   cfa_real_time_scores,
-                                  figure_file_path,
                                   horizon_time_in_weeks = NULL) {
   scores <- dplyr::bind_rows(all_scores, cfa_real_time_scores)
 
@@ -199,7 +195,6 @@ make_fig5_hub_performance <- function(all_scores,
 #'
 #' @param scores df of granular (daily) score across models, locations, forecast
 #' dates and horizons
-#' @param figure_file_path path to save figure
 #' @param time_period time period that scores are summarized over
 #' @param baseline_model which model to compute relative WIS compared to, default
 #' is `COVIDhub-baseline`
@@ -209,7 +204,6 @@ make_fig5_hub_performance <- function(all_scores,
 #' @export
 #'
 make_fig5_heatmap_relative_wis <- function(scores,
-                                           figure_file_path,
                                            time_period,
                                            baseline_model = "COVIDhub-baseline") {
   summarized_scores <- scores |>
@@ -269,6 +263,28 @@ make_fig5_heatmap_relative_wis <- function(scores,
     ylab("") +
     labs(fill = "Relative WIS") +
     ggtitle(glue::glue("Relative WIS compared to {baseline_model} from {time_period}"))
+
+
+  return(p)
+}
+
+#' Make a quantile quantile plot for the Hub
+#'
+#' @param scores df of granular (daily) score across models, locations, forecast
+#' dates and horizons
+#' @param time_period time period that scores are summarized over
+#'
+#' @return a ggplot object containing a plot of the proportion of data within
+#' each interval for each model.
+#' @export
+
+make_fig5_qq_plot <- function(scores,
+                              time_period) {
+  p <- scores |>
+    data.table::as.data.table() |>
+    scoringutils::summarise_scores(by = c("model", "quantile")) |>
+    scoringutils::plot_quantile_coverage() +
+    ggtitle(glue::glue("QQ plot for {time_period}"))
 
 
   return(p)

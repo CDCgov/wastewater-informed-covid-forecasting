@@ -930,19 +930,17 @@ hub_comparison_plots <- list(
     )
   ),
   tar_target(
-    name = qq_plot_all_time,
-    command = get_qq_plot(
+    name = fig5_qq_plot_all_time,
+    command = make_fig5_qq_plot(
       scores = combine_scores_oct_mar,
-      time_period = "Oct 2023-Mar 2024",
-      figure_file_path = eval_config$figure_dir
+      time_period = "Oct 2023-Mar 2024"
     )
   ),
   tar_target(
-    name = qq_plot_feb_mar,
-    command = get_qq_plot(
+    name = fig5_qq_plot_feb_mar,
+    command = make_fig5_qq_plot(
       scores = combine_scores_feb_mar,
-      time_period = "Feb 2024-Mar 2024",
-      figure_file_path = eval_config$figure_dir
+      time_period = "Feb 2024-Mar 2024"
     )
   )
 )

@@ -6,7 +6,6 @@
 \usage{
 make_fig5_heatmap_relative_wis(
   scores,
-  figure_file_path,
   time_period,
   baseline_model = "COVIDhub-baseline"
 )
@@ -14,8 +13,6 @@ make_fig5_heatmap_relative_wis(
 \arguments{
 \item{scores}{df of granular (daily) score across models, locations, forecast
 dates and horizons}
-
-\item{figure_file_path}{path to save figure}
 
 \item{time_period}{time period that scores are summarized over}
 
