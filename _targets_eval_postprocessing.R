@@ -914,30 +914,19 @@ hub_comparison_plots <- list(
     )
   ),
   tar_target(
-    name = heatmap_relative_wis_all_time,
-    command = get_heatmap_relative_wis(
+    name = fig5_heatmap_relative_wis_all_time,
+    command = make_fig5_heatmap_relative_wis(
       scores = combine_scores_oct_mar,
       time_period = "Oct 2023-Mar 2024",
-      baseline_model = "COVIDhub-baseline",
-      figure_file_path = eval_config$figure_dir
+      baseline_model = "COVIDhub-baseline"
     )
   ),
   tar_target(
-    name = heatmap_relative_wis_ensemble,
-    command = get_heatmap_relative_wis(
-      scores = combine_scores_oct_mar,
-      time_period = "Oct 2023-Mar 2024",
-      baseline_model = "COVIDhub-4_week_ensemble",
-      figure_file_path = eval_config$figure_dir
-    )
-  ),
-  tar_target(
-    name = heatmap_relative_wis_hosp_only,
-    command = get_heatmap_relative_wis(
-      scores = combine_scores_oct_mar,
-      time_period = "Oct 2023-Mar 2024",
-      baseline_model = "cfa-hosponlyrenewal(retro)",
-      figure_file_path = eval_config$figure_dir
+    name = fig5_heatmap_relative_wis_Feb_Mar,
+    command = make_fig5_heatmap_relative_wis(
+      scores = combine_scores_feb_mar,
+      time_period = "Feb 2024-Mar 2024",
+      baseline_model = "COVIDhub-baseline"
     )
   ),
   tar_target(

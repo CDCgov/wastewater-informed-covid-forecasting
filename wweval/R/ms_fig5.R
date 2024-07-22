@@ -161,7 +161,7 @@ make_fig5_hub_performance <- function(all_scores,
           period == "Feb 2024-Mar 2024" ~ 1,
           period == "Oct 2023-Mar 2024" ~ 0
         ),
-      horizon = forcats::fct_reorder(horizon, fig_order)
+      horizon = forcats::fct_reorder(period, fig_order)
     )
 
 
@@ -190,6 +190,85 @@ make_fig5_hub_performance <- function(all_scores,
     xlab("Time period") +
     ylab(glue::glue("Relative WIS compared to {baseline_model}")) +
     ggtitle("Distribution of relative WIS across locations, horizons, and forecast dates")
+
+
+  return(p)
+}
+
+#' Make a heatmap of relative WIS across locations
+#'
+#' @param scores df of granular (daily) score across models, locations, forecast
+#' dates and horizons
+#' @param figure_file_path path to save figure
+#' @param time_period time period that scores are summarized over
+#' @param baseline_model which model to compute relative WIS compared to, default
+#' is `COVIDhub-baseline`
+#'
+#' @return a ggplot with a heatmap with model on the x-axis, location on the y-axis
+#' and fill by relative WIS score across forecast dates and horizons
+#' @export
+#'
+make_fig5_heatmap_relative_wis <- function(scores,
+                                           figure_file_path,
+                                           time_period,
+                                           baseline_model = "COVIDhub-baseline") {
+  summarized_scores <- scores |>
+    data.table::as.data.table() |>
+    scoringutils::summarise_scores(
+      by = c("model", "location")
+    ) |>
+    dplyr::left_join(cfaforecastrenewalww::flusight_location_table,
+      by = c("location" = "location_code")
+    )
+
+  baseline_score <- summarized_scores |>
+    dplyr::filter(model == {{ baseline_model }}) |>
+    dplyr::rename(
+      baseline_wis = interval_score
+    ) |>
+    dplyr::select(location, baseline_wis)
+
+  relative_scores <- summarized_scores |>
+    dplyr::left_join(baseline_score,
+      by = c("location")
+    ) |>
+    dplyr::mutate(
+      relative_interval_score = interval_score / baseline_wis
+    ) |>
+    dplyr::filter(
+      model != {{ baseline_model }},
+      location != "US"
+    ) # exclued the US bc not available for
+  # retro model
+
+
+  p <- ggplot(relative_scores) +
+    geom_tile(aes(x = model, y = short_name, fill = relative_interval_score)) +
+    scale_fill_gradient2(
+      high = "red", mid = "white", low = "blue", transform = "log2",
+      midpoint = 1, guide = "colourbar", aesthetics = "fill"
+    ) +
+    geom_text(aes(
+      x = model, y = short_name,
+      label = round(relative_interval_score, 2)
+    ), size = 2.5) +
+    theme_bw() +
+    theme(
+      axis.text.x = element_text(
+        size = 8, vjust = 1,
+        hjust = 1, angle = 45
+      ),
+      axis.title.x = element_text(size = 12),
+      axis.title.y = element_text(size = 10),
+      plot.title = element_text(
+        size = 10,
+        vjust = 0.5, hjust = 0.5
+      )
+    ) +
+    xlab("") +
+    ylab("") +
+    labs(fill = "Relative WIS") +
+    ggtitle(glue::glue("Relative WIS compared to {baseline_model} from {time_period}"))
 
 
   return(p)
