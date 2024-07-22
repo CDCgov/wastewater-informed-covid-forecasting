@@ -899,8 +899,7 @@ hub_comparison_plots <- list(
     name = fig5_plot_wis_over_time,
     command = make_fig5_average_wis(
       all_scores = combine_scores_oct_mar,
-      cfa_real_time_scores = cfa_real_time_scores,
-      figure_file_path = eval_config$figure_dir
+      cfa_real_time_scores = cfa_real_time_scores
     )
   ),
   tar_target(
@@ -910,7 +909,6 @@ hub_comparison_plots <- list(
       cfa_real_time_scores = cfa_real_time_scores,
       all_time_period = "Oct 2023-Mar 2024",
       real_time_period = "Feb 2024-Mar 2024",
-      figure_file_path = eval_config$figure_dir
     )
   ),
   tar_target(
@@ -941,6 +939,20 @@ hub_comparison_plots <- list(
     command = make_fig5_qq_plot(
       scores = combine_scores_feb_mar,
       time_period = "Feb 2024-Mar 2024"
+    )
+  ),
+  tar_target(
+    name = fig5_std_rank_feb_mar,
+    command = make_fig5_density_rank(
+      scores = combine_scores_feb_mar,
+      time_period = "Feb 2024-Mar 2024"
+    )
+  ),
+  tar_target(
+    name = fig5_std_rank_all_time,
+    command = make_fig5_density_rank(
+      scores = combine_scores_oct_mar,
+      time_period = "Oct 2023-Mar 2024"
     )
   )
 )

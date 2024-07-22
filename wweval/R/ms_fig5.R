@@ -289,3 +289,80 @@ make_fig5_qq_plot <- function(scores,
 
   return(p)
 }
+
+#' Make a figure of the distribution of standardized WIS rank
+#'
+#' @description
+#' Adapted from https://www.pnas.org/doi/10.1073/pnas.2113561119
+#' and https://github.com/reichlab/covid19-forecast-evals/blob/b741b6a24e40c7f2a8ddc41da40c95b23db6df4e/code/figure-model-ranks.R#L11 #nolint
+#'
+#'
+#' @param scores df of granular (daily) score across models, locations, forecast
+#' dates and horizons
+#' @param time_period time period that scores are summarized over
+#'
+#' @return A ggplot object containing geomridges plots colored by density,
+#' indicating the standardized rank for each location-date combo
+#' @export
+make_fig5_density_rank <- function(scores,
+                                   time_period) {
+  summarized_scores <- scores |>
+    data.table::as.data.table() |>
+    scoringutils::summarise_scores(
+      by = c("model", "location", "forecast_date")
+    )
+
+  scores_ranked <- summarized_scores |>
+    tibble() |>
+    dplyr::group_by(forecast_date, location) |>
+    dplyr::mutate(
+      rank = dplyr::dense_rank(dplyr::desc(interval_score)),
+      std_rank = rank / max(rank)
+    ) |>
+    dplyr::mutate(model = stats::reorder(model, rank,
+      FUN = function(x) {
+        quantile(x, probs = 0.25, na.rm = TRUE)
+      }
+    ))
+
+  fq <- scores_ranked |>
+    dplyr::group_by(model) |>
+    dplyr::summarize(first_quantile = quantile(std_rank,
+      probs = 0.25,
+      na.rm = TRUE
+    )) |>
+    dplyr::arrange(first_quantile) |>
+    dplyr::mutate(
+      fig_order = row_number()
+    )
+
+  scores_ranked_ordered <- scores_ranked |>
+    dplyr::left_join(fq, by = "model") |>
+    dplyr::mutate(
+      model = forcats::fct_reorder(model, fig_order)
+    )
+
+
+  p <- ggplot(
+    scores_ranked_ordered,
+    aes(
+      x = std_rank, y = model,
+      fill = factor(stat(quantile)),
+      height = after_stat(density)
+    )
+  ) +
+    ggridges::stat_density_ridges(
+      geom = "density_ridges_gradient", calc_ecdf = TRUE,
+      quantiles = 4, quantile_lines = TRUE,
+      jittered_points = TRUE,
+      position = ggridges::position_points_jitter(width = 0.05, height = 0),
+      point_shape = "|", point_size = 3, point_alpha = 1, alpha = 0.7,
+    ) +
+    scale_fill_viridis_d(name = "Quartiles") +
+    theme_bw() +
+    scale_x_continuous(name = "Standardized rank", limits = c(0, 1)) +
+    ylab("") +
+    ggtitle(glue::glue("Standardized rank plot for {time_period}"))
+
+  return(p)
+}
