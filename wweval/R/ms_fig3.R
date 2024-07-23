@@ -117,57 +117,31 @@ make_fig3_forecast_comp_fig <- function(hosp_quantiles,
       fill = "black", size = 1, shape = 21,
       show.legend = FALSE
     ) +
-    geom_line(
-      data = hosp |> dplyr::filter(model_type == "ww"),
-      aes(
-        x = date, y = `0.5`, group = forecast_date
-      ),
-      color = "#00BFC4"
-    ) +
     geom_ribbon(
-      data = hosp |> dplyr::filter(model_type == "ww"),
+      data = hosp,
       aes(
         x = date, ymin = `0.025`, ymax = `0.975`,
-        group = as.character(forecast_date)
+        group = interaction(forecast_date, model_type),
+        fill = model_type
       ), alpha = 0.1,
-      fill = "#00BFC4",
       show.legend = FALSE
     ) +
     geom_ribbon(
-      data = hosp |> dplyr::filter(model_type == "ww"),
+      data = hosp,
       aes(
         x = date, ymin = `0.25`, ymax = `0.75`,
-        group = as.factor(forecast_date)
-      ),
-      alpha = 0.1,
-      fill = "#00BFC4",
+        group = interaction(forecast_date, model_type),
+        fill = model_type
+      ), alpha = 0.1,
       show.legend = FALSE
     ) +
     geom_line(
-      data = hosp |> dplyr::filter(model_type == "hosp"),
+      data = hosp,
       aes(
-        x = date, y = `0.5`, group = forecast_date
+        x = date, y = `0.5`,
+        group = interaction(forecast_date, model_type),
+        color = model_type,
       ),
-      color = "#F8766D"
-    ) +
-    geom_ribbon(
-      data = hosp |> dplyr::filter(model_type == "hosp"),
-      aes(
-        x = date, ymin = `0.025`, ymax = `0.975`,
-        group = as.character(forecast_date)
-      ), alpha = 0.1,
-      fill = "#F8766D",
-      show.legend = FALSE
-    ) +
-    geom_ribbon(
-      data = hosp |> dplyr::filter(model_type == "ww"),
-      aes(
-        x = date, ymin = `0.25`, ymax = `0.75`,
-        group = as.factor(forecast_date)
-      ),
-      fill = "#F8766D",
-      alpha = 0.1,
-      show.legend = FALSE
     ) +
     xlab("") +
     ylab("Daily hospital admissions") +
