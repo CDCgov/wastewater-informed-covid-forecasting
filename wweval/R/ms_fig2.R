@@ -222,4 +222,5 @@ make_fig2 <- function(hosp1, hosp2, hosp3,
     legend.position = "top",
     legend.justification = "left"
   )
+  return(patch)
 }
