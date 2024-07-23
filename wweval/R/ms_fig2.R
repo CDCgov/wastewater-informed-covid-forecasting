@@ -63,8 +63,7 @@ make_fig2_hosp_t <- function(hosp_quantiles,
         x = date, ymin = `0.025`, ymax = `0.975`,
         fill = model_type
       ),
-      alpha = 0.1,
-      show.legend = FALSE
+      alpha = 0.1
     ) +
     geom_ribbon(
       aes(
@@ -72,14 +71,9 @@ make_fig2_hosp_t <- function(hosp_quantiles,
         fill = model_type
       ),
       alpha = 0.1,
-      show.legend = FALSE
     ) +
     geom_vline(aes(xintercept = lubridate::ymd(forecast_date)),
       linetype = "dashed"
-    ) +
-    facet_wrap(~location,
-      nrow = length(unique(quantiles_wide$location)),
-      scales = "free_y"
     ) +
     scale_x_date(
       date_breaks = "2 weeks",
@@ -89,7 +83,12 @@ make_fig2_hosp_t <- function(hosp_quantiles,
     ylab("Daily hospital admissions") +
     scale_color_discrete() +
     scale_fill_discrete() +
-    get_plot_theme(x_axis_dates = TRUE)
+    get_plot_theme(x_axis_dates = TRUE) +
+    theme(
+      legend.position = "top",
+      legend.justification = "left"
+    ) +
+    labs(color = "Model")
 
   return(p)
 }
@@ -190,6 +189,21 @@ make_fig2_ct <- function(ww_quantiles,
       date_breaks = "2 weeks",
       labels = scales::date_format("%Y-%m-%d")
     ) +
-    get_plot_theme(x_axis_dates = TRUE)
+    get_plot_theme(x_axis_dates = TRUE) +
+    scale_fill_brewer(palette = 2) +
+    scale_fill_discrete(palette = 2)
   return(p)
+}
+
+
+make_fig2 <- function(hosp1, hosp2, hosp3,
+                      ct1, ct2, ct3) {
+  patch <- hosp1 + ct1 +
+    hosp2 + ct2 +
+    hosp3 + ct3 +
+    patchwork::plot_layout(
+      nrow = 3, ncol = 2,
+      axes = "collect",
+      widths = c(1, 1.5)
+    )
 }

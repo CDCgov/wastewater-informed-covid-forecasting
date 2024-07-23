@@ -459,15 +459,17 @@ manuscript_figures <- list(
       date_to_plot = "2024-01-15"
     )
   ),
-  # tar_target(
-  #   name = fig2,
-  #   command = make_fig2(fig2_hosp_t1,
-  #                       fig2_hosp_t2,
-  #                       fig2_hosp_t3,
-  #                       fig2_ct_1,
-  #                       fig2_ct_2,
-  #                       fig2_ct_3)
-  #   ),
+  tar_target(
+    name = fig2,
+    command = make_fig2(
+      fig2_hosp_t_1,
+      fig2_hosp_t_2,
+      fig2_hosp_t_3,
+      fig2_ct_1,
+      fig2_ct_2,
+      fig2_ct_3
+    )
+  ),
 
   ## Fig 3-------------------------------------------------
   tar_target(
