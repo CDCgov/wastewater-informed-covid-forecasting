@@ -9,7 +9,9 @@ get_last_hosp_data_date_map(df)
 }
 \arguments{
 \item{df}{A tibble containing the following columns: \code{forecast_date},
-\code{location},\code{date}, \code{calib_data}}
+\code{location},\code{date}, \code{calib_data}.
+\code{calib_data} should be \code{NA} for any dates for which there was
+not hospital admissions data to fit to.}
 }
 \value{
 A tibble with that maps the unique combinations of \code{location} and
