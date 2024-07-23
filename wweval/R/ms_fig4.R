@@ -109,7 +109,6 @@ make_fig4_pct_better_w_ww <- function(scores,
       "forecast_date", "location",
       "model"
     )) |>
-    tibble::as_tibble() |>
     tidyr::pivot_wider(
       id_cols = c(
         forecast_date, location
