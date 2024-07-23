@@ -423,7 +423,7 @@ manuscript_figures <- list(
     name = fig2_hosp_t_2,
     command = make_fig2_hosp_t(
       hosp_quantiles_filtered,
-      loc_to_plot = c("AL"),
+      loc_to_plot = c("VA"),
       date_to_plot = "2024-01-15"
     )
   ),
@@ -447,7 +447,7 @@ manuscript_figures <- list(
     name = fig2_ct_2,
     command = make_fig2_ct(
       all_ww_quantiles_sq,
-      loc_to_plot = "AL",
+      loc_to_plot = "VA",
       date_to_plot = "2024-01-15"
     )
   ),
@@ -459,6 +459,15 @@ manuscript_figures <- list(
       date_to_plot = "2024-01-15"
     )
   ),
+  # tar_target(
+  #   name = fig2,
+  #   command = make_fig2(fig2_hosp_t1,
+  #                       fig2_hosp_t2,
+  #                       fig2_hosp_t3,
+  #                       fig2_ct_1,
+  #                       fig2_ct_2,
+  #                       fig2_ct_3)
+  #   ),
 
   ## Fig 3-------------------------------------------------
   tar_target(
