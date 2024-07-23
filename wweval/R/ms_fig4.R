@@ -72,23 +72,11 @@ make_fig4_crps_density <- function(scores,
   ) +
     geom_violin(alpha = 0.3) +
     geom_hline(aes(yintercept = 1), linetype = "dashed") +
-    theme_bw() +
-    theme(
-      axis.text.x = element_text(
-        size = 8, vjust = 1,
-        hjust = 1, angle = 45
-      ),
-      axis.title.x = element_text(size = 12),
-      axis.title.y = element_text(size = 10),
-      plot.title = element_text(
-        size = 10,
-        vjust = 0.5, hjust = 0.5
-      )
-    ) +
     ggtitle("CRPS across forecast dates") +
     xlab("") +
     ylab("Relative CRPS, lower is better") +
-    scale_y_continuous(trans = "log")
+    scale_y_continuous(trans = "log") +
+    get_plot_theme(x_axis_dates = TRUE)
 
   return(p)
 }
@@ -156,20 +144,12 @@ make_fig4_pct_better_w_ww <- function(scores,
       data = total_hosp,
       aes(x = date, y = 100 * total_hosp / max(total_hosp))
     ) +
-    theme_bw() +
-    theme(
-      axis.text.x = element_text(
-        size = 8, vjust = 1,
-        hjust = 1, angle = 45
-      ),
-      axis.title.x = element_text(size = 12),
-      axis.title.y = element_text(size = 10),
-      plot.title = element_text(
-        size = 10,
-        vjust = 0.5, hjust = 0.5
-      )
-    ) +
-    xlab("") +
+    get_plot_theme(x_axis_dates = TRUE) +
+    scale_y_continuous(
+      # don't expand y scale at the lower end
+      expand = expansion(mult = c(0, 0.05))
+    )
+  xlab("") +
     scale_y_continuous(
       "Percent better with wastewater",
       sec.axis = sec_axis(~ . * max_total_hosp / 100, name = "National admissions")
@@ -242,28 +222,16 @@ make_fig4_rel_crps_by_location <- function(scores,
 
 
   p <- ggplot(relative_crps, aes(
-    x = rel_crps, y = location, color = horizon,
+    x = location, y = rel_crps, color = horizon,
     fill = horizon
   )) +
     geom_violin(alpha = 0.3) +
-    geom_vline(aes(xintercept = 1), linetype = "dashed") +
-    theme_bw() +
-    theme(
-      axis.text.x = element_text(
-        size = 8, vjust = 1,
-        hjust = 1, angle = 45
-      ),
-      axis.title.x = element_text(size = 12),
-      axis.title.y = element_text(size = 10),
-      plot.title = element_text(
-        size = 10,
-        vjust = 0.5, hjust = 0.5
-      )
-    ) +
+    geom_hline(aes(hintercept = 1), linetype = "dashed") +
     ggtitle("Distribution of CRPS by location, across forecast dates") +
     ylab("") +
     xlab("Relative CRPS, lower is better") +
-    scale_x_continuous(trans = "log")
+    scale_y_continuous(trans = "log") +
+    get_plot_theme()
 
   return(p)
 }
@@ -332,28 +300,16 @@ make_fig4_rel_crps_overall <- function(scores,
 
 
   p <- ggplot(relative_crps, aes(
-    x = rel_crps, y = horizon, color = horizon,
+    x = horizon, y = rel_crps, color = horizon,
     fill = horizon
   )) +
     geom_violin(alpha = 0.3) +
-    geom_vline(aes(xintercept = 1), linetype = "dashed") +
-    theme_bw() +
-    theme(
-      axis.text.x = element_text(
-        size = 8, vjust = 1,
-        hjust = 1, angle = 45
-      ),
-      axis.title.x = element_text(size = 12),
-      axis.title.y = element_text(size = 10),
-      plot.title = element_text(
-        size = 10,
-        vjust = 0.5, hjust = 0.5
-      )
-    ) +
+    geom_hline(aes(yintercept = 1), linetype = "dashed") +
     ggtitle("Distribution of CRPS across location and forecast dates") +
     ylab("") +
     xlab("Relative CRPS, lower is better") +
-    scale_x_continuous(trans = "log")
+    scale_y_continuous(trans = "log") +
+    get_plot_theme()
 
   return(p)
 }
@@ -373,7 +329,8 @@ make_qq_plot_overall <- function(scores_quantiles) {
     data.table::as.data.table() |>
     scoringutils::summarise_scores(by = c("model", "quantile")) |>
     scoringutils::plot_quantile_coverage() +
-    ggtitle(glue::glue("QQ plot"))
+    ggtitle(glue::glue("QQ plot")) +
+    get_plot_theme()
 
   return(p)
 }
@@ -423,7 +380,7 @@ make_plot_coverage_range <- function(scores_quantiles, ranges) {
       x = "Forecast horizon (weeks)",
       col = "Model"
     ) +
-    theme_bw()
+    get_plot_theme()
   return(p)
 }
 
@@ -497,23 +454,11 @@ make_fig4_rel_crps_by_phase <- function(scores,
   ) +
     geom_violin(alpha = 0.3) +
     geom_hline(aes(yintercept = 1), linetype = "dashed") +
-    theme_bw() +
-    theme(
-      axis.text.x = element_text(
-        size = 8, vjust = 1,
-        hjust = 1, angle = 45
-      ),
-      axis.title.x = element_text(size = 12),
-      axis.title.y = element_text(size = 10),
-      plot.title = element_text(
-        size = 10,
-        vjust = 0.5, hjust = 0.5
-      )
-    ) +
     ggtitle("CRPS across forecast dates") +
     xlab("Epidemic phase") +
     ylab("Relative CRPS, lower is better") +
-    scale_y_continuous(trans = "log")
+    scale_y_continuous(trans = "log") +
+    get_plot_theme()
 
   return(p)
 }

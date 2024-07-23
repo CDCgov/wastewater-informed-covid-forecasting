@@ -2,6 +2,8 @@
 #'
 #' @param x_axis_text_size integer indicating the size of x axis text, to be
 #' passed to theme. Default is `8`
+#' @param y_axis_text_size integer indicating the size of y axis text, to be
+#' passed to theme. Default is `8`
 #' @param x_axis_title_size integer indicating the size of x axis title, to be
 #' passed to theme. Default is `10`
 #' @param y_axis_title_size integer indicating the size of y axis title, to be
@@ -16,6 +18,7 @@
 #' line size and formatting
 #' @export
 get_plot_theme <- function(x_axis_text_size = 8,
+                           y_axis_text_size = 8,
                            x_axis_title_size = 10,
                            y_axis_title_size = 10,
                            plot_title_size = 10,
@@ -26,6 +29,9 @@ get_plot_theme <- function(x_axis_text_size = 8,
     theme(
       axis.text.x = element_text(
         size = x_axis_text_size
+      ),
+      axis.text.y = element_text(
+        size = y_axis_text_size
       ),
       axis.title.x = element_text(size = x_axis_title_size),
       axis.title.y = element_text(size = y_axis_title_size),

@@ -182,7 +182,6 @@ make_fig2_ct <- function(ww_quantiles,
     facet_grid(location ~ site_lab_name,
       scales = "free_y"
     ) +
-    theme_bw() +
     xlab("") +
     ylab("Log(genome copies per mL)") +
     scale_color_discrete() +
@@ -191,18 +190,6 @@ make_fig2_ct <- function(ww_quantiles,
       date_breaks = "2 weeks",
       labels = scales::date_format("%Y-%m-%d")
     ) +
-    theme_bw() +
-    theme(
-      axis.text.x = element_text(
-        size = 8, vjust = 1,
-        hjust = 1, angle = 45
-      ),
-      axis.title.x = element_text(size = 12),
-      axis.title.y = element_text(size = 10),
-      plot.title = element_text(
-        size = 10,
-        vjust = 0.5, hjust = 0.5
-      )
-    )
+    get_plot_theme(x_axis_dates = TRUE)
   return(p)
 }

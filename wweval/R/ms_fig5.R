@@ -51,20 +51,7 @@ make_fig5_average_wis <- function(all_scores,
     )) +
     xlab("Forecast date") +
     ylab("Average WIS score across locations") +
-    theme_bw() +
-    theme(
-      legend.position = "bottom",
-      axis.text.x = element_text(
-        size = 8, vjust = 1,
-        hjust = 1, angle = 45
-      ),
-      axis.title.x = element_text(size = 12),
-      axis.title.y = element_text(size = 10),
-      plot.title = element_text(
-        size = 10,
-        vjust = 0.5, hjust = 0.5
-      )
-    ) +
+    get_plot_theme(x_axis_dates = TRUE) +
     scale_x_date(
       date_breaks = "2 weeks",
       labels = scales::date_format("%Y-%m-%d")
@@ -171,18 +158,8 @@ make_fig5_hub_performance <- function(all_scores,
       alpha = 0.5,
       position = position_dodge(width = 0.75)
     ) +
-    theme_bw() +
     coord_trans(ylim = c(0, 2)) +
-    theme(
-      legend.position = "bottom",
-      legend.text = element_text(size = 8),
-      axis.title.x = element_text(size = 12),
-      axis.title.y = element_text(size = 10),
-      plot.title = element_text(
-        size = 10,
-        vjust = 0.5, hjust = 0.5
-      )
-    ) +
+    get_plot_theme() +
     xlab("Time period") +
     ylab(glue::glue("Relative WIS compared to {baseline_model}")) +
     ggtitle("Distribution of relative WIS across locations, horizons, and forecast dates")
@@ -246,19 +223,7 @@ make_fig5_heatmap_relative_wis <- function(scores,
       x = model, y = short_name,
       label = round(relative_interval_score, 2)
     ), size = 2.5) +
-    theme_bw() +
-    theme(
-      axis.text.x = element_text(
-        size = 8, vjust = 1,
-        hjust = 1, angle = 45
-      ),
-      axis.title.x = element_text(size = 12),
-      axis.title.y = element_text(size = 10),
-      plot.title = element_text(
-        size = 10,
-        vjust = 0.5, hjust = 0.5
-      )
-    ) +
+    get_plot_theme() +
     xlab("") +
     ylab("") +
     labs(fill = "Relative WIS") +
@@ -284,7 +249,8 @@ make_fig5_qq_plot <- function(scores,
     data.table::as.data.table() |>
     scoringutils::summarise_scores(by = c("model", "quantile")) |>
     scoringutils::plot_quantile_coverage() +
-    ggtitle(glue::glue("QQ plot for {time_period}"))
+    ggtitle(glue::glue("QQ plot for {time_period}")) +
+    get_plot_theme()
 
 
   return(p)
@@ -359,7 +325,7 @@ make_fig5_density_rank <- function(scores,
       point_shape = "|", point_size = 3, point_alpha = 1, alpha = 0.7,
     ) +
     scale_fill_viridis_d(name = "Quartiles") +
-    theme_bw() +
+    get_plot_theme() +
     scale_x_continuous(name = "Standardized rank", limits = c(0, 1)) +
     ylab("") +
     ggtitle(glue::glue("Standardized rank plot for {time_period}"))
