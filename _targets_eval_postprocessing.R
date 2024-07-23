@@ -469,110 +469,110 @@ manuscript_figures <- list(
       fig2_ct_2,
       fig2_ct_3
     )
-  ),
-
-  ## Fig 3-------------------------------------------------
-  tar_target(
-    name = fig3_crps_single_loc1,
-    command = make_fig3_single_loc_comp(
-      scores_filtered,
-      loc_to_plot = "MA"
-    )
-  ),
-  tar_target(
-    name = fig3_forecast_comparison_nowcast1,
-    command = make_fig3_forecast_comp_fig(
-      hosp_quantiles_filtered,
-      loc_to_plot = "MA",
-      horizon_to_plot = "nowcast"
-    )
-  ),
-  tar_target(
-    name = fig3_forecast_comparison_1wk1,
-    command = make_fig3_forecast_comp_fig(
-      hosp_quantiles_filtered,
-      loc_to_plot = "MA",
-      horizon_to_plot = "1 wk"
-    )
-  ),
-  tar_target(
-    name = fig3_forecast_comparison_4wks1,
-    command = make_fig3_forecast_comp_fig(
-      hosp_quantiles_filtered,
-      loc_to_plot = "MA",
-      horizon_to_plot = "4 wks"
-    )
-  ),
-  tar_target(
-    name = fig3_crps_underlay_nowcast1,
-    command = make_fig3_crps_underlay_fig(
-      scores_filtered,
-      loc_to_plot = "MA",
-      horizon_to_plot = "nowcast"
-    )
-  ),
-  tar_target(
-    name = fig3_crps_underlay_1wk1,
-    command = make_fig3_crps_underlay_fig(
-      scores_filtered,
-      loc_to_plot = "MA",
-      horizon_to_plot = "1 wk"
-    )
-  ),
-  tar_target(
-    name = fig3_crps_underlay_4wks1,
-    command = make_fig3_crps_underlay_fig(
-      scores_filtered,
-      loc_to_plot = "MA",
-      horizon_to_plot = "4 wks"
-    )
-  ),
-
-  ## Fig 4------------------------------------------------
-  tar_target(
-    name = fig4_rel_crps_over_time,
-    command = make_fig4_crps_density(
-      scores_filtered
-    )
-  ),
-  tar_target(
-    name = fig4_pct_better_w_ww,
-    command = make_fig4_pct_better_w_ww(
-      scores_filtered,
-      eval_hosp_data
-    )
-  ),
-  tar_target(
-    name = fig4_rel_crps_by_phase,
-    command = make_fig4_rel_crps_by_phase(
-      scores_filtered
-    )
-  ),
-  tar_target(
-    name = fig4_rel_crps_by_location,
-    command = make_fig4_rel_crps_by_location(
-      scores_filtered
-    )
-  ),
-  tar_target(
-    name = fig4_rel_crps_overall,
-    command = make_fig4_rel_crps_overall(
-      scores_filtered
-    )
-  ),
-  tar_target(
-    name = fig4_qq_plot_overall,
-    command = make_qq_plot_overall(
-      scores_quantiles_filtered
-    )
-  ),
-  tar_target(
-    name = fig4_plot_coverage_range,
-    command = make_plot_coverage_range(
-      scores_quantiles_filtered,
-      c(30, 50, 90)
-    )
   )
+
+  # ## Fig 3-------------------------------------------------
+  # tar_target(
+  #   name = fig3_crps_single_loc1,
+  #   command = make_fig3_single_loc_comp(
+  #     scores_filtered,
+  #     loc_to_plot = "MA"
+  #   )
+  # ),
+  # tar_target(
+  #   name = fig3_forecast_comparison_nowcast1,
+  #   command = make_fig3_forecast_comp_fig(
+  #     hosp_quantiles_filtered,
+  #     loc_to_plot = "MA",
+  #     horizon_to_plot = "nowcast"
+  #   )
+  # ),
+  # tar_target(
+  #   name = fig3_forecast_comparison_1wk1,
+  #   command = make_fig3_forecast_comp_fig(
+  #     hosp_quantiles_filtered,
+  #     loc_to_plot = "MA",
+  #     horizon_to_plot = "1 wk"
+  #   )
+  # ),
+  # tar_target(
+  #   name = fig3_forecast_comparison_4wks1,
+  #   command = make_fig3_forecast_comp_fig(
+  #     hosp_quantiles_filtered,
+  #     loc_to_plot = "MA",
+  #     horizon_to_plot = "4 wks"
+  #   )
+  # ),
+  # tar_target(
+  #   name = fig3_crps_underlay_nowcast1,
+  #   command = make_fig3_crps_underlay_fig(
+  #     scores_filtered,
+  #     loc_to_plot = "MA",
+  #     horizon_to_plot = "nowcast"
+  #   )
+  # ),
+  # tar_target(
+  #   name = fig3_crps_underlay_1wk1,
+  #   command = make_fig3_crps_underlay_fig(
+  #     scores_filtered,
+  #     loc_to_plot = "MA",
+  #     horizon_to_plot = "1 wk"
+  #   )
+  # ),
+  # tar_target(
+  #   name = fig3_crps_underlay_4wks1,
+  #   command = make_fig3_crps_underlay_fig(
+  #     scores_filtered,
+  #     loc_to_plot = "MA",
+  #     horizon_to_plot = "4 wks"
+  #   )
+  # ),
+  #
+  # ## Fig 4------------------------------------------------
+  # tar_target(
+  #   name = fig4_rel_crps_over_time,
+  #   command = make_fig4_crps_density(
+  #     scores_filtered
+  #   )
+  # ),
+  # tar_target(
+  #   name = fig4_pct_better_w_ww,
+  #   command = make_fig4_pct_better_w_ww(
+  #     scores_filtered,
+  #     eval_hosp_data
+  #   )
+  # ),
+  # tar_target(
+  #   name = fig4_rel_crps_by_phase,
+  #   command = make_fig4_rel_crps_by_phase(
+  #     scores_filtered
+  #   )
+  # ),
+  # tar_target(
+  #   name = fig4_rel_crps_by_location,
+  #   command = make_fig4_rel_crps_by_location(
+  #     scores_filtered
+  #   )
+  # ),
+  # tar_target(
+  #   name = fig4_rel_crps_overall,
+  #   command = make_fig4_rel_crps_overall(
+  #     scores_filtered
+  #   )
+  # ),
+  # tar_target(
+  #   name = fig4_qq_plot_overall,
+  #   command = make_qq_plot_overall(
+  #     scores_quantiles_filtered
+  #   )
+  # ),
+  # tar_target(
+  #   name = fig4_plot_coverage_range,
+  #   command = make_plot_coverage_range(
+  #     scores_quantiles_filtered,
+  #     c(30, 50, 90)
+  #   )
+  # )
 )
 
 
@@ -975,8 +975,8 @@ list(
   upstream_targets,
   combined_targets,
   head_to_head_targets,
-  manuscript_figures,
+  manuscript_figures
   # scenario_targets,
-  hub_targets,
-  hub_comparison_plots
+  # hub_targets,
+  # hub_comparison_plots
 )

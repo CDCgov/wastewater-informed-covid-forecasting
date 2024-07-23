@@ -189,13 +189,24 @@ make_fig2_ct <- function(ww_quantiles,
       date_breaks = "2 weeks",
       labels = scales::date_format("%Y-%m-%d")
     ) +
-    get_plot_theme(x_axis_dates = TRUE) +
-    scale_fill_brewer(palette = 2) +
-    scale_fill_discrete(palette = 2)
+    get_plot_theme(x_axis_dates = TRUE) #+
+  # scale_fill_brewer(palette = 2) +
+  # scale_fill_discrete(palette = 2)
   return(p)
 }
 
 
+#' Make figure 2
+#'
+#' @param hosp1 first hospital admissions forecast
+#' @param hosp2 second
+#' @param hosp3 third
+#' @param ct1 first faceted fit to wastewater data in each site
+#' @param ct2 second
+#' @param ct3 third
+#'
+#' @return a combined ggplot object
+#' @export
 make_fig2 <- function(hosp1, hosp2, hosp3,
                       ct1, ct2, ct3) {
   patch <- hosp1 + ct1 +
