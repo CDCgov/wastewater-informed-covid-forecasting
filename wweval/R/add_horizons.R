@@ -68,19 +68,19 @@ get_last_hosp_data_date_map <- function(df) {
 #' addition of `fig_order` and reordered in terms of `fig_order` for plotting.
 #' @export
 order_horizons <- function(df) {
+  horizon_order <- c(
+    "nowcast",
+    "1 wk",
+    "2 wks",
+    "3 wks",
+    "4 wks",
+    "overall"
+  )
+
   df_w_order <- df |>
     dplyr::mutate(
-      fig_order = dplyr::case_when(
-        horizon == "nowcast" ~ 1,
-        horizon == "1 wk" ~ 2,
-        horizon == "2 wks" ~ 3,
-        horizon == "3 wks" ~ 4,
-        horizon == "4 wks" ~ 5,
-        horizon == "overall" ~ 6
-      )
-    ) |>
-    dplyr::mutate(
-      horizon = forcats::fct_reorder(horizon, fig_order)
+      horizon = factor(horizon, ordered = TRUE, levels = horizon_order)
     )
+
   return(df_w_order)
 }

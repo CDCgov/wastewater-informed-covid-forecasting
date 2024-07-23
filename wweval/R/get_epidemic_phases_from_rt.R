@@ -97,18 +97,16 @@ get_epidemic_phases_from_rt <- function(locations,
 #' addition of `fig_order` and reordered in terms of `fig_order` for plotting.
 #' @export
 order_phases <- function(df) {
+  phase_order <- c(
+    "increasing",
+    "peak",
+    "decreasing",
+    "nadir"
+  )
+
   df_w_order <- df |>
     dplyr::mutate(
-      fig_order = dplyr::case_when(
-        phase == "increasing" ~ 1,
-        phase == "decreasing" ~ 2,
-        phase == "peak" ~ 3,
-        phase == "nadir" ~ 4,
-        TRUE ~ 5
-      )
-    ) |>
-    dplyr::mutate(
-      horizon = forcats::fct_reorder(phase, fig_order)
+      phase = factor(phase, ordered = TRUE, levels = phase_order)
     )
   return(df_w_order)
 }
