@@ -88,7 +88,7 @@ make_fig2_hosp_t <- function(hosp_quantiles,
       legend.position = "top",
       legend.justification = "left"
     ) +
-    labs(color = "Model")
+    labs(color = "Model", fill = "Model")
 
   return(p)
 }
@@ -159,19 +159,22 @@ make_fig2_ct <- function(ww_quantiles,
     geom_line(
       aes(
         x = date, y = `0.5`
-      )
+      ),
+      color = "#00BFC4"
     ) +
     geom_ribbon(
       aes(
         x = date, ymin = `0.025`, ymax = `0.975`
       ),
       alpha = 0.1,
+      fill = "#00BFC4",
       show.legend = FALSE
     ) +
     geom_ribbon(
       aes(
         x = date, ymin = `0.25`, ymax = `0.75`,
       ),
+      fill = "#00BFC4",
       alpha = 0.1,
       show.legend = FALSE
     ) +
@@ -189,9 +192,7 @@ make_fig2_ct <- function(ww_quantiles,
       date_breaks = "2 weeks",
       labels = scales::date_format("%Y-%m-%d")
     ) +
-    get_plot_theme(x_axis_dates = TRUE) #+
-  # scale_fill_brewer(palette = 2) +
-  # scale_fill_discrete(palette = 2)
+    get_plot_theme(x_axis_dates = TRUE)
   return(p)
 }
 
@@ -213,8 +214,12 @@ make_fig2 <- function(hosp1, hosp2, hosp3,
     hosp2 + ct2 +
     hosp3 + ct3 +
     patchwork::plot_layout(
+      guides = "collect",
       nrow = 3, ncol = 2,
       axes = "collect",
       widths = c(1, 1.5)
-    )
+    ) & theme(
+    legend.position = "top",
+    legend.justification = "left"
+  )
 }

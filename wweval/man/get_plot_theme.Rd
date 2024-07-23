@@ -5,9 +5,14 @@
 \title{Get standardized plot theme to add to figures}
 \usage{
 get_plot_theme(
-  x_axis_text_size = 8,
-  x_axis_title_size = 10,
-  y_axis_title_size = 10,
+  x_axis_text_size = 6,
+  y_axis_text_size = 8,
+  x_axis_title_size = 12,
+  y_axis_title_size = 12,
+  legend_title_size = 10,
+  legend_text_size = 10,
+  facet_x_text_size = 8,
+  facet_y_text_size = 8,
   plot_title_size = 10,
   x_axis_dates = FALSE
 )
@@ -16,11 +21,23 @@ get_plot_theme(
 \item{x_axis_text_size}{integer indicating the size of x axis text, to be
 passed to theme. Default is \code{8}}
 
+\item{y_axis_text_size}{integer indicating the size of y axis text, to be
+passed to theme. Default is \code{8}}
+
 \item{x_axis_title_size}{integer indicating the size of x axis title, to be
 passed to theme. Default is \code{10}}
 
 \item{y_axis_title_size}{integer indicating the size of y axis title, to be
 passed to theme. Default is \code{10}}
+
+\item{legend_title_size}{integer indicating the size of the legend items
+Default is \code{10}}
+
+\item{facet_x_text_size}{integer indicating the size of facet title on the
+x-xaxis, to be passed to theme. Default is \code{8}}
+
+\item{facet_y_text_size}{integer indicating the size of facet title on the
+x-xaxis, to be passed to theme. Default is \code{8}}
 
 \item{plot_title_size}{integer indicating thesize of plot title, to be passed
 to theme. Default is \code{10}}
