@@ -6,6 +6,7 @@
 \usage{
 get_plot_theme(
   x_axis_text_size = 8,
+  y_axis_text_size = 8,
   x_axis_title_size = 10,
   y_axis_title_size = 10,
   plot_title_size = 10,
@@ -14,6 +15,9 @@ get_plot_theme(
 }
 \arguments{
 \item{x_axis_text_size}{integer indicating the size of x axis text, to be
+passed to theme. Default is \code{8}}
+
+\item{y_axis_text_size}{integer indicating the size of y axis text, to be
 passed to theme. Default is \code{8}}
 
 \item{x_axis_title_size}{integer indicating the size of x axis title, to be
