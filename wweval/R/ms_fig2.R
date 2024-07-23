@@ -81,28 +81,15 @@ make_fig2_hosp_t <- function(hosp_quantiles,
       nrow = length(unique(quantiles_wide$location)),
       scales = "free_y"
     ) +
-    theme_bw() +
-    xlab("") +
-    ylab("Daily hospital admissions") +
-    scale_color_discrete() +
-    scale_fill_discrete() +
     scale_x_date(
       date_breaks = "2 weeks",
       labels = scales::date_format("%Y-%m-%d")
     ) +
-    theme_bw() +
-    theme(
-      axis.text.x = element_text(
-        size = 8, vjust = 1,
-        hjust = 1, angle = 45
-      ),
-      axis.title.x = element_text(size = 12),
-      axis.title.y = element_text(size = 10),
-      plot.title = element_text(
-        size = 10,
-        vjust = 0.5, hjust = 0.5
-      )
-    )
+    xlab("") +
+    ylab("Daily hospital admissions") +
+    scale_color_discrete() +
+    scale_fill_discrete() +
+    get_plot_theme(x_axis_dates = TRUE)
 
   return(p)
 }
