@@ -60,11 +60,13 @@ make_fig4_crps_density <- function(scores,
   ) +
     geom_boxplot(alpha = 0.3) +
     geom_hline(aes(yintercept = 1), linetype = "dashed") +
-    ggtitle("CRPS across forecast dates") +
     xlab("") +
-    ylab("Relative CRPS, lower is better") +
+    ylab("Relative CRPS") +
     scale_y_continuous(trans = "log") +
-    get_plot_theme(x_axis_dates = TRUE)
+    get_plot_theme(
+      x_axis_dates = TRUE,
+      y_axis_title_size = 8
+    )
 
   return(p)
 }
@@ -205,10 +207,9 @@ make_fig4_rel_crps_by_location <- function(scores,
     geom_boxplot(alpha = 0.3) +
     geom_hline(aes(yintercept = 1), linetype = "dashed") +
     theme_bw() +
-    get_plot_theme() +
-    ggtitle("Distribution of CRPS by location, across forecast dates") +
+    get_plot_theme(y_axis_title_size = 8) +
     xlab("") +
-    ylab("Relative CRPS, lower is better") +
+    ylab("Relative CRPS") +
     scale_y_continuous(trans = "log10")
 
 
@@ -267,17 +268,25 @@ make_fig4_rel_crps_overall <- function(scores,
     order_horizons()
 
 
-  p <- ggplot(relative_crps, aes(
-    x = horizon, y = rel_crps, color = horizon,
-    fill = horizon
-  )) +
-    geom_violin(alpha = 0.3) +
+  p <- ggplot(relative_crps) +
+    tidybayes::stat_halfeye(
+      aes(
+        x = horizon, y = rel_crps,
+        fill = horizon
+      ),
+      point_interval = "mean_qi",
+      alpha = 0.5,
+      position = position_dodge(width = 0.75)
+    ) +
     geom_hline(aes(yintercept = 1), linetype = "dashed") +
-    ggtitle("Distribution of CRPS across location and forecast dates") +
     ylab("") +
-    xlab("Relative CRPS, lower is better") +
+    xlab("Relative CRPS") +
     scale_y_continuous(trans = "log") +
-    get_plot_theme()
+    get_plot_theme(
+      y_axis_title_size = 8,
+      x_axis_title_size = 8
+    ) +
+    scale_fill_brewer(palette = "Set2")
 
   return(p)
 }
@@ -298,8 +307,12 @@ make_qq_plot_overall <- function(scores_quantiles) {
     data.table::as.data.table() |>
     scoringutils::summarise_scores(by = c("model", "quantile")) |>
     scoringutils::plot_quantile_coverage() +
-    ggtitle(glue::glue("QQ plot")) +
-    get_plot_theme()
+    # ggtitle(glue::glue("QQ plot")) +
+    get_plot_theme(
+      y_axis_title_size = 8,
+      x_axis_title_size = 8
+    ) +
+    labs(color = "Model")
 
   return(p)
 }
@@ -330,14 +343,18 @@ make_plot_coverage_range <- function(scores_quantiles, ranges) {
   coverage_summarized <- scores_by_horizon |>
     dplyr::filter(quantile %in% c(!!ranges / 100)) |>
     dplyr::group_by(horizon, model, quantile) |>
-    dplyr::summarise(pct_coverage = 100 * mean(coverage))
+    dplyr::summarise(pct_coverage = 100 * mean(coverage)) |>
+    order_horizons()
 
   if (nrow(coverage_summarized |> dplyr::filter(is.na(horizon))) > 0) {
     warning("Horizon is missing for some data points")
   }
 
   coverage_summarized <- coverage_summarized |>
-    dplyr::filter(!is.na(horizon))
+    dplyr::filter(!is.na(horizon)) |>
+    dplyr::mutate(
+      named_facet = glue::glue("{round(100*quantile)}%")
+    )
 
 
   p <- ggplot(coverage_summarized) +
@@ -348,13 +365,17 @@ make_plot_coverage_range <- function(scores_quantiles, ranges) {
     geom_line() +
     geom_point() +
     geom_hline(aes(yintercept = 100 * quantile), linetype = "dashed") +
-    facet_wrap(~quantile, scales = "free_y") +
+    facet_wrap(~named_facet, scales = "free_y", ncol = 1) +
     labs(
       y = "Proportion of data within forecast interval",
-      x = "Forecast horizon (weeks)",
+      x = "Forecast horizon",
       col = "Model"
     ) +
-    get_plot_theme()
+    scale_y_continuous(expand = expansion(c(0, 0.2))) +
+    get_plot_theme(
+      y_axis_title_size = 8,
+      x_axis_title_size = 8
+    )
   return(p)
 }
 
@@ -398,20 +419,24 @@ make_fig4_rel_crps_by_phase <- function(scores) {
     order_horizons() |>
     dplyr::filter(!is.na(phase)) # Exclude NAs in plot
 
-  p <- ggplot(
-    relative_crps,
-    aes(
-      x = as.factor(phase), y = rel_crps, color = phase,
-      fill = phase
-    )
-  ) +
-    geom_violin(alpha = 0.3) +
+  p <- ggplot(relative_crps) +
+    tidybayes::stat_halfeye(
+      aes(
+        x = as.factor(phase), y = rel_crps,
+        fill = phase
+      ),
+      point_interval = "mean_qi",
+      alpha = 0.5,
+      position = position_dodge(width = 0.75)
+    ) +
     geom_hline(aes(yintercept = 1), linetype = "dashed") +
-    ggtitle("CRPS across forecast dates") +
     xlab("Epidemic phase") +
-    ylab("Relative CRPS, lower is better") +
+    ylab("Relative CRPS") +
     scale_y_continuous(trans = "log") +
-    get_plot_theme()
+    get_plot_theme(
+      x_axis_title_size = 8,
+      y_axis_title_size = 8
+    )
 
 
   return(p)

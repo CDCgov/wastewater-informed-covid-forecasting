@@ -25,7 +25,7 @@
 #' @return a theme object to add to a [ggplot2::ggplot()] object to specify
 #' line size and formatting
 #' @export
-get_plot_theme <- function(x_axis_text_size = 6,
+get_plot_theme <- function(x_axis_text_size = 8,
                            y_axis_text_size = 8,
                            x_axis_title_size = 12,
                            y_axis_title_size = 12,
@@ -63,7 +63,7 @@ get_plot_theme <- function(x_axis_text_size = 6,
     ww_theme <- ww_theme +
       theme(
         axis.text.x = element_text(
-          size = x_axis_text_size, vjust = 1,
+          size = x_axis_text_size - 2, vjust = 1,
           hjust = 1, angle = 45
         )
       )

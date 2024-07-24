@@ -77,3 +77,31 @@ fig3 <- fig3_crps_single_loc1 + fig3_forecast_comparison_nowcast1 +
 fig3
 
 # Fig 4 combined ------------------------------------------------------
+tar_load(fig4_rel_crps_by_phase)
+tar_load(fig4_rel_crps_overall)
+tar_load(fig4_rel_crps_over_time)
+tar_load(fig4_rel_crps_by_location)
+tar_load(fig4_qq_plot_overall)
+tar_load(fig4_plot_coverage_range)
+
+layout <- "
+AABB
+CCCC
+DDDD
+EFFF
+EFFF
+"
+
+fig4 <- fig4_rel_crps_overall + fig4_rel_crps_by_phase +
+  fig4_rel_crps_over_time +
+  fig4_rel_crps_by_location +
+  fig4_plot_coverage_range +
+  fig4_qq_plot_overall +
+  patchwork::plot_layout(
+    design = layout,
+    axes = "collect"
+  ) & theme(
+  legend.position = "top",
+  legend.justification = "left"
+)
+fig4
