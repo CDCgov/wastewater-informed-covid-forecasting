@@ -99,7 +99,8 @@ fig4 <- fig4_rel_crps_overall + fig4_rel_crps_by_phase +
   fig4_qq_plot_overall +
   patchwork::plot_layout(
     design = layout,
-    axes = "collect"
+    axes = "collect",
+    guides = "collect"
   ) & theme(
   legend.position = "top",
   legend.justification = "left"
