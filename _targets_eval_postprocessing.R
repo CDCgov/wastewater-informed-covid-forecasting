@@ -459,17 +459,18 @@ manuscript_figures <- list(
       date_to_plot = "2024-01-15"
     )
   ),
-  tar_target(
-    name = fig2,
-    command = make_fig2(
-      fig2_hosp_t_1,
-      fig2_hosp_t_2,
-      fig2_hosp_t_3,
-      fig2_ct_1,
-      fig2_ct_2,
-      fig2_ct_3
-    )
-  ),
+  ### Fig 2 combined--------------------------------------------
+  # tar_target(
+  #   name = fig2,
+  #   command = make_fig2(
+  #     fig2_hosp_t_1,
+  #     fig2_hosp_t_2,
+  #     fig2_hosp_t_3,
+  #     fig2_ct_1,
+  #     fig2_ct_2,
+  #     fig2_ct_3
+  #   )
+  # ),
 
   ## Fig 3-------------------------------------------------
   tar_target(
@@ -508,7 +509,8 @@ manuscript_figures <- list(
     command = make_fig3_crps_underlay_fig(
       scores_filtered,
       loc_to_plot = "MA",
-      horizon_to_plot = "nowcast"
+      horizon_to_plot = "nowcast",
+      days_to_shift = -10
     )
   ),
   tar_target(
@@ -516,7 +518,8 @@ manuscript_figures <- list(
     command = make_fig3_crps_underlay_fig(
       scores_filtered,
       loc_to_plot = "MA",
-      horizon_to_plot = "1 wk"
+      horizon_to_plot = "1 wk",
+      days_to_shift = 0
     )
   ),
   tar_target(
@@ -524,7 +527,8 @@ manuscript_figures <- list(
     command = make_fig3_crps_underlay_fig(
       scores_filtered,
       loc_to_plot = "MA",
-      horizon_to_plot = "4 wks"
+      horizon_to_plot = "4 wks",
+      days_to_shift = 21
     )
   ),
   ### Next loc--------------
@@ -540,7 +544,8 @@ manuscript_figures <- list(
     command = make_fig3_forecast_comp_fig(
       hosp_quantiles_filtered,
       loc_to_plot = "VA",
-      horizon_to_plot = "nowcast"
+      horizon_to_plot = "nowcast",
+      days_to_shift = -10
     )
   ),
   tar_target(
@@ -564,7 +569,8 @@ manuscript_figures <- list(
     command = make_fig3_crps_underlay_fig(
       scores_filtered,
       loc_to_plot = "VA",
-      horizon_to_plot = "nowcast"
+      horizon_to_plot = "nowcast",
+      days_to_shift = -10
     )
   ),
   tar_target(
@@ -572,7 +578,9 @@ manuscript_figures <- list(
     command = make_fig3_crps_underlay_fig(
       scores_filtered,
       loc_to_plot = "VA",
-      horizon_to_plot = "1 wk"
+      horizon_to_plot = "1 wk",
+      days_to_shift = 0
+      
     )
   ),
   tar_target(
@@ -580,7 +588,8 @@ manuscript_figures <- list(
     command = make_fig3_crps_underlay_fig(
       scores_filtered,
       loc_to_plot = "VA",
-      horizon_to_plot = "4 wks"
+      horizon_to_plot = "4 wks",
+      days_to_shift = 21
     )
   ),
   ### Next loc----
@@ -620,7 +629,8 @@ manuscript_figures <- list(
     command = make_fig3_crps_underlay_fig(
       scores_filtered,
       loc_to_plot = "WA",
-      horizon_to_plot = "nowcast"
+      horizon_to_plot = "nowcast",
+      days_to_shift = -10
     )
   ),
   tar_target(
@@ -628,7 +638,8 @@ manuscript_figures <- list(
     command = make_fig3_crps_underlay_fig(
       scores_filtered,
       loc_to_plot = "WA",
-      horizon_to_plot = "1 wk"
+      horizon_to_plot = "1 wk",
+      days_to_shift = 0
     )
   ),
   tar_target(
@@ -636,7 +647,8 @@ manuscript_figures <- list(
     command = make_fig3_crps_underlay_fig(
       scores_filtered,
       loc_to_plot = "WA",
-      horizon_to_plot = "4 wks"
+      horizon_to_plot = "4 wks",
+      days_to_shift = 21
     )
   )
   ### Fig3 combined---------------------------------------

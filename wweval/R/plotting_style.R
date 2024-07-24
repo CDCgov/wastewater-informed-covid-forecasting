@@ -10,7 +10,7 @@
 #' passed to theme. Default is `10`
 #' @param legend_title_size integer indicating the size of the legend title
 #' Default is `10`
-#' @param legend_title_size integer indicating the size of the legend items
+#' @param legend_text_size integer indicating the size of the legend items
 #' Default is `10`
 #' @param facet_x_text_size integer indicating the size of facet title on the
 #' x-xaxis, to be passed to theme. Default is `8`

@@ -41,20 +41,27 @@ make_fig3_single_loc_comp <- function(scores,
     ) |>
     order_horizons()
 
-  p <- ggplot(scores_comb, aes(
-    x = horizon, y = crps, fill = model
-  )) +
-    geom_violin(alpha = 0.3) +
+  p <- ggplot(scores_comb) +
+    tidybayes::stat_halfeye(
+      aes(
+        x = horizon, y = crps,
+        fill = model
+      ),
+      point_interval = "mean_qi",
+      alpha = 0.5,
+      position = position_dodge(width = 0.75)
+    ) +
     xlab("") +
-    ylab("CRPS scores") +
+    ylab("CRPS") +
     ggtitle(glue::glue(
       "{loc_to_plot}"
     )) +
     theme_bw() +
     scale_color_discrete() +
     scale_fill_discrete() +
-    get_plot_theme() +
-    scale_y_continuous(trans = "log10")
+    get_plot_theme(y_axis_title_size = 8) +
+    scale_y_continuous(trans = "log10") +
+    labs(color = "Model", fill = "Model")
 
   return(p)
 }
@@ -140,9 +147,14 @@ make_fig3_forecast_comp_fig <- function(hosp_quantiles,
     scale_fill_discrete() +
     scale_x_date(
       date_breaks = "2 weeks",
-      labels = scales::date_format("%Y-%m-%d")
+      labels = scales::date_format("%Y-%m-%d"),
+      limits = as.Date(c("2023-10-02", "2024-03-18"))
     ) +
-    get_plot_theme(x_axis_dates = TRUE)
+    get_plot_theme(
+      x_axis_dates = TRUE,
+      y_axis_title_size = 8
+    ) +
+    labs(color = "Model", fill = "Model")
 
   return(p)
 }
@@ -156,13 +168,17 @@ make_fig3_forecast_comp_fig <- function(hosp_quantiles,
 #' to plot
 #' @param horizon_to_plot A string indicating what horizon period to plot,
 #' one of `nowcast`, `1 wk`, or `4 wks`
+#' @param days_to_shift An integer corresponding to the number of days to shift
+#' the x axis of the underly plot to line up with the corresponding forecast
+#' horizon, default is 0
 #'
 #' @return A ggplot object containing a bar chart of the crps score averaged
 #' across the horizon for each forecast date, colored by the model type
 #' @export
 make_fig3_crps_underlay_fig <- function(scores,
                                         loc_to_plot,
-                                        horizon_to_plot) {
+                                        horizon_to_plot,
+                                        days_to_shift = 0) {
   scores_by_horizon <- scores |>
     dplyr::filter(location == !!loc_to_plot) |>
     data.table::as.data.table() |>
@@ -170,25 +186,30 @@ make_fig3_crps_underlay_fig <- function(scores,
       "forecast_date", "location",
       "model", "horizon"
     )) |>
-    dplyr::filter(horizon == !!horizon_to_plot)
+    dplyr::filter(horizon == !!horizon_to_plot) |>
+    dplyr::mutate(
+      forecast_date_shifted = lubridate::ymd(forecast_date) +
+        lubridate::days(days_to_shift)
+    )
 
   p <- ggplot(scores_by_horizon) +
-    geom_bar(aes(x = forecast_date, y = crps, fill = model),
+    geom_bar(aes(x = forecast_date_shifted, y = crps, fill = model),
       stat = "identity", position = "dodge", show.legend = FALSE
     ) +
     xlab("") +
     ylab("CRPS scores") +
-    ggtitle(glue::glue(
-      "{horizon_to_plot}"
-    )) +
     theme_bw() +
     scale_color_discrete() +
     scale_fill_discrete() +
     scale_x_date(
       date_breaks = "2 weeks",
-      labels = scales::date_format("%Y-%m-%d")
+      labels = scales::date_format("%Y-%m-%d"),
+      limits = as.Date(c("2023-10-02", "2024-03-18"))
     ) +
-    get_plot_theme(x_axis_dates = TRUE) +
+    get_plot_theme(
+      x_axis_dates = TRUE,
+      y_axis_title_size = 8
+    ) +
     scale_y_continuous(
       # don't expand y scale at the lower end
       expand = expansion(mult = c(0, 0.05))
