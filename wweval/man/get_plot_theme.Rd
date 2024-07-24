@@ -30,7 +30,10 @@ passed to theme. Default is \code{10}}
 \item{y_axis_title_size}{integer indicating the size of y axis title, to be
 passed to theme. Default is \code{10}}
 
-\item{legend_title_size}{integer indicating the size of the legend items
+\item{legend_title_size}{integer indicating the size of the legend title
+Default is \code{10}}
+
+\item{legend_text_size}{integer indicating the size of the legend items
 Default is \code{10}}
 
 \item{facet_x_text_size}{integer indicating the size of facet title on the
