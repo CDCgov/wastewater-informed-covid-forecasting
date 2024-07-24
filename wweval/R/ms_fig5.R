@@ -49,9 +49,12 @@ make_fig5_average_wis <- function(all_scores,
       x = forecast_date, y = interval_score,
       color = model
     )) +
-    xlab("Forecast date") +
+    xlab("") +
     ylab("Average WIS score across locations") +
-    get_plot_theme(x_axis_dates = TRUE) +
+    get_plot_theme(
+      x_axis_dates = TRUE,
+      y_axis_title_size = 8
+    ) +
     scale_x_date(
       date_breaks = "2 weeks",
       labels = scales::date_format("%Y-%m-%d")
@@ -159,10 +162,13 @@ make_fig5_hub_performance <- function(all_scores,
       position = position_dodge(width = 0.75)
     ) +
     coord_trans(ylim = c(0, 2)) +
-    get_plot_theme() +
-    xlab("Time period") +
-    ylab(glue::glue("Relative WIS compared to {baseline_model}")) +
-    ggtitle("Distribution of relative WIS across locations, horizons, and forecast dates")
+    get_plot_theme(
+      x_axis_dates = TRUE,
+      y_axis_title_size = 8
+    ) +
+    xlab("") +
+    ylab(glue::glue("Relative WIS compared to {baseline_model}"))
+
 
 
   return(p)
@@ -223,11 +229,11 @@ make_fig5_heatmap_relative_wis <- function(scores,
       x = model, y = short_name,
       label = round(relative_interval_score, 2)
     ), size = 2.5) +
-    get_plot_theme() +
+    get_plot_theme(x_axis_dates = TRUE) +
     xlab("") +
     ylab("") +
     labs(fill = "Relative WIS") +
-    ggtitle(glue::glue("Relative WIS compared to {baseline_model} from {time_period}"))
+    ggtitle(glue::glue("Relative WIS compared to {baseline_model} /n from {time_period}"))
 
 
   return(p)
@@ -328,7 +334,7 @@ make_fig5_density_rank <- function(scores,
     get_plot_theme() +
     scale_x_continuous(name = "Standardized rank", limits = c(0, 1)) +
     ylab("") +
-    ggtitle(glue::glue("Standardized rank plot for {time_period}"))
+    ggtitle(glue::glue("Standardized rank {time_period}"))
 
   return(p)
 }

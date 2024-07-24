@@ -20,6 +20,11 @@ fig2 <- fig2_hosp_t_1 + fig2_ct_1 +
   legend.justification = "left"
 )
 fig2
+fig2
+ggsave(fig4,
+  filename = file.path("output", "eval", "plots", "manuscript", "fig2.png"),
+  width = 10, height = 7
+)
 
 ## Fig 3 combined --------------------------------------------------------------
 tar_load(fig3_crps_single_loc1)
@@ -75,6 +80,10 @@ fig3 <- fig3_crps_single_loc1 + fig3_forecast_comparison_nowcast1 +
 )
 
 fig3
+ggsave(fig3,
+  filename = file.path("output", "eval", "plots", "manuscript", "fig3.png"),
+  width = 10, height = 7
+)
 
 # Fig 4 combined ------------------------------------------------------
 tar_load(fig4_rel_crps_by_phase)
@@ -130,7 +139,7 @@ FGH
 "
 fig5 <- fig5_overall_performance + fig5_plot_wis_over_time +
   fig5_heatmap_relative_wis_Feb_Mar + fig5_qq_plot_feb_mar +
-  fig5_std_rank_plot_feb_mar +
+  fig5_std_rank_feb_mar +
   fig5_heatmap_relative_wis_all_time + fig5_qq_plot_all_time +
   fig5_std_rank_all_time +
   patchwork::plot_layout(
@@ -142,8 +151,8 @@ fig5 <- fig5_overall_performance + fig5_plot_wis_over_time +
   legend.justification = "left"
 )
 
-fig4
-ggsave(fig4,
+fig5
+ggsave(fig5,
   filename = file.path("output", "eval", "plots", "manuscript", "fig5.png"),
-  width = 10, height = 7
+  width = 12, height = 12
 )
