@@ -8,7 +8,8 @@ make_qq_plot_overall(scores_quantiles)
 }
 \arguments{
 \item{scores_quantiles}{A tibble of scores by location, forecast date,
-date and model, the ouput of \code{scoringutils::score()} on the quantiles.}
+date and model, containing the outputs of \code{scoringutils::score()} on
+quantiles plus metadata transformed into a tibble.}
 }
 \value{
 a ggplot object with the overall QQ plot colored by model.

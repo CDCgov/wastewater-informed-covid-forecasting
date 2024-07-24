@@ -1,7 +1,8 @@
 #' Make head to head CRPS distribution comparison plot for a single location
 #'
 #' @param scores A tibble of scores by location, forecast date, date and model,
-#' the ouput of `scoringutils::score()` on samples.
+#' containing the outputs of `scoringutils::score()` on samples plus metadata
+#' transformed into a tibble.
 #' @param loc_to_plot A  string indicating the state abbreviations of the state
 #' to plot
 #' @param horizons_to_show A vector of strings indicating the names of the
@@ -19,13 +20,13 @@ make_fig3_single_loc_comp <- function(scores,
                                         "overall"
                                       )) {
   scores_by_horizon <- scores |>
-    dplyr::filter(location == loc_to_plot) |>
+    dplyr::filter(location == !!loc_to_plot) |>
     data.table::as.data.table() |>
     scoringutils::summarise_scores(by = c(
       "forecast_date", "location",
       "model", "horizon"
     )) |>
-    dplyr::filter(horizon %in% horizons_to_show)
+    dplyr::filter(horizon %in% !!horizons_to_show)
   scores_overall <- scores |>
     data.table::as.data.table() |>
     scoringutils::summarise_scores(by = c(
@@ -36,21 +37,9 @@ make_fig3_single_loc_comp <- function(scores,
 
   scores_comb <- dplyr::bind_rows(scores_by_horizon, scores_overall) |>
     dplyr::filter(
-      horizon %in% horizons_to_show
+      horizon %in% !!horizons_to_show
     ) |>
-    dplyr::mutate(
-      fig_order = dplyr::case_when(
-        horizon == "nowcast" ~ 1,
-        horizon == "1 wk" ~ 2,
-        horizon == "2 wks" ~ 3,
-        horizon == "3 wks" ~ 4,
-        horizon == "4 wks" ~ 5,
-        horizon == "overall" ~ 6
-      )
-    ) |>
-    dplyr::mutate(
-      horizon = forcats::fct_reorder(horizon, fig_order)
-    )
+    order_horizons()
 
   p <- ggplot(scores_comb, aes(
     x = horizon, y = crps, fill = model
@@ -91,14 +80,14 @@ make_fig3_forecast_comp_fig <- function(hosp_quantiles,
                                         horizon_to_plot,
                                         days_to_show_prev_data = 14) {
   hosp_quants_horizons <- hosp_quantiles |>
-    dplyr::filter(location == loc_to_plot) |>
+    dplyr::filter(location == !!loc_to_plot) |>
     dplyr::filter(date >=
       min(forecast_date) - lubridate::days(
-        days_to_show_prev_data
+        !!days_to_show_prev_data
       ))
 
   hosp <- hosp_quants_horizons |>
-    dplyr::filter(horizon == horizon_to_plot) |>
+    dplyr::filter(horizon == !!horizon_to_plot) |>
     dplyr::filter(quantile %in% c(0.025, 0.25, 0.5, 0.75, 0.975)) |>
     tidyr::pivot_wider(
       id_cols = c(
@@ -116,57 +105,31 @@ make_fig3_forecast_comp_fig <- function(hosp_quantiles,
       fill = "black", size = 1, shape = 21,
       show.legend = FALSE
     ) +
-    geom_line(
-      data = hosp |> dplyr::filter(model_type == "ww"),
-      aes(
-        x = date, y = `0.5`, group = forecast_date
-      ),
-      color = "#00BFC4"
-    ) +
     geom_ribbon(
-      data = hosp |> dplyr::filter(model_type == "ww"),
+      data = hosp,
       aes(
         x = date, ymin = `0.025`, ymax = `0.975`,
-        group = as.character(forecast_date)
+        group = interaction(forecast_date, model_type),
+        fill = model_type
       ), alpha = 0.1,
-      fill = "#00BFC4",
       show.legend = FALSE
     ) +
     geom_ribbon(
-      data = hosp |> dplyr::filter(model_type == "ww"),
+      data = hosp,
       aes(
         x = date, ymin = `0.25`, ymax = `0.75`,
-        group = as.factor(forecast_date)
-      ),
-      alpha = 0.1,
-      fill = "#00BFC4",
+        group = interaction(forecast_date, model_type),
+        fill = model_type
+      ), alpha = 0.1,
       show.legend = FALSE
     ) +
     geom_line(
-      data = hosp |> dplyr::filter(model_type == "hosp"),
+      data = hosp,
       aes(
-        x = date, y = `0.5`, group = forecast_date
+        x = date, y = `0.5`,
+        group = interaction(forecast_date, model_type),
+        color = model_type,
       ),
-      color = "#F8766D"
-    ) +
-    geom_ribbon(
-      data = hosp |> dplyr::filter(model_type == "hosp"),
-      aes(
-        x = date, ymin = `0.025`, ymax = `0.975`,
-        group = as.character(forecast_date)
-      ), alpha = 0.1,
-      fill = "#F8766D",
-      show.legend = FALSE
-    ) +
-    geom_ribbon(
-      data = hosp |> dplyr::filter(model_type == "ww"),
-      aes(
-        x = date, ymin = `0.25`, ymax = `0.75`,
-        group = as.factor(forecast_date)
-      ),
-      fill = "#F8766D",
-      alpha = 0.1,
-      show.legend = FALSE
     ) +
     xlab("") +
     ylab("Daily hospital admissions") +
@@ -187,7 +150,8 @@ make_fig3_forecast_comp_fig <- function(hosp_quantiles,
 #' Make CRPS underlay figure
 #'
 #' @param scores A tibble of scores by location, forecast date, date and model,
-#' the ouput of `scoringutils::score()` on samples.
+#' containing the outputs of `scoringutils::score()` on samples plus metadata
+#' transformed into a tibble.
 #' @param loc_to_plot A  string indicating the state abbreviations of the state
 #' to plot
 #' @param horizon_to_plot A string indicating what horizon period to plot,
@@ -200,17 +164,17 @@ make_fig3_crps_underlay_fig <- function(scores,
                                         loc_to_plot,
                                         horizon_to_plot) {
   scores_by_horizon <- scores |>
-    dplyr::filter(location == loc_to_plot) |>
+    dplyr::filter(location == !!loc_to_plot) |>
     data.table::as.data.table() |>
     scoringutils::summarise_scores(by = c(
       "forecast_date", "location",
       "model", "horizon"
     )) |>
-    dplyr::filter(horizon == horizon_to_plot)
+    dplyr::filter(horizon == !!horizon_to_plot)
 
   p <- ggplot(scores_by_horizon) +
     geom_bar(aes(x = forecast_date, y = crps, fill = model),
-      stat = "identity", position = "dodge"
+      stat = "identity", position = "dodge", show.legend = FALSE
     ) +
     xlab("") +
     ylab("CRPS scores") +

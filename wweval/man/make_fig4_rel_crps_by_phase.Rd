@@ -4,18 +4,12 @@
 \alias{make_fig4_rel_crps_by_phase}
 \title{Make figure that stratifies scores by epidemic phase across}
 \usage{
-make_fig4_rel_crps_by_phase(
-  scores,
-  horizons_to_show = c("nowcast", "1 wk", "4 wks", "overall")
-)
+make_fig4_rel_crps_by_phase(scores)
 }
 \arguments{
 \item{scores}{A tibble of scores by location, forecast date, date and model,
-the ouput of \code{scoringutils::score()} on samples.}
-
-\item{horizons_to_show}{A vector of strings indicating the names of the
-\code{horizon} that we want to show on the plot, must be a subset of
-\code{nowcast}, \verb{1 wk}, \verb{2 wks},\verb{3 wks}, \verb{4 wks} and \code{overall}}
+containing the outputs of \code{scoringutils::score()} on samples plus metadata
+transformed into a tibble.}
 }
 \value{
 A ggplot object containing plots of the distribution of relative
