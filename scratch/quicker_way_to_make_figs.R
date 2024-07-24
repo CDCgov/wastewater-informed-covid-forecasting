@@ -7,7 +7,7 @@ tar_load(fig2_hosp_t_2)
 tar_load(fig2_hosp_t_3)
 
 
-Fig2 <- fig2_hosp_t_1 + fig2_ct_1 +
+fig2 <- fig2_hosp_t_1 + fig2_ct_1 +
   fig2_hosp_t_2 + fig2_ct_2 +
   fig2_hosp_t_3 + fig2_ct_3 +
   patchwork::plot_layout(
@@ -19,7 +19,7 @@ Fig2 <- fig2_hosp_t_1 + fig2_ct_1 +
   legend.position = "top",
   legend.justification = "left"
 )
-Fig2
+fig2
 
 ## Fig 3 combined --------------------------------------------------------------
 tar_load(fig3_crps_single_loc1)
@@ -53,7 +53,7 @@ HLMN
 OPQR
 OSTU
 "
-Fig3 <- fig3_crps_single_loc1 + fig3_forecast_comparison_nowcast1 +
+fig3 <- fig3_crps_single_loc1 + fig3_forecast_comparison_nowcast1 +
   fig3_forecast_comparison_1wk1 +
   fig3_forecast_comparison_4wks1 + fig3_crps_underlay_nowcast1 +
   fig3_crps_underlay_1wk1 + fig3_crps_underlay_4wks1 +
@@ -74,4 +74,6 @@ Fig3 <- fig3_crps_single_loc1 + fig3_forecast_comparison_nowcast1 +
   legend.justification = "left"
 )
 
-Fig3
+fig3
+
+# Fig 4 combined ------------------------------------------------------

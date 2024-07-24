@@ -136,6 +136,7 @@ make_fig3_forecast_comp_fig <- function(hosp_quantiles,
         x = date, y = `0.5`,
         group = interaction(forecast_date, model_type),
         color = model_type,
+        show.legend = FALSE
       ),
     ) +
     xlab("") +
@@ -152,9 +153,9 @@ make_fig3_forecast_comp_fig <- function(hosp_quantiles,
     ) +
     get_plot_theme(
       x_axis_dates = TRUE,
-      y_axis_title_size = 8
+      y_axis_title_size = 6
     ) +
-    labs(color = "Model", fill = "Model")
+    guides(fill = "none", color = "none")
 
   return(p)
 }
@@ -217,4 +218,88 @@ make_fig3_crps_underlay_fig <- function(scores,
 
 
   return(p)
+}
+
+#' Title
+#'
+#' @param fig3_crps_single_loc1 first states crps density plot
+#' @param fig3_forecast_comparison_nowcast1 first states nowcast comparison
+#' @param fig3_forecast_comparison_1wk1 first states 1 wk forecast comparison
+#' @param fig3_forecast_comparison_4wks1 first states 4 wk forecast comparison
+#' @param fig3_crps_underlay_nowcast1 first states crps nowcast underlay
+#' @param fig3_crps_underlay_1wk1 first states crps 1 wk underlay
+#' @param fig3_crps_underlay_4wks1 first states crps 4wk underlay
+#' @param fig3_crps_single_loc2 second states crps density plot
+#' @param fig3_forecast_comparison_nowcast2 second states nowcast comparison
+#' @param fig3_forecast_comparison_1wk2 second states 1 wk forecast comparison
+#' @param fig3_forecast_comparison_4wks2 second states 4 wk forecast comparison
+#' @param fig3_crps_underlay_nowcast2 second states crps nowcast underlay
+#' @param fig3_crps_underlay_1wk2 second states crps 1 wk underlay
+#' @param fig3_crps_underlay_4wks2 second states crps 4wk underlay
+#' @param fig3_crps_single_loc3 first state's crps density plot
+#' @param fig3_forecast_comparison_nowcast3 third states nowcast comparison
+#' @param fig3_forecast_comparison_1wk3 third states 1 wk forecast comparison
+#' @param fig3_forecast_comparison_4wks3 third states 4 wk forecast comparison
+#' @param fig3_crps_underlay_nowcast3 third states crps nowcast underlay
+#' @param fig3_crps_underlay_1wk3 third states crps 1 wk underlay
+#' @param fig3_crps_underlay_4wks3 third states crps 4wk underlay
+#'
+#' @return ggplot object that is a combination of 3 states overall crps
+#' distributions comparing the two model types +
+#' forecast comparisons across horizons with an underlay indicating the crps
+#' score
+#' @export
+make_fig3 <- function(fig3_crps_single_loc1,
+                      fig3_forecast_comparison_nowcast1, # nolint
+                      fig3_forecast_comparison_1wk1,
+                      fig3_forecast_comparison_4wks1,
+                      fig3_crps_underlay_nowcast1,
+                      fig3_crps_underlay_1wk1,
+                      fig3_crps_underlay_4wks1,
+                      fig3_crps_single_loc2,
+                      fig3_forecast_comparison_nowcast2, # nolint
+                      fig3_forecast_comparison_1wk2,
+                      fig3_forecast_comparison_4wks2,
+                      fig3_crps_underlay_nowcast2,
+                      fig3_crps_underlay_1wk2,
+                      fig3_crps_underlay_4wks2,
+                      fig3_crps_single_loc3,
+                      fig3_forecast_comparison_nowcast3, # nolint
+                      fig3_forecast_comparison_1wk3,
+                      fig3_forecast_comparison_4wks3,
+                      fig3_crps_underlay_nowcast3,
+                      fig3_crps_underlay_1wk3,
+                      fig3_crps_underlay_4wks3) {
+  layout <- "
+ABCD
+AEFG
+HIJK
+HLMN
+OPQR
+OSTU
+"
+  fig3 <- fig3_crps_single_loc1 + fig3_forecast_comparison_nowcast1 +
+    fig3_forecast_comparison_1wk1 +
+    fig3_forecast_comparison_4wks1 + fig3_crps_underlay_nowcast1 +
+    fig3_crps_underlay_1wk1 + fig3_crps_underlay_4wks1 +
+    fig3_crps_single_loc2 + fig3_forecast_comparison_nowcast2 +
+    fig3_forecast_comparison_1wk2 +
+    fig3_forecast_comparison_4wks2 + fig3_crps_underlay_nowcast2 +
+    fig3_crps_underlay_1wk2 + fig3_crps_underlay_4wks2 +
+    fig3_crps_single_loc3 + fig3_forecast_comparison_nowcast3 +
+    fig3_forecast_comparison_1wk3 +
+    fig3_forecast_comparison_4wks3 + fig3_crps_underlay_nowcast3 +
+    fig3_crps_underlay_1wk3 + fig3_crps_underlay_4wks3 +
+    patchwork::plot_layout(
+      design = layout,
+      guides = "collect",
+      axes = "collect"
+    ) & theme(
+    legend.position = "top",
+    legend.justification = "left"
+  )
+
+  fig3
+
+  return(fig3)
 }

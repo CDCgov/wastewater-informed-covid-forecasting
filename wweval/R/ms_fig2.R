@@ -210,7 +210,7 @@ make_fig2_ct <- function(ww_quantiles,
 #' @export
 make_fig2 <- function(hosp1, hosp2, hosp3,
                       ct1, ct2, ct3) {
-  patch <- hosp1 + ct1 +
+  fig2 <- hosp1 + ct1 +
     hosp2 + ct2 +
     hosp3 + ct3 +
     patchwork::plot_layout(
@@ -222,5 +222,5 @@ make_fig2 <- function(hosp1, hosp2, hosp3,
     legend.position = "top",
     legend.justification = "left"
   )
-  return(patch)
+  return(fig2)
 }
