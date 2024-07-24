@@ -34,26 +34,22 @@ make_fig4_crps_density <- function(scores,
   scores_comb <- dplyr::bind_rows(scores_by_horizon, scores_overall) |>
     dplyr::filter(
       horizon %in% !!horizons_to_show
-    ) |>
-    order_horizons()
+    )
 
   relative_crps <- scores_comb |>
     dplyr::select(
-      location, forecast_date, model, horizon,
-      fig_order, crps
+      location, forecast_date, model, horizon, crps
     ) |>
     dplyr::filter(!is.na(horizon)) |>
     tidyr::pivot_wider(
       names_from = model,
       values_from = crps,
-      id_cols = c(location, forecast_date, horizon, fig_order)
+      id_cols = c(location, forecast_date, horizon)
     ) |>
     dplyr::mutate(
       rel_crps = ww / hosp
     ) |>
-    dplyr::mutate(
-      horizon = forcats::fct_reorder(horizon, fig_order)
-    )
+    order_horizons()
 
   p <- ggplot(
     relative_crps,
@@ -62,7 +58,7 @@ make_fig4_crps_density <- function(scores,
       fill = horizon
     )
   ) +
-    geom_violin(alpha = 0.3) +
+    geom_boxplot(alpha = 0.3) +
     geom_hline(aes(yintercept = 1), linetype = "dashed") +
     theme_bw() +
     theme(
@@ -109,7 +105,6 @@ make_fig4_pct_better_w_ww <- function(scores,
       "forecast_date", "location",
       "model"
     )) |>
-    tibble::as_tibble() |>
     tidyr::pivot_wider(
       id_cols = c(
         forecast_date, location
@@ -207,30 +202,27 @@ make_fig4_rel_crps_by_location <- function(scores,
   scores_comb <- dplyr::bind_rows(scores_by_horizon, scores_overall) |>
     dplyr::filter(
       horizon %in% !!horizons_to_show
-    ) |>
-    order_horizons()
+    )
 
   relative_crps <- scores_comb |>
-    dplyr::select(location, forecast_date, model, horizon, fig_order, crps) |>
+    dplyr::select(location, forecast_date, model, horizon, crps) |>
     dplyr::filter(!is.na(horizon)) |>
     tidyr::pivot_wider(
       names_from = model,
       values_from = crps,
-      id_cols = c(location, forecast_date, horizon, fig_order)
+      id_cols = c(location, forecast_date, horizon)
     ) |>
     dplyr::mutate(
       rel_crps = ww / hosp
     ) |>
-    dplyr::mutate(
-      horizon = forcats::fct_reorder(horizon, fig_order)
-    )
+    order_horizons()
 
 
   p <- ggplot(relative_crps, aes(
     x = location, y = rel_crps, color = horizon,
     fill = horizon
   )) +
-    geom_violin(alpha = 0.3) +
+    geom_boxplot(alpha = 0.3) +
     geom_hline(aes(yintercept = 1), linetype = "dashed") +
     theme_bw() +
     theme(
@@ -289,23 +281,20 @@ make_fig4_rel_crps_overall <- function(scores,
   scores_comb <- dplyr::bind_rows(scores_by_horizon, scores_overall) |>
     dplyr::filter(
       horizon %in% !!horizons_to_show
-    ) |>
-    order_horizons()
+    )
 
   relative_crps <- scores_comb |>
-    dplyr::select(location, forecast_date, model, horizon, fig_order, crps) |>
+    dplyr::select(location, forecast_date, model, horizon, crps) |>
     dplyr::filter(!is.na(horizon)) |>
     tidyr::pivot_wider(
       names_from = model,
       values_from = crps,
-      id_cols = c(location, forecast_date, fig_order, horizon)
+      id_cols = c(location, forecast_date, horizon)
     ) |>
     dplyr::mutate(
       rel_crps = ww / hosp
     ) |>
-    dplyr::mutate(
-      horizon = forcats::fct_reorder(horizon, fig_order)
-    )
+    order_horizons()
 
 
   p <- ggplot(relative_crps, aes(
@@ -379,11 +368,17 @@ make_plot_coverage_range <- function(scores_quantiles, ranges) {
         TRUE ~ NA
       )
     )
-
   coverage_summarized <- scores_by_horizon |>
     dplyr::filter(quantile %in% c(!!ranges / 100)) |>
     dplyr::group_by(horizon, model, quantile) |>
     dplyr::summarise(pct_coverage = 100 * mean(coverage))
+
+  if (nrow(coverage_summarized |> dplyr::filter(is.na(horizon))) > 0) {
+    warning("Horizon is missing for some data points")
+  }
+
+  coverage_summarized <- coverage_summarized |>
+    dplyr::filter(!is.na(horizon))
 
 
   p <- ggplot(coverage_summarized) +
@@ -429,28 +424,26 @@ make_fig4_rel_crps_by_phase <- function(scores) {
 
   relative_crps <- scores_w_fig_order |>
     dplyr::select(
-      location, date, forecast_date, model, horizon,
-      fig_order, phase, crps
+      location, date, forecast_date, model, horizon, phase, crps
     ) |>
     dplyr::filter(!is.na(horizon)) |>
     tidyr::pivot_wider(
       names_from = model,
       values_from = crps,
-      id_cols = c(location, date, forecast_date, fig_order, horizon, phase)
+      id_cols = c(location, date, forecast_date, horizon, phase)
     ) |>
     dplyr::mutate(
       rel_crps = ww / hosp
     ) |>
-    dplyr::mutate(
-      horizon = forcats::fct_reorder(horizon, fig_order)
-    ) |>
+    order_phases() |>
+    order_horizons() |>
     dplyr::filter(!is.na(phase)) # Exclude NAs in plot
 
   p <- ggplot(
     relative_crps,
     aes(
-      x = as.factor(phase), y = rel_crps, color = horizon,
-      fill = horizon
+      x = as.factor(phase), y = rel_crps, color = phase,
+      fill = phase
     )
   ) +
     geom_violin(alpha = 0.3) +
@@ -468,10 +461,12 @@ make_fig4_rel_crps_by_phase <- function(scores) {
         vjust = 0.5, hjust = 0.5
       )
     ) +
-    ggtitle("CRPS across forecast dates") +
+    ggtitle("CRPS across forecast dates and locations") +
     xlab("Epidemic phase") +
     ylab("Relative CRPS, lower is better") +
-    scale_y_continuous(trans = "log")
+    scale_y_continuous(trans = "log") +
+    scale_fill_brewer(palette = "Set2") +
+    scale_color_brewer(palette = "Set2")
 
   return(p)
 }
