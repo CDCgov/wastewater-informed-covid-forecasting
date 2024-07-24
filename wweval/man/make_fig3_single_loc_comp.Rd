@@ -12,7 +12,8 @@ make_fig3_single_loc_comp(
 }
 \arguments{
 \item{scores}{A tibble of scores by location, forecast date, date and model,
-the ouput of \code{scoringutils::score()} on samples.}
+containing the outputs of \code{scoringutils::score()} on samples plus metadata
+transformed into a tibble.}
 
 \item{loc_to_plot}{A  string indicating the state abbreviations of the state
 to plot}

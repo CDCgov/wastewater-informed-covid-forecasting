@@ -9,7 +9,8 @@ make_fig4_pct_better_w_ww(scores, eval_hosp_data, days_to_show_prev_data = 14)
 }
 \arguments{
 \item{scores}{A tibble of scores by location, forecast date, date and model,
-the ouput of \code{scoringutils::score()} on samples.}
+containing the outputs of \code{scoringutils::score()} on samples plus metadata
+transformed into a tibble.}
 
 \item{eval_hosp_data}{The retrospective hospital admissions data for each
 state and for all dates, used to generate national hospital admissions}

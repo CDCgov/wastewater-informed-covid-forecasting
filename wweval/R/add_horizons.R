@@ -39,8 +39,8 @@ add_horizons <- function(df) {
 #'
 #' @param df A tibble containing the following columns: `forecast_date`,
 #' `location`,`date`, `calib_data`.
-#' `calib_data` should be `NA` for any dates for which there was 
-#'  not hospital admissions data to fit to. 
+#' `calib_data` should be `NA` for any dates for which there was
+#'  not hospital admissions data to fit to.
 #'
 #' @return A tibble with that maps the unique combinations of `location` and
 #' `forecast` date to the last hospital admissions data date
@@ -56,4 +56,31 @@ get_last_hosp_data_date_map <- function(df) {
     dplyr::ungroup()
 
   return(map)
+}
+
+#' Get the order of the categorical horizons for plotting
+#'
+#' @param df a dataframe containing the column name `horizon` which will
+#' contain character strings indicating the horizon (by week, nowcast period,
+#' or overall) of the score/quantile/sample.
+#'
+#' @return a dataframe containing the same columns as `df` but with the
+#' addition of `fig_order` and reordered in terms of `fig_order` for plotting.
+#' @export
+order_horizons <- function(df) {
+  horizon_order <- c(
+    "nowcast",
+    "1 wk",
+    "2 wks",
+    "3 wks",
+    "4 wks",
+    "overall"
+  )
+
+  df_w_order <- df |>
+    dplyr::mutate(
+      horizon = factor(horizon, ordered = TRUE, levels = horizon_order)
+    )
+
+  return(df_w_order)
 }

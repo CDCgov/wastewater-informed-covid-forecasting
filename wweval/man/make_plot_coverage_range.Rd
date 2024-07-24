@@ -8,7 +8,8 @@ make_plot_coverage_range(scores_quantiles, ranges)
 }
 \arguments{
 \item{scores_quantiles}{A tibble of scores by location, forecast date,
-date and model, the ouput of \code{scoringutils::score()} on the quantiles.}
+date and model, containing the outputs of \code{scoringutils::score()} on
+quantiles plus metadata transformed into a tibble.}
 
 \item{ranges}{A numeric vector of credible interval ranges to plot.}
 }

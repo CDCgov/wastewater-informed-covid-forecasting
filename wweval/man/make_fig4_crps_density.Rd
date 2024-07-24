@@ -11,7 +11,8 @@ make_fig4_crps_density(
 }
 \arguments{
 \item{scores}{A tibble of scores by location, forecast date, date and model,
-the ouput of \code{scoringutils::score()} on samples.}
+containing the outputs of \code{scoringutils::score()} on samples plus metadata
+transformed into a tibble.}
 
 \item{horizons_to_show}{A vector of strings indicating the names of the
 \code{horizon} that we want to show on the plot, must be a subset of
