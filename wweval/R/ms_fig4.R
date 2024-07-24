@@ -354,7 +354,7 @@ make_qq_plot_overall <- function(scores_quantiles) {
       y_axis_title_size = 8,
       x_axis_title_size = 8
     ) +
-    labs(ylab = "Percet of data within forecast interval") +
+    labs(ylab = "Percent of data within forecast interval") +
     theme(legend.position = "none")
 
   return(p)
