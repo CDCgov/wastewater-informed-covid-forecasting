@@ -678,12 +678,19 @@ manuscript_figures <- list(
   #   )
   # )
 
+  
 
   ## Fig 4------------------------------------------------
   tar_target(
     name = fig4_rel_crps_over_time,
     command = make_fig4_crps_density(
       scores_filtered
+    )
+  ),
+  tar_target(
+    name = fig4_ntl_admissions,
+    command = make_fig4_admissions_overall(
+      eval_hosp_data
     )
   ),
   tar_target(
