@@ -112,3 +112,38 @@ ggsave(fig4,
   filename = file.path("output", "eval", "plots", "manuscript", "fig4.png"),
   width = 7, height = 10
 )
+
+# Fig 5 combined----------------------------------------------
+tar_load(fig5_plot_wis_over_time)
+tar_load(fig5_overall_performance)
+tar_load(fig5_heatmap_relative_wis_all_time)
+tar_load(fig5_heatmap_relative_wis_Feb_Mar)
+tar_load(fig5_qq_plot_all_time)
+tar_load(fig5_qq_plot_feb_mar)
+tar_load(fig5_std_rank_feb_mar)
+tar_load(fig5_std_rank_all_time)
+
+layout <- "
+ABB
+CDE
+FGH
+"
+fig5 <- fig5_overall_performance + fig5_plot_wis_over_time +
+  fig5_heatmap_relative_wis_Feb_Mar + fig5_qq_plot_feb_mar +
+  fig5_std_rank_plot_feb_mar +
+  fig5_heatmap_relative_wis_all_time + fig5_qq_plot_all_time +
+  fig5_std_rank_all_time +
+  patchwork::plot_layout(
+    design = layout,
+    axes = "collect",
+    guides = "collect"
+  ) & theme(
+  legend.position = "top",
+  legend.justification = "left"
+)
+
+fig4
+ggsave(fig4,
+  filename = file.path("output", "eval", "plots", "manuscript", "fig5.png"),
+  width = 10, height = 7
+)
