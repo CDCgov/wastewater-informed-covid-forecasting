@@ -544,8 +544,7 @@ manuscript_figures <- list(
     command = make_fig3_forecast_comp_fig(
       hosp_quantiles_filtered,
       loc_to_plot = "VA",
-      horizon_to_plot = "nowcast",
-      days_to_shift = -10
+      horizon_to_plot = "nowcast"
     )
   ),
   tar_target(
@@ -580,7 +579,6 @@ manuscript_figures <- list(
       loc_to_plot = "VA",
       horizon_to_plot = "1 wk",
       days_to_shift = 0
-      
     )
   ),
   tar_target(
