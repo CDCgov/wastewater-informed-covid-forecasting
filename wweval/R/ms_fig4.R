@@ -318,7 +318,8 @@ make_fig4_rel_crps_overall <- function(scores,
       ),
       point_interval = "mean_qi",
       alpha = 0.5,
-      position = position_dodge(width = 0.75)
+      position = position_dodge(width = 0.75),
+      show.legend = FALSE
     ) +
     geom_hline(aes(yintercept = 1), linetype = "dashed") +
     xlab("Horizon") +
@@ -469,7 +470,8 @@ make_fig4_rel_crps_by_phase <- function(scores) {
       ),
       point_interval = "mean_qi",
       alpha = 0.5,
-      position = position_dodge(width = 0.75)
+      position = position_dodge(width = 0.75),
+      show.legend = FALSE
     ) +
     geom_hline(aes(yintercept = 1), linetype = "dashed") +
     xlab("Epidemic phase") +
