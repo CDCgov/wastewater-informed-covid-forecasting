@@ -721,7 +721,7 @@ manuscript_figures <- list(
     name = fig4_plot_coverage_range,
     command = make_plot_coverage_range(
       scores_quantiles_filtered,
-      c(30, 50, 90)
+      c(30, 60, 90)
     )
   )
 )
