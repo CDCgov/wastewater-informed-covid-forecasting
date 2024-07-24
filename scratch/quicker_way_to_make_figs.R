@@ -79,6 +79,7 @@ fig3
 # Fig 4 combined ------------------------------------------------------
 tar_load(fig4_rel_crps_by_phase)
 tar_load(fig4_rel_crps_overall)
+tar_load(fig4_ntl_admissions)
 tar_load(fig4_rel_crps_over_time)
 tar_load(fig4_rel_crps_by_location)
 tar_load(fig4_qq_plot_overall)
@@ -88,21 +89,26 @@ layout <- "
 AABB
 CCCC
 DDDD
-EFFF
-EFFF
+EEEE
+FGGG
+FGGG
 "
 
 fig4 <- fig4_rel_crps_overall + fig4_rel_crps_by_phase +
+  fig4_ntl_admissions +
   fig4_rel_crps_over_time +
   fig4_rel_crps_by_location +
   fig4_plot_coverage_range +
   fig4_qq_plot_overall +
   patchwork::plot_layout(
     design = layout,
-    axes = "collect",
-    guides = "collect"
+    axes = "collect"
   ) & theme(
   legend.position = "top",
   legend.justification = "left"
 )
 fig4
+ggsave(fig4,
+  filename = file.path("output", "eval", "plots", "manuscript", "fig4.png"),
+  width = 7, height = 10
+)

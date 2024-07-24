@@ -56,13 +56,14 @@ make_fig4_crps_density <- function(scores,
     aes(
       x = as.factor(forecast_date), y = rel_crps, color = horizon,
       fill = horizon
-    )
+    ),
+    show.legend = FALSE
   ) +
-    geom_boxplot(alpha = 0.3) +
+    geom_boxplot(alpha = 0.3, show.legend = FALSE) +
     geom_hline(aes(yintercept = 1), linetype = "dashed") +
     xlab("") +
     ylab("Relative CRPS") +
-    scale_y_continuous(trans = "log") +
+    scale_y_continuous(trans = "log10") +
     get_plot_theme(
       x_axis_dates = TRUE,
       y_axis_title_size = 8
@@ -148,6 +149,43 @@ make_fig4_pct_better_w_ww <- function(scores,
   return(p)
 }
 
+#' Make a figure of overall admissions for context
+#'
+#' @param eval_hosp_data Hospital admissions data for evaluating against,
+#' for all locations
+#'
+#' @return ggplot object containing total hospital admissions in the US
+#' @export
+make_fig4_admissions_overall <- function(eval_hosp_data) {
+  total_hosp <- eval_hosp_data |>
+    distinct(location, daily_hosp_admits, date) |>
+    dplyr::group_by(date) |>
+    dplyr::summarise(
+      total_hosp = sum(daily_hosp_admits)
+    )
+  max_total_hosp <- max(total_hosp$total_hosp)
+
+  p <- ggplot() +
+    geom_point(
+      data = total_hosp,
+      aes(x = date, y = total_hosp)
+    ) +
+    get_plot_theme(x_axis_dates = TRUE) +
+    xlab("") +
+    ylab("National admissions") +
+    get_plot_theme(
+      y_axis_title_size = 8,
+      x_axis_dates = TRUE
+    ) +
+    scale_x_date(
+      date_breaks = "1 week",
+      labels = scales::date_format("%Y-%m-%d"),
+      limits = as.Date(c("2023-10-16", "2024-03-11")),
+      expand = expansion(c(0.03, 0.03))
+    )
+  return(p)
+}
+
 #' Make figure that stratifies scores by location across forecast dates
 #'
 #' @param scores A tibble of scores by location, forecast date, date and model,
@@ -202,12 +240,16 @@ make_fig4_rel_crps_by_location <- function(scores,
 
   p <- ggplot(relative_crps, aes(
     x = location, y = rel_crps, color = horizon,
-    fill = horizon
+    fill = horizon,
+    show.legend = FALSE
   )) +
     geom_boxplot(alpha = 0.3) +
     geom_hline(aes(yintercept = 1), linetype = "dashed") +
     theme_bw() +
-    get_plot_theme(y_axis_title_size = 8) +
+    get_plot_theme(
+      y_axis_title_size = 8,
+      x_axis_dates = TRUE
+    ) + # bc we want them smaller and turned
     xlab("") +
     ylab("Relative CRPS") +
     scale_y_continuous(trans = "log10")
@@ -279,14 +321,13 @@ make_fig4_rel_crps_overall <- function(scores,
       position = position_dodge(width = 0.75)
     ) +
     geom_hline(aes(yintercept = 1), linetype = "dashed") +
-    ylab("") +
-    xlab("Relative CRPS") +
-    scale_y_continuous(trans = "log") +
+    xlab("Horizon") +
+    ylab("Relative CRPS") +
+    scale_y_continuous(trans = "log10") +
     get_plot_theme(
       y_axis_title_size = 8,
       x_axis_title_size = 8
-    ) +
-    scale_fill_brewer(palette = "Set2")
+    )
 
   return(p)
 }
@@ -312,7 +353,8 @@ make_qq_plot_overall <- function(scores_quantiles) {
       y_axis_title_size = 8,
       x_axis_title_size = 8
     ) +
-    labs(color = "Model")
+    labs(ylab = "Percet of data within forecast interval") +
+    theme(legend.position = "none")
 
   return(p)
 }
@@ -432,11 +474,12 @@ make_fig4_rel_crps_by_phase <- function(scores) {
     geom_hline(aes(yintercept = 1), linetype = "dashed") +
     xlab("Epidemic phase") +
     ylab("Relative CRPS") +
-    scale_y_continuous(trans = "log") +
+    scale_y_continuous(trans = "log10") +
     get_plot_theme(
       x_axis_title_size = 8,
       y_axis_title_size = 8
-    )
+    ) +
+    scale_fill_brewer(palette = "Set3")
 
 
   return(p)
