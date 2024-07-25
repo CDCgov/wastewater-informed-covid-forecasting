@@ -5,7 +5,8 @@
 #' @param cfa_real_time_scores Real-time scores from Feb - Mar for the cfa ww
 #' model submitted to the hub
 #' @param horizon_time_in_weeks horizon time in weeks to summarize over, default
-#' is `NULL` which means that the scores are summarized over 4 weeks
+#' is `NULL` which means that the scores are summarized over the nowcast period
+#' and the 4 week forecast period
 #'
 #' @return a ggplot object of WIS scores over time colored by model, for the
 #' real-time cfa model from Feb - Mar and the retrospective CFA model over
@@ -42,16 +43,19 @@ make_fig5_average_wis <- function(all_scores,
 
   colors <- plot_components()
   p <- ggplot(scores_by_forecast_date) +
-    geom_line(aes(
-      x = forecast_date, y = interval_score,
-      color = model, size = 1.5
-    )) +
+    geom_line(
+      aes(
+        x = forecast_date, y = interval_score,
+        color = model
+      ),
+      size = 1
+    ) +
     geom_point(aes(
       x = forecast_date, y = interval_score,
       color = model
     )) +
     xlab("") +
-    ylab("Average WIS score across locations") +
+    ylab("Average WIS across locations") +
     get_plot_theme(
       x_axis_dates = TRUE,
       y_axis_title_size = 8
@@ -118,10 +122,12 @@ make_fig5_hub_performance <- function(all_scores,
       )
   } else {
     scores_by_model_all_time <- all_scores |>
+      data.table::as.data.table() |>
       dplyr::mutate(
         period = {{ all_time_period }}
       )
     scores_by_model_real_time <- all_scores |>
+      data.table::as.data.table() |>
       dplyr::filter(forecast_date >= lubridate::ymd("2024-02-05")) |>
       dplyr::bind_rows(cfa_real_time_scores) |>
       dplyr::mutate(

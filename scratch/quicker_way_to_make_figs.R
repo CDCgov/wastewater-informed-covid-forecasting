@@ -20,7 +20,8 @@ fig2 <- fig2_hosp_t_1 + fig2_ct_1 +
   ) & theme(
   legend.position = "top",
   legend.justification = "left"
-)
+) +
+  plot_annotation(tag_levels = "A")
 fig2
 
 ggsave(fig2,
@@ -79,7 +80,7 @@ fig3 <- fig3_crps_single_loc1 + fig3_forecast_comparison_nowcast1 +
   ) & theme(
   legend.position = "top",
   legend.justification = "left"
-)
+) + plot_annotation(tag_levels = "A")
 
 fig3
 ggsave(fig3,
@@ -124,7 +125,7 @@ sfig <- ic1 + qq1 +
   ) & theme(
   legend.position = "top",
   legend.justification = "left"
-)
+) + plot_annotation(tag_levels = "A")
 sfig
 sfig
 ggsave(sfig,
@@ -140,6 +141,7 @@ tar_load(fig4_rel_crps_over_time)
 tar_load(fig4_rel_crps_by_location)
 tar_load(fig4_qq_plot_overall)
 tar_load(fig4_plot_coverage_range)
+tar_load(fig4_avg_wis)
 
 layout <- "
 AABB
@@ -150,8 +152,9 @@ FGGG
 FGGG
 "
 
-fig4 <- fig4_rel_crps_overall + fig4_rel_crps_by_phase +
+fig4 <- fig4_rel_crps_overall +
   fig4_ntl_admissions +
+  fig4_avg_wis +
   fig4_rel_crps_over_time +
   fig4_rel_crps_by_location +
   fig4_plot_coverage_range +
@@ -162,7 +165,7 @@ fig4 <- fig4_rel_crps_overall + fig4_rel_crps_by_phase +
   ) & theme(
   legend.position = "top",
   legend.justification = "left"
-)
+) + plot_annotation(tag_levels = "A")
 fig4
 ggsave(fig4,
   filename = file.path("output", "eval", "plots", "manuscript", "fig4.png"),
@@ -196,7 +199,7 @@ fig5 <- fig5_overall_performance + fig5_plot_wis_over_time +
   ) & theme(
   legend.position = "top",
   legend.justification = "left"
-)
+) + plot_annotation(tag_levels = "A")
 
 fig5
 ggsave(fig5,

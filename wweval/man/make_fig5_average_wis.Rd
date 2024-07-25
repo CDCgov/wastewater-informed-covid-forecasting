@@ -18,7 +18,8 @@ the retrospective cfa model}
 model submitted to the hub}
 
 \item{horizon_time_in_weeks}{horizon time in weeks to summarize over, default
-is \code{NULL} which means that the scores are summarized over 4 weeks}
+is \code{NULL} which means that the scores are summarized over the nowcast period
+and the 4 week forecast period}
 }
 \value{
 a ggplot object of WIS scores over time colored by model, for the

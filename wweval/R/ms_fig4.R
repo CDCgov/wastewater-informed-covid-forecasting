@@ -406,7 +406,7 @@ make_fig4_rel_crps_overall <- function(scores,
 
 #' Make a qq plot
 #' @description
-#' Using [scoringutils::plot_interval_coverage()]
+#' Using [scoringutils::plot_quantile_coverage()]
 #'
 #'
 #' @param scores_quantiles A tibble of scores by location, forecast date,
@@ -559,6 +559,67 @@ make_fig4_rel_crps_by_phase <- function(scores) {
     ) +
     scale_fill_brewer(palette = "Set3")
 
+
+  return(p)
+}
+
+#' Make average WIS over time for model comparison
+#'
+#' @param scores A tibble of scores by location, forecast date, date and model,
+#' containing the outputs of `scoringutils::score()` on samples plus metadata
+#' transformed into a tibble.
+#' @param horizon_time_in_weeks horizon time in weeks to summarize over, default
+#' is `NULL` which means that the scores are summarized over the nowcast period
+#' and the 4 week forecast period
+#'
+#' @return
+#' @export
+make_fig4_avg_crps_over_time <- function(scores,
+                                         horizon_time_in_weeks = NULL) {
+  if (!is.null(horizon_time_in_weeks)) {
+    scores_by_forecast_date <- scores |>
+      data.table::as.data.table() |>
+      scoringutils::summarise_scores(by = c(
+        "forecast_date",
+        "model", "horizon"
+      )) |>
+      dplyr::filter(horizon_weeks == {
+        horizon_time_in_weeks
+      })
+  } else {
+    scores_by_forecast_date <- scores |>
+      data.table::as.data.table() |>
+      scoringutils::summarise_scores(by = c(
+        "forecast_date",
+        "model"
+      ))
+  }
+
+  colors <- plot_components()
+  p <- ggplot(scores_by_forecast_date) +
+    geom_line(
+      aes(
+        x = forecast_date, y = crps,
+        color = model
+      ),
+      size = 1
+    ) +
+    geom_point(aes(
+      x = forecast_date, y = crps,
+      color = model
+    )) +
+    xlab("") +
+    ylab("Average CRPS across locations") +
+    get_plot_theme(
+      x_axis_dates = TRUE,
+      y_axis_title_size = 8
+    ) +
+    scale_x_date(
+      date_breaks = "2 weeks",
+      labels = scales::date_format("%Y-%m-%d")
+    ) +
+    ggtitle(title) +
+    scale_color_manual(values = colors$model_colors)
 
   return(p)
 }

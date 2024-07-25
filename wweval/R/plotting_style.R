@@ -79,8 +79,6 @@ get_plot_theme <- function(x_axis_text_size = 8,
 #' @return a list of model colors and horizon colors to be passed to
 #' `scale_fill_manual()` and `scale_color_manual()`
 #' @export
-#'
-#' @examples
 plot_components <- function() {
   pal_horizons <- RColorBrewer::brewer.pal(12, "Paired")
 
@@ -101,10 +99,10 @@ plot_components <- function() {
     "ww" = pal_model[1],
     "hosp" = pal_model[2],
     "cfa-wwrenewal(retro)" = pal_model[1],
-    "cfa-wwrenewal(retro)" = pal_model[4],
+    "cfa-wwrenewal(real-time)" = pal_model[5],
     "cfa-hosponlyrenewal(retro)" = pal_model[2],
     "COVIDhub-4_week_ensemble" = pal_model[3],
-    "UMass-trends_ensemble" = pal_model[5],
+    "UMass-trends_ensemble" = pal_model[4],
     "UT-Osiris" = pal_model[6],
     "COVIDhub-baseline" = pal_model[7]
   )
