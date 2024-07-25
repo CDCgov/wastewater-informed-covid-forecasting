@@ -42,6 +42,7 @@ make_fig2_hosp_t <- function(hosp_quantiles,
       values_from = value
     )
 
+  colors <- plot_components()
 
   p <- ggplot(quantiles_wide) +
     geom_point(aes(x = date, y = eval_data),
@@ -70,7 +71,7 @@ make_fig2_hosp_t <- function(hosp_quantiles,
         x = date, ymin = `0.25`, ymax = `0.75`,
         fill = model_type
       ),
-      alpha = 0.1,
+      alpha = 0.2,
     ) +
     geom_vline(aes(xintercept = lubridate::ymd(forecast_date)),
       linetype = "dashed"
@@ -81,14 +82,15 @@ make_fig2_hosp_t <- function(hosp_quantiles,
     ) +
     xlab("") +
     ylab("Daily hospital admissions") +
-    scale_color_discrete() +
-    scale_fill_discrete() +
+    scale_color_manual(values = colors$model_colors) +
+    scale_fill_manual(values = colors$model_colors) +
     get_plot_theme(x_axis_dates = TRUE) +
     theme(
       legend.position = "top",
       legend.justification = "left"
     ) +
     labs(color = "Model", fill = "Model")
+
 
   return(p)
 }
@@ -144,9 +146,12 @@ make_fig2_ct <- function(ww_quantiles,
       ),
       names_from = quantile,
       values_from = log_conc
-    )
+    ) |>
+    dplyr::mutate(model = "ww")
 
 
+
+  colors <- plot_components()
   p <- ggplot(quantiles_wide) +
     geom_point(aes(x = date, y = log(eval_data)),
       fill = "white", size = 1, shape = 21,
@@ -158,23 +163,23 @@ make_fig2_ct <- function(ww_quantiles,
     ) +
     geom_line(
       aes(
-        x = date, y = `0.5`
-      ),
-      color = "#00BFC4"
+        x = date, y = `0.5`,
+        color = model
+      )
     ) +
     geom_ribbon(
       aes(
-        x = date, ymin = `0.025`, ymax = `0.975`
+        x = date, ymin = `0.025`, ymax = `0.975`,
+        fill = model
       ),
-      alpha = 0.1,
-      fill = "#00BFC4",
+      alpha = 0.2,
       show.legend = FALSE
     ) +
     geom_ribbon(
       aes(
         x = date, ymin = `0.25`, ymax = `0.75`,
+        fill = model
       ),
-      fill = "#00BFC4",
       alpha = 0.1,
       show.legend = FALSE
     ) +
@@ -186,13 +191,13 @@ make_fig2_ct <- function(ww_quantiles,
     ) +
     xlab("") +
     ylab("Log(genome copies per mL)") +
-    scale_color_discrete() +
-    scale_fill_discrete() +
     scale_x_date(
       date_breaks = "2 weeks",
       labels = scales::date_format("%Y-%m-%d")
     ) +
-    get_plot_theme(x_axis_dates = TRUE)
+    get_plot_theme(x_axis_dates = TRUE) +
+    scale_fill_manual(values = colors$model_colors) +
+    scale_color_manual(values = colors$model_colors)
   return(p)
 }
 

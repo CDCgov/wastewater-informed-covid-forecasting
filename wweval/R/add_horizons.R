@@ -69,13 +69,13 @@ get_last_hosp_data_date_map <- function(df) {
 #' @export
 order_horizons <- function(df) {
   horizon_order <- c(
+    "overal",
     "calibration",
     "nowcast",
     "1 wk",
     "2 wks",
     "3 wks",
-    "4 wks",
-    "overall"
+    "4 wks"
   )
 
   df_w_order <- df |>

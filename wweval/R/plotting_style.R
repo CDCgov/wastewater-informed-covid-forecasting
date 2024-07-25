@@ -57,6 +57,7 @@ get_plot_theme <- function(x_axis_text_size = 8,
       )
     )
 
+
   if (isTRUE(x_axis_dates)) {
     # If x-axis are dates, default to 2 week date breaks
     # and rotate 45 degrees
@@ -70,4 +71,47 @@ get_plot_theme <- function(x_axis_text_size = 8,
   }
 
   return(ww_theme)
+}
+
+
+#' Get plot components (colors for now)
+#'
+#' @return a list of model colors and horizon colors to be passed to
+#' `scale_fill_manual()` and `scale_color_manual()`
+#' @export
+#'
+#' @examples
+plot_components <- function() {
+  pal_horizons <- RColorBrewer::brewer.pal(12, "Paired")
+
+  # somewhat arbitrary, we can play with these later
+  horizon_colors <- c(
+    "calibration" = pal_horizons[1],
+    "nowcast" = pal_horizons[2],
+    "1 wk" = pal_horizons[3],
+    "2 wks" = pal_horizons[4],
+    "3 wks" = pal_horizons[5],
+    "4 wks" = pal_horizons[6],
+    "overall" = pal_horizons[10]
+  )
+
+  pal_model <- RColorBrewer::brewer.pal(8, "Dark2")
+
+  model_colors <- c(
+    "ww" = pal_model[1],
+    "hosp" = pal_model[2],
+    "cfa-wwrenewal(retro)" = pal_model[1],
+    "cfa-wwrenewal(retro)" = pal_model[4],
+    "cfa-hosponlyrenewal(retro)" = pal_model[2],
+    "COVIDhub-4_week_ensemble" = pal_model[3],
+    "UMass-trends_ensemble" = pal_model[5],
+    "UT-Osiris" = pal_model[6],
+    "COVIDhub-baseline" = pal_model[7]
+  )
+
+  colors_list <- list(
+    horizon_colors = horizon_colors,
+    model_colors = model_colors
+  )
+  return(colors_list)
 }

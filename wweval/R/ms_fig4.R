@@ -6,30 +6,44 @@
 #' @param horizons_to_show A vector of strings indicating the names of the
 #' `horizon` that we want to show on the plot, must be a subset of
 #' `nowcast`, `1 wk`, `2 wks`,`3 wks`, `4 wks` and `overall`
+#' @param summarize_across_horizon Boolean indicating whether or not to
+#' average the scores across the horizon, default is `FALSE` meaning
+#' each day-forecast-date-location score is in the distribution
 #'
 #' @return a ggplot object that is a vertical facet of violin plots colored
 #' by model type and broken down my horizon
 #' @export
-make_fig4_crps_density <- function(scores,
-                                   horizons_to_show = c(
-                                     "nowcast",
-                                     "1 wk", "4 wks",
-                                     "overall"
-                                   )) {
-  scores_by_horizon <- scores |>
-    data.table::as.data.table() |>
-    scoringutils::summarise_scores(by = c(
-      "forecast_date", "location",
-      "model", "horizon"
-    ))
+make_fig4_rel_crps_over_time <- function(scores,
+                                         horizons_to_show = c(
+                                           "nowcast",
+                                           "1 wk", "4 wks",
+                                           "overall"
+                                         ),
+                                         summarize_across_horizon = FALSE) {
+  if (isTRUE(summarize_across_horizon)) {
+    scores_by_horizon <- scores |>
+      data.table::as.data.table() |>
+      scoringutils::summarise_scores(by = c(
+        "forecast_date", "location",
+        "model", "horizon"
+      ))
 
-  scores_overall <- scores |>
-    data.table::as.data.table() |>
-    scoringutils::summarise_scores(by = c(
-      "forecast_date", "location",
-      "model"
-    )) |>
-    dplyr::mutate(horizon = "overall")
+    scores_overall <- scores |>
+      data.table::as.data.table() |>
+      scoringutils::summarise_scores(by = c(
+        "forecast_date", "location",
+        "model"
+      )) |>
+      dplyr::mutate(horizon = "overall")
+  } else {
+    scores_by_horizon <- scores
+    scores_overall <- scores |>
+      dplyr::mutate(
+        horizon = "overall"
+      )
+  }
+
+
 
   scores_comb <- dplyr::bind_rows(scores_by_horizon, scores_overall) |>
     dplyr::filter(
@@ -38,18 +52,20 @@ make_fig4_crps_density <- function(scores,
 
   relative_crps <- scores_comb |>
     dplyr::select(
-      location, forecast_date, model, horizon, crps
+      location, forecast_date, date, model, horizon, crps
     ) |>
     dplyr::filter(!is.na(horizon)) |>
     tidyr::pivot_wider(
       names_from = model,
       values_from = crps,
-      id_cols = c(location, forecast_date, horizon)
+      id_cols = c(location, forecast_date, date, horizon)
     ) |>
     dplyr::mutate(
       rel_crps = ww / hosp
     ) |>
     order_horizons()
+
+  colors <- plot_components()
 
   p <- ggplot(
     relative_crps,
@@ -59,15 +75,26 @@ make_fig4_crps_density <- function(scores,
     ),
     show.legend = FALSE
   ) +
-    geom_boxplot(alpha = 0.3, show.legend = FALSE) +
+    tidybayes::stat_halfeye(
+      aes(
+        x = as.factor(forecast_date), y = rel_crps,
+        fill = horizon
+      ),
+      point_interval = "mean_qi",
+      alpha = 0.5,
+      position = position_dodge(width = 0.75),
+      show.legend = FALSE
+    ) +
     geom_hline(aes(yintercept = 1), linetype = "dashed") +
     xlab("") +
     ylab("Relative CRPS") +
-    scale_y_continuous(trans = "log10") +
+    scale_y_continuous(trans = "log10", limits = c(0.5, 2)) +
     get_plot_theme(
       x_axis_dates = TRUE,
       y_axis_title_size = 8
-    )
+    ) +
+    scale_fill_manual(values = colors$horizon_colors) +
+    scale_color_manual(values = colors$horizon_colors)
 
   return(p)
 }
@@ -124,6 +151,7 @@ make_fig4_pct_better_w_ww <- function(scores,
       total_hosp = sum(daily_hosp_admits)
     )
   max_total_hosp <- max(total_hosp$total_hosp)
+
 
   p <- ggplot() +
     geom_bar(
@@ -194,6 +222,9 @@ make_fig4_admissions_overall <- function(eval_hosp_data) {
 #' @param horizons_to_show A vector of strings indicating the names of the
 #' `horizon` that we want to show on the plot, must be a subset of
 #' `nowcast`, `1 wk`, `2 wks`,`3 wks`, `4 wks` and `overall`
+#' @param summarize_across_horizon Boolean indicating whether or not to
+#' average the scores across the horizon, default is `FALSE` meaning
+#' each day-forecast-date-location score is in the distribution
 #'
 #' @return A ggplot object containing plots of the distribution of relative
 #' CRPS scores by location, across forecast dates, colored by location
@@ -203,47 +234,69 @@ make_fig4_rel_crps_by_location <- function(scores,
                                              "nowcast",
                                              "1 wk", "4 wks",
                                              "overall"
-                                           )) {
-  scores_by_horizon <- scores |>
-    data.table::as.data.table() |>
-    scoringutils::summarise_scores(by = c(
-      "forecast_date", "location",
-      "model", "horizon"
-    ))
+                                           ),
+                                           summarize_across_horizon = FALSE) {
+  if (isTRUE(summarize_across_horizon)) {
+    scores_by_horizon <- scores |>
+      data.table::as.data.table() |>
+      scoringutils::summarise_scores(by = c(
+        "forecast_date", "location",
+        "model", "horizon"
+      ))
 
-  scores_overall <- scores |>
-    data.table::as.data.table() |>
-    scoringutils::summarise_scores(by = c(
-      "forecast_date", "location",
-      "model"
-    )) |>
-    dplyr::mutate(horizon = "overall")
+    scores_overall <- scores |>
+      data.table::as.data.table() |>
+      scoringutils::summarise_scores(by = c(
+        "forecast_date", "location",
+        "model"
+      )) |>
+      dplyr::mutate(horizon = "overall")
+  } else {
+    scores_by_horizon <- scores
+    scores_overall <- scores |>
+      dplyr::mutate(
+        horizon = "overall"
+      )
+  }
+
+
 
   scores_comb <- dplyr::bind_rows(scores_by_horizon, scores_overall) |>
     dplyr::filter(
       horizon %in% !!horizons_to_show
     )
 
+
   relative_crps <- scores_comb |>
-    dplyr::select(location, forecast_date, model, horizon, crps) |>
+    dplyr::select(location, forecast_date, date, model, horizon, crps) |>
     dplyr::filter(!is.na(horizon)) |>
     tidyr::pivot_wider(
       names_from = model,
       values_from = crps,
-      id_cols = c(location, forecast_date, horizon)
+      id_cols = c(location, forecast_date, date, horizon)
     ) |>
     dplyr::mutate(
       rel_crps = ww / hosp
     ) |>
     order_horizons()
 
+  colors <- plot_components()
 
   p <- ggplot(relative_crps, aes(
     x = location, y = rel_crps, color = horizon,
     fill = horizon,
     show.legend = FALSE
   )) +
-    geom_boxplot(alpha = 0.3) +
+    tidybayes::stat_halfeye(
+      aes(
+        x = location, y = rel_crps,
+        fill = horizon
+      ),
+      point_interval = "mean_qi",
+      alpha = 0.5,
+      position = position_dodge(width = 0.75),
+      show.legend = FALSE
+    ) +
     geom_hline(aes(yintercept = 1), linetype = "dashed") +
     theme_bw() +
     get_plot_theme(
@@ -252,7 +305,9 @@ make_fig4_rel_crps_by_location <- function(scores,
     ) + # bc we want them smaller and turned
     xlab("") +
     ylab("Relative CRPS") +
-    scale_y_continuous(trans = "log10")
+    scale_y_continuous(trans = "log10", limits = c(0.5, 2)) +
+    scale_fill_manual(values = colors$horizon_colors) +
+    scale_color_manual(values = colors$horizon_colors)
 
 
   return(p)
@@ -266,6 +321,9 @@ make_fig4_rel_crps_by_location <- function(scores,
 #' @param horizons_to_show A vector of strings indicating the names of the
 #' `horizon` that we want to show on the plot, must be a subset of
 #' `nowcast`, `1 wk`, `2 wks`,`3 wks`, `4 wks` and `overall`
+#' @param summarize_across_horizon Boolean indicating whether or not to
+#' average the scores across the horizon, default is `FALSE` meaning
+#' each day-forecast-date-location score is in the distribution
 #'
 #' @return A ggplot object containing plots of the distribution of relative
 #' CRPS scores across location and forecast dates
@@ -275,21 +333,30 @@ make_fig4_rel_crps_overall <- function(scores,
                                          "nowcast",
                                          "1 wk", "4 wks",
                                          "overall"
-                                       )) {
-  scores_by_horizon <- scores |>
-    data.table::as.data.table() |>
-    scoringutils::summarise_scores(by = c(
-      "forecast_date", "location",
-      "model", "horizon"
-    ))
+                                       ),
+                                       summarize_across_horizon = FALSE) {
+  if (isTRUE(summarize_across_horizon)) {
+    scores_by_horizon <- scores |>
+      data.table::as.data.table() |>
+      scoringutils::summarise_scores(by = c(
+        "forecast_date", "location",
+        "model", "horizon"
+      ))
 
-  scores_overall <- scores |>
-    data.table::as.data.table() |>
-    scoringutils::summarise_scores(by = c(
-      "forecast_date", "location",
-      "model"
-    )) |>
-    dplyr::mutate(horizon = "overall")
+    scores_overall <- scores |>
+      data.table::as.data.table() |>
+      scoringutils::summarise_scores(by = c(
+        "forecast_date", "location",
+        "model"
+      )) |>
+      dplyr::mutate(horizon = "overall")
+  } else {
+    scores_by_horizon <- scores
+    scores_overall <- scores |>
+      dplyr::mutate(
+        horizon = "overall"
+      )
+  }
 
   scores_comb <- dplyr::bind_rows(scores_by_horizon, scores_overall) |>
     dplyr::filter(
@@ -297,17 +364,19 @@ make_fig4_rel_crps_overall <- function(scores,
     )
 
   relative_crps <- scores_comb |>
-    dplyr::select(location, forecast_date, model, horizon, crps) |>
+    dplyr::select(location, forecast_date, date, model, horizon, crps) |>
     dplyr::filter(!is.na(horizon)) |>
     tidyr::pivot_wider(
       names_from = model,
       values_from = crps,
-      id_cols = c(location, forecast_date, horizon)
+      id_cols = c(location, forecast_date, horizon, date)
     ) |>
     dplyr::mutate(
       rel_crps = ww / hosp
     ) |>
     order_horizons()
+
+  colors <- plot_components()
 
 
   p <- ggplot(relative_crps) +
@@ -324,11 +393,13 @@ make_fig4_rel_crps_overall <- function(scores,
     geom_hline(aes(yintercept = 1), linetype = "dashed") +
     xlab("Horizon") +
     ylab("Relative CRPS") +
-    scale_y_continuous(trans = "log10") +
+    scale_y_continuous(trans = "log10", limits = c(0.5, 2)) +
     get_plot_theme(
       y_axis_title_size = 8,
       x_axis_title_size = 8
-    )
+    ) +
+    scale_fill_manual(values = colors$horizon_colors) +
+    scale_color_manual(values = colors$horizon_colors)
 
   return(p)
 }
@@ -345,6 +416,7 @@ make_fig4_rel_crps_overall <- function(scores,
 #' @return a ggplot object with the overall QQ plot colored by model.
 #' @export
 make_qq_plot_overall <- function(scores_quantiles) {
+  colors <- plot_components()
   p <- scores_quantiles |>
     data.table::as.data.table() |>
     scoringutils::summarise_scores(by = c("model", "quantile")) |>
@@ -355,7 +427,8 @@ make_qq_plot_overall <- function(scores_quantiles) {
       x_axis_title_size = 8
     ) +
     labs(ylab = "Percent of data below quantile") +
-    theme(legend.position = "none")
+    theme(legend.position = "none") +
+    scale_color_manual(values = colors$model_colors)
 
   return(p)
 }
@@ -400,7 +473,7 @@ make_plot_coverage_range <- function(scores_quantiles, ranges) {
       named_facet = glue::glue("{range}%")
     )
 
-
+  colors <- plot_components()
   p <- ggplot(coverage_summarized) +
     aes(
       x = horizon, y = pct_interval_coverage, color = model,
@@ -419,7 +492,9 @@ make_plot_coverage_range <- function(scores_quantiles, ranges) {
     get_plot_theme(
       y_axis_title_size = 8,
       x_axis_title_size = 8
-    )
+    ) +
+    scale_color_manual(values = colors$model_colors)
+
   return(p)
 }
 

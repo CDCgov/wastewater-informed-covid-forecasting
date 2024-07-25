@@ -1,3 +1,5 @@
+library(ggplot2)
+
 ## Fig2 combined-------------------------------------------------------------
 tar_load(fig2_ct_1)
 tar_load(fig2_ct_2)
@@ -20,8 +22,8 @@ fig2 <- fig2_hosp_t_1 + fig2_ct_1 +
   legend.justification = "left"
 )
 fig2
-fig2
-ggsave(fig4,
+
+ggsave(fig2,
   filename = file.path("output", "eval", "plots", "manuscript", "fig2.png"),
   width = 10, height = 7
 )
@@ -48,14 +50,6 @@ tar_load(fig3_forecast_comparison_4wks3)
 tar_load(fig3_crps_underlay_nowcast3)
 tar_load(fig3_crps_underlay_1wk3)
 tar_load(fig3_crps_underlay_4wks3)
-
-## Supplementary figures to fig 4
-tar_load(sfig3_qq_plot1)
-tar_load(sfig3_interval_coverage1)
-tar_load(sfig3_qq_plot2)
-tar_load(sfig3_interval_coverage2)
-tar_load(sfig3_qq_plot2)
-tar_load(sfig3_interval_coverage2)
 
 
 layout <- "
@@ -90,6 +84,51 @@ fig3 <- fig3_crps_single_loc1 + fig3_forecast_comparison_nowcast1 +
 fig3
 ggsave(fig3,
   filename = file.path("output", "eval", "plots", "manuscript", "fig3.png"),
+  width = 10, height = 7
+)
+
+## Supplementary figures to fig 4
+tar_load(sfig3_qq_plot1)
+tar_load(sfig3_interval_coverage1)
+tar_load(sfig3_qq_plot2)
+tar_load(sfig3_interval_coverage2)
+tar_load(sfig3_qq_plot3)
+tar_load(sfig3_interval_coverage3)
+tar_load(locs_to_plot)
+
+qq1 <- sfig3_qq_plot1 + ggtitle(locs_to_plot[1])
+ic1 <- sfig3_interval_coverage1 + ggtitle(locs_to_plot[1])
+qq2 <- sfig3_qq_plot2 + ggtitle(locs_to_plot[2])
+ic2 <- sfig3_interval_coverage2 + ggtitle(locs_to_plot[2])
+qq3 <- sfig3_qq_plot3 + ggtitle(locs_to_plot[3])
+ic3 <- sfig3_interval_coverage3 + ggtitle(locs_to_plot[3])
+
+layout <- "
+ABB
+ABB
+ABB
+CDD
+CDD
+CDD
+EFF
+EFF
+EFF"
+
+sfig <- ic1 + qq1 +
+  ic2 + qq2 +
+  ic3 + qq3 +
+  patchwork::plot_layout(
+    design = layout,
+    axes = "collect",
+    guides = "collect"
+  ) & theme(
+  legend.position = "top",
+  legend.justification = "left"
+)
+sfig
+sfig
+ggsave(sfig,
+  filename = file.path("output", "eval", "plots", "manuscript", "sfig_3states_calib.png"),
   width = 10, height = 7
 )
 

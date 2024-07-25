@@ -40,10 +40,11 @@ make_fig5_average_wis <- function(all_scores,
     title <- glue::glue("Average weighted interval scores by model")
   }
 
+  colors <- plot_components()
   p <- ggplot(scores_by_forecast_date) +
     geom_line(aes(
       x = forecast_date, y = interval_score,
-      color = model
+      color = model, size = 1.5
     )) +
     geom_point(aes(
       x = forecast_date, y = interval_score,
@@ -59,7 +60,8 @@ make_fig5_average_wis <- function(all_scores,
       date_breaks = "2 weeks",
       labels = scales::date_format("%Y-%m-%d")
     ) +
-    ggtitle(title)
+    ggtitle(title) +
+    scale_color_manual(values = colors$model_colors)
 
   return(p)
 }
@@ -76,6 +78,9 @@ make_fig5_average_wis <- function(all_scores,
 #' comparing, e.g. "Oct 2023-Mar 2024"
 #' @param real_time_period string indicating the shorter time frame that
 #' we submitted our model to the hub e.g. "Feb 2024-Mar 2024"
+#' @param summarize_across_horizon Boolean indicating whether or not to
+#' average the scores across the horizon, default is `FALSE` meaning
+#' each day-forecast-date-location score is in the distribution
 #' @param baseline_model which model to compute relative WIS compared to, default
 #' is `COVIDhub-baseline`
 #'
@@ -89,26 +94,40 @@ make_fig5_hub_performance <- function(all_scores,
                                       figure_file_path,
                                       all_time_period,
                                       real_time_period,
+                                      summarize_across_horizon = FALSE,
                                       baseline_model = "COVIDhub-baseline") {
-  scores_by_model_all_time <- all_scores |>
-    data.table::as.data.table() |>
-    scoringutils::summarise_scores(
-      by = c("model", "forecast_date", "location", "horizon")
-    ) |>
-    dplyr::mutate(
-      period = {{ all_time_period }}
-    )
+  if (isTRUE(summarize_across_horizon)) {
+    scores_by_model_all_time <- all_scores |>
+      data.table::as.data.table() |>
+      scoringutils::summarise_scores(
+        by = c("model", "forecast_date", "location", "horizon")
+      ) |>
+      dplyr::mutate(
+        period = {{ all_time_period }}
+      )
 
-  scores_by_model_real_time <- all_scores |>
-    dplyr::filter(forecast_date >= lubridate::ymd("2024-02-05")) |>
-    dplyr::bind_rows(cfa_real_time_scores) |>
-    data.table::as.data.table() |>
-    scoringutils::summarise_scores(
-      by = c("model", "forecast_date", "location")
-    ) |>
-    dplyr::mutate(
-      period = {{ real_time_period }}
-    )
+    scores_by_model_real_time <- all_scores |>
+      dplyr::filter(forecast_date >= lubridate::ymd("2024-02-05")) |>
+      dplyr::bind_rows(cfa_real_time_scores) |>
+      data.table::as.data.table() |>
+      scoringutils::summarise_scores(
+        by = c("model", "forecast_date", "location")
+      ) |>
+      dplyr::mutate(
+        period = {{ real_time_period }}
+      )
+  } else {
+    scores_by_model_all_time <- all_scores |>
+      dplyr::mutate(
+        period = {{ all_time_period }}
+      )
+    scores_by_model_real_time <- all_scores |>
+      dplyr::filter(forecast_date >= lubridate::ymd("2024-02-05")) |>
+      dplyr::bind_rows(cfa_real_time_scores) |>
+      dplyr::mutate(
+        period = {{ real_time_period }}
+      )
+  }
 
   scores <- dplyr::bind_rows(
     scores_by_model_all_time,
@@ -150,6 +169,7 @@ make_fig5_hub_performance <- function(all_scores,
       horizon = forcats::fct_reorder(period, fig_order)
     )
 
+  colors <- plot_components()
 
   p <- ggplot(scores_final) +
     tidybayes::stat_halfeye(
@@ -166,6 +186,8 @@ make_fig5_hub_performance <- function(all_scores,
       x_axis_dates = TRUE,
       y_axis_title_size = 8
     ) +
+    scale_fill_manual(values = colors$model_colors) +
+    scale_color_manual(values = colros$model_colors) +
     xlab("") +
     ylab(glue::glue("Relative WIS compared to {baseline_model}"))
 
@@ -251,12 +273,14 @@ make_fig5_heatmap_relative_wis <- function(scores,
 
 make_fig5_qq_plot <- function(scores,
                               time_period) {
+  colors <- plot_components()
   p <- scores |>
     data.table::as.data.table() |>
     scoringutils::summarise_scores(by = c("model", "quantile")) |>
     scoringutils::plot_quantile_coverage() +
     ggtitle(glue::glue("QQ plot for {time_period}")) +
-    get_plot_theme()
+    get_plot_theme() +
+    scale_color_manual(values = colors$model_colors)
 
 
   return(p)

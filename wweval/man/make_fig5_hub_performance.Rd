@@ -10,6 +10,7 @@ make_fig5_hub_performance(
   figure_file_path,
   all_time_period,
   real_time_period,
+  summarize_across_horizon = FALSE,
   baseline_model = "COVIDhub-baseline"
 )
 }
@@ -28,6 +29,10 @@ comparing, e.g. "Oct 2023-Mar 2024"}
 
 \item{real_time_period}{string indicating the shorter time frame that
 we submitted our model to the hub e.g. "Feb 2024-Mar 2024"}
+
+\item{summarize_across_horizon}{Boolean indicating whether or not to
+average the scores across the horizon, default is \code{FALSE} meaning
+each day-forecast-date-location score is in the distribution}
 
 \item{baseline_model}{which model to compute relative WIS compared to, default
 is \code{COVIDhub-baseline}}

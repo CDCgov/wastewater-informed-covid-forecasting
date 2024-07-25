@@ -41,6 +41,8 @@ make_fig3_single_loc_comp <- function(scores,
     ) |>
     order_horizons()
 
+  colors <- plot_components()
+
   p <- ggplot(scores_comb) +
     tidybayes::stat_halfeye(
       aes(
@@ -57,8 +59,8 @@ make_fig3_single_loc_comp <- function(scores,
       "{loc_to_plot}"
     )) +
     theme_bw() +
-    scale_color_discrete() +
-    scale_fill_discrete() +
+    scale_color_manual(values = colors$model_colors) +
+    scale_fill_manual(values = colors$model_colors) +
     get_plot_theme(y_axis_title_size = 8) +
     scale_y_continuous(trans = "log10") +
     labs(color = "Model", fill = "Model")
@@ -104,7 +106,7 @@ make_fig3_forecast_comp_fig <- function(hosp_quantiles,
       names_from = quantile,
       values_from = value
     )
-
+  colors <- plot_components()
   p <- ggplot(hosp) +
     geom_point(
       data = hosp_quants_horizons,
@@ -144,8 +146,8 @@ make_fig3_forecast_comp_fig <- function(hosp_quantiles,
     ggtitle(glue::glue(
       "{horizon_to_plot}"
     )) +
-    scale_color_discrete() +
-    scale_fill_discrete() +
+    scale_color_manual(values = colors$model_colors) +
+    scale_fill_manual(values = colors$model_colors) +
     scale_x_date(
       date_breaks = "2 weeks",
       labels = scales::date_format("%Y-%m-%d"),
@@ -193,6 +195,8 @@ make_fig3_crps_underlay_fig <- function(scores,
         lubridate::days(days_to_shift)
     )
 
+  colors <- plot_components()
+
   p <- ggplot(scores_by_horizon) +
     geom_bar(aes(x = forecast_date_shifted, y = crps, fill = model),
       stat = "identity", position = "dodge", show.legend = FALSE
@@ -200,8 +204,8 @@ make_fig3_crps_underlay_fig <- function(scores,
     xlab("") +
     ylab("CRPS scores") +
     theme_bw() +
-    scale_color_discrete() +
-    scale_fill_discrete() +
+    scale_color_manual(values = colors$model_colors) +
+    scale_fill_manual(values = colors$model_colors) +
     scale_x_date(
       date_breaks = "2 weeks",
       labels = scales::date_format("%Y-%m-%d"),
