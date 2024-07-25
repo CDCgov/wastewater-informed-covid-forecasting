@@ -49,6 +49,14 @@ tar_load(fig3_crps_underlay_nowcast3)
 tar_load(fig3_crps_underlay_1wk3)
 tar_load(fig3_crps_underlay_4wks3)
 
+## Supplementary figures to fig 4
+tar_load(sfig3_qq_plot1)
+tar_load(sfig3_interval_coverage1)
+tar_load(sfig3_qq_plot2)
+tar_load(sfig3_interval_coverage2)
+tar_load(sfig3_qq_plot2)
+tar_load(sfig3_interval_coverage2)
+
 
 layout <- "
 ABCD

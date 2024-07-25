@@ -410,53 +410,63 @@ head_to_head_targets <- list(
 # ggarranged, properly formatted figures, and currently require
 # specification for the figure components that are examples.
 manuscript_figures <- list(
+  ## Figure specifications----------------------------------------
+  tar_target(
+    name = locs_to_plot,
+    command = c("MA", "VA", "WA")
+  ),
+  tar_target(
+    name = forecast_date_to_plot,
+    command = "2024-01-15"
+  ),
+
   ## Fig 2-----------------------------------------------------
   tar_target(
     name = fig2_hosp_t_1,
     command = make_fig2_hosp_t(
       hosp_quantiles_filtered,
-      loc_to_plot = c("MA"),
-      date_to_plot = "2024-01-15"
+      loc_to_plot = locs_to_plot[1],
+      date_to_plot = forecast_date_to_plot
     )
   ),
   tar_target(
     name = fig2_hosp_t_2,
     command = make_fig2_hosp_t(
       hosp_quantiles_filtered,
-      loc_to_plot = c("VA"),
-      date_to_plot = "2024-01-15"
+      loc_to_plot = locs_to_plot[2],
+      date_to_plot = forecast_date_to_plot
     )
   ),
   tar_target(
     name = fig2_hosp_t_3,
     command = make_fig2_hosp_t(
       hosp_quantiles_filtered,
-      loc_to_plot = c("WA"),
-      date_to_plot = "2024-01-15"
+      loc_to_plot = locs_to_plot[3],
+      date_to_plot = forecast_date_to_plot
     )
   ),
   tar_target(
     name = fig2_ct_1,
     command = make_fig2_ct(
       all_ww_quantiles_sq,
-      loc_to_plot = "MA",
-      date_to_plot = "2024-01-15"
+      loc_to_plot = locs_to_plot[1],
+      date_to_plot = forecast_date_to_plot
     )
   ),
   tar_target(
     name = fig2_ct_2,
     command = make_fig2_ct(
       all_ww_quantiles_sq,
-      loc_to_plot = "VA",
-      date_to_plot = "2024-01-15"
+      loc_to_plot = locs_to_plot[2],
+      date_to_plot = forecast_date_to_plot
     )
   ),
   tar_target(
     name = fig2_ct_3,
     command = make_fig2_ct(
       all_ww_quantiles_sq,
-      loc_to_plot = "WA",
-      date_to_plot = "2024-01-15"
+      loc_to_plot = locs_to_plot[3],
+      date_to_plot = forecast_date_to_plot
     )
   ),
   ### Fig 2 combined--------------------------------------------
@@ -474,17 +484,18 @@ manuscript_figures <- list(
 
   ## Fig 3-------------------------------------------------
   tar_target(
+    ### First location --------
     name = fig3_crps_single_loc1,
     command = make_fig3_single_loc_comp(
       scores_filtered,
-      loc_to_plot = "MA"
+      loc_to_plot = locs_to_plot[1]
     )
   ),
   tar_target(
     name = fig3_forecast_comparison_nowcast1,
     command = make_fig3_forecast_comp_fig(
       hosp_quantiles_filtered,
-      loc_to_plot = "MA",
+      loc_to_plot = locs_to_plot[1],
       horizon_to_plot = "nowcast"
     )
   ),
@@ -492,7 +503,7 @@ manuscript_figures <- list(
     name = fig3_forecast_comparison_1wk1,
     command = make_fig3_forecast_comp_fig(
       hosp_quantiles_filtered,
-      loc_to_plot = "MA",
+      loc_to_plot = locs_to_plot[1],
       horizon_to_plot = "1 wk"
     )
   ),
@@ -500,7 +511,7 @@ manuscript_figures <- list(
     name = fig3_forecast_comparison_4wks1,
     command = make_fig3_forecast_comp_fig(
       hosp_quantiles_filtered,
-      loc_to_plot = "MA",
+      loc_to_plot = locs_to_plot[1],
       horizon_to_plot = "4 wks"
     )
   ),
@@ -508,7 +519,7 @@ manuscript_figures <- list(
     name = fig3_crps_underlay_nowcast1,
     command = make_fig3_crps_underlay_fig(
       scores_filtered,
-      loc_to_plot = "MA",
+      loc_to_plot = locs_to_plot[1],
       horizon_to_plot = "nowcast",
       days_to_shift = -10
     )
@@ -517,7 +528,7 @@ manuscript_figures <- list(
     name = fig3_crps_underlay_1wk1,
     command = make_fig3_crps_underlay_fig(
       scores_filtered,
-      loc_to_plot = "MA",
+      loc_to_plot = locs_to_plot[1],
       horizon_to_plot = "1 wk",
       days_to_shift = 0
     )
@@ -526,24 +537,42 @@ manuscript_figures <- list(
     name = fig3_crps_underlay_4wks1,
     command = make_fig3_crps_underlay_fig(
       scores_filtered,
-      loc_to_plot = "MA",
+      loc_to_plot = locs_to_plot[1],
       horizon_to_plot = "4 wks",
       days_to_shift = 21
     )
   ),
-  ### Next loc--------------
+  # This is supplementary but useful alongside
+  # the forecasts I think
+  tar_target(
+    name = sfig3_interval_coverage1,
+    command = make_plot_coverage_range(
+      scores_quantiles_filtered |>
+        dplyr::filter(location == locs_to_plot[1]),
+      ranges = c(30, 60, 90)
+    )
+  ),
+  tar_target(
+    name = sfig3_qq_plot1,
+    command = make_qq_plot_overall(
+      scores_quantiles_filtered |>
+        dplyr::filter(location == locs_to_plot[1])
+    )
+  ),
+
+  ### Second loc--------------
   tar_target(
     name = fig3_crps_single_loc2,
     command = make_fig3_single_loc_comp(
       scores_filtered,
-      loc_to_plot = "VA"
+      loc_to_plot = locs_to_plot[2]
     )
   ),
   tar_target(
     name = fig3_forecast_comparison_nowcast2,
     command = make_fig3_forecast_comp_fig(
       hosp_quantiles_filtered,
-      loc_to_plot = "VA",
+      loc_to_plot = locs_to_plot[2],
       horizon_to_plot = "nowcast"
     )
   ),
@@ -551,7 +580,7 @@ manuscript_figures <- list(
     name = fig3_forecast_comparison_1wk2,
     command = make_fig3_forecast_comp_fig(
       hosp_quantiles_filtered,
-      loc_to_plot = "VA",
+      loc_to_plot = locs_to_plot[2],
       horizon_to_plot = "1 wk"
     )
   ),
@@ -559,7 +588,7 @@ manuscript_figures <- list(
     name = fig3_forecast_comparison_4wks2,
     command = make_fig3_forecast_comp_fig(
       hosp_quantiles_filtered,
-      loc_to_plot = "VA",
+      loc_to_plot = locs_to_plot[2],
       horizon_to_plot = "4 wks"
     )
   ),
@@ -567,7 +596,7 @@ manuscript_figures <- list(
     name = fig3_crps_underlay_nowcast2,
     command = make_fig3_crps_underlay_fig(
       scores_filtered,
-      loc_to_plot = "VA",
+      loc_to_plot = locs_to_plot[2],
       horizon_to_plot = "nowcast",
       days_to_shift = -10
     )
@@ -576,7 +605,7 @@ manuscript_figures <- list(
     name = fig3_crps_underlay_1wk2,
     command = make_fig3_crps_underlay_fig(
       scores_filtered,
-      loc_to_plot = "VA",
+      loc_to_plot = locs_to_plot[2],
       horizon_to_plot = "1 wk",
       days_to_shift = 0
     )
@@ -585,24 +614,40 @@ manuscript_figures <- list(
     name = fig3_crps_underlay_4wks2,
     command = make_fig3_crps_underlay_fig(
       scores_filtered,
-      loc_to_plot = "VA",
+      loc_to_plot = locs_to_plot[2],
       horizon_to_plot = "4 wks",
       days_to_shift = 21
     )
   ),
-  ### Next loc----
+  # Supplementary
+  tar_target(
+    name = sfig3_interval_coverage2,
+    command = make_plot_coverage_range(
+      scores_quantiles_filtered |>
+        dplyr::filter(location == locs_to_plot[2]),
+      ranges = c(30, 60, 90)
+    )
+  ),
+  tar_target(
+    name = sfig3_qq_plot2,
+    command = make_qq_plot_overall(
+      scores_quantiles_filtered |>
+        dplyr::filter(location == locs_to_plot[2])
+    )
+  ),
+  ### Third loc----
   tar_target(
     name = fig3_crps_single_loc3,
     command = make_fig3_single_loc_comp(
       scores_filtered,
-      loc_to_plot = "WA"
+      loc_to_plot = locs_to_plot[3]
     )
   ),
   tar_target(
     name = fig3_forecast_comparison_nowcast3,
     command = make_fig3_forecast_comp_fig(
       hosp_quantiles_filtered,
-      loc_to_plot = "WA",
+      loc_to_plot = locs_to_plot[3],
       horizon_to_plot = "nowcast"
     )
   ),
@@ -610,7 +655,7 @@ manuscript_figures <- list(
     name = fig3_forecast_comparison_1wk3,
     command = make_fig3_forecast_comp_fig(
       hosp_quantiles_filtered,
-      loc_to_plot = "WA",
+      loc_to_plot = locs_to_plot[3],
       horizon_to_plot = "1 wk"
     )
   ),
@@ -618,7 +663,7 @@ manuscript_figures <- list(
     name = fig3_forecast_comparison_4wks3,
     command = make_fig3_forecast_comp_fig(
       hosp_quantiles_filtered,
-      loc_to_plot = "WA",
+      loc_to_plot = locs_to_plot[3],
       horizon_to_plot = "4 wks"
     )
   ),
@@ -626,7 +671,7 @@ manuscript_figures <- list(
     name = fig3_crps_underlay_nowcast3,
     command = make_fig3_crps_underlay_fig(
       scores_filtered,
-      loc_to_plot = "WA",
+      loc_to_plot = locs_to_plot[3],
       horizon_to_plot = "nowcast",
       days_to_shift = -10
     )
@@ -635,7 +680,7 @@ manuscript_figures <- list(
     name = fig3_crps_underlay_1wk3,
     command = make_fig3_crps_underlay_fig(
       scores_filtered,
-      loc_to_plot = "WA",
+      loc_to_plot = locs_to_plot[3],
       horizon_to_plot = "1 wk",
       days_to_shift = 0
     )
@@ -644,9 +689,25 @@ manuscript_figures <- list(
     name = fig3_crps_underlay_4wks3,
     command = make_fig3_crps_underlay_fig(
       scores_filtered,
-      loc_to_plot = "WA",
+      loc_to_plot = locs_to_plot[3],
       horizon_to_plot = "4 wks",
       days_to_shift = 21
+    )
+  ),
+  # Supplement to fig 3
+  tar_target(
+    name = sfig3_interval_coverage3,
+    command = make_plot_coverage_range(
+      scores_quantiles_filtered |>
+        dplyr::filter(location == locs_to_plot[3]),
+      ranges = c(30, 60, 90)
+    )
+  ),
+  tar_target(
+    name = sfig3_qq_plot3,
+    command = make_qq_plot_overall(
+      scores_quantiles_filtered |>
+        dplyr::filter(location == locs_to_plot[3])
     )
   ),
 
@@ -728,7 +789,7 @@ manuscript_figures <- list(
     name = fig4_plot_coverage_range,
     command = make_plot_coverage_range(
       scores_quantiles_filtered,
-      c(30, 60, 90)
+      ranges = c(30, 60, 90)
     )
   )
 )
