@@ -744,8 +744,9 @@ manuscript_figures <- list(
   ## Fig 4------------------------------------------------
   tar_target(
     name = fig4_rel_crps_over_time,
-    command = make_fig4_crps_density(
-      scores_filtered
+    command = make_fig4_rel_crps_over_time(
+      scores_filtered,
+      horizons_to_show = "overall"
     )
   ),
   tar_target(
@@ -770,7 +771,8 @@ manuscript_figures <- list(
   tar_target(
     name = fig4_rel_crps_by_location,
     command = make_fig4_rel_crps_by_location(
-      scores_filtered
+      scores_filtered,
+      horizons_to_show = "overall"
     )
   ),
   tar_target(
