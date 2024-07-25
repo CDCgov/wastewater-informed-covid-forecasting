@@ -366,7 +366,8 @@ make_qq_plot_overall <- function(scores_quantiles) {
 #' date and model, containing the outputs of `scoringutils::score()` on
 #' quantiles plus metadata transformed into a tibble.
 #'
-#' @param ranges A numeric vector of credible interval ranges to plot.
+#' @param ranges A numeric vector of credible interval ranges to plot,
+#' spanning from 0 to 100.
 #'
 #' @return A ggplot2 object
 #'
@@ -384,9 +385,9 @@ make_plot_coverage_range <- function(scores_quantiles, ranges) {
       )
     )
   coverage_summarized <- scores_by_horizon |>
-    dplyr::filter(quantile %in% c(!!ranges / 100)) |>
-    dplyr::group_by(horizon, model, quantile) |>
-    dplyr::summarise(pct_coverage = 100 * mean(coverage)) |>
+    dplyr::filter(range %in% c(!!ranges)) |>
+    dplyr::group_by(horizon, model, range) |>
+    dplyr::summarise(pct_interval_coverage = 100 * mean(coverage)) |>
     order_horizons()
 
   if (nrow(coverage_summarized |> dplyr::filter(is.na(horizon))) > 0) {
@@ -396,21 +397,21 @@ make_plot_coverage_range <- function(scores_quantiles, ranges) {
   coverage_summarized <- coverage_summarized |>
     dplyr::filter(!is.na(horizon)) |>
     dplyr::mutate(
-      named_facet = glue::glue("{round(100*quantile)}%")
+      named_facet = glue::glue("{range}%")
     )
 
 
   p <- ggplot(coverage_summarized) +
     aes(
-      x = horizon, y = pct_coverage, color = model,
+      x = horizon, y = pct_interval_coverage, color = model,
       group = model
     ) +
     geom_line() +
     geom_point() +
-    geom_hline(aes(yintercept = 100 * quantile), linetype = "dashed") +
+    geom_hline(aes(yintercept = range), linetype = "dashed") +
     facet_wrap(~named_facet, scales = "free_y", ncol = 1) +
     labs(
-      y = "Proportion of data within forecast interval",
+      y = "Proportion of data within interval",
       x = "Forecast horizon",
       col = "Model"
     ) +

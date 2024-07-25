@@ -5,12 +5,12 @@
 \title{Get standardized plot theme to add to figures}
 \usage{
 get_plot_theme(
-  x_axis_text_size = 6,
+  x_axis_text_size = 8,
   y_axis_text_size = 8,
   x_axis_title_size = 12,
   y_axis_title_size = 12,
   legend_title_size = 10,
-  legend_text_size = 10,
+  legend_text_size = 8,
   facet_x_text_size = 8,
   facet_y_text_size = 8,
   plot_title_size = 10,

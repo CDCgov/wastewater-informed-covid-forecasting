@@ -85,4 +85,27 @@ ggplot(ma_quantiles) +
   geom_point(aes(x = date, y = eval_data)) +
   facet_wrap(~model_type)
 
-# Computer yourself the quantile coverage for a specific range in MA
+# Computer yourself the quantile coverage for a specific range in MA, across
+# the forecast dates over all days
+
+ranges <- c(30, 60, 90)
+
+coverage_summarized <- scores_quantiles |>
+  dplyr::filter(
+    location == "MA",
+    forecast_date == "2024-01-15"
+  ) |>
+  dplyr::filter(range %in% c(!!ranges)) |>
+  dplyr::group_by(model, range, horizon) |>
+  dplyr::summarise(pct_coverage = 100 * mean(coverage))
+
+ggplot(coverage_summarized) +
+  aes(
+    x = horizon, y = pct_coverage, color = model,
+    group = model
+  ) +
+  geom_line() +
+  geom_point() +
+  geom_hline(aes(yintercept = range), linetype = "dashed") +
+  facet_wrap(~range, scales = "free_y", ncol = 1) +
+  ylab("Percent of observed data within the interval")

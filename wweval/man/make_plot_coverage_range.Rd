@@ -11,7 +11,8 @@ make_plot_coverage_range(scores_quantiles, ranges)
 date and model, containing the outputs of \code{scoringutils::score()} on
 quantiles plus metadata transformed into a tibble.}
 
-\item{ranges}{A numeric vector of credible interval ranges to plot.}
+\item{ranges}{A numeric vector of credible interval ranges to plot,
+spanning from 0 to 100.}
 }
 \value{
 A ggplot2 object
