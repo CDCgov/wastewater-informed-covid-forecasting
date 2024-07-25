@@ -756,6 +756,12 @@ manuscript_figures <- list(
     )
   ),
   tar_target(
+    name = fig4_avg_crps,
+    command = make_fig4_avg_crps_over_time(
+      scores_filtered
+    )
+  ),
+  tar_target(
     name = fig4_pct_better_w_ww,
     command = make_fig4_pct_better_w_ww(
       scores_filtered,

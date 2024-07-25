@@ -144,7 +144,8 @@ tar_load(fig4_plot_coverage_range)
 tar_load(fig4_avg_wis)
 
 layout <- "
-AABB
+AAAA
+BBBB
 CCCC
 DDDD
 EEEE
