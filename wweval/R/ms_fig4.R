@@ -618,7 +618,6 @@ make_fig4_avg_crps_over_time <- function(scores,
       date_breaks = "2 weeks",
       labels = scales::date_format("%Y-%m-%d")
     ) +
-    ggtitle(title) +
     scale_color_manual(values = colors$model_colors)
 
   return(p)

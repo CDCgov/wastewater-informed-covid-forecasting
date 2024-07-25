@@ -164,7 +164,8 @@ make_fig2_ct <- function(ww_quantiles,
     geom_line(
       aes(
         x = date, y = `0.5`,
-        color = model
+        color = model,
+        show.legend = FALSE
       )
     ) +
     geom_ribbon(
