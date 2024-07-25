@@ -1053,12 +1053,8 @@ get_plot_hub_performance <- function(all_scores,
     dplyr::mutate(relative_wis = interval_score / baseline_score) |>
     dplyr::filter(model != {{ baseline_model }}) |>
     dplyr::mutate(
-      fig_order =
-        dplyr::case_when(
-          period == "Feb 2024-Mar 2024" ~ 1,
-          period == "Oct 2023-Mar 2024" ~ 0
-        ),
-      horizon = forcats::fct_reorder(horizon, fig_order)
+      period = factor(period, ordered = TRUE, levels = c(
+          "Feb 2024-Mar 2024", "Oct 2023-Mar 2024"))
     )
 
 
