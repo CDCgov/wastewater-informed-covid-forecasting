@@ -16,7 +16,8 @@ library(purrr, quietly = TRUE)
 # argument of a target.
 controller <- crew_controller_local(
   workers = 8,
-  seconds_idle = 600
+  seconds_idle = 600,
+  seconds_timeout = 120, # default is 60
 )
 
 # Set target options:
@@ -419,12 +420,32 @@ manuscript_figures <- list(
     name = forecast_date_to_plot,
     command = "2024-01-15"
   ),
+  tar_target(
+    name = quantile_levels_to_plot,
+    command = c(0.025, 0.25, 0.5, 0.75, 0.975)
+  ),
+  tar_target(
+    name = hosp_quants_plot,
+    command = hosp_quantiles_filtered |>
+      dplyr::filter(
+        quantile %in% quantile_levels_to_plot,
+        location %in% quantile_levels_to_plot
+      )
+  ),
+  tar_target(
+    name = ww_quants_plot,
+    command = all_ww_quantiles_sq |>
+      dplyr::filter(
+        quantile %in% quantile_levels_to_plot,
+        location %in% c(locs_to_plot)
+      )
+  ),
 
   ## Fig 2-----------------------------------------------------
   tar_target(
     name = fig2_hosp_t_1,
     command = make_fig2_hosp_t(
-      hosp_quantiles_filtered,
+      hosp_quants_plot,
       loc_to_plot = locs_to_plot[1],
       date_to_plot = forecast_date_to_plot
     )
@@ -432,7 +453,7 @@ manuscript_figures <- list(
   tar_target(
     name = fig2_hosp_t_2,
     command = make_fig2_hosp_t(
-      hosp_quantiles_filtered,
+      hosp_quants_plot,
       loc_to_plot = locs_to_plot[2],
       date_to_plot = forecast_date_to_plot
     )
@@ -440,7 +461,7 @@ manuscript_figures <- list(
   tar_target(
     name = fig2_hosp_t_3,
     command = make_fig2_hosp_t(
-      hosp_quantiles_filtered,
+      hosp_quants_plot,
       loc_to_plot = locs_to_plot[3],
       date_to_plot = forecast_date_to_plot
     )
@@ -448,7 +469,7 @@ manuscript_figures <- list(
   tar_target(
     name = fig2_ct_1,
     command = make_fig2_ct(
-      all_ww_quantiles_sq,
+      ww_quants_plot,
       loc_to_plot = locs_to_plot[1],
       date_to_plot = forecast_date_to_plot
     )
@@ -456,7 +477,7 @@ manuscript_figures <- list(
   tar_target(
     name = fig2_ct_2,
     command = make_fig2_ct(
-      all_ww_quantiles_sq,
+      ww_quants_plot,
       loc_to_plot = locs_to_plot[2],
       date_to_plot = forecast_date_to_plot
     )
@@ -464,7 +485,7 @@ manuscript_figures <- list(
   tar_target(
     name = fig2_ct_3,
     command = make_fig2_ct(
-      all_ww_quantiles_sq,
+      ww_quants_plot,
       loc_to_plot = locs_to_plot[3],
       date_to_plot = forecast_date_to_plot
     )
@@ -1134,17 +1155,35 @@ hub_targets <- list(
 ## Fig 5-------------------------------------------------------------------
 hub_comparison_plots <- list(
   tar_target(
+    name = summarized_scores_oct_mar,
+    command = combine_scores_oct_mar |>
+      data.table::as.data.table() |>
+      scoringutils::summarise_scores()
+  ),
+  tar_target(
+    name = summarized_scores_feb_mar,
+    command = combine_scores_feb_mar |>
+      data.table::as.data.table() |>
+      scoringutils::summarise_scores()
+  ),
+  tar_target(
+    name = summarized_scores_cfa_real_time,
+    command = cfa_real_time_scores |>
+      data.table::as.data.table() |>
+      scoringutils::summarise_scores()
+  ),
+  tar_target(
     name = fig5_plot_wis_over_time,
     command = make_fig5_average_wis(
-      all_scores = combine_scores_oct_mar,
-      cfa_real_time_scores = cfa_real_time_scores
+      all_scores = summarized_scores_oct_mar,
+      cfa_real_time_scores = summarized_scores_cfa_real_time
     )
   ),
   tar_target(
     name = fig5_overall_performance,
     command = make_fig5_hub_performance(
-      all_scores = combine_scores_oct_mar,
-      cfa_real_time_scores = cfa_real_time_scores,
+      all_scores = summarized_scores_oct_mar,
+      cfa_real_time_scores = summarized_scores_cfa_real_time,
       all_time_period = "Oct 2023-Mar 2024",
       real_time_period = "Feb 2024-Mar 2024",
     )
@@ -1152,7 +1191,7 @@ hub_comparison_plots <- list(
   tar_target(
     name = fig5_heatmap_relative_wis_all_time,
     command = make_fig5_heatmap_relative_wis(
-      scores = combine_scores_oct_mar,
+      scores = summarized_scores_oct_mar,
       time_period = "Oct 2023-Mar 2024",
       baseline_model = "COVIDhub-baseline"
     )
@@ -1160,7 +1199,7 @@ hub_comparison_plots <- list(
   tar_target(
     name = fig5_heatmap_relative_wis_Feb_Mar,
     command = make_fig5_heatmap_relative_wis(
-      scores = combine_scores_feb_mar,
+      scores = summarized_scores_feb_mar,
       time_period = "Feb 2024-Mar 2024",
       baseline_model = "COVIDhub-baseline"
     )
@@ -1182,14 +1221,14 @@ hub_comparison_plots <- list(
   tar_target(
     name = fig5_std_rank_feb_mar,
     command = make_fig5_density_rank(
-      scores = combine_scores_feb_mar,
+      scores = summarized_scores_feb_mar,
       time_period = "Feb 2024-Mar 2024"
     )
   ),
   tar_target(
     name = fig5_std_rank_all_time,
     command = make_fig5_density_rank(
-      scores = combine_scores_oct_mar,
+      scores = summarized_scores_oct_mar,
       time_period = "Oct 2023-Mar 2024"
     )
   )

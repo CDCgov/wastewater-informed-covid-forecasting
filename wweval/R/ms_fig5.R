@@ -1,9 +1,11 @@
 #' Get plot of WIS over time
 #'
 #' @param all_scores Scores from entire time period of interest, including
-#' the retrospective cfa model
+#' the retrospective cfa model, scored with [scoringutils::score()] and
+#' summarized across quantiles only with [scoringutils::summarise_scores()]
 #' @param cfa_real_time_scores Real-time scores from Feb - Mar for the cfa ww
-#' model submitted to the hub
+#' model submitted to the hub, scored with [scoringutils::score()] and
+#' summarized across quantiles only with [scoringutils::summarise_scores()]
 #' @param horizon_time_in_weeks horizon time in weeks to summarize over, default
 #' is `NULL` which means that the scores are summarized over the nowcast period
 #' and the 4 week forecast period
@@ -193,7 +195,7 @@ make_fig5_hub_performance <- function(all_scores,
       y_axis_title_size = 8
     ) +
     scale_fill_manual(values = colors$model_colors) +
-    scale_color_manual(values = colros$model_colors) +
+    scale_color_manual(values = colors$model_colors) +
     xlab("") +
     ylab(glue::glue("Relative WIS compared to {baseline_model}"))
 
@@ -335,7 +337,7 @@ make_fig5_density_rank <- function(scores,
     )) |>
     dplyr::arrange(first_quantile) |>
     dplyr::mutate(
-      fig_order = row_number()
+      fig_order = dplyr::row_number()
     )
 
   scores_ranked_ordered <- scores_ranked |>
