@@ -240,6 +240,7 @@ combined_targets <- list(
       model_type = "hosp"
     )
   ),
+  ## COMMENT THESE OUT TO SAVE TIME-----------------------------------
   tar_target(
     name = all_ww_quantiles,
     command = combine_outputs(
@@ -250,6 +251,31 @@ combined_targets <- list(
       eval_output_subdir = eval_config$output_dir,
       model_type = "ww"
     )
+  ),
+  tar_target(
+    name = save_ww_quantiles,
+    command = save_ww_quantiles(all_ww_quantiles,
+      ww_output_path =
+        file.path(
+          eval_config$output_dir,
+          "ww_quantiles.parquet"
+        )
+    )
+  ),
+  ## END COMMENT------------------------------------------
+  tar_target(
+    name = path_to_ww_quantiles,
+    command = file.path(eval_config$output_dir, "ww_quantiles.parquet")
+  ),
+  tar_target(
+    name = save_ww_vintaged_data,
+    command = save_only_ww_data(all_ww_quantiles,
+      ww_data_dir = eval_config$ww_data_dir
+    )
+  ),
+  tar_target(
+    name = path_to_ww_vintaged_data,
+    command = file.path(eval_config$ww_data_dir, "ww_vintaged_data.csv")
   ),
   ## Errors-------------------------------------------------------------------
   tar_target(
@@ -291,7 +317,7 @@ head_to_head_targets <- list(
   # Get a table of locations and forecast dates with sufficient wastewater
   tar_target(
     name = table_of_loc_dates_w_ww,
-    command = get_table_sufficient_ww(all_ww_quantiles)
+    command = get_table_sufficient_ww(path_to_ww_vintaged_data)
   ),
   # Get a table indicating whether there are locations and forecast dates with
   # convergence issues
@@ -437,7 +463,7 @@ manuscript_figures <- list(
   ),
   tar_target(
     name = ww_quants_plot,
-    command = all_ww_quantiles_sq |>
+    command = arrow::read_parquet(path_to_ww_quantiles) |>
       dplyr::filter(
         quantile %in% quantile_levels_to_plot,
         location %in% locs_to_plot
@@ -1276,7 +1302,7 @@ hub_comparison_plots <- list(
       fig5_plot_wis_over_time = fig5_plot_wis_over_time,
       fig5_overall_performance = fig5_overall_performance,
       fig5_heatmap_rel_wis_all_time = fig5_heatmap_rel_wis_all_time,
-      fig5_heatmap_rel_wis_feb_mar = fig5_heatmap_relative_wis_feb_mar,
+      fig5_heatmap_rel_wis_feb_mar = fig5_heatmap_rel_wis_feb_mar,
       fig5_qq_plot_all_time = fig5_qq_plot_all_time,
       fig5_qq_plot_feb_mar = fig5_qq_plot_feb_mar,
       fig5_std_rank_feb_mar = fig5_std_rank_feb_mar,
@@ -1293,7 +1319,7 @@ list(
   upstream_targets,
   combined_targets,
   head_to_head_targets,
-  manuscript_figures,
+  # manuscript_figures,
   # scenario_targets,
   hub_targets,
   hub_comparison_plots

@@ -4,7 +4,7 @@
 \alias{make_fig2}
 \title{Make figure 2}
 \usage{
-make_fig2(hosp1, hosp2, hosp3, ct1, ct2, ct3)
+make_fig2(hosp1, hosp2, hosp3, ct1, ct2, ct3, fig_file_dir)
 }
 \arguments{
 \item{hosp1}{first hospital admissions forecast}
@@ -18,6 +18,8 @@ make_fig2(hosp1, hosp2, hosp3, ct1, ct2, ct3)
 \item{ct2}{second}
 
 \item{ct3}{third}
+
+\item{fig_file_dir}{Path to save figures}
 }
 \value{
 a combined ggplot object

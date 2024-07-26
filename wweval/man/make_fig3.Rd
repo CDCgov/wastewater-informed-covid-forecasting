@@ -25,7 +25,8 @@ make_fig3(
   fig3_forecast_comparison_4wks3,
   fig3_crps_underlay_nowcast3,
   fig3_crps_underlay_1wk3,
-  fig3_crps_underlay_4wks3
+  fig3_crps_underlay_4wks3,
+  fig_file_dir
 )
 }
 \arguments{
@@ -70,6 +71,8 @@ make_fig3(
 \item{fig3_crps_underlay_1wk3}{third states crps 1 wk underlay}
 
 \item{fig3_crps_underlay_4wks3}{third states crps 4wk underlay}
+
+\item{fig_file_dir}{Path to save figures}
 }
 \value{
 ggplot object that is a combination of 3 states overall crps

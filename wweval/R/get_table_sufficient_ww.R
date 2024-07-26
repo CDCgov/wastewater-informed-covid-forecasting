@@ -9,8 +9,8 @@
 #' sufficient to inform a forecast, based on the critera that was used for
 #' the Hub submissions.
 #'
-#' @param ww_quantiles The dataframe of the quantiled ww predictions with the
-#' real data alongside it (labeled as calib data)
+#' @param path_to_ww_vintaged_data A character string indicating the path
+#' to where only the vintaged wastewater data are saved
 #' @param delay_thres The maximum number of days of delay between the last
 #' wastewater data point and the forecat date, before we would flag a state as
 #' having insufficient wastewater data to inform a forecast. Default is 21
@@ -32,18 +32,13 @@
 #' locations and forecast dates where ww data was deemed sufficient
 #' @export
 #'
-get_table_sufficient_ww <- function(ww_quantiles,
+get_table_sufficient_ww <- function(path_to_ww_vintaged_data,
                                     delay_thres = 21,
                                     n_dps_thres = 5,
                                     prop_below_lod_thres = 0.5,
                                     sd_thres = 0.1,
                                     mean_log_ww_value_thres = -4) {
-  calib_data <- ww_quantiles |>
-    dplyr::distinct(
-      location, site, lab, lab_site_index,
-      date, forecast_date, below_LOD, calib_data
-    ) |>
-    dplyr::filter(!is.na(calib_data))
+  calib_data <- readr::read_csv(path_to_ww_vintaged_data)
 
   diagnostic_table <- calib_data |>
     dplyr::group_by(location, forecast_date) |>
@@ -77,4 +72,44 @@ get_table_sufficient_ww <- function(ww_quantiles,
     dplyr::summarise(ww_sufficient = !any(value))
 
   return(table_of_loc_dates_w_ww)
+}
+
+
+#' Save only the wastewater data from the output quantiles
+#'
+#' @param ww_quantiles The full set of wastewater quantiles for each
+#' date, forecast date, state
+#' @param ww_data_dir directory where wastewater data is saved
+#'
+#' @return NULL
+#' @export
+save_only_ww_data <- function(ww_quantiles,
+                              ww_data_dir) {
+  calib_data <- ww_quantiles |>
+    dplyr::distinct(
+      location, site, lab, lab_site_index,
+      date, forecast_date, below_LOD, calib_data
+    ) |>
+    dplyr::filter(!is.na(calib_data))
+
+  path_to_data <- file.path(ww_data_dir, "ww_vintaged_data.csv")
+
+  write.csv(calib_data, path_to_dir, row.names = FALSE)
+  return(NULL)
+}
+
+
+#' Save the combined wastewater quantiles
+#'
+#' @param ww_quantiles full set of vintaged wastewater data with fits
+#' @param ww_output_path path to where to save this
+#'
+#' @return NULL
+#' @export
+save_ww_quantiles <- function(ww_quantiles,
+                              ww_output_path) {
+  arrow::write_parquet(ww_quantiles,
+    sink = ww_output_path
+  )
+  return(NULL)
 }
