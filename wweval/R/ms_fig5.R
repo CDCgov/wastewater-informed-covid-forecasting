@@ -397,3 +397,61 @@ make_fig5_density_rank <- function(scores,
 
   return(p)
 }
+
+#' Make Fig 5
+#'
+#' @param fig5_plot_wis_over_time average wis over time across locations for
+#' each model
+#' @param fig5_overall_performance density plot of overall performance across
+#' location, forecast date, day, and model, stratified by time period
+#' @param fig5_heatmap_rel_wis_all_time heatmap comparing WIS across
+#' forecast dates for each location for all time
+#' @param fig5_heatmap_rel_wis_feb_mar heatmap comparing WIS across
+#' forecast dates for each location for the real-time period (Feb-Mar)
+#' @param fig5_qq_plot_all_time qq plot comparing model coverage for all time
+#' @param fig5_qq_plot_feb_mar qq plot comparing model coverage for the
+#' real-time period (Feb-Mar)
+#' @param fig5_std_rank_feb_mar comparison of standardized rank across models
+#' for the real-time period (Feb-Mar)
+#' @param fig5_std_rank_all_time comparison of standardized rank across models
+#' for all time
+#' @param fig_file_dir Path to save figures
+#'
+#' @return a ggplot object containing all the figures combined
+#' @export
+#'
+make_fig5 <- function(fig5_plot_wis_over_time,
+                      fig5_overall_performance,
+                      fig5_heatmap_rel_wis_all_time,
+                      fig5_heatmap_rel_wis_feb_mar,
+                      fig5_qq_plot_all_time,
+                      fig5_qq_plot_feb_mar,
+                      fig5_std_rank_feb_mar,
+                      fig5_std_rank_all_time,
+                      fig_file_dir) {
+  layout <- "
+ABB
+CDE
+FGH
+"
+  fig5 <- fig5_overall_performance + fig5_plot_wis_over_time +
+    fig5_heatmap_rel_wis_feb_mar + fig5_qq_plot_feb_mar +
+    fig5_std_rank_feb_mar +
+    fig5_heatmap_rel_wis_all_time + fig5_qq_plot_all_time +
+    fig5_std_rank_all_time +
+    patchwork::plot_layout(
+      design = layout,
+      axes = "collect",
+      guides = "collect"
+    ) & theme(
+    legend.position = "top",
+    legend.justification = "left"
+  ) #+ plot_annotation(tag_levels = "A") #nolint, not working
+
+  ggsave(fig5,
+    filename = file.path(fig_file_dir, "fig5.png"),
+    width = 12, height = 12
+  )
+
+  return(fig5)
+}

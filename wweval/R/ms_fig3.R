@@ -247,6 +247,7 @@ make_fig3_crps_underlay_fig <- function(scores,
 #' @param fig3_crps_underlay_nowcast3 third states crps nowcast underlay
 #' @param fig3_crps_underlay_1wk3 third states crps 1 wk underlay
 #' @param fig3_crps_underlay_4wks3 third states crps 4wk underlay
+#' @param fig_file_dir Path to save figures
 #'
 #' @return ggplot object that is a combination of 3 states overall crps
 #' distributions comparing the two model types +
@@ -273,7 +274,8 @@ make_fig3 <- function(fig3_crps_single_loc1,
                       fig3_forecast_comparison_4wks3,
                       fig3_crps_underlay_nowcast3,
                       fig3_crps_underlay_1wk3,
-                      fig3_crps_underlay_4wks3) {
+                      fig3_crps_underlay_4wks3,
+                      fig_file_dir) {
   layout <- "
 ABCD
 AEFG
@@ -304,5 +306,9 @@ OSTU
   ) #+ plot_annotation(tag_levels = "A") #nolint , not working
 
   fig3
+  ggsave(fig3,
+    filename = file.path(fig_file_dir, "fig3.png"),
+    width = 10, height = 7
+  )
   return(fig3)
 }

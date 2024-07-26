@@ -497,12 +497,13 @@ manuscript_figures <- list(
   tar_target(
     name = fig2,
     command = make_fig2(
-      fig2_hosp_t_1,
-      fig2_hosp_t_2,
-      fig2_hosp_t_3,
-      fig2_ct_1,
-      fig2_ct_2,
-      fig2_ct_3
+      hosp1 = fig2_hosp_t_1,
+      hosp2 = fig2_hosp_t_2,
+      hosp3 = fig2_hosp_t_3,
+      ct1 = fig2_ct_1,
+      ct2 = fig2_ct_2,
+      ct3 = fig2_ct_3,
+      fig_file_dir = eval_config$ms_fig_dir
     )
   ),
 
@@ -739,27 +740,28 @@ manuscript_figures <- list(
   tar_target(
     name = fig3,
     command = make_fig3(
-      fig3_crps_single_loc1,
-      fig3_forecast_comparison_nowcast1,
-      fig3_forecast_comparison_1wk1,
-      fig3_forecast_comparison_4wks1,
-      fig3_crps_underlay_nowcast1,
-      fig3_crps_underlay_1wk1,
-      fig3_crps_underlay_4wks1,
-      fig3_crps_single_loc2,
-      fig3_forecast_comparison_nowcast2,
-      fig3_forecast_comparison_1wk2,
-      fig3_forecast_comparison_4wks2,
-      fig3_crps_underlay_nowcast2,
-      fig3_crps_underlay_1wk2,
-      fig3_crps_underlay_4wks2,
-      fig3_crps_single_loc3,
-      fig3_forecast_comparison_nowcast3,
-      fig3_forecast_comparison_1wk3,
-      fig3_forecast_comparison_4wks3,
-      fig3_crps_underlay_nowcast3,
-      fig3_crps_underlay_1wk3,
-      fig3_crps_underlay_4wks3
+      fig3_crps_single_loc1 = fig3_crps_single_loc1,
+      fig3_forecast_comparison_nowcast1 = fig3_forecast_comparison_nowcast1,
+      fig3_forecast_comparison_1wk1 = fig3_forecast_comparison_1wk1,
+      fig3_forecast_comparison_4wks1 = fig3_forecast_comparison_4wks1,
+      fig3_crps_underlay_nowcast1 = fig3_crps_underlay_nowcast1,
+      fig3_crps_underlay_1wk1 = fig3_crps_underlay_1wk1,
+      fig3_crps_underlay_4wks1 = fig3_crps_underlay_4wks1,
+      fig3_crps_single_loc2 = fig3_crps_single_loc2,
+      fig3_forecast_comparison_nowcast2 = fig3_forecast_comparison_nowcast2,
+      fig3_forecast_comparison_1wk2 = fig3_forecast_comparison_1wk2,
+      fig3_forecast_comparison_4wks2 = fig3_forecast_comparison_4wks2,
+      fig3_crps_underlay_nowcast2 = fig3_crps_underlay_nowcast2,
+      fig3_crps_underlay_1wk2 = fig3_crps_underlay_1wk2,
+      fig3_crps_underlay_4wks2 = fig3_crps_underlay_4wks2,
+      fig3_crps_single_loc3 = fig3_crps_single_loc3,
+      fig3_forecast_comparison_nowcast3 = fig3_forecast_comparison_nowcast3,
+      fig3_forecast_comparison_1wk3 = fig3_forecast_comparison_1wk3,
+      fig3_forecast_comparison_4wks3 = fig3_forecast_comparison_4wks3,
+      fig3_crps_underlay_nowcast3 = fig3_crps_underlay_nowcast3,
+      fig3_crps_underlay_1wk3 = fig3_crps_underlay_1wk3,
+      fig3_crps_underlay_4wks3 = fig3_crps_underlay_4wks3,
+      fig_file_dir = eval_config$ms_fig_dir
     )
   ),
 
@@ -822,6 +824,20 @@ manuscript_figures <- list(
     command = make_plot_coverage_range(
       scores_quantiles_filtered,
       ranges = c(30, 60, 90)
+    )
+  ),
+  ### Fig 4 combined---------------------------------------------------
+  tar_target(
+    name = fig4,
+    command = make_fig4(
+      fig4_rep_crps_overall = fig4_rep_crps_overall,
+      fig4_avg_crps = fig4_avg_crps,
+      fig4_natl_admissions = fig4_natl_admissions,
+      fig4_rel_crps_over_time = fig4_rel_crps_over_time,
+      fig4_rel_crps_by_location = fig4_rel_crps_by_location,
+      fig4_qq_plot_overall = fig4_qq_plot_overall,
+      fig4_plot_coverage_range = fig4_plot_coverage_range,
+      fig_file_dir = eval_config$ms_fig_dir
     )
   )
 )
@@ -1204,7 +1220,7 @@ hub_comparison_plots <- list(
     )
   ),
   tar_target(
-    name = fig5_heatmap_relative_wis_all_time,
+    name = fig5_heatmap_rel_wis_all_time,
     command = make_fig5_heatmap_relative_wis(
       scores = summarized_scores_oct_mar,
       models_to_show = models_to_plot,
@@ -1213,7 +1229,7 @@ hub_comparison_plots <- list(
     )
   ),
   tar_target(
-    name = fig5_heatmap_relative_wis_Feb_Mar,
+    name = fig5_heatmap_rel_wis_feb_mar,
     command = make_fig5_heatmap_relative_wis(
       scores = summarized_scores_feb_mar,
       models_to_show = models_to_plot,
@@ -1251,6 +1267,21 @@ hub_comparison_plots <- list(
       scores = summarized_scores_oct_mar,
       models_to_show = models_to_plot,
       time_period = "Oct 2023-Mar 2024"
+    )
+  ),
+  ### Fig 5 combined---------------------------------------------------
+  tar_target(
+    name = fig5,
+    command = make_fig5(
+      fig5_plot_wis_over_time = fig5_plot_wis_over_time,
+      fig5_overall_performance = fig5_overall_performance,
+      fig5_heatmap_rel_wis_all_time = fig5_heatmap_rel_wis_all_time,
+      fig5_heatmap_rel_wis_feb_mar = fig5_heatmap_relative_wis_feb_mar,
+      fig5_qq_plot_all_time = fig5_qq_plot_all_time,
+      fig5_qq_plot_feb_mar = fig5_qq_plot_feb_mar,
+      fig5_std_rank_feb_mar = fig5_std_rank_feb_mar,
+      fig5_std_rank_all_time = fig5_std_rank_all_time,
+      fig_file_dir = eval_config$ms_fig_dir
     )
   )
 )

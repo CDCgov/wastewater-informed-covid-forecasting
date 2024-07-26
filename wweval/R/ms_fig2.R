@@ -211,11 +211,13 @@ make_fig2_ct <- function(ww_quantiles,
 #' @param ct1 first faceted fit to wastewater data in each site
 #' @param ct2 second
 #' @param ct3 third
+#' @param fig_file_dir Path to save figures
 #'
 #' @return a combined ggplot object
 #' @export
 make_fig2 <- function(hosp1, hosp2, hosp3,
-                      ct1, ct2, ct3) {
+                      ct1, ct2, ct3,
+                      fig_file_dir) {
   fig2 <- hosp1 + ct1 +
     hosp2 + ct2 +
     hosp3 + ct3 +
@@ -227,6 +229,10 @@ make_fig2 <- function(hosp1, hosp2, hosp3,
     ) & theme(
     legend.position = "top",
     legend.justification = "left"
+  )
+  ggsave(fig2,
+    filename = file.path(fig_file_dir, "fig2.png"),
+    width = 10, height = 7
   )
   return(fig2)
 }

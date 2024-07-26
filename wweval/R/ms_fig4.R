@@ -623,3 +623,58 @@ make_fig4_avg_crps_over_time <- function(scores,
 
   return(p)
 }
+
+#' Make Figure 4
+#'
+#' @param fig4_rep_crps_overall density plot comparing overall distribution
+#' of crps scores across forecast_date, date, location, and model
+#' @param fig4_avg_crps avg crps across locations by forecast date
+#' @param fig4_natl_admissions national admissions by day
+#' @param fig4_rel_crps_by_location avg crps across forecast dates by state
+#' @param fig4_qq_plot_overall overall qq plot
+#' @param fig4_plot_coverage_range interval coverage plots at 3 intervals
+#' @param fig_file_dir Path to save figures
+#'
+#' @return ggplot object with all the elements combined
+#' @export
+make_fig4 <- function(fig4_rep_crps_overall,
+                      fig4_avg_crps,
+                      fig4_natl_admissions,
+                      fig4_rel_crps_over_time,
+                      fig4_rel_crps_by_location,
+                      fig4_qq_plot_overall,
+                      fig4_plot_coverage_range,
+                      fig_file_dir) {
+  layout <- "
+AAAA
+BBBB
+CCCC
+DDDD
+EEEE
+FGGG
+FGGG
+"
+
+  fig4 <- fig4_rel_crps_overall +
+    fig4_ntl_admissions +
+    fig4_avg_crps +
+    fig4_rel_crps_over_time +
+    fig4_rel_crps_by_location +
+    fig4_plot_coverage_range +
+    fig4_qq_plot_overall +
+    patchwork::plot_layout(
+      design = layout,
+      axes = "collect"
+    ) & theme(
+    legend.position = "top",
+    legend.justification = "left"
+  ) #+ plot_annotation(tag_levels = "A") #nolint not working
+  fig4
+  ggsave(fig4,
+    filename = file.path(fig_file_dir, "fig4.png"),
+    width = 7, height = 10
+  )
+
+
+  return(fig4)
+}
