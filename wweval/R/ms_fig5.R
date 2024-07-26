@@ -6,6 +6,8 @@
 #' @param cfa_real_time_scores Real-time scores from Feb - Mar for the cfa ww
 #' model submitted to the hub, scored with [scoringutils::score()] and
 #' summarized across quantiles only with [scoringutils::summarise_scores()]
+#' @param models_to_show A vector of charcter strings indicating which models
+#' from the COVID-19 forecast hub to include in the plot.
 #' @param horizon_time_in_weeks horizon time in weeks to summarize over, default
 #' is `NULL` which means that the scores are summarized over the nowcast period
 #' and the 4 week forecast period
@@ -17,8 +19,13 @@
 #'
 make_fig5_average_wis <- function(all_scores,
                                   cfa_real_time_scores,
+                                  models_to_show,
                                   horizon_time_in_weeks = NULL) {
-  scores <- dplyr::bind_rows(all_scores, cfa_real_time_scores)
+  subset_model_scores <- all_scores |>
+    dplyr::filter(model %in% !!models_to_show)
+
+  scores <- dplyr::bind_rows(subset_model_scores, cfa_real_time_scores)
+
 
   if (!is.null(horizon_time_in_weeks)) {
     scores_by_forecast_date <- scores |>
@@ -84,11 +91,13 @@ make_fig5_average_wis <- function(all_scores,
 #' comparing, e.g. "Oct 2023-Mar 2024"
 #' @param real_time_period string indicating the shorter time frame that
 #' we submitted our model to the hub e.g. "Feb 2024-Mar 2024"
+#' @param models_to_show A vector of charcter strings indicating which models
+#' from the COVID-19 forecast hub to include in the plot.
 #' @param summarize_across_horizon Boolean indicating whether or not to
 #' average the scores across the horizon, default is `FALSE` meaning
 #' each day-forecast-date-location score is in the distribution
 #' @param baseline_model which model to compute relative WIS compared to, default
-#' is `COVIDhub-baseline`
+#' is `COVIDhub-4_week_ensemble`
 #'
 #' @return a ggplot object containing distributions of WIS scores grouped by
 #' model and the comaprison time period, with the mean plotted alongside the
@@ -100,10 +109,14 @@ make_fig5_hub_performance <- function(all_scores,
                                       figure_file_path,
                                       all_time_period,
                                       real_time_period,
+                                      models_to_show,
                                       summarize_across_horizon = FALSE,
-                                      baseline_model = "COVIDhub-baseline") {
+                                      baseline_model = "COVIDhub-4_week_ensemble") {
+  subset_scores <- all_scores |>
+    dplyr::filter(model %in% !!models_to_show)
+
   if (isTRUE(summarize_across_horizon)) {
-    scores_by_model_all_time <- all_scores |>
+    scores_by_model_all_time <- subset_scores |>
       data.table::as.data.table() |>
       scoringutils::summarise_scores(
         by = c("model", "forecast_date", "location", "horizon")
@@ -112,7 +125,7 @@ make_fig5_hub_performance <- function(all_scores,
         period = {{ all_time_period }}
       )
 
-    scores_by_model_real_time <- all_scores |>
+    scores_by_model_real_time <- subset_scores |>
       dplyr::filter(forecast_date >= lubridate::ymd("2024-02-05")) |>
       dplyr::bind_rows(cfa_real_time_scores) |>
       data.table::as.data.table() |>
@@ -123,12 +136,12 @@ make_fig5_hub_performance <- function(all_scores,
         period = {{ real_time_period }}
       )
   } else {
-    scores_by_model_all_time <- all_scores |>
+    scores_by_model_all_time <- subset_scores |>
       data.table::as.data.table() |>
       dplyr::mutate(
         period = {{ all_time_period }}
       )
-    scores_by_model_real_time <- all_scores |>
+    scores_by_model_real_time <- subset_scores |>
       data.table::as.data.table() |>
       dplyr::filter(forecast_date >= lubridate::ymd("2024-02-05")) |>
       dplyr::bind_rows(cfa_real_time_scores) |>
@@ -197,7 +210,7 @@ make_fig5_hub_performance <- function(all_scores,
     scale_fill_manual(values = colors$model_colors) +
     scale_color_manual(values = colors$model_colors) +
     xlab("") +
-    ylab(glue::glue("Relative WIS compared to {baseline_model}"))
+    ylab(glue::glue("Relative WIS compared /n to {baseline_model}"))
 
 
 
@@ -209,8 +222,10 @@ make_fig5_hub_performance <- function(all_scores,
 #' @param scores df of granular (daily) score across models, locations, forecast
 #' dates and horizons
 #' @param time_period time period that scores are summarized over
+#' @param models_to_show A vector of charcter strings indicating which models
+#' from the COVID-19 forecast hub to include in the plot.
 #' @param baseline_model which model to compute relative WIS compared to, default
-#' is `COVIDhub-baseline`
+#' is `COVIDhub-4_week_ensemble`
 #'
 #' @return a ggplot with a heatmap with model on the x-axis, location on the y-axis
 #' and fill by relative WIS score across forecast dates and horizons
@@ -218,7 +233,8 @@ make_fig5_hub_performance <- function(all_scores,
 #'
 make_fig5_heatmap_relative_wis <- function(scores,
                                            time_period,
-                                           baseline_model = "COVIDhub-baseline") {
+                                           models_to_show,
+                                           baseline_model = "COVIDhub-4_week_ensemble") {
   summarized_scores <- scores |>
     data.table::as.data.table() |>
     scoringutils::summarise_scores(
@@ -244,7 +260,8 @@ make_fig5_heatmap_relative_wis <- function(scores,
     ) |>
     dplyr::filter(
       model != {{ baseline_model }},
-      location != "US"
+      location != "US",
+      model %in% !!models_to_show
     ) # exclued the US bc not available for
   # retro model
 
@@ -263,7 +280,7 @@ make_fig5_heatmap_relative_wis <- function(scores,
     xlab("") +
     ylab("") +
     labs(fill = "Relative WIS") +
-    ggtitle(glue::glue("Relative WIS compared to {baseline_model} /n from {time_period}"))
+    ggtitle(glue::glue("Relative WIS compared to \n {baseline_model} \n from {time_period}"))
 
 
   return(p)
@@ -273,6 +290,8 @@ make_fig5_heatmap_relative_wis <- function(scores,
 #'
 #' @param scores df of granular (daily) score across models, locations, forecast
 #' dates and horizons
+#' @param models_to_show A vector of charcter strings indicating which models
+#' from the COVID-19 forecast hub to include in the plot.
 #' @param time_period time period that scores are summarized over
 #'
 #' @return a ggplot object containing a plot of the proportion of data within
@@ -280,9 +299,13 @@ make_fig5_heatmap_relative_wis <- function(scores,
 #' @export
 
 make_fig5_qq_plot <- function(scores,
+                              models_to_show,
                               time_period) {
+  subset_scores <- scores |>
+    dplyr::filter(model %in% !!models_to_show)
+
   colors <- plot_components()
-  p <- scores |>
+  p <- subset_scores |>
     data.table::as.data.table() |>
     scoringutils::summarise_scores(by = c("model", "quantile")) |>
     scoringutils::plot_quantile_coverage() +
@@ -303,12 +326,15 @@ make_fig5_qq_plot <- function(scores,
 #'
 #' @param scores df of granular (daily) score across models, locations, forecast
 #' dates and horizons
+#' @param models_to_show A vector of charcter strings indicating which models
+#' from the COVID-19 forecast hub to include in the plot.
 #' @param time_period time period that scores are summarized over
 #'
 #' @return A ggplot object containing geomridges plots colored by density,
 #' indicating the standardized rank for each location-date combo
 #' @export
 make_fig5_density_rank <- function(scores,
+                                   models_to_show,
                                    time_period) {
   summarized_scores <- scores |>
     data.table::as.data.table() |>
@@ -344,7 +370,8 @@ make_fig5_density_rank <- function(scores,
     dplyr::left_join(fq, by = "model") |>
     dplyr::mutate(
       model = forcats::fct_reorder(model, fig_order)
-    )
+    ) |>
+    dplyr::filter(model %in% !!models_to_show)
 
 
   p <- ggplot(

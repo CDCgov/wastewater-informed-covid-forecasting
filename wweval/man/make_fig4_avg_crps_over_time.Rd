@@ -15,6 +15,10 @@ transformed into a tibble.}
 is \code{NULL} which means that the scores are summarized over the nowcast period
 and the 4 week forecast period}
 }
+\value{
+a ggplot object plotting the magnitude of the avg crps across
+locations at each forecast date
+}
 \description{
 Make average WIS over time for model comparison
 }

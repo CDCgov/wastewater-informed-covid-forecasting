@@ -572,7 +572,8 @@ make_fig4_rel_crps_by_phase <- function(scores) {
 #' is `NULL` which means that the scores are summarized over the nowcast period
 #' and the 4 week forecast period
 #'
-#' @return
+#' @return a ggplot object plotting the magnitude of the avg crps across
+#' locations at each forecast date
 #' @export
 make_fig4_avg_crps_over_time <- function(scores,
                                          horizon_time_in_weeks = NULL) {

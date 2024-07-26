@@ -7,7 +7,8 @@
 make_fig5_heatmap_relative_wis(
   scores,
   time_period,
-  baseline_model = "COVIDhub-baseline"
+  models_to_show,
+  baseline_model = "COVIDhub-4_week_ensemble"
 )
 }
 \arguments{
@@ -16,8 +17,11 @@ dates and horizons}
 
 \item{time_period}{time period that scores are summarized over}
 
+\item{models_to_show}{A vector of charcter strings indicating which models
+from the COVID-19 forecast hub to include in the plot.}
+
 \item{baseline_model}{which model to compute relative WIS compared to, default
-is \code{COVIDhub-baseline}}
+is \verb{COVIDhub-4_week_ensemble}}
 }
 \value{
 a ggplot with a heatmap with model on the x-axis, location on the y-axis

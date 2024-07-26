@@ -7,15 +7,21 @@
 make_fig5_average_wis(
   all_scores,
   cfa_real_time_scores,
+  models_to_show,
   horizon_time_in_weeks = NULL
 )
 }
 \arguments{
 \item{all_scores}{Scores from entire time period of interest, including
-the retrospective cfa model}
+the retrospective cfa model, scored with \code{\link[scoringutils:score]{scoringutils::score()}} and
+summarized across quantiles only with \code{\link[scoringutils:summarise_scores]{scoringutils::summarise_scores()}}}
 
 \item{cfa_real_time_scores}{Real-time scores from Feb - Mar for the cfa ww
-model submitted to the hub}
+model submitted to the hub, scored with \code{\link[scoringutils:score]{scoringutils::score()}} and
+summarized across quantiles only with \code{\link[scoringutils:summarise_scores]{scoringutils::summarise_scores()}}}
+
+\item{models_to_show}{A vector of charcter strings indicating which models
+from the COVID-19 forecast hub to include in the plot.}
 
 \item{horizon_time_in_weeks}{horizon time in weeks to summarize over, default
 is \code{NULL} which means that the scores are summarized over the nowcast period

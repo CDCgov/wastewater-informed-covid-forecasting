@@ -4,11 +4,14 @@
 \alias{make_fig5_density_rank}
 \title{Make a figure of the distribution of standardized WIS rank}
 \usage{
-make_fig5_density_rank(scores, time_period)
+make_fig5_density_rank(scores, models_to_show, time_period)
 }
 \arguments{
 \item{scores}{df of granular (daily) score across models, locations, forecast
 dates and horizons}
+
+\item{models_to_show}{A vector of charcter strings indicating which models
+from the COVID-19 forecast hub to include in the plot.}
 
 \item{time_period}{time period that scores are summarized over}
 }

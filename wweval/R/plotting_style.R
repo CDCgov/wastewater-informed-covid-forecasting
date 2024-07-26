@@ -94,6 +94,7 @@ plot_components <- function() {
   )
 
   pal_model <- RColorBrewer::brewer.pal(8, "Dark2")
+  pastel_model <- RColorBrewer::brewer.pal(8, "Pastel2")
 
   model_colors <- c(
     "ww" = pal_model[1],
@@ -101,10 +102,10 @@ plot_components <- function() {
     "cfa-wwrenewal(retro)" = pal_model[1],
     "cfa-wwrenewal(real-time)" = pal_model[5],
     "cfa-hosponlyrenewal(retro)" = pal_model[2],
-    "COVIDhub-4_week_ensemble" = pal_model[3],
-    "UMass-trends_ensemble" = pal_model[4],
-    "UT-Osiris" = pal_model[6],
-    "COVIDhub-baseline" = pal_model[7]
+    "COVIDhub-4_week_ensemble" = pastel_model[3],
+    "UMass-trends_ensemble" = pastel_model[4],
+    "UT-Osiris" = pastel_model[5],
+    "COVIDhub-baseline" = pastel_model[6]
   )
 
   colors_list <- list(
