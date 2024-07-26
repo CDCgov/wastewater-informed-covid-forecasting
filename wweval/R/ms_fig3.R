@@ -62,7 +62,7 @@ make_fig3_single_loc_comp <- function(scores,
     scale_color_manual(values = colors$model_colors) +
     scale_fill_manual(values = colors$model_colors) +
     get_plot_theme(y_axis_title_size = 8) +
-    scale_y_continuous(trans = "log10", limits = c(0.01, 2)) +
+    scale_y_continuous(trans = "log10", limits = c(0.03, 1.5)) +
     labs(color = "Model", fill = "Model")
 
   return(p)
@@ -142,7 +142,7 @@ make_fig3_forecast_comp_fig <- function(hosp_quantiles,
       ),
     ) +
     xlab("") +
-    ylab("Daily hospital admissions") +
+    ylab("Daily hospital /n admissions") +
     ggtitle(glue::glue(
       "{horizon_to_plot}"
     )) +
