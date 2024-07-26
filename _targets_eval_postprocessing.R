@@ -55,7 +55,10 @@ setup_interactive_dev_run <- function() {
       "cfaforecastrenewalww",
       "data.table",
       "ggridges",
-      "ggdist"
+      "ggdist",
+      "patchwork",
+      "RColorBrewer",
+      "cowplot"
     )
   )
 }
@@ -429,7 +432,7 @@ manuscript_figures <- list(
     command = hosp_quantiles_filtered |>
       dplyr::filter(
         quantile %in% quantile_levels_to_plot,
-        location %in% quantile_levels_to_plot
+        location %in% locs_to_plot
       )
   ),
   tar_target(
@@ -437,7 +440,7 @@ manuscript_figures <- list(
     command = all_ww_quantiles_sq |>
       dplyr::filter(
         quantile %in% quantile_levels_to_plot,
-        location %in% c(locs_to_plot)
+        location %in% locs_to_plot
       )
   ),
 
@@ -490,18 +493,18 @@ manuscript_figures <- list(
       date_to_plot = forecast_date_to_plot
     )
   ),
-  ### Fig 2 combined--------------------------------------------
-  # tar_target(
-  #   name = fig2,
-  #   command = make_fig2(
-  #     fig2_hosp_t_1,
-  #     fig2_hosp_t_2,
-  #     fig2_hosp_t_3,
-  #     fig2_ct_1,
-  #     fig2_ct_2,
-  #     fig2_ct_3
-  #   )
-  # ),
+  ## Fig 2 combined--------------------------------------------
+  tar_target(
+    name = fig2,
+    command = make_fig2(
+      fig2_hosp_t_1,
+      fig2_hosp_t_2,
+      fig2_hosp_t_3,
+      fig2_ct_1,
+      fig2_ct_2,
+      fig2_ct_3
+    )
+  ),
 
   ## Fig 3-------------------------------------------------
   tar_target(
@@ -733,32 +736,32 @@ manuscript_figures <- list(
   ),
 
   ### Fig3 combined---------------------------------------
-  # tar_target(
-  #   name = fig3,
-  #   command = make_fig3(
-  #     fig3_crps_single_loc1,
-  #     fig3_forecast_comparison_nowcast1,
-  #     fig3_forecast_comparison_1wk1,
-  #     fig3_forecast_comparison_4wks1,
-  #     fig3_crps_underlay_nowcast1,
-  #     fig3_crps_underlay_1wk1,
-  #     fig3_crps_underlay_4wks1,
-  #     fig3_crps_single_loc2,
-  #     fig3_forecast_comparison_nowcast2,
-  #     fig3_forecast_comparison_1wk2,
-  #     fig3_forecast_comparison_4wks2,
-  #     fig3_crps_underlay_nowcast2,
-  #     fig3_crps_underlay_1wk2,
-  #     fig3_crps_underlay_4wks2,
-  #     fig3_crps_single_loc3,
-  #     fig3_forecast_comparison_nowcast3,
-  #     fig3_forecast_comparison_1wk3,
-  #     fig3_forecast_comparison_4wks3,
-  #     fig3_crps_underlay_nowcast3,
-  #     fig3_crps_underlay_1wk3,
-  #     fig3_crps_underlay_4wks3
-  #   )
-  # )
+  tar_target(
+    name = fig3,
+    command = make_fig3(
+      fig3_crps_single_loc1,
+      fig3_forecast_comparison_nowcast1,
+      fig3_forecast_comparison_1wk1,
+      fig3_forecast_comparison_4wks1,
+      fig3_crps_underlay_nowcast1,
+      fig3_crps_underlay_1wk1,
+      fig3_crps_underlay_4wks1,
+      fig3_crps_single_loc2,
+      fig3_forecast_comparison_nowcast2,
+      fig3_forecast_comparison_1wk2,
+      fig3_forecast_comparison_4wks2,
+      fig3_crps_underlay_nowcast2,
+      fig3_crps_underlay_1wk2,
+      fig3_crps_underlay_4wks2,
+      fig3_crps_single_loc3,
+      fig3_forecast_comparison_nowcast3,
+      fig3_forecast_comparison_1wk3,
+      fig3_forecast_comparison_4wks3,
+      fig3_crps_underlay_nowcast3,
+      fig3_crps_underlay_1wk3,
+      fig3_crps_underlay_4wks3
+    )
+  ),
 
 
 

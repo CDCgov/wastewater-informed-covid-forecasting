@@ -301,9 +301,8 @@ OSTU
     ) & theme(
     legend.position = "top",
     legend.justification = "left"
-  )
+  ) #+ plot_annotation(tag_levels = "A") #nolint , not working
 
   fig3
-
   return(fig3)
 }
