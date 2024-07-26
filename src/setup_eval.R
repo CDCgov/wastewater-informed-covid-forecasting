@@ -28,6 +28,7 @@ write_eval_config(
   config_dir = file.path("input", "config", "eval"),
   scenario_dir = file.path("input", "config", "eval", "scenarios"),
   ms_fig_dir = file.path("output", "eval", "plots", "manuscript"),
+  rerun_ww_postprocess = FALSE,
   eval_date = "2024-04-29",
   overwrite_summary_table = FALSE # Set as TRUE if trying to get a baseline
   # score for all locations one forecast date

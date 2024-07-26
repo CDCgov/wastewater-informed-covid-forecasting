@@ -626,7 +626,7 @@ make_fig4_avg_crps_over_time <- function(scores,
 
 #' Make Figure 4
 #'
-#' @param fig4_rep_crps_overall density plot comparing overall distribution
+#' @param fig4_rel_crps_overall density plot comparing overall distribution
 #' of crps scores across forecast_date, date, location, and model
 #' @param fig4_avg_crps avg crps across locations by forecast date
 #' @param fig4_natl_admissions national admissions by day
@@ -637,7 +637,7 @@ make_fig4_avg_crps_over_time <- function(scores,
 #'
 #' @return ggplot object with all the elements combined
 #' @export
-make_fig4 <- function(fig4_rep_crps_overall,
+make_fig4 <- function(fig4_rel_crps_overall,
                       fig4_avg_crps,
                       fig4_natl_admissions,
                       fig4_rel_crps_over_time,
@@ -656,7 +656,7 @@ FGGG
 "
 
   fig4 <- fig4_rel_crps_overall +
-    fig4_ntl_admissions +
+    fig4_natl_admissions +
     fig4_avg_crps +
     fig4_rel_crps_over_time +
     fig4_rel_crps_by_location +

@@ -138,7 +138,7 @@ ggsave(sfig,
 
 tar_load(fig4_rel_crps_overall)
 tar_load(fig4_avg_crps)
-tar_load(fig4_ntl_admissions)
+tar_load(fig4_natl_admissions)
 tar_load(fig4_rel_crps_over_time)
 tar_load(fig4_rel_crps_by_location)
 tar_load(fig4_qq_plot_overall)
@@ -155,7 +155,7 @@ FGGG
 "
 
 fig4 <- fig4_rel_crps_overall +
-  fig4_ntl_admissions +
+  fig4_natl_admissions +
   fig4_avg_crps +
   fig4_rel_crps_over_time +
   fig4_rel_crps_by_location +

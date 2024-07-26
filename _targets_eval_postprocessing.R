@@ -240,42 +240,27 @@ combined_targets <- list(
       model_type = "hosp"
     )
   ),
-  ## COMMENT THESE OUT TO SAVE TIME-----------------------------------
   tar_target(
-    name = all_ww_quantiles,
-    command = combine_outputs(
+    name = path_to_ww_quantiles,
+    command = get_path_to_ww_quants_or_rerun(
       output_type = "ww_quantiles",
       scenarios = eval_config$scenario,
       forecast_dates = eval_config$forecast_date_ww,
       locations = eval_config$location_ww,
       eval_output_subdir = eval_config$output_dir,
-      model_type = "ww"
-    )
-  ),
-  tar_target(
-    name = save_ww_quantiles,
-    command = save_ww_quantiles(all_ww_quantiles,
-      ww_output_path =
-        file.path(
-          eval_config$output_dir,
-          "ww_quantiles.parquet"
-        )
-    )
-  ),
-  ## END COMMENT------------------------------------------
-  tar_target(
-    name = path_to_ww_quantiles,
-    command = file.path(eval_config$output_dir, "ww_quantiles.parquet")
-  ),
-  tar_target(
-    name = save_ww_vintaged_data,
-    command = save_only_ww_data(all_ww_quantiles,
-      ww_data_dir = eval_config$ww_data_dir
+      model_type = "ww",
+      ww_quantiles_path = file.path(
+        eval_config$output_dir,
+        "ww_quantiles.parquet"
+      ),
+      rerun_ww_postprocess = eval_config$rerun_ww_postprocess
     )
   ),
   tar_target(
     name = path_to_ww_vintaged_data,
-    command = file.path(eval_config$ww_data_dir, "ww_vintaged_data.csv")
+    command = save_only_ww_data(path_to_ww_quantiles,
+      ww_data_dir = eval_config$ww_data_dir
+    )
   ),
   ## Errors-------------------------------------------------------------------
   tar_target(
@@ -309,11 +294,6 @@ combined_targets <- list(
 # admissions only model if wastewater was missing.
 # These are only relevant for the status quo scenario
 head_to_head_targets <- list(
-  tar_target(
-    name = all_ww_quantiles_sq,
-    command = all_ww_quantiles |>
-      dplyr::filter(scenario == "status_quo")
-  ),
   # Get a table of locations and forecast dates with sufficient wastewater
   tar_target(
     name = table_of_loc_dates_w_ww,
@@ -802,7 +782,7 @@ manuscript_figures <- list(
     )
   ),
   tar_target(
-    name = fig4_ntl_admissions,
+    name = fig4_natl_admissions,
     command = make_fig4_admissions_overall(
       eval_hosp_data
     )
@@ -856,7 +836,7 @@ manuscript_figures <- list(
   tar_target(
     name = fig4,
     command = make_fig4(
-      fig4_rep_crps_overall = fig4_rep_crps_overall,
+      fig4_rel_crps_overall = fig4_rel_crps_overall,
       fig4_avg_crps = fig4_avg_crps,
       fig4_natl_admissions = fig4_natl_admissions,
       fig4_rel_crps_over_time = fig4_rel_crps_over_time,
@@ -1319,8 +1299,8 @@ list(
   upstream_targets,
   combined_targets,
   head_to_head_targets,
-  # manuscript_figures,
+  manuscript_figures
   # scenario_targets,
-  hub_targets,
-  hub_comparison_plots
+  # hub_targets,
+  # hub_comparison_plots
 )
