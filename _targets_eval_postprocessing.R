@@ -1173,10 +1173,21 @@ hub_comparison_plots <- list(
       scoringutils::summarise_scores()
   ),
   tar_target(
+    name = models_to_plot,
+    command = c(
+      "COVIDhub-4_week_ensemble",
+      "UMass-trends_ensemble",
+      "cfa-wwrenewal(real-time)",
+      "cfa-wwrenewal(retro)",
+      "cfa-hosponlyrenewal(retro)"
+    )
+  ),
+  tar_target(
     name = fig5_plot_wis_over_time,
     command = make_fig5_average_wis(
       all_scores = summarized_scores_oct_mar,
-      cfa_real_time_scores = summarized_scores_cfa_real_time
+      cfa_real_time_scores = summarized_scores_cfa_real_time,
+      models_to_show = models_to_plot
     )
   ),
   tar_target(
@@ -1184,6 +1195,7 @@ hub_comparison_plots <- list(
     command = make_fig5_hub_performance(
       all_scores = summarized_scores_oct_mar,
       cfa_real_time_scores = summarized_scores_cfa_real_time,
+      models_to_show = models_to_plot,
       all_time_period = "Oct 2023-Mar 2024",
       real_time_period = "Feb 2024-Mar 2024",
     )
@@ -1192,22 +1204,25 @@ hub_comparison_plots <- list(
     name = fig5_heatmap_relative_wis_all_time,
     command = make_fig5_heatmap_relative_wis(
       scores = summarized_scores_oct_mar,
+      models_to_show = models_to_plot,
       time_period = "Oct 2023-Mar 2024",
-      baseline_model = "COVIDhub-baseline"
+      baseline_model = "COVIDhub-4_week_ensemble"
     )
   ),
   tar_target(
     name = fig5_heatmap_relative_wis_Feb_Mar,
     command = make_fig5_heatmap_relative_wis(
       scores = summarized_scores_feb_mar,
+      models_to_show = models_to_plot,
       time_period = "Feb 2024-Mar 2024",
-      baseline_model = "COVIDhub-baseline"
+      baseline_model = "COVIDhub-4_week_ensemble"
     )
   ),
   tar_target(
     name = fig5_qq_plot_all_time,
     command = make_fig5_qq_plot(
       scores = combine_scores_oct_mar,
+      models_to_show = models_to_plot,
       time_period = "Oct 2023-Mar 2024"
     )
   ),
@@ -1215,6 +1230,7 @@ hub_comparison_plots <- list(
     name = fig5_qq_plot_feb_mar,
     command = make_fig5_qq_plot(
       scores = combine_scores_feb_mar,
+      models_to_show = models_to_plot,
       time_period = "Feb 2024-Mar 2024"
     )
   ),
@@ -1222,6 +1238,7 @@ hub_comparison_plots <- list(
     name = fig5_std_rank_feb_mar,
     command = make_fig5_density_rank(
       scores = summarized_scores_feb_mar,
+      models_to_show = models_to_plot,
       time_period = "Feb 2024-Mar 2024"
     )
   ),
@@ -1229,6 +1246,7 @@ hub_comparison_plots <- list(
     name = fig5_std_rank_all_time,
     command = make_fig5_density_rank(
       scores = summarized_scores_oct_mar,
+      models_to_show = models_to_plot,
       time_period = "Oct 2023-Mar 2024"
     )
   )
