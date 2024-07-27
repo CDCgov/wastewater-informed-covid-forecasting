@@ -426,7 +426,10 @@ make_qq_plot_overall <- function(scores_quantiles) {
       y_axis_title_size = 8,
       x_axis_title_size = 8
     ) +
-    labs(ylab = "Percent of data below quantile") +
+    labs(
+      ylab = "Percent of data below quantile",
+      col = "Model"
+    ) +
     theme(legend.position = "none") +
     scale_color_manual(values = colors$model_colors)
 
@@ -491,7 +494,8 @@ make_plot_coverage_range <- function(scores_quantiles, ranges) {
     scale_y_continuous(expand = expansion(c(0, 0.2))) +
     get_plot_theme(
       y_axis_title_size = 8,
-      x_axis_title_size = 8
+      x_axis_title_size = 8,
+      x_axis_dates = TRUE
     ) +
     scale_color_manual(values = colors$model_colors)
 
@@ -609,12 +613,14 @@ make_fig4_avg_crps_over_time <- function(scores,
       x = forecast_date, y = crps,
       color = model
     )) +
-    xlab("") +
-    ylab("Average CRPS across locations") +
-    get_plot_theme(
-      x_axis_dates = TRUE,
-      y_axis_title_size = 8
-    ) +
+    labs(
+      ylab = "Average CRPS across locations",
+      col = "Model"
+    )
+  get_plot_theme(
+    x_axis_dates = TRUE,
+    y_axis_title_size = 8
+  ) +
     scale_x_date(
       date_breaks = "2 weeks",
       labels = scales::date_format("%Y-%m-%d")
@@ -672,7 +678,7 @@ FGGG
   fig4
   ggsave(fig4,
     filename = file.path(fig_file_dir, "fig4.png"),
-    width = 7, height = 10
+    width = 8, height = 11
   )
 
 
