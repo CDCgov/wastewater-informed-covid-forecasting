@@ -74,7 +74,12 @@ make_fig5_average_wis <- function(all_scores,
       labels = scales::date_format("%Y-%m-%d")
     ) +
     ggtitle(title) +
-    scale_color_manual(values = colors$model_colors)
+    scale_color_manual(values = colors$model_colors) +
+    theme(
+      legend.position = "top",
+      legend.justification = "left",
+      legend.direction = "horizontal"
+    )
 
   return(p)
 }
@@ -210,7 +215,7 @@ make_fig5_hub_performance <- function(all_scores,
     scale_fill_manual(values = colors$model_colors) +
     scale_color_manual(values = colors$model_colors) +
     xlab("") +
-    ylab(glue::glue("Relative WIS compared /n to {baseline_model}"))
+    ylab(glue::glue("Relative WIS compared \n to {baseline_model}"))
 
 
 
@@ -276,7 +281,10 @@ make_fig5_heatmap_relative_wis <- function(scores,
       x = model, y = short_name,
       label = round(relative_interval_score, 2)
     ), size = 2.5) +
-    get_plot_theme(x_axis_dates = TRUE) +
+    get_plot_theme(
+      x_axis_dates = TRUE,
+      y_axis_text_size = 6
+    ) +
     xlab("") +
     ylab("") +
     labs(fill = "Relative WIS") +

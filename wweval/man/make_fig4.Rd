@@ -5,7 +5,7 @@
 \title{Make Figure 4}
 \usage{
 make_fig4(
-  fig4_rep_crps_overall,
+  fig4_rel_crps_overall,
   fig4_avg_crps,
   fig4_natl_admissions,
   fig4_rel_crps_over_time,
@@ -16,7 +16,7 @@ make_fig4(
 )
 }
 \arguments{
-\item{fig4_rep_crps_overall}{density plot comparing overall distribution
+\item{fig4_rel_crps_overall}{density plot comparing overall distribution
 of crps scores across forecast_date, date, location, and model}
 
 \item{fig4_avg_crps}{avg crps across locations by forecast date}

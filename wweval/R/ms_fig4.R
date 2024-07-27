@@ -422,10 +422,7 @@ make_qq_plot_overall <- function(scores_quantiles) {
     scoringutils::summarise_scores(by = c("model", "quantile")) |>
     scoringutils::plot_quantile_coverage() +
     # ggtitle(glue::glue("QQ plot")) +
-    get_plot_theme(
-      y_axis_title_size = 8,
-      x_axis_title_size = 8
-    ) +
+    get_plot_theme() +
     labs(
       ylab = "Percent of data below quantile",
       col = "Model"
@@ -493,8 +490,6 @@ make_plot_coverage_range <- function(scores_quantiles, ranges) {
     ) +
     scale_y_continuous(expand = expansion(c(0, 0.2))) +
     get_plot_theme(
-      y_axis_title_size = 8,
-      x_axis_title_size = 8,
       x_axis_dates = TRUE
     ) +
     scale_color_manual(values = colors$model_colors)
@@ -615,12 +610,14 @@ make_fig4_avg_crps_over_time <- function(scores,
     )) +
     labs(
       ylab = "Average CRPS across locations",
-      col = "Model"
-    )
-  get_plot_theme(
-    x_axis_dates = TRUE,
-    y_axis_title_size = 8
-  ) +
+      col = "Model",
+      xlab = ""
+    ) +
+    get_plot_theme(
+      x_axis_dates = TRUE,
+      y_axis_title_size = 8
+    ) +
+    theme(axis.title.x = element_blank()) +
     scale_x_date(
       date_breaks = "2 weeks",
       labels = scales::date_format("%Y-%m-%d")

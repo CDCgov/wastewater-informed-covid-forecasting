@@ -4,13 +4,15 @@
 \alias{save_only_ww_data}
 \title{Save only the wastewater data from the output quantiles}
 \usage{
-save_only_ww_data(ww_quantiles, ww_data_dir)
+save_only_ww_data(path_to_ww_quantiles, ww_data_dir)
 }
 \arguments{
-\item{ww_quantiles}{The full set of wastewater quantiles for each
-date, forecast date, state}
+\item{path_to_ww_quantiles}{Path to where the ww quantiles are saved}
 
-\item{ww_data_dir}{directory where wastewater data is saved}
+\item{ww_data_dir}{directory where wastewater data is to be saved}
+}
+\value{
+path to only the data
 }
 \description{
 Save only the wastewater data from the output quantiles
