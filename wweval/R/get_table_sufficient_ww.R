@@ -10,7 +10,7 @@
 #' the Hub submissions.
 #'
 #' @param path_to_ww_vintaged_data A character string indicating the path
-#' to where only the vintaged wastewater data are saved
+#' to where vintaged wastewater data are saved
 #' @param delay_thres The maximum number of days of delay between the last
 #' wastewater data point and the forecast date, before we would flag a state as
 #' having insufficient wastewater data to inform a forecast. Default is 21
