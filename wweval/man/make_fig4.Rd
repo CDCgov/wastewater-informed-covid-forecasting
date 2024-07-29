@@ -23,6 +23,9 @@ of crps scores across forecast_date, date, location, and model}
 
 \item{fig4_natl_admissions}{national admissions by day}
 
+\item{fig4_rel_crps_over_time}{relative crps across locations by forecast
+date}
+
 \item{fig4_rel_crps_by_location}{avg crps across forecast dates by state}
 
 \item{fig4_qq_plot_overall}{overall qq plot}

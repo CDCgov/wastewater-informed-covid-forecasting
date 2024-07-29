@@ -633,6 +633,8 @@ make_fig4_avg_crps_over_time <- function(scores,
 #' of crps scores across forecast_date, date, location, and model
 #' @param fig4_avg_crps avg crps across locations by forecast date
 #' @param fig4_natl_admissions national admissions by day
+#' @param fig4_rel_crps_over_time relative crps across locations by forecast
+#' date
 #' @param fig4_rel_crps_by_location avg crps across forecast dates by state
 #' @param fig4_qq_plot_overall overall qq plot
 #' @param fig4_plot_coverage_range interval coverage plots at 3 intervals
