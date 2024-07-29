@@ -72,8 +72,17 @@ write_eval_config <- function(locations, forecast_dates,
   retro_rt_path <- file.path("input", "retro_Rt", "Rt_draws.parquet")
   score_subdir <- file.path("output", "eval", "hub")
   hub_model_names <- c(
-    "COVIDhub-4_week_ensemble", "UMass-trends_ensemble",
-    "UT-Osiris", "COVIDhub-baseline"
+    "COVIDhub-4_week_ensemble", "COVIDhub-baseline",
+    "CEPH-Rtrend_covid", "UT-Osiris",
+    "CMU-TimeSeries", "COVIDhub_CDC-ensemble",
+    "COVIDhub-trained_ensemble",
+    "JHU_IDD-CovidSP", "MOBS-GLEAM_COVID",
+    "OHT_JHU-nbxd",
+    "PSI-DICE",
+    "SGroup-RandomForest",
+    "UMass-gbq",
+    "UMass-sarix",
+    "UMass-trends_ensemble"
   )
   raw_output_dir <- file.path(output_dir, "raw_output")
   ww_data_mapping <- "Monday: Monday, Wednesday: Monday"

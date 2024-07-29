@@ -843,9 +843,18 @@ hub_targets <- list(
     )
   ),
   tar_target(
+    name = incomplete_models,
+    command = unique(scores_list_hub_submission_oct_mar$missing_forecasts$model)
+  ),
+  tar_target(
+    name = log_scales_hub_score,
+    command = scores_list_hub_submission_oct_mar$log_scale_scores |>
+      dplyr::filter(!model %in% incomplete_models)
+  ),
+  tar_target(
     name = combine_scores_oct_mar_raw,
     command = dplyr::bind_rows(
-      scores_list_retro_hub_submissions$log_scale_scores,
+      log_scale_hub_scores,
       scores_list_hub_submission_oct_mar$log_scale_scores
     )
   ),
@@ -992,7 +1001,7 @@ list(
   combined_targets,
   head_to_head_targets,
   manuscript_figures,
-  # scenario_targets,
+  scenario_targets,
   hub_targets,
   hub_comparison_plots
 )
