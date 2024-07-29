@@ -15,10 +15,10 @@ get_table_sufficient_ww(
 }
 \arguments{
 \item{path_to_ww_vintaged_data}{A character string indicating the path
-to where only the vintaged wastewater data are saved}
+to where vintaged wastewater data are saved}
 
 \item{delay_thres}{The maximum number of days of delay between the last
-wastewater data point and the forecat date, before we would flag a state as
+wastewater data point and the forecast date, before we would flag a state as
 having insufficient wastewater data to inform a forecast. Default is 21}
 
 \item{n_dps_thres}{The threshold number of data points within a single site

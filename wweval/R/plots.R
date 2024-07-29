@@ -1052,11 +1052,8 @@ get_plot_hub_performance <- function(all_scores,
     )) |>
     dplyr::mutate(relative_wis = interval_score / baseline_score) |>
     dplyr::filter(model != {{ baseline_model }}) |>
-    dplyr::mutate(
-      period = factor(period, ordered = TRUE, levels = c(
-        "Feb 2024-Mar 2024", "Oct 2023-Mar 2024"
-      ))
-    )
+    order_periods()
+
 
 
   p <- ggplot(scores_final) +

@@ -2,7 +2,7 @@
 % Please edit documentation in R/ms_fig4.R
 \name{make_fig4_avg_crps_over_time}
 \alias{make_fig4_avg_crps_over_time}
-\title{Make average WIS over time for model comparison}
+\title{Plot average CRPS over time for model comparison}
 \usage{
 make_fig4_avg_crps_over_time(scores, horizon_time_in_weeks = NULL)
 }
@@ -20,5 +20,5 @@ a ggplot object plotting the magnitude of the avg crps across
 locations at each forecast date
 }
 \description{
-Make average WIS over time for model comparison
+Plot average CRPS over time for model comparison
 }

@@ -186,14 +186,8 @@ make_fig5_hub_performance <- function(all_scores,
     )) |>
     dplyr::mutate(relative_wis = interval_score / baseline_score) |>
     dplyr::filter(model != {{ baseline_model }}) |>
-    dplyr::mutate(
-      fig_order =
-        dplyr::case_when(
-          period == "Feb 2024-Mar 2024" ~ 1,
-          period == "Oct 2023-Mar 2024" ~ 0
-        ),
-      horizon = forcats::fct_reorder(period, fig_order)
-    )
+    order_periods()
+
 
   colors <- plot_components()
 
@@ -374,6 +368,8 @@ make_fig5_density_rank <- function(scores,
       fig_order = dplyr::row_number()
     )
 
+  # Can't externally compute fig_order here because is dependent on the scores
+  # based on the quantile ranking
   scores_ranked_ordered <- scores_ranked |>
     dplyr::left_join(fq, by = "model") |>
     dplyr::mutate(

@@ -64,8 +64,8 @@ get_last_hosp_data_date_map <- function(df) {
 #' contain character strings indicating the horizon (by week, nowcast period,
 #' or overall) of the score/quantile/sample.
 #'
-#' @return a dataframe containing the same columns as `df` but with the
-#' addition of `fig_order` and reordered in terms of `fig_order` for plotting.
+#' @return a dataframe containing the same columns as `df` but reordered
+#' in terms of horizon order
 #' @export
 order_horizons <- function(df) {
   horizon_order <- c(
@@ -83,5 +83,24 @@ order_horizons <- function(df) {
       horizon = factor(horizon, ordered = TRUE, levels = horizon_order)
     )
 
+  return(df_w_order)
+}
+#' Get the order of the time periods for plotting
+#'
+#' @param df a dataframe containing the column name `period` which will
+#' contain character strings indicating what period the scores correspond to
+#'
+#' @return a dataframe containing the same columns as `df` but now ordered
+#' in terms of the specified order.
+#' @export
+order_periods <- function(df) {
+  period_order <- c(
+    "Oct 2023-Mar 2024",
+    "Feb 2024-Mar 2024"
+  )
+  df_w_order <- df |>
+    dplyr::mutate(
+      period = factor(period, ordered = TRUE, levels = period_order)
+    )
   return(df_w_order)
 }

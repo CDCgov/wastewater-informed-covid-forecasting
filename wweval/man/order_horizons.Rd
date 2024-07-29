@@ -12,8 +12,8 @@ contain character strings indicating the horizon (by week, nowcast period,
 or overall) of the score/quantile/sample.}
 }
 \value{
-a dataframe containing the same columns as \code{df} but with the
-addition of \code{fig_order} and reordered in terms of \code{fig_order} for plotting.
+a dataframe containing the same columns as \code{df} but reordered
+in terms of horizon order
 }
 \description{
 Get the order of the categorical horizons for plotting
