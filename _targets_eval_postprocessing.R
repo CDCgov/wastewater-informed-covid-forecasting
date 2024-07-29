@@ -106,6 +106,33 @@ upstream_targets <- list(
       ww_data_mapping = eval_config$ww_data_mapping
     )
   ),
+  tar_target(
+    name = grouped_eval_ww_data,
+    command = eval_ww_data |>
+      dplyr::group_by(location) |>
+      targets::tar_group(),
+    iteration = "group"
+  ),
+  tar_target(
+    name = plot_ww_eval_data,
+    command = get_plot_ww_data(
+      grouped_eval_ww_data
+    ),
+    pattern = map(grouped_eval_ww_data),
+    iteration = "list"
+  ),
+  tar_target(
+    name = save_pdf_of_ww_data,
+    command = ggsave(
+      filename = file.path(
+        eval_config$figure_dir,
+        glue::glue("eval_ww_data.pdf")
+      ),
+      plot = gridExtra::marrangeGrob(plot_ww_eval_data, nrow = 1, ncol = 1),
+      width = 8.5, height = 11
+    )
+  ),
+
   # Returns a dataframe with each location and date and a corresponding
   # epidemic phase
   tar_target(
@@ -964,8 +991,8 @@ list(
   upstream_targets,
   combined_targets,
   head_to_head_targets,
-  manuscript_figures
+  manuscript_figures,
   # scenario_targets,
-  # hub_targets,
-  # hub_comparison_plots
+  hub_targets,
+  hub_comparison_plots
 )
