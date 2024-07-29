@@ -1239,3 +1239,46 @@ get_qq_plot <- function(scores,
 
   return(p)
 }
+
+get_plot_ww_data <- function(eval_data) {
+  eval_data <- eval_data |>
+    dplyr::mutate(
+      lab_site_name = glue::glue("Site: {site}, lab: {lab}")
+    )
+  loc <- eval_data |>
+    dplyr::distinct(location) |>
+    dplyr::pull()
+
+  p <- ggplot(eval_data) +
+    geom_point(aes(x = date, y = log(ww)), size = 0.5) +
+    geom_line(aes(x = date, y = log(ww)), size = 0.5) +
+    geom_point(
+      data = eval_data |> dplyr::filter(flag_as_ww_outlier == 1),
+      aes(x = date, y = log(ww)),
+      fill = "red", color = "red", size = 0.5
+    ) +
+    geom_point(
+      data = eval_data |> dplyr::filter(below_LOD == 1),
+      aes(x = date, y = log(ww)),
+      fill = "darkblue", color = "darkblue", size = 0.5
+    ) +
+    facet_wrap(~lab_site_name) +
+    theme_bw() +
+    theme(
+      axis.text.x = element_text(
+        size = 8, vjust = 1,
+        hjust = 1, angle = 45
+      ),
+      axis.title.x = element_text(size = 12),
+      axis.title.y = element_text(size = 10),
+      plot.title = element_text(
+        size = 10,
+        vjust = 0.5, hjust = 0.5
+      )
+    ) +
+    xlab("") +
+    ylab("Log(genome copies per mL)") +
+    ggtitle(glue::glue("Wastewater concentration data in {loc}"))
+
+  return(p)
+}
