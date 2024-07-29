@@ -1054,7 +1054,8 @@ get_plot_hub_performance <- function(all_scores,
     dplyr::filter(model != {{ baseline_model }}) |>
     dplyr::mutate(
       period = factor(period, ordered = TRUE, levels = c(
-          "Feb 2024-Mar 2024", "Oct 2023-Mar 2024"))
+        "Feb 2024-Mar 2024", "Oct 2023-Mar 2024"
+      ))
     )
 
 
@@ -1267,7 +1268,7 @@ get_plot_ww_data <- function(eval_data) {
       aes(x = date, y = log(ww)),
       fill = "darkblue", color = "darkblue", size = 0.5
     ) +
-    facet_wrap(~lab_site_name) +
+    facet_wrap(~lab_site_name, scales = "free_y") +
     theme_bw() +
     theme(
       axis.text.x = element_text(
