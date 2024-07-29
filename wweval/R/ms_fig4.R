@@ -562,7 +562,7 @@ make_fig4_rel_crps_by_phase <- function(scores) {
   return(p)
 }
 
-#' Make average WIS over time for model comparison
+#' Plot average CRPS over time for model comparison
 #'
 #' @param scores A tibble of scores by location, forecast date, date and model,
 #' containing the outputs of `scoringutils::score()` on samples plus metadata
