@@ -1251,6 +1251,7 @@ get_plot_ww_data <- function(eval_data) {
 
   p <- ggplot(eval_data) +
     geom_point(aes(x = date, y = log(ww)), size = 0.5) +
+    geom_line(aes(x = date, y = log(ww)), size = 0.5) +
     geom_point(
       data = eval_data |> dplyr::filter(flag_as_ww_outlier == 1),
       aes(x = date, y = log(ww)),
