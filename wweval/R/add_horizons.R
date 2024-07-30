@@ -90,8 +90,10 @@ order_horizons <- function(df) {
 #' @param df a dataframe containing the column name `period` which will
 #' contain character strings indicating what period the scores correspond to
 #'
-#' @return a dataframe containing the same columns as `df` but now ordered
-#' in terms of the specified order.
+#' @return a dataframe containing the same columns as `df` but with the `period`
+#' factor now ordered so that `"Oct 2023-Mar 2024"` comes first and 
+#' `"Feb 2024-Mar 2024"` comes second.
+
 #' @export
 order_periods <- function(df) {
   period_order <- c(
