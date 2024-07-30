@@ -17,10 +17,6 @@ transformed into a tibble.}
 \item{horizons_to_show}{A vector of strings indicating the names of the
 \code{horizon} that we want to show on the plot, must be a subset of
 \code{nowcast}, \verb{1 wk}, \verb{2 wks},\verb{3 wks}, \verb{4 wks} and \code{overall}}
-
-\item{summarize_across_horizon}{Boolean indicating whether or not to
-average the scores across the horizon, default is \code{FALSE} meaning
-each day-forecast-date-location score is in the distribution}
 }
 \value{
 A ggplot object containing plots of the distribution of relative

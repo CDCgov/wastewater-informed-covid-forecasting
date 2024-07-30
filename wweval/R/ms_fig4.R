@@ -275,9 +275,6 @@ make_fig4_rel_crps_by_location <- function(scores,
 #' @param horizons_to_show A vector of strings indicating the names of the
 #' `horizon` that we want to show on the plot, must be a subset of
 #' `nowcast`, `1 wk`, `2 wks`,`3 wks`, `4 wks` and `overall`
-#' @param summarize_across_horizon Boolean indicating whether or not to
-#' average the scores across the horizon, default is `FALSE` meaning
-#' each day-forecast-date-location score is in the distribution
 #'
 #' @return A ggplot object containing plots of the distribution of relative
 #' CRPS scores across location and forecast dates
