@@ -8,6 +8,7 @@
 #' @param config_dir the directory where we want to save the config file
 #' @param scenario_dir the directory where the files defining scenarios
 #' (default `.tsv` format) are located
+#' @param ms_fig_dir the directory to save the manuscript figures in
 #' @param eval_date the data of the evaluation dataset, in ISO YYYY-MM-DD format
 #'
 #' @return
@@ -18,8 +19,10 @@ write_eval_config <- function(locations, forecast_dates,
                               scenarios,
                               config_dir,
                               scenario_dir,
+                              ms_fig_dir,
                               eval_date,
-                              overwrite_summary_table) {
+                              overwrite_summary_table,
+                              rerun_ww_postprocess) {
   # Will need to load in the files corresponding to the input scenarios, so we
   # get the list of locations that are relevant for each scenario. We will bind
   # these all together to create the full eval config.
@@ -132,6 +135,7 @@ write_eval_config <- function(locations, forecast_dates,
     score_subdir = score_subdir,
     raw_output_dir = raw_output_dir,
     figure_dir = figure_dir,
+    ms_fig_dir = ms_fig_dir,
     hub_model_names = hub_model_names,
     population_data_path = population_data_path,
     init_dir = init_dir,
@@ -152,7 +156,9 @@ write_eval_config <- function(locations, forecast_dates,
     # Input delay distributions
     generation_interval = generation_interval,
     infection_feedback_pmf = generation_interval,
-    inf_to_hosp = inf_to_hosp
+    inf_to_hosp = inf_to_hosp,
+    # Config settings
+    rerun_ww_postprocess = rerun_ww_postprocess
   )
 
   cfaforecastrenewalww::create_dir(config_dir)

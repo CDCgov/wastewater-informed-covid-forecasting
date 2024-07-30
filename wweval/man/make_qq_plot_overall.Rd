@@ -15,5 +15,5 @@ quantiles plus metadata transformed into a tibble.}
 a ggplot object with the overall QQ plot colored by model.
 }
 \description{
-Using \code{\link[scoringutils:plot_interval_coverage]{scoringutils::plot_interval_coverage()}}
+Using \code{\link[scoringutils:plot_quantile_coverage]{scoringutils::plot_quantile_coverage()}}
 }

@@ -1051,7 +1051,10 @@ get_plot_hub_performance <- function(all_scores,
       "location"
     )) |>
     dplyr::mutate(relative_wis = interval_score / baseline_score) |>
-    dplyr::filter(model != {{ baseline_model }})
+    dplyr::filter(model != {{ baseline_model }}) |>
+    order_periods()
+
+
 
   p <- ggplot(scores_final) +
     tidybayes::stat_halfeye(
@@ -1262,7 +1265,7 @@ get_plot_ww_data <- function(eval_data) {
       aes(x = date, y = log(ww)),
       fill = "darkblue", color = "darkblue", size = 0.5
     ) +
-    facet_wrap(~lab_site_name) +
+    facet_wrap(~lab_site_name, scales = "free_y") +
     theme_bw() +
     theme(
       axis.text.x = element_text(

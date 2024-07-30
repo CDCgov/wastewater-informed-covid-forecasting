@@ -5,7 +5,7 @@
 \title{Get table of location-forecast dates with sufficient wastewater}
 \usage{
 get_table_sufficient_ww(
-  ww_quantiles,
+  path_to_ww_vintaged_data,
   delay_thres = 21,
   n_dps_thres = 5,
   prop_below_lod_thres = 0.5,
@@ -14,11 +14,11 @@ get_table_sufficient_ww(
 )
 }
 \arguments{
-\item{ww_quantiles}{The dataframe of the quantiled ww predictions with the
-real data alongside it (labeled as calib data)}
+\item{path_to_ww_vintaged_data}{A character string indicating the path
+to where vintaged wastewater data are saved}
 
 \item{delay_thres}{The maximum number of days of delay between the last
-wastewater data point and the forecat date, before we would flag a state as
+wastewater data point and the forecast date, before we would flag a state as
 having insufficient wastewater data to inform a forecast. Default is 21}
 
 \item{n_dps_thres}{The threshold number of data points within a single site

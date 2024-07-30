@@ -42,6 +42,7 @@ make_fig2_hosp_t <- function(hosp_quantiles,
       values_from = value
     )
 
+  colors <- plot_components()
 
   p <- ggplot(quantiles_wide) +
     geom_point(aes(x = date, y = eval_data),
@@ -63,46 +64,33 @@ make_fig2_hosp_t <- function(hosp_quantiles,
         x = date, ymin = `0.025`, ymax = `0.975`,
         fill = model_type
       ),
-      alpha = 0.1,
-      show.legend = FALSE
+      alpha = 0.1
     ) +
     geom_ribbon(
       aes(
         x = date, ymin = `0.25`, ymax = `0.75`,
         fill = model_type
       ),
-      alpha = 0.1,
-      show.legend = FALSE
+      alpha = 0.2,
     ) +
     geom_vline(aes(xintercept = lubridate::ymd(forecast_date)),
       linetype = "dashed"
     ) +
-    facet_wrap(~location,
-      nrow = length(unique(quantiles_wide$location)),
-      scales = "free_y"
-    ) +
-    theme_bw() +
-    xlab("") +
-    ylab("Daily hospital admissions") +
-    scale_color_discrete() +
-    scale_fill_discrete() +
     scale_x_date(
       date_breaks = "2 weeks",
       labels = scales::date_format("%Y-%m-%d")
     ) +
-    theme_bw() +
+    xlab("") +
+    ylab("Daily hospital admissions") +
+    scale_color_manual(values = colors$model_colors) +
+    scale_fill_manual(values = colors$model_colors) +
+    get_plot_theme(x_axis_dates = TRUE) +
     theme(
-      axis.text.x = element_text(
-        size = 8, vjust = 1,
-        hjust = 1, angle = 45
-      ),
-      axis.title.x = element_text(size = 12),
-      axis.title.y = element_text(size = 10),
-      plot.title = element_text(
-        size = 10,
-        vjust = 0.5, hjust = 0.5
-      )
-    )
+      legend.position = "top",
+      legend.justification = "left"
+    ) +
+    labs(color = "Model", fill = "Model")
+
 
   return(p)
 }
@@ -158,9 +146,12 @@ make_fig2_ct <- function(ww_quantiles,
       ),
       names_from = quantile,
       values_from = log_conc
-    )
+    ) |>
+    dplyr::mutate(model = "ww")
 
 
+
+  colors <- plot_components()
   p <- ggplot(quantiles_wide) +
     geom_point(aes(x = date, y = log(eval_data)),
       fill = "white", size = 1, shape = 21,
@@ -172,19 +163,23 @@ make_fig2_ct <- function(ww_quantiles,
     ) +
     geom_line(
       aes(
-        x = date, y = `0.5`
-      )
+        x = date, y = `0.5`,
+        color = model
+      ),
+      show.legend = FALSE
     ) +
     geom_ribbon(
       aes(
-        x = date, ymin = `0.025`, ymax = `0.975`
+        x = date, ymin = `0.025`, ymax = `0.975`,
+        fill = model
       ),
-      alpha = 0.1,
+      alpha = 0.2,
       show.legend = FALSE
     ) +
     geom_ribbon(
       aes(
         x = date, ymin = `0.25`, ymax = `0.75`,
+        fill = model
       ),
       alpha = 0.1,
       show.legend = FALSE
@@ -195,27 +190,49 @@ make_fig2_ct <- function(ww_quantiles,
     facet_grid(location ~ site_lab_name,
       scales = "free_y"
     ) +
-    theme_bw() +
     xlab("") +
     ylab("Log(genome copies per mL)") +
-    scale_color_discrete() +
-    scale_fill_discrete() +
     scale_x_date(
       date_breaks = "2 weeks",
       labels = scales::date_format("%Y-%m-%d")
     ) +
-    theme_bw() +
-    theme(
-      axis.text.x = element_text(
-        size = 8, vjust = 1,
-        hjust = 1, angle = 45
-      ),
-      axis.title.x = element_text(size = 12),
-      axis.title.y = element_text(size = 10),
-      plot.title = element_text(
-        size = 10,
-        vjust = 0.5, hjust = 0.5
-      )
-    )
+    get_plot_theme(x_axis_dates = TRUE) +
+    scale_fill_manual(values = colors$model_colors) +
+    scale_color_manual(values = colors$model_colors)
   return(p)
+}
+
+
+#' Make figure 2
+#'
+#' @param hosp1 first hospital admissions forecast
+#' @param hosp2 second
+#' @param hosp3 third
+#' @param ct1 first faceted fit to wastewater data in each site
+#' @param ct2 second
+#' @param ct3 third
+#' @param fig_file_dir Path to save figures
+#'
+#' @return a combined ggplot object
+#' @export
+make_fig2 <- function(hosp1, hosp2, hosp3,
+                      ct1, ct2, ct3,
+                      fig_file_dir) {
+  fig2 <- hosp1 + ct1 +
+    hosp2 + ct2 +
+    hosp3 + ct3 +
+    patchwork::plot_layout(
+      guides = "collect",
+      nrow = 3, ncol = 2,
+      axes = "collect",
+      widths = c(1, 1.5)
+    ) & theme(
+    legend.position = "top",
+    legend.justification = "left"
+  )
+  ggsave(fig2,
+    filename = file.path(fig_file_dir, "fig2.png"),
+    width = 10, height = 7
+  )
+  return(fig2)
 }
