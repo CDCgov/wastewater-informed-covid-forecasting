@@ -93,7 +93,8 @@ order_phases <- function(df) {
     "increasing",
     "peak",
     "decreasing",
-    "nadir"
+    "nadir",
+    "uncertain"
   )
 
   if (!"phase" %in% colnames(df)) {
@@ -107,7 +108,9 @@ order_phases <- function(df) {
 
   phase_names <- df |>
     dplyr::distinct(phase) |>
+    dplyr::filter(!is.na(phase)) |>
     dplyr::pull()
+
 
   if (any(!phase_names %in% phase_order)) {
     cli::cli_abort(

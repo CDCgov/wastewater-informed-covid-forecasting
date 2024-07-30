@@ -452,7 +452,6 @@ make_fig4_rel_crps_by_phase <- function(scores) {
     warning("There are dates missing epidemic phases")
   }
 
-
   relative_crps <- scores_w_fig_order |>
     dplyr::select(
       location, date, forecast_date, model, horizon, phase, crps
@@ -470,6 +469,8 @@ make_fig4_rel_crps_by_phase <- function(scores) {
     order_horizons() |>
     dplyr::filter(!is.na(phase)) # Exclude NAs in plot
 
+  colors <- plot_components()
+
   p <- ggplot(relative_crps) +
     tidybayes::stat_halfeye(
       aes(
@@ -484,12 +485,35 @@ make_fig4_rel_crps_by_phase <- function(scores) {
     geom_hline(aes(yintercept = 1), linetype = "dashed") +
     xlab("Epidemic phase") +
     ylab("Relative CRPS") +
-    scale_y_continuous(trans = "log10") +
+    scale_y_continuous(trans = "log10", limits = c(0.5, 2)) +
     get_plot_theme(
       x_axis_title_size = 8,
       y_axis_title_size = 8
     ) +
     scale_fill_brewer(palette = "Set3")
+
+  # Going to keep this in there for now
+  scores_to_plot <- scores_w_fig_order |>
+    dplyr::filter(!is.na(phase))
+
+  ggplot(scores_to_plot) +
+    tidybayes::stat_halfeye(
+      aes(
+        x = as.factor(phase), y = crps,
+        fill = model
+      ),
+      point_interval = "mean_qi",
+      alpha = 0.5,
+      position = position_dodge(width = 0.75),
+    ) +
+    xlab("Epidemic phase") +
+    ylab("CRPS") +
+    scale_y_continuous(limits = c(0.0, 1)) +
+    get_plot_theme(
+      x_axis_title_size = 8,
+      y_axis_title_size = 8
+    ) +
+    scale_fill_manual(values = colors$model_colors)
 
 
   return(p)
