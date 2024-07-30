@@ -96,7 +96,7 @@ order_phases <- function(df) {
     "nadir"
   )
 
-  if (!phase %in% colnames(df)) {
+  if (!"phase" %in% colnames(df)) {
     cli::cli_abort(
       message =
         c(
