@@ -64,8 +64,9 @@ get_last_hosp_data_date_map <- function(df) {
 #' contain character strings indicating the horizon (by week, nowcast period,
 #' or overall) of the score/quantile/sample.
 #'
-#' @return a dataframe containing the same columns as `df` but reordered
-#' in terms of horizon order
+#' @return a dataframe containing the same columns as `df` with the `horizon`
+#' column now an ordered factor with ordered levels as follows:
+#' `"overall", "calibration", "nowcast", "1 wk", "2 wks", "3 wks", "4 wks"`
 #' @export
 order_horizons <- function(df) {
   horizon_order <- c(
