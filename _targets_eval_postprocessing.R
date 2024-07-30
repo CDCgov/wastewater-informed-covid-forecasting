@@ -279,28 +279,7 @@ combined_targets <- list(
       model_type = "hosp"
     )
   ),
-  tar_target(
-    name = path_to_ww_quantiles,
-    command = get_path_to_ww_quants_or_rerun(
-      output_type = "ww_quantiles",
-      scenarios = eval_config$scenario,
-      forecast_dates = eval_config$forecast_date_ww,
-      locations = eval_config$location_ww,
-      eval_output_subdir = eval_config$output_dir,
-      model_type = "ww",
-      ww_quantiles_path = file.path(
-        eval_config$output_dir,
-        "ww_quantiles.parquet"
-      ),
-      rerun_ww_postprocess = eval_config$rerun_ww_postprocess
-    )
-  ),
-  tar_target(
-    name = path_to_ww_vintaged_data,
-    command = save_only_ww_data(path_to_ww_quantiles,
-      ww_data_dir = eval_config$ww_data_dir
-    )
-  ),
+
   ## Errors-------------------------------------------------------------------
   tar_target(
     name = all_ww_errors,
@@ -482,13 +461,15 @@ manuscript_figures <- list(
   ),
   tar_target(
     name = ww_quants_plot,
-    command = arrow::read_parquet(path_to_ww_quantiles) |>
-      dplyr::filter(
-        quantile %in% quantile_levels_to_plot,
-        location %in% locs_to_plot
-      )
+    command = combine_outputs(
+      output_type = "quantiles",
+      scenarios = "status_quo",
+      forecast_dates = forecast_date_to_plot,
+      locations = locs_to_plot,
+      eval_output_subdir = eval_config$output_dir,
+      model_type = "ww"
+    )
   ),
-
   ## Fig 2-----------------------------------------------------
   tar_target(
     name = fig2_hosp_t_1,
@@ -1055,21 +1036,6 @@ scenario_targets <- list(
       mock_submission_scores,
       figure_file_path = eval_config$figure_dir
     )
-  ),
-  tar_target(
-    name = grouped_ww_quantiles,
-    command = all_ww_quantiles |>
-      dplyr::group_by(location, scenario) |>
-      targets::tar_group(),
-    iteration = "group"
-  ),
-  tar_target(
-    name = plot_ww_quantile_comparison,
-    command = get_plot_ww_comparison(
-      grouped_ww_quantiles
-    ),
-    pattern = map(grouped_ww_quantiles),
-    iteration = "list"
   )
 )
 
