@@ -25,5 +25,6 @@ a dataframe containing a score for each day in the nowcast
 and forecast period
 }
 \description{
-Logs the truth data and forecasts and scores using scoringutils
+Uses scoringutils to transform data and predictions using a log transform
+with a log shift of 1, and return the default scoring metrics
 }
