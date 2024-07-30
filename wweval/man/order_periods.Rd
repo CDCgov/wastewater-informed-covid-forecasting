@@ -11,8 +11,9 @@ order_periods(df)
 contain character strings indicating what period the scores correspond to}
 }
 \value{
-a dataframe containing the same columns as \code{df} but now ordered
-in terms of the specified order.
+a dataframe containing the same columns as \code{df} but with the \code{period}
+factor now ordered so that \code{"Oct 2023-Mar 2024"} comes first and
+\code{"Feb 2024-Mar 2024"} comes second.
 }
 \description{
 Get the order of the time periods for plotting

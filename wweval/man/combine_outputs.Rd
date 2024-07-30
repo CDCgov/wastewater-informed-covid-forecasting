@@ -6,7 +6,7 @@
 \usage{
 combine_outputs(
   output_type = c("quantiles", "scores", "ww_quantiles", "scores_quantiles",
-    "hosp_quantiles", "flags", "errors"),
+    "hosp_quantiles", "flags", "errors", "ww_data_flags"),
   scenarios,
   forecast_dates,
   locations,
@@ -17,7 +17,7 @@ combine_outputs(
 \arguments{
 \item{output_type}{the type of output that is saved, one of \code{"quantiles"}, \code{"scores"},
 \code{"ww_quantiles"}, \code{"scores_quantiles"}, \code{"hosp_quantiles"},\code{"errors"},
-or \code{"flags"}.}
+\code{"ww_data_flags"} or \code{"flags"}.}
 
 \item{scenarios}{The vector of character strings of all the scenarios}
 

@@ -58,6 +58,43 @@ eval_post_process_ww <- function(config_index,
   save_object("errors", output_file_suffix)
   raw_flags <- data.frame(ww_fit_obj$flags)
   save_object("raw_flags", output_file_suffix)
+
+  # Get table of wastewater data flags
+  ww_data_flags <- get_ww_data_flags(
+    input_ww_data,
+    forecast_date
+  )
+  # save the flags alongside the input wastewater data and admissions data
+  save_table(
+    data_to_save = ww_data_flags,
+    type_of_output = "ww_data_flags",
+    output_dir = output_dir,
+    scenario = scenario,
+    forecast_date = forecast_date,
+    model_type = "ww",
+    location = location
+  )
+  save_table(
+    data_to_save = input_ww_data,
+    type_of_output = "input_ww_data",
+    output_dir = output_dir,
+    scenario = scenario,
+    forecast_date = forecast_date,
+    model_type = "ww",
+    location = location
+  )
+  save_table(
+    data_to_save = input_hosp_data,
+    type_of_output = "input_hosp_data",
+    output_dir = output_dir,
+    scenario = scenario,
+    forecast_date = forecast_date,
+    model_type = "ww",
+    location = location
+  )
+
+
+
   # Save errors
   save_table(
     data_to_save = errors,

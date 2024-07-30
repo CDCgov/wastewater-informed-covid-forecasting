@@ -221,6 +221,18 @@ combined_targets <- list(
     ) |>
       dplyr::rename(any_flags_hosp = any_flags)
   ),
+  tar_target(
+    name = all_ww_data_flags,
+    command = combine_outputs(
+      output_type = "ww_data_flags",
+      scenarios = "status_quo",
+      forecast_dates = eval_config$forecast_date_ww,
+      locations = eval_config$location_ww,
+      eval_output_subdir = eval_config$output_dir,
+      model_type = "ww"
+    )
+  ),
+
   ### Scores from quantiles-------------------------------------------------
   tar_target(
     name = all_ww_scores_quantiles,
@@ -324,7 +336,7 @@ head_to_head_targets <- list(
   # Get a table of locations and forecast dates with sufficient wastewater
   tar_target(
     name = table_of_loc_dates_w_ww,
-    command = get_table_sufficient_ww(path_to_ww_vintaged_data)
+    command = get_table_sufficient_ww(all_ww_data_flags)
   ),
   # Get a table indicating whether there are locations and forecast dates with
   # convergence issues
