@@ -19,7 +19,7 @@ order_horizons <- function(df) {
     "4 wks"
   )
 
-  if (!horizon %in% colnames(df)) {
+  if (!"horizon" %in% colnames(df)) {
     cli::cli_abort(
       message =
         c(
@@ -68,7 +68,7 @@ order_periods <- function(df) {
     "Feb 2024-Mar 2024"
   )
 
-  if (!period %in% colnames(df)) {
+  if (!"period" %in% colnames(df)) {
     cli::cli_abort(
       message =
         c(
