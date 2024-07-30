@@ -86,27 +86,3 @@ get_epidemic_phases_from_rt <- function(locations,
 
   return(df_epi_phase)
 }
-
-#' Get the order of the categorical horizons for plotting
-#'
-#' @param df a dataframe containing the column name `phase` which will
-#' contain character strings indicating the phase of the epidemic
-#' (increasing, decreasing, peak, or nadir) of  the score/quantile/sample.
-#'
-#' @return a dataframe containing the same columns as `df` but with the
-#' addition of `fig_order` and reordered in terms of `fig_order` for plotting.
-#' @export
-order_phases <- function(df) {
-  phase_order <- c(
-    "increasing",
-    "peak",
-    "decreasing",
-    "nadir"
-  )
-
-  df_w_order <- df |>
-    dplyr::mutate(
-      phase = factor(phase, ordered = TRUE, levels = phase_order)
-    )
-  return(df_w_order)
-}
