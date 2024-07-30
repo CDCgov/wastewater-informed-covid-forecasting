@@ -30,6 +30,7 @@ order_horizons <- function(df) {
 
   horizon_names <- df |>
     dplyr::distinct(horizon) |>
+    dplyr::filter(!is.na(horizon))|>
     dplyr::pull()
 
   if (any(!horizon_names %in% horizon_order)) {
@@ -79,6 +80,7 @@ order_periods <- function(df) {
 
   period_names <- df |>
     dplyr::distinct(period) |>
+    dplyr::filter(!is.na(period))|>
     dplyr::pull()
 
 
