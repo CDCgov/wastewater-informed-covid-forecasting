@@ -6,9 +6,6 @@
 #' @param horizons_to_show A vector of strings indicating the names of the
 #' `horizon` that we want to show on the plot, must be a subset of
 #' `nowcast`, `1 wk`, `2 wks`,`3 wks`, `4 wks` and `overall`
-#' @param summarize_across_horizon Boolean indicating whether or not to
-#' average the scores across the horizon, default is `FALSE` meaning
-#' each day-forecast-date-location score is in the distribution
 #'
 #' @return a ggplot object that is a vertical facet of violin plots colored
 #' by model type and broken down my horizon
@@ -18,32 +15,12 @@ make_fig4_rel_crps_over_time <- function(scores,
                                            "nowcast",
                                            "1 wk", "4 wks",
                                            "overall"
-                                         ),
-                                         summarize_across_horizon = FALSE) {
-  if (isTRUE(summarize_across_horizon)) {
-    scores_by_horizon <- scores |>
-      data.table::as.data.table() |>
-      scoringutils::summarise_scores(by = c(
-        "forecast_date", "location",
-        "model", "horizon"
-      ))
-
-    scores_overall <- scores |>
-      data.table::as.data.table() |>
-      scoringutils::summarise_scores(by = c(
-        "forecast_date", "location",
-        "model"
-      )) |>
-      dplyr::mutate(horizon = "overall")
-  } else {
-    scores_by_horizon <- scores
-    scores_overall <- scores |>
-      dplyr::mutate(
-        horizon = "overall"
-      )
-  }
-
-
+                                         )) {
+  scores_by_horizon <- scores
+  scores_overall <- scores |>
+    dplyr::mutate(
+      horizon = "overall"
+    )
 
   scores_comb <- dplyr::bind_rows(scores_by_horizon, scores_overall) |>
     dplyr::filter(
@@ -222,9 +199,6 @@ make_fig4_admissions_overall <- function(eval_hosp_data) {
 #' @param horizons_to_show A vector of strings indicating the names of the
 #' `horizon` that we want to show on the plot, must be a subset of
 #' `nowcast`, `1 wk`, `2 wks`,`3 wks`, `4 wks` and `overall`
-#' @param summarize_across_horizon Boolean indicating whether or not to
-#' average the scores across the horizon, default is `FALSE` meaning
-#' each day-forecast-date-location score is in the distribution
 #'
 #' @return A ggplot object containing plots of the distribution of relative
 #' CRPS scores by location, across forecast dates, colored by location
@@ -234,32 +208,12 @@ make_fig4_rel_crps_by_location <- function(scores,
                                              "nowcast",
                                              "1 wk", "4 wks",
                                              "overall"
-                                           ),
-                                           summarize_across_horizon = FALSE) {
-  if (isTRUE(summarize_across_horizon)) {
-    scores_by_horizon <- scores |>
-      data.table::as.data.table() |>
-      scoringutils::summarise_scores(by = c(
-        "forecast_date", "location",
-        "model", "horizon"
-      ))
-
-    scores_overall <- scores |>
-      data.table::as.data.table() |>
-      scoringutils::summarise_scores(by = c(
-        "forecast_date", "location",
-        "model"
-      )) |>
-      dplyr::mutate(horizon = "overall")
-  } else {
-    scores_by_horizon <- scores
-    scores_overall <- scores |>
-      dplyr::mutate(
-        horizon = "overall"
-      )
-  }
-
-
+                                           )) {
+  scores_by_horizon <- scores
+  scores_overall <- scores |>
+    dplyr::mutate(
+      horizon = "overall"
+    )
 
   scores_comb <- dplyr::bind_rows(scores_by_horizon, scores_overall) |>
     dplyr::filter(
@@ -333,30 +287,12 @@ make_fig4_rel_crps_overall <- function(scores,
                                          "nowcast",
                                          "1 wk", "4 wks",
                                          "overall"
-                                       ),
-                                       summarize_across_horizon = FALSE) {
-  if (isTRUE(summarize_across_horizon)) {
-    scores_by_horizon <- scores |>
-      data.table::as.data.table() |>
-      scoringutils::summarise_scores(by = c(
-        "forecast_date", "location",
-        "model", "horizon"
-      ))
-
-    scores_overall <- scores |>
-      data.table::as.data.table() |>
-      scoringutils::summarise_scores(by = c(
-        "forecast_date", "location",
-        "model"
-      )) |>
-      dplyr::mutate(horizon = "overall")
-  } else {
-    scores_by_horizon <- scores
-    scores_overall <- scores |>
-      dplyr::mutate(
-        horizon = "overall"
-      )
-  }
+                                       )) {
+  scores_by_horizon <- scores
+  scores_overall <- scores |>
+    dplyr::mutate(
+      horizon = "overall"
+    )
 
   scores_comb <- dplyr::bind_rows(scores_by_horizon, scores_overall) |>
     dplyr::filter(

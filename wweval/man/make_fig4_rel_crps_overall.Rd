@@ -6,8 +6,7 @@
 \usage{
 make_fig4_rel_crps_overall(
   scores,
-  horizons_to_show = c("nowcast", "1 wk", "4 wks", "overall"),
-  summarize_across_horizon = FALSE
+  horizons_to_show = c("nowcast", "1 wk", "4 wks", "overall")
 )
 }
 \arguments{
