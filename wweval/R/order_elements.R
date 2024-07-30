@@ -19,6 +19,15 @@ order_horizons <- function(df) {
     "4 wks"
   )
 
+  if (!horizon %in% colnames(df)) {
+    cli::cli_abort(
+      message =
+        c(
+          "Column named `horizon` is missing from the dataframe"
+        )
+    )
+  }
+
   horizon_names <- df |>
     dplyr::distinct(horizon) |>
     dplyr::pull()
@@ -32,6 +41,7 @@ order_horizons <- function(df) {
         )
     )
   }
+
 
   df_w_order <- df |>
     dplyr::mutate(
@@ -58,9 +68,19 @@ order_periods <- function(df) {
     "Feb 2024-Mar 2024"
   )
 
+  if (!period %in% colnames(df)) {
+    cli::cli_abort(
+      message =
+        c(
+          "Column named `period` is missing from the dataframe"
+        )
+    )
+  }
+
   period_names <- df |>
     dplyr::distinct(period) |>
     dplyr::pull()
+
 
   if (any(!period_names %in% period_order)) {
     cli::cli_abort(
@@ -71,6 +91,7 @@ order_periods <- function(df) {
         )
     )
   }
+
 
   df_w_order <- df |>
     dplyr::mutate(
