@@ -80,7 +80,11 @@ get_epidemic_phases_from_rt <- function(locations,
       rt_cat,
       by = c("state_abbr", "week_start_date")
     ) |>
-    dplyr::select(state_abbr, reference_date, phase)
+    dplyr::select(state_abbr, reference_date, phase) |>
+    dplyr::rename(
+      location = state_abbr,
+      date = reference_date
+    )
 
 
 

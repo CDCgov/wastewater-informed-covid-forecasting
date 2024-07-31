@@ -368,8 +368,8 @@ head_to_head_targets <- list(
       dplyr::left_join(
         epidemic_phases,
         by = c(
-          "location" = "state_abbr",
-          "date" = "reference_date"
+          "location",
+          "forecast_date" = "date"
         )
       ) |>
       add_horizons()
@@ -402,8 +402,8 @@ head_to_head_targets <- list(
       dplyr::left_join(
         epidemic_phases,
         by = c(
-          "location" = "state_abbr",
-          "forecast_date" = "reference_date"
+          "location",
+          "forecast_date" = "date"
         )
       ) |>
       add_horizons()
@@ -434,8 +434,8 @@ head_to_head_targets <- list(
       dplyr::left_join(
         epidemic_phases,
         by = c(
-          "location" = "state_abbr",
-          "forecast_date" = "reference_date"
+          "location",
+          "forecast_date" = "date"
         )
       ) |>
       add_horizons()
