@@ -374,6 +374,32 @@ head_to_head_targets <- list(
       ) |>
       add_horizons()
   ),
+  tar_target(
+    name = grouped_hosp_data,
+    command = hosp_quantiles_filtered |>
+      dplyr::distinct(location, forecast_date, date, calib_data) |>
+      group_by(location, forecast_date) |>
+      targets::tar_group()
+  ),
+  tar_target(
+    name = plot_input_hosp_data,
+    command = get_plot_input_hosp_data(grouped_hosp_data),
+    pattern = map(grouped_hosp_data),
+    iteration = "list"
+  ),
+  tar_target(
+    name = save_pdf_of_hosp_data,
+    command = ggsave(
+      filename = file.path(
+        eval_config$figure_dir,
+        glue::glue("input_hosp_data.pdf")
+      ),
+      plot = gridExtra::marrangeGrob(plot_input_hosp_data, nrow = 5, ncol = 2),
+      width = 8.5, height = 11
+    )
+  ),
+
+
   # Do the same thing for the sampled scores, combining ww and hosp under
   # the status quo scenario, filtering to the locations and forecast dates
   # with sufficient wastewater, and then joining the convergence flags

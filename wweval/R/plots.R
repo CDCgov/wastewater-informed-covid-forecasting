@@ -1,3 +1,50 @@
+#' Plot the input hospital admissions data from a single location and
+#' forecast date
+#'
+#' @param hosp_data input hospital admissions data for a single location
+#' and forecast date
+#'
+#' @return a ggplot object with a single location and forecast dates
+#' input hospital admissions data
+#' @export
+get_plot_input_hosp_data <- function(hosp_data) {
+  forecast_date <- hosp_data |>
+    dplyr::distinct(forecast_date) |>
+    dplyr::pull()
+  location <- hosp_data |>
+    dplyr::distinct(location) |>
+    dplyr::pull()
+
+  p <- ggplot(hosp_data) +
+    geom_line(aes(x = date, y = calib_data)) +
+    geom_point(aes(x = date, y = calib_data)) +
+    scale_x_date(
+      date_breaks = "1 week",
+      labels = scales::date_format("%Y-%m-%d")
+    ) +
+    ylab("Daily hospital admissions") +
+    xlab("") +
+    ggtitle(glue::glue("{location}, as of {forecast_date}")) +
+    theme_bw() +
+    theme(
+      axis.text.x = element_text(
+        size = 8, vjust = 1,
+        hjust = 1, angle = 45
+      ),
+      axis.title.x = element_text(size = 12),
+      axis.title.y = element_text(size = 12),
+      plot.title = element_text(
+        size = 10,
+        vjust = 0.5, hjust = 0.5
+      )
+    )
+
+  return(p)
+}
+
+
+
+
 #' Get plot of wastewater data compared to model draws
 #'
 #' @param draws_w_data A long tidy dataframe containing draws from the model of
