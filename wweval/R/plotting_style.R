@@ -76,7 +76,7 @@ get_plot_theme <- function(x_axis_text_size = 8,
 
 #' Get plot components (colors for now)
 #'
-#' @return a list of model colors and horizon colors to be passed to
+#' @return a list of model, phase, and horizon colors to be passed to
 #' `scale_fill_manual()` and `scale_color_manual()`
 #' @export
 plot_components <- function() {
@@ -108,9 +108,18 @@ plot_components <- function() {
     "COVIDhub-baseline" = pastel_model[6]
   )
 
+  phase_colors <- c(
+    "increasing" = "peachpuff",
+    "peak" = "tomato",
+    "nadir" = "lightskyblue",
+    "decreasing" = "lightgreen",
+    "uncertain" = "lightgray"
+  )
+
   colors_list <- list(
     horizon_colors = horizon_colors,
-    model_colors = model_colors
+    model_colors = model_colors,
+    phase_colors = phase_colors
   )
   return(colors_list)
 }

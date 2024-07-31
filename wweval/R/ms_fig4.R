@@ -430,14 +430,15 @@ make_plot_coverage_range <- function(scores_quantiles, ranges) {
   return(p)
 }
 
-#' Make figure that stratifies scores by epidemic phase across
+#' Make figure that plots distribution of relative crps stratified by
+#' epidemic phase
 #'
 #' @param scores A tibble of scores by location, forecast date, date and model,
 #' containing the outputs of `scoringutils::score()` on samples plus metadata
 #' transformed into a tibble.
 #'
 #' @return A ggplot object containing plots of the distribution of relative
-#' CRPS scores, colored by horizon, stratified by epidemic phase, across
+#' CRPS scores stratified by epidemic phase, across
 #' locations and forecast dates
 #' @export
 make_fig4_rel_crps_by_phase <- function(scores) {
@@ -490,13 +491,56 @@ make_fig4_rel_crps_by_phase <- function(scores) {
       x_axis_title_size = 8,
       y_axis_title_size = 8
     ) +
-    scale_fill_brewer(palette = "Set3")
+    scale_fill_manual(values = colors$phase_colors)
+
+  return(p)
+}
+#' Make figure that plots distribution of crps scores stratified by
+#' epidemic phase
+#'
+#' @param scores A tibble of scores by location, forecast date, date and model,
+#' containing the outputs of `scoringutils::score()` on samples plus metadata
+#' transformed into a tibble.
+#'
+#' @return A ggplot object containing plots of the distribution of
+#' CRPS scores, colored by model, stratified by epidemic phase, across
+#' locations and forecast dates
+#' @export
+make_sfig_crps_by_phase <- function(scores) {
+  scores_w_fig_order <- scores |>
+    order_phases()
+
+  # Quick warning if there are NAs in epidemic phases
+  missing_phases <- scores |>
+    dplyr::filter(is.na(phase))
+
+  if (nrow(missing_phases) > 0) {
+    warning("There are dates missing epidemic phases")
+  }
+
+  relative_crps <- scores_w_fig_order |>
+    dplyr::select(
+      location, date, forecast_date, model, horizon, phase, crps
+    ) |>
+    dplyr::filter(!is.na(horizon)) |>
+    tidyr::pivot_wider(
+      names_from = model,
+      values_from = crps,
+      id_cols = c(location, date, forecast_date, horizon, phase)
+    ) |>
+    dplyr::mutate(
+      rel_crps = ww / hosp
+    ) |>
+    order_phases() |>
+    order_horizons() |>
+    dplyr::filter(!is.na(phase)) # Exclude NAs in plot
+
 
   # Going to keep this in there for now
   scores_to_plot <- scores_w_fig_order |>
     dplyr::filter(!is.na(phase))
 
-  ggplot(scores_to_plot) +
+  p <- ggplot(scores_to_plot) +
     tidybayes::stat_halfeye(
       aes(
         x = as.factor(phase), y = crps,
@@ -514,8 +558,6 @@ make_fig4_rel_crps_by_phase <- function(scores) {
       y_axis_title_size = 8
     ) +
     scale_fill_manual(values = colors$model_colors)
-
-
   return(p)
 }
 

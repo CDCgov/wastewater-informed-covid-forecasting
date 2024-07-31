@@ -7,7 +7,7 @@
 plot_components()
 }
 \value{
-a list of model colors and horizon colors to be passed to
+a list of model, phase, and horizon colors to be passed to
 \code{scale_fill_manual()} and \code{scale_color_manual()}
 }
 \description{
