@@ -518,24 +518,6 @@ make_sfig_crps_by_phase <- function(scores) {
     warning("There are dates missing epidemic phases")
   }
 
-  relative_crps <- scores_w_fig_order |>
-    dplyr::select(
-      location, date, forecast_date, model, horizon, phase, crps
-    ) |>
-    dplyr::filter(!is.na(horizon)) |>
-    tidyr::pivot_wider(
-      names_from = model,
-      values_from = crps,
-      id_cols = c(location, date, forecast_date, horizon, phase)
-    ) |>
-    dplyr::mutate(
-      rel_crps = ww / hosp
-    ) |>
-    order_phases() |>
-    order_horizons() |>
-    dplyr::filter(!is.na(phase)) # Exclude NAs in plot
-
-
   # Going to keep this in there for now
   scores_to_plot <- scores_w_fig_order |>
     dplyr::filter(!is.na(phase))
