@@ -496,7 +496,7 @@ make_fig4_rel_crps_by_phase <- function(scores) {
   return(p)
 }
 #' Make figure that plots distribution of crps scores stratified by
-#' epidemic phase but aggregated across horizons
+#' epidemic phase
 #'
 #' @param scores A tibble of scores by location, forecast date, date and model,
 #' containing the outputs of `scoringutils::score()` on samples plus metadata
