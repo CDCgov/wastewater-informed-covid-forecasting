@@ -101,3 +101,55 @@ order_periods <- function(df) {
     )
   return(df_w_order)
 }
+
+#' Get the order of the categorical horizons for plotting
+#'
+#' @param df a dataframe containing the column name `phase` which will
+#' contain character strings indicating the phase of the epidemic
+#' (increasing, decreasing, peak, or nadir) of  the score/quantile/sample.
+#'
+#' @return a dataframe containing the same columns as `df` but with the
+#' addition of `fig_order` and reordered in terms of `fig_order` for plotting.
+#' @export
+order_phases <- function(df) {
+  phase_order <- c(
+    "increasing",
+    "peak",
+    "decreasing",
+    "nadir",
+    "uncertain"
+  )
+
+  if (!"phase" %in% colnames(df)) {
+    cli::cli_abort(
+      message =
+        c(
+          "Column named `phase` is missing from the dataframe"
+        )
+    )
+  }
+
+  phase_names <- df |>
+    dplyr::distinct(phase) |>
+    dplyr::filter(!is.na(phase)) |>
+    dplyr::pull()
+
+
+  if (any(!phase_names %in% phase_order)) {
+    cli::cli_abort(
+      message =
+        c(
+          "Phase names in dataframe differ from",
+          "expected names of: {phase_order}"
+        )
+    )
+  }
+
+
+
+  df_w_order <- df |>
+    dplyr::mutate(
+      phase = factor(phase, ordered = TRUE, levels = phase_order)
+    )
+  return(df_w_order)
+}
