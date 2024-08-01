@@ -503,7 +503,7 @@ make_fig4_rel_crps_by_phase <- function(scores) {
 #' transformed into a tibble.
 #'
 #' @return A ggplot object containing plots of the distribution of
-#' CRPS scores, colored by model, stratified by epidemic phase, across
+#' continuous ranked probability scores, colored by model, stratified by epidemic phase, across
 #' locations and forecast dates
 #' @export
 make_sfig_crps_by_phase <- function(scores) {
