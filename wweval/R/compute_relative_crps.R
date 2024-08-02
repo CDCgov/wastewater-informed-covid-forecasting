@@ -49,7 +49,7 @@ compute_relative_crps <- function(scores,
     tidyr::pivot_wider(
       names_from = model,
       values_from = crps,
-      id_cols = !!id_cols
+      id_cols = {{ id_cols }}
     ) |>
     dplyr::mutate(
       rel_crps = ww / hosp
