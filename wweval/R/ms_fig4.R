@@ -28,19 +28,13 @@ make_fig4_rel_crps_over_time <- function(scores,
     )
 
   relative_crps <- scores_comb |>
-    dplyr::select(
-      location, forecast_date, date, model, horizon, crps
-    ) |>
+    compute_relative_crps(id_cols = c(
+      "location",
+      "forecast_date", "date", "horizon"
+    )) |>
     dplyr::filter(!is.na(horizon)) |>
-    tidyr::pivot_wider(
-      names_from = model,
-      values_from = crps,
-      id_cols = c(location, forecast_date, date, horizon)
-    ) |>
-    dplyr::mutate(
-      rel_crps = ww / hosp
-    ) |>
     order_horizons()
+
 
   colors <- plot_components()
 
@@ -222,16 +216,12 @@ make_fig4_rel_crps_by_location <- function(scores,
 
 
   relative_crps <- scores_comb |>
-    dplyr::select(location, forecast_date, date, model, horizon, crps) |>
+    compute_relative_crps(id_cols = c(
+      "location",
+      "forecast_date", "date",
+      "horizon"
+    )) |>
     dplyr::filter(!is.na(horizon)) |>
-    tidyr::pivot_wider(
-      names_from = model,
-      values_from = crps,
-      id_cols = c(location, forecast_date, date, horizon)
-    ) |>
-    dplyr::mutate(
-      rel_crps = ww / hosp
-    ) |>
     order_horizons()
 
   colors <- plot_components()
@@ -297,16 +287,11 @@ make_fig4_rel_crps_overall <- function(scores,
     )
 
   relative_crps <- scores_comb |>
-    dplyr::select(location, forecast_date, date, model, horizon, crps) |>
+    compute_relative_crps(id_cols = c(
+      "location", "forecast_date",
+      "horizon", "date"
+    )) |>
     dplyr::filter(!is.na(horizon)) |>
-    tidyr::pivot_wider(
-      names_from = model,
-      values_from = crps,
-      id_cols = c(location, forecast_date, horizon, date)
-    ) |>
-    dplyr::mutate(
-      rel_crps = ww / hosp
-    ) |>
     order_horizons()
 
   colors <- plot_components()
@@ -454,21 +439,16 @@ make_fig4_rel_crps_by_phase <- function(scores) {
   }
 
   relative_crps <- scores_w_fig_order |>
-    dplyr::select(
-      location, date, forecast_date, model, horizon, phase, crps
-    ) |>
+    compute_relative_crps(id_cols = c(
+      "location",
+      "date", "forecast_date",
+      "horizon", "phase"
+    )) |>
+    dplyr::filter(!is.na(phase)) |>
     dplyr::filter(!is.na(horizon)) |>
-    tidyr::pivot_wider(
-      names_from = model,
-      values_from = crps,
-      id_cols = c(location, date, forecast_date, horizon, phase)
-    ) |>
-    dplyr::mutate(
-      rel_crps = ww / hosp
-    ) |>
     order_phases() |>
-    order_horizons() |>
-    dplyr::filter(!is.na(phase)) # Exclude NAs in plot
+    order_horizons()
+
 
   colors <- plot_components()
 
