@@ -85,8 +85,8 @@ get_ww_data_flags <- function(input_ww_data,
       flag_delay = as.integer(forecast_date - last_date) > !!delay_thres,
       flag_n_dps = n_dps < !!n_dps_thres,
       flag_lod = prop_below_lod > !!prop_below_lod_thres,
-      flag_sd = sd < sd_thres,
-      flag_low_val = mean_log_ww < mean_log_ww_value_thres
+      flag_sd = sd < !!sd_thres,
+      flag_low_val = mean_log_ww < !!mean_log_ww_value_thres
     )
 
   flag_table_long <- diagnostic_table |>
