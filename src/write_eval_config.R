@@ -21,8 +21,7 @@ write_eval_config <- function(locations, forecast_dates,
                               scenario_dir,
                               ms_fig_dir,
                               eval_date,
-                              overwrite_summary_table,
-                              rerun_ww_postprocess) {
+                              overwrite_summary_table) {
   # Will need to load in the files corresponding to the input scenarios, so we
   # get the list of locations that are relevant for each scenario. We will bind
   # these all together to create the full eval config.
@@ -156,9 +155,7 @@ write_eval_config <- function(locations, forecast_dates,
     # Input delay distributions
     generation_interval = generation_interval,
     infection_feedback_pmf = generation_interval,
-    inf_to_hosp = inf_to_hosp,
-    # Config settings
-    rerun_ww_postprocess = rerun_ww_postprocess
+    inf_to_hosp = inf_to_hosp
   )
 
   cfaforecastrenewalww::create_dir(config_dir)

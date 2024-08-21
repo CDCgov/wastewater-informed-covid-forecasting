@@ -11,7 +11,7 @@
 #'
 #' @param output_type the type of output that is saved, one of `"quantiles"`, `"scores"`,
 #' `"ww_quantiles"`, `"scores_quantiles"`, `"hosp_quantiles"`,`"errors"`,
-#'  or `"flags"`.
+#'  `"ww_data_flags"` or `"flags"`.
 #' @param scenarios The vector of character strings of all the scenarios
 #' @param forecast_dates The vector of character strings of all the forecast dates
 #' @param locations The vector of character strings of all the locations
@@ -24,8 +24,9 @@
 #'
 combine_outputs <- function(output_type =
                               c(
-                                "quantiles", "scores", "ww_quantiles", "scores_quantiles",
-                                "hosp_quantiles", "flags", "errors"
+                                "quantiles", "scores", "ww_quantiles",
+                                "scores_quantiles", "hosp_quantiles", "flags",
+                                "errors", "ww_data_flags"
                               ),
                             scenarios,
                             forecast_dates,
