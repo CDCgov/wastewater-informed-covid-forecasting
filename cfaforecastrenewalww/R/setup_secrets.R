@@ -8,7 +8,9 @@
     "NHSN_API_KEY_ID",
     "NHSN_API_KEY_SECRET",
     "nwss_data_token",
-    "data_rid"
+    "data_rid",
+    "Z_USERNAME",
+    "Z_PASSWORD"
   )
 
   return(needed_values)
