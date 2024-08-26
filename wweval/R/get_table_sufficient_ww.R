@@ -73,7 +73,7 @@ get_ww_data_flags <- function(input_ww_data,
                               sd_thres = 0.1,
                               mean_log_ww_value_thres = -4) {
   this_location <- input_ww_data |>
-    dplyr::select(location) |>
+    dplyr::distinct(location) |>
     dplyr::pull(location)
 
   diagnostic_table <- input_ww_data |>
@@ -85,7 +85,7 @@ get_ww_data_flags <- function(input_ww_data,
       mean_log_ww = mean(log(ww))
     ) |>
     dplyr::mutate(
-      location = this_location,
+      location = !!this_location,
       forecast_date = lubridate::ymd(!!forecast_date),
       flag_delay = as.integer(forecast_date - last_date) > !!delay_thres,
       flag_n_dps = n_dps < !!n_dps_thres,
