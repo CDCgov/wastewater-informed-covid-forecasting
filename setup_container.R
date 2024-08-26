@@ -26,9 +26,10 @@ additional_deps <- c(
 )
 
 install.packages("pak")
+pak::pkg_install("github::stan-dev/cmdstanr")
+cmdstanr::install_cmdstan()
 pak::pkg_install("local::wweval")
 pak::pkg_install(additional_deps)
-cmdstanr::install_cmdstan()
 dir.create("stanmodels")
 cfaforecastrenewalww::compile_model(
   "cfaforecastrenewalww/inst/stan/renewal_ww_hosp_site_level_inf_dynamics.stan",
