@@ -16,7 +16,8 @@ library(purrr, quietly = TRUE)
 # argument of a target.
 controller <- crew_controller_local(
   workers = 8,
-  seconds_idle = 600
+  seconds_idle = 600,
+  seconds_timeout = 120, # default is 60
 )
 
 # Set target options:
@@ -54,7 +55,10 @@ setup_interactive_dev_run <- function() {
       "cfaforecastrenewalww",
       "data.table",
       "ggridges",
-      "ggdist"
+      "ggdist",
+      "patchwork",
+      "RColorBrewer",
+      "cowplot"
     )
   )
 }
@@ -217,6 +221,18 @@ combined_targets <- list(
     ) |>
       dplyr::rename(any_flags_hosp = any_flags)
   ),
+  tar_target(
+    name = all_ww_data_flags,
+    command = combine_outputs(
+      output_type = "ww_data_flags",
+      scenarios = "status_quo",
+      forecast_dates = eval_config$forecast_date_ww,
+      locations = eval_config$location_ww,
+      eval_output_subdir = eval_config$output_dir,
+      model_type = "ww"
+    )
+  ),
+
   ### Scores from quantiles-------------------------------------------------
   tar_target(
     name = all_ww_scores_quantiles,
@@ -263,17 +279,7 @@ combined_targets <- list(
       model_type = "hosp"
     )
   ),
-  tar_target(
-    name = all_ww_quantiles,
-    command = combine_outputs(
-      output_type = "ww_quantiles",
-      scenarios = eval_config$scenario,
-      forecast_dates = eval_config$forecast_date_ww,
-      locations = eval_config$location_ww,
-      eval_output_subdir = eval_config$output_dir,
-      model_type = "ww"
-    )
-  ),
+
   ## Errors-------------------------------------------------------------------
   tar_target(
     name = all_ww_errors,
@@ -306,15 +312,10 @@ combined_targets <- list(
 # admissions only model if wastewater was missing.
 # These are only relevant for the status quo scenario
 head_to_head_targets <- list(
-  tar_target(
-    name = all_ww_quantiles_sq,
-    command = all_ww_quantiles |>
-      dplyr::filter(scenario == "status_quo")
-  ),
   # Get a table of locations and forecast dates with sufficient wastewater
   tar_target(
     name = table_of_loc_dates_w_ww,
-    command = get_table_sufficient_ww(all_ww_quantiles)
+    command = get_table_sufficient_ww(all_ww_data_flags)
   ),
   # Get a table indicating whether there are locations and forecast dates with
   # convergence issues
@@ -358,8 +359,8 @@ head_to_head_targets <- list(
       dplyr::left_join(
         epidemic_phases,
         by = c(
-          "location" = "state_abbr",
-          "date" = "reference_date"
+          "location",
+          "forecast_date" = "date"
         )
       ) |>
       add_horizons()
@@ -392,8 +393,8 @@ head_to_head_targets <- list(
       dplyr::left_join(
         epidemic_phases,
         by = c(
-          "location" = "state_abbr",
-          "date" = "reference_date"
+          "location",
+          "forecast_date" = "date"
         )
       ) |>
       add_horizons()
@@ -424,8 +425,8 @@ head_to_head_targets <- list(
       dplyr::left_join(
         epidemic_phases,
         by = c(
-          "location" = "state_abbr",
-          "date" = "reference_date"
+          "location",
+          "forecast_date" = "date"
         )
       ) |>
       add_horizons()
@@ -437,69 +438,115 @@ head_to_head_targets <- list(
 # ggarranged, properly formatted figures, and currently require
 # specification for the figure components that are examples.
 manuscript_figures <- list(
+  ## Figure specifications----------------------------------------
+  tar_target(
+    name = locs_to_plot,
+    command = c("MA", "VA", "WA")
+  ),
+  tar_target(
+    name = forecast_date_to_plot,
+    command = "2024-01-15"
+  ),
+  tar_target(
+    name = quantile_levels_to_plot,
+    command = c(0.025, 0.25, 0.5, 0.75, 0.975)
+  ),
+  tar_target(
+    name = hosp_quants_plot,
+    command = hosp_quantiles_filtered |>
+      dplyr::filter(
+        quantile %in% quantile_levels_to_plot,
+        location %in% locs_to_plot
+      )
+  ),
+  tar_target(
+    name = ww_quants_plot,
+    command = combine_outputs(
+      output_type = "quantiles",
+      scenarios = "status_quo",
+      forecast_dates = forecast_date_to_plot,
+      locations = locs_to_plot,
+      eval_output_subdir = eval_config$output_dir,
+      model_type = "ww"
+    )
+  ),
   ## Fig 2-----------------------------------------------------
   tar_target(
     name = fig2_hosp_t_1,
     command = make_fig2_hosp_t(
-      hosp_quantiles_filtered,
-      loc_to_plot = c("MA"),
-      date_to_plot = "2024-01-15"
+      hosp_quants_plot,
+      loc_to_plot = locs_to_plot[1],
+      date_to_plot = forecast_date_to_plot
     )
   ),
   tar_target(
     name = fig2_hosp_t_2,
     command = make_fig2_hosp_t(
-      hosp_quantiles_filtered,
-      loc_to_plot = c("AL"),
-      date_to_plot = "2024-01-15"
+      hosp_quants_plot,
+      loc_to_plot = locs_to_plot[2],
+      date_to_plot = forecast_date_to_plot
     )
   ),
   tar_target(
     name = fig2_hosp_t_3,
     command = make_fig2_hosp_t(
-      hosp_quantiles_filtered,
-      loc_to_plot = c("WA"),
-      date_to_plot = "2024-01-15"
+      hosp_quants_plot,
+      loc_to_plot = locs_to_plot[3],
+      date_to_plot = forecast_date_to_plot
     )
   ),
   tar_target(
     name = fig2_ct_1,
     command = make_fig2_ct(
-      all_ww_quantiles_sq,
-      loc_to_plot = "MA",
-      date_to_plot = "2024-01-15"
+      ww_quants_plot,
+      loc_to_plot = locs_to_plot[1],
+      date_to_plot = forecast_date_to_plot
     )
   ),
   tar_target(
     name = fig2_ct_2,
     command = make_fig2_ct(
-      all_ww_quantiles_sq,
-      loc_to_plot = "AL",
-      date_to_plot = "2024-01-15"
+      ww_quants_plot,
+      loc_to_plot = locs_to_plot[2],
+      date_to_plot = forecast_date_to_plot
     )
   ),
   tar_target(
     name = fig2_ct_3,
     command = make_fig2_ct(
-      all_ww_quantiles_sq,
-      loc_to_plot = "WA",
-      date_to_plot = "2024-01-15"
+      ww_quants_plot,
+      loc_to_plot = locs_to_plot[3],
+      date_to_plot = forecast_date_to_plot
+    )
+  ),
+  ## Fig 2 combined--------------------------------------------
+  tar_target(
+    name = fig2,
+    command = make_fig2(
+      hosp1 = fig2_hosp_t_1,
+      hosp2 = fig2_hosp_t_2,
+      hosp3 = fig2_hosp_t_3,
+      ct1 = fig2_ct_1,
+      ct2 = fig2_ct_2,
+      ct3 = fig2_ct_3,
+      fig_file_dir = eval_config$ms_fig_dir
     )
   ),
 
   ## Fig 3-------------------------------------------------
   tar_target(
+    ### First location --------
     name = fig3_crps_single_loc1,
     command = make_fig3_single_loc_comp(
       scores_filtered,
-      loc_to_plot = "MA"
+      loc_to_plot = locs_to_plot[1]
     )
   ),
   tar_target(
     name = fig3_forecast_comparison_nowcast1,
     command = make_fig3_forecast_comp_fig(
       hosp_quantiles_filtered,
-      loc_to_plot = "MA",
+      loc_to_plot = locs_to_plot[1],
       horizon_to_plot = "nowcast"
     )
   ),
@@ -507,7 +554,7 @@ manuscript_figures <- list(
     name = fig3_forecast_comparison_1wk1,
     command = make_fig3_forecast_comp_fig(
       hosp_quantiles_filtered,
-      loc_to_plot = "MA",
+      loc_to_plot = locs_to_plot[1],
       horizon_to_plot = "1 wk"
     )
   ),
@@ -515,7 +562,7 @@ manuscript_figures <- list(
     name = fig3_forecast_comparison_4wks1,
     command = make_fig3_forecast_comp_fig(
       hosp_quantiles_filtered,
-      loc_to_plot = "MA",
+      loc_to_plot = locs_to_plot[1],
       horizon_to_plot = "4 wks"
     )
   ),
@@ -523,31 +570,246 @@ manuscript_figures <- list(
     name = fig3_crps_underlay_nowcast1,
     command = make_fig3_crps_underlay_fig(
       scores_filtered,
-      loc_to_plot = "MA",
-      horizon_to_plot = "nowcast"
+      loc_to_plot = locs_to_plot[1],
+      horizon_to_plot = "nowcast",
+      days_to_shift = -10
     )
   ),
   tar_target(
     name = fig3_crps_underlay_1wk1,
     command = make_fig3_crps_underlay_fig(
       scores_filtered,
-      loc_to_plot = "MA",
-      horizon_to_plot = "1 wk"
+      loc_to_plot = locs_to_plot[1],
+      horizon_to_plot = "1 wk",
+      days_to_shift = 0
     )
   ),
   tar_target(
     name = fig3_crps_underlay_4wks1,
     command = make_fig3_crps_underlay_fig(
       scores_filtered,
-      loc_to_plot = "MA",
+      loc_to_plot = locs_to_plot[1],
+      horizon_to_plot = "4 wks",
+      days_to_shift = 21
+    )
+  ),
+  # This is supplementary but useful alongside
+  # the forecasts I think
+  tar_target(
+    name = sfig3_interval_coverage1,
+    command = make_plot_coverage_range(
+      scores_quantiles_filtered |>
+        dplyr::filter(location == locs_to_plot[1]),
+      ranges = c(30, 60, 90)
+    )
+  ),
+  tar_target(
+    name = sfig3_qq_plot1,
+    command = make_qq_plot_overall(
+      scores_quantiles_filtered |>
+        dplyr::filter(location == locs_to_plot[1])
+    )
+  ),
+
+  ### Second loc--------------
+  tar_target(
+    name = fig3_crps_single_loc2,
+    command = make_fig3_single_loc_comp(
+      scores_filtered,
+      loc_to_plot = locs_to_plot[2]
+    )
+  ),
+  tar_target(
+    name = fig3_forecast_comparison_nowcast2,
+    command = make_fig3_forecast_comp_fig(
+      hosp_quantiles_filtered,
+      loc_to_plot = locs_to_plot[2],
+      horizon_to_plot = "nowcast"
+    )
+  ),
+  tar_target(
+    name = fig3_forecast_comparison_1wk2,
+    command = make_fig3_forecast_comp_fig(
+      hosp_quantiles_filtered,
+      loc_to_plot = locs_to_plot[2],
+      horizon_to_plot = "1 wk"
+    )
+  ),
+  tar_target(
+    name = fig3_forecast_comparison_4wks2,
+    command = make_fig3_forecast_comp_fig(
+      hosp_quantiles_filtered,
+      loc_to_plot = locs_to_plot[2],
       horizon_to_plot = "4 wks"
     )
   ),
+  tar_target(
+    name = fig3_crps_underlay_nowcast2,
+    command = make_fig3_crps_underlay_fig(
+      scores_filtered,
+      loc_to_plot = locs_to_plot[2],
+      horizon_to_plot = "nowcast",
+      days_to_shift = -10
+    )
+  ),
+  tar_target(
+    name = fig3_crps_underlay_1wk2,
+    command = make_fig3_crps_underlay_fig(
+      scores_filtered,
+      loc_to_plot = locs_to_plot[2],
+      horizon_to_plot = "1 wk",
+      days_to_shift = 0
+    )
+  ),
+  tar_target(
+    name = fig3_crps_underlay_4wks2,
+    command = make_fig3_crps_underlay_fig(
+      scores_filtered,
+      loc_to_plot = locs_to_plot[2],
+      horizon_to_plot = "4 wks",
+      days_to_shift = 21
+    )
+  ),
+  # Supplementary
+  tar_target(
+    name = sfig3_interval_coverage2,
+    command = make_plot_coverage_range(
+      scores_quantiles_filtered |>
+        dplyr::filter(location == locs_to_plot[2]),
+      ranges = c(30, 60, 90)
+    )
+  ),
+  tar_target(
+    name = sfig3_qq_plot2,
+    command = make_qq_plot_overall(
+      scores_quantiles_filtered |>
+        dplyr::filter(location == locs_to_plot[2])
+    )
+  ),
+  ### Third loc----
+  tar_target(
+    name = fig3_crps_single_loc3,
+    command = make_fig3_single_loc_comp(
+      scores_filtered,
+      loc_to_plot = locs_to_plot[3]
+    )
+  ),
+  tar_target(
+    name = fig3_forecast_comparison_nowcast3,
+    command = make_fig3_forecast_comp_fig(
+      hosp_quantiles_filtered,
+      loc_to_plot = locs_to_plot[3],
+      horizon_to_plot = "nowcast"
+    )
+  ),
+  tar_target(
+    name = fig3_forecast_comparison_1wk3,
+    command = make_fig3_forecast_comp_fig(
+      hosp_quantiles_filtered,
+      loc_to_plot = locs_to_plot[3],
+      horizon_to_plot = "1 wk"
+    )
+  ),
+  tar_target(
+    name = fig3_forecast_comparison_4wks3,
+    command = make_fig3_forecast_comp_fig(
+      hosp_quantiles_filtered,
+      loc_to_plot = locs_to_plot[3],
+      horizon_to_plot = "4 wks"
+    )
+  ),
+  tar_target(
+    name = fig3_crps_underlay_nowcast3,
+    command = make_fig3_crps_underlay_fig(
+      scores_filtered,
+      loc_to_plot = locs_to_plot[3],
+      horizon_to_plot = "nowcast",
+      days_to_shift = -10
+    )
+  ),
+  tar_target(
+    name = fig3_crps_underlay_1wk3,
+    command = make_fig3_crps_underlay_fig(
+      scores_filtered,
+      loc_to_plot = locs_to_plot[3],
+      horizon_to_plot = "1 wk",
+      days_to_shift = 0
+    )
+  ),
+  tar_target(
+    name = fig3_crps_underlay_4wks3,
+    command = make_fig3_crps_underlay_fig(
+      scores_filtered,
+      loc_to_plot = locs_to_plot[3],
+      horizon_to_plot = "4 wks",
+      days_to_shift = 21
+    )
+  ),
+  # Supplement to fig 3
+  tar_target(
+    name = sfig3_interval_coverage3,
+    command = make_plot_coverage_range(
+      scores_quantiles_filtered |>
+        dplyr::filter(location == locs_to_plot[3]),
+      ranges = c(30, 60, 90)
+    )
+  ),
+  tar_target(
+    name = sfig3_qq_plot3,
+    command = make_qq_plot_overall(
+      scores_quantiles_filtered |>
+        dplyr::filter(location == locs_to_plot[3])
+    )
+  ),
+
+  ### Fig3 combined---------------------------------------
+  tar_target(
+    name = fig3,
+    command = make_fig3(
+      fig3_crps_single_loc1 = fig3_crps_single_loc1,
+      fig3_forecast_comparison_nowcast1 = fig3_forecast_comparison_nowcast1,
+      fig3_forecast_comparison_1wk1 = fig3_forecast_comparison_1wk1,
+      fig3_forecast_comparison_4wks1 = fig3_forecast_comparison_4wks1,
+      fig3_crps_underlay_nowcast1 = fig3_crps_underlay_nowcast1,
+      fig3_crps_underlay_1wk1 = fig3_crps_underlay_1wk1,
+      fig3_crps_underlay_4wks1 = fig3_crps_underlay_4wks1,
+      fig3_crps_single_loc2 = fig3_crps_single_loc2,
+      fig3_forecast_comparison_nowcast2 = fig3_forecast_comparison_nowcast2,
+      fig3_forecast_comparison_1wk2 = fig3_forecast_comparison_1wk2,
+      fig3_forecast_comparison_4wks2 = fig3_forecast_comparison_4wks2,
+      fig3_crps_underlay_nowcast2 = fig3_crps_underlay_nowcast2,
+      fig3_crps_underlay_1wk2 = fig3_crps_underlay_1wk2,
+      fig3_crps_underlay_4wks2 = fig3_crps_underlay_4wks2,
+      fig3_crps_single_loc3 = fig3_crps_single_loc3,
+      fig3_forecast_comparison_nowcast3 = fig3_forecast_comparison_nowcast3,
+      fig3_forecast_comparison_1wk3 = fig3_forecast_comparison_1wk3,
+      fig3_forecast_comparison_4wks3 = fig3_forecast_comparison_4wks3,
+      fig3_crps_underlay_nowcast3 = fig3_crps_underlay_nowcast3,
+      fig3_crps_underlay_1wk3 = fig3_crps_underlay_1wk3,
+      fig3_crps_underlay_4wks3 = fig3_crps_underlay_4wks3,
+      fig_file_dir = eval_config$ms_fig_dir
+    )
+  ),
+
+
 
   ## Fig 4------------------------------------------------
   tar_target(
     name = fig4_rel_crps_over_time,
-    command = make_fig4_crps_density(
+    command = make_fig4_rel_crps_over_time(
+      scores_filtered,
+      horizons_to_show = "overall"
+    )
+  ),
+  tar_target(
+    name = fig4_natl_admissions,
+    command = make_fig4_admissions_overall(
+      eval_hosp_data
+    )
+  ),
+  tar_target(
+    name = fig4_avg_crps,
+    command = make_fig4_avg_crps_over_time(
       scores_filtered
     )
   ),
@@ -567,7 +829,8 @@ manuscript_figures <- list(
   tar_target(
     name = fig4_rel_crps_by_location,
     command = make_fig4_rel_crps_by_location(
-      scores_filtered
+      scores_filtered,
+      horizons_to_show = "overall"
     )
   ),
   tar_target(
@@ -586,7 +849,21 @@ manuscript_figures <- list(
     name = fig4_plot_coverage_range,
     command = make_plot_coverage_range(
       scores_quantiles_filtered,
-      c(30, 50, 90)
+      ranges = c(30, 60, 90)
+    )
+  ),
+  ### Fig 4 combined---------------------------------------------------
+  tar_target(
+    name = fig4,
+    command = make_fig4(
+      fig4_rel_crps_overall = fig4_rel_crps_overall,
+      fig4_avg_crps = fig4_avg_crps,
+      fig4_natl_admissions = fig4_natl_admissions,
+      fig4_rel_crps_over_time = fig4_rel_crps_over_time,
+      fig4_rel_crps_by_location = fig4_rel_crps_by_location,
+      fig4_qq_plot_overall = fig4_qq_plot_overall,
+      fig4_plot_coverage_range = fig4_plot_coverage_range,
+      fig_file_dir = eval_config$ms_fig_dir
     )
   )
 )
@@ -759,21 +1036,6 @@ scenario_targets <- list(
       mock_submission_scores,
       figure_file_path = eval_config$figure_dir
     )
-  ),
-  tar_target(
-    name = grouped_ww_quantiles,
-    command = all_ww_quantiles |>
-      dplyr::group_by(location, scenario) |>
-      targets::tar_group(),
-    iteration = "group"
-  ),
-  tar_target(
-    name = plot_ww_quantile_comparison,
-    command = get_plot_ww_comparison(
-      grouped_ww_quantiles
-    ),
-    pattern = map(grouped_ww_quantiles),
-    iteration = "list"
   )
 )
 
@@ -929,66 +1191,117 @@ hub_targets <- list(
   )
 )
 ## Hub comparison plots ------------------------------------------------------
+## Fig 5-------------------------------------------------------------------
 hub_comparison_plots <- list(
   tar_target(
-    name = plot_wis_over_time,
-    command = get_plot_wis_over_time(
-      all_scores = combine_scores_oct_mar,
-      cfa_real_time_scores = cfa_real_time_scores,
-      figure_file_path = eval_config$figure_dir
+    name = summarized_scores_oct_mar,
+    command = combine_scores_oct_mar |>
+      data.table::as.data.table() |>
+      scoringutils::summarise_scores()
+  ),
+  tar_target(
+    name = summarized_scores_feb_mar,
+    command = combine_scores_feb_mar |>
+      data.table::as.data.table() |>
+      scoringutils::summarise_scores()
+  ),
+  tar_target(
+    name = summarized_scores_cfa_real_time,
+    command = cfa_real_time_scores |>
+      data.table::as.data.table() |>
+      scoringutils::summarise_scores()
+  ),
+  tar_target(
+    name = models_to_plot,
+    command = c(
+      "COVIDhub-4_week_ensemble",
+      "UMass-trends_ensemble",
+      "cfa-wwrenewal(real-time)",
+      "cfa-wwrenewal(retro)",
+      "cfa-hosponlyrenewal(retro)"
     )
   ),
   tar_target(
-    name = plot_overall_performance,
-    command = get_plot_hub_performance(
-      all_scores = combine_scores_oct_mar,
-      cfa_real_time_scores = cfa_real_time_scores,
+    name = fig5_plot_wis_over_time,
+    command = make_fig5_average_wis(
+      all_scores = summarized_scores_oct_mar,
+      cfa_real_time_scores = summarized_scores_cfa_real_time,
+      models_to_show = models_to_plot
+    )
+  ),
+  tar_target(
+    name = fig5_overall_performance,
+    command = make_fig5_hub_performance(
+      all_scores = summarized_scores_oct_mar,
+      cfa_real_time_scores = summarized_scores_cfa_real_time,
+      models_to_show = models_to_plot,
       all_time_period = "Oct 2023-Mar 2024",
       real_time_period = "Feb 2024-Mar 2024",
-      figure_file_path = eval_config$figure_dir
     )
   ),
   tar_target(
-    name = heatmap_relative_wis_all_time,
-    command = get_heatmap_relative_wis(
-      scores = combine_scores_oct_mar,
+    name = fig5_heatmap_rel_wis_all_time,
+    command = make_fig5_heatmap_relative_wis(
+      scores = summarized_scores_oct_mar,
+      models_to_show = models_to_plot,
       time_period = "Oct 2023-Mar 2024",
-      baseline_model = "COVIDhub-baseline",
-      figure_file_path = eval_config$figure_dir
+      baseline_model = "COVIDhub-4_week_ensemble"
     )
   ),
   tar_target(
-    name = heatmap_relative_wis_ensemble,
-    command = get_heatmap_relative_wis(
-      scores = combine_scores_oct_mar,
-      time_period = "Oct 2023-Mar 2024",
-      baseline_model = "COVIDhub-4_week_ensemble",
-      figure_file_path = eval_config$figure_dir
-    )
-  ),
-  tar_target(
-    name = heatmap_relative_wis_hosp_only,
-    command = get_heatmap_relative_wis(
-      scores = combine_scores_oct_mar,
-      time_period = "Oct 2023-Mar 2024",
-      baseline_model = "cfa-hosponlyrenewal(retro)",
-      figure_file_path = eval_config$figure_dir
-    )
-  ),
-  tar_target(
-    name = qq_plot_all_time,
-    command = get_qq_plot(
-      scores = combine_scores_oct_mar,
-      time_period = "Oct 2023-Mar 2024",
-      figure_file_path = eval_config$figure_dir
-    )
-  ),
-  tar_target(
-    name = qq_plot_feb_mar,
-    command = get_qq_plot(
-      scores = combine_scores_feb_mar,
+    name = fig5_heatmap_rel_wis_feb_mar,
+    command = make_fig5_heatmap_relative_wis(
+      scores = summarized_scores_feb_mar,
+      models_to_show = models_to_plot,
       time_period = "Feb 2024-Mar 2024",
-      figure_file_path = eval_config$figure_dir
+      baseline_model = "COVIDhub-4_week_ensemble"
+    )
+  ),
+  tar_target(
+    name = fig5_qq_plot_all_time,
+    command = make_fig5_qq_plot(
+      scores = combine_scores_oct_mar,
+      models_to_show = models_to_plot,
+      time_period = "Oct 2023-Mar 2024"
+    )
+  ),
+  tar_target(
+    name = fig5_qq_plot_feb_mar,
+    command = make_fig5_qq_plot(
+      scores = combine_scores_feb_mar,
+      models_to_show = models_to_plot,
+      time_period = "Feb 2024-Mar 2024"
+    )
+  ),
+  tar_target(
+    name = fig5_std_rank_feb_mar,
+    command = make_fig5_density_rank(
+      scores = summarized_scores_feb_mar,
+      models_to_show = models_to_plot,
+      time_period = "Feb 2024-Mar 2024"
+    )
+  ),
+  tar_target(
+    name = fig5_std_rank_all_time,
+    command = make_fig5_density_rank(
+      scores = summarized_scores_oct_mar,
+      models_to_show = models_to_plot,
+      time_period = "Oct 2023-Mar 2024"
+    )
+  ),
+  ### Fig 5 combined---------------------------------------------------
+  tar_target(
+    name = fig5,
+    command = make_fig5(
+      fig5_plot_wis_over_time = fig5_plot_wis_over_time,
+      fig5_overall_performance = fig5_overall_performance,
+      fig5_heatmap_rel_wis_all_time = fig5_heatmap_rel_wis_all_time,
+      fig5_heatmap_rel_wis_feb_mar = fig5_heatmap_rel_wis_feb_mar,
+      fig5_qq_plot_all_time = fig5_qq_plot_all_time,
+      fig5_qq_plot_feb_mar = fig5_qq_plot_feb_mar,
+      fig5_std_rank_feb_mar = fig5_std_rank_feb_mar,
+      fig5_std_rank_all_time = fig5_std_rank_all_time,
+      fig_file_dir = eval_config$ms_fig_dir
     )
   )
 )

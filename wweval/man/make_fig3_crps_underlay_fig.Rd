@@ -4,7 +4,12 @@
 \alias{make_fig3_crps_underlay_fig}
 \title{Make CRPS underlay figure}
 \usage{
-make_fig3_crps_underlay_fig(scores, loc_to_plot, horizon_to_plot)
+make_fig3_crps_underlay_fig(
+  scores,
+  loc_to_plot,
+  horizon_to_plot,
+  days_to_shift = 0
+)
 }
 \arguments{
 \item{scores}{A tibble of scores by location, forecast date, date and model,
@@ -16,6 +21,10 @@ to plot}
 
 \item{horizon_to_plot}{A string indicating what horizon period to plot,
 one of \code{nowcast}, \verb{1 wk}, or \verb{4 wks}}
+
+\item{days_to_shift}{An integer corresponding to the number of days to shift
+the x axis of the underly plot to line up with the corresponding forecast
+horizon, default is 0}
 }
 \value{
 A ggplot object containing a bar chart of the crps score averaged

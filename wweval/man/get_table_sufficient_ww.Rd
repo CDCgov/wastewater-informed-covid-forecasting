@@ -4,38 +4,11 @@
 \alias{get_table_sufficient_ww}
 \title{Get table of location-forecast dates with sufficient wastewater}
 \usage{
-get_table_sufficient_ww(
-  ww_quantiles,
-  delay_thres = 21,
-  n_dps_thres = 5,
-  prop_below_lod_thres = 0.5,
-  sd_thres = 0.1,
-  mean_log_ww_value_thres = -4
-)
+get_table_sufficient_ww(combined_ww_data_flags)
 }
 \arguments{
-\item{ww_quantiles}{The dataframe of the quantiled ww predictions with the
-real data alongside it (labeled as calib data)}
-
-\item{delay_thres}{The maximum number of days of delay between the last
-wastewater data point and the forecat date, before we would flag a state as
-having insufficient wastewater data to inform a forecast. Default is 21}
-
-\item{n_dps_thres}{The threshold number of data points within a single site
-within a state before we would flag the state as having insufficient
-wastewater data to inform a forecast. Default is 5}
-
-\item{prop_below_lod_thres}{The threshold proportion of wastewater data
-points that can be below the LOD. If greater than this proportion of points
-are below the LOD, we flag the state as having insufficient wastewater data.
-Default is 0.5}
-
-\item{sd_thres}{The minimum standard deviation between wastewater data points
-within a site. This is intended to catch when a site reports all the same
-values. Default is 0.1}
-
-\item{mean_log_ww_value_thres}{The minimum value of the log of the ww
-concentration, default is -4}
+\item{combined_ww_data_flags}{A large tibble that consists of row bound
+ww data flags for each individual run}
 }
 \value{
 table_of_loc_dates_w_ww a tibble containing the location,
@@ -43,11 +16,8 @@ forecast_date, and column stating the wastewater data was sufficient for all
 locations and forecast dates where ww data was deemed sufficient
 }
 \description{
-This function takes in a large dataframe containing the quantiled estimated
-and forecasted wastewater concentrations for each site and lab in each
-location and forecast date, joined with the observed data on each day, in
-each site and lab, from each forecast date. We will use the data to
-get a table of location-forecast-dates where wastewater data was considered
-sufficient to inform a forecast, based on the critera that was used for
-the Hub submissions.
+This function takes in a large tibble with all the combined wastewater data
+flags from each of the model runs, and produces a table with a row for each
+model run indicating whether the wastewater data is sufficient, based
+on the thresholds defined in \code{\link[=get_ww_data_flags]{get_ww_data_flags()}}
 }

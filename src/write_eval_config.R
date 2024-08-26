@@ -8,6 +8,7 @@
 #' @param config_dir the directory where we want to save the config file
 #' @param scenario_dir the directory where the files defining scenarios
 #' (default `.tsv` format) are located
+#' @param ms_fig_dir the directory to save the manuscript figures in
 #' @param eval_date the data of the evaluation dataset, in ISO YYYY-MM-DD format
 #'
 #' @return
@@ -18,6 +19,7 @@ write_eval_config <- function(locations, forecast_dates,
                               scenarios,
                               config_dir,
                               scenario_dir,
+                              ms_fig_dir,
                               eval_date,
                               overwrite_summary_table) {
   # Will need to load in the files corresponding to the input scenarios, so we
@@ -141,6 +143,7 @@ write_eval_config <- function(locations, forecast_dates,
     score_subdir = score_subdir,
     raw_output_dir = raw_output_dir,
     figure_dir = figure_dir,
+    ms_fig_dir = ms_fig_dir,
     hub_model_names = hub_model_names,
     population_data_path = population_data_path,
     init_dir = init_dir,

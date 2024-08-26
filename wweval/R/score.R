@@ -1,7 +1,8 @@
 #' Get the scores for ever day for a particular location and forecast date
 #'
 #' @description
-#' Logs the truth data and forecasts and scores using scoringutils
+#' Uses scoringutils to transform data and predictions using a log transform
+#' with a log shift of 1, and return the default scoring metrics
 #'
 #'
 #' @param draws a dataframe of the model estimated  quantity you are evaluating
@@ -29,9 +30,7 @@ get_full_scores <- function(draws,
       filter(date > !!last_calib_date) |>
       ungroup() |>
       # Rename for scoring utils
-      mutate(
-        true_value = log(eval_data + 1e-8),
-        prediction = log(value + 1e-8),
+      rename(
         sample = draw,
         model = model_type
       ) |>
@@ -49,8 +48,13 @@ get_full_scores <- function(draws,
         scenario = !!scenario
       )
 
-
     scores <- forecasted_draws |>
+      data.table::as.data.table() |>
+      scoringutils::transform_forecasts(
+        fun = scoringutils::log_shift,
+        offset = 1
+      ) |>
+      scoringutils::check_forecasts() |>
       scoringutils::score(metrics = metrics)
   }
 
@@ -61,7 +65,8 @@ get_full_scores <- function(draws,
 #' Get the scores for every day for a location, forecast date, and scenario
 #' from the quantiles during the forecast period
 #' @description
-#' Logs the truth data and forecasts and scores using scoringutils
+#' Uses scoringutils to transform data and predictions using a log transform
+#' with a log shift of 1, and return the default scoring metrics
 #'
 #' @param quantiles a dataframe of the model estimated quantiles alongside
 #' the data you are evaluating against, during the nowcast and forecast period
@@ -85,9 +90,7 @@ get_scores_from_quantiles <- function(quantiles,
     forecasted_quantiles <- quantiles |>
       ungroup() |>
       # Rename for scoring utils
-      mutate(
-        true_value = log(eval_data + 1e-8),
-        prediction = log(value + 1e-8),
+      rename(
         model = model_type
       ) |>
       select(
@@ -106,6 +109,12 @@ get_scores_from_quantiles <- function(quantiles,
 
 
     scores <- forecasted_quantiles |>
+      data.table::as.data.table() |>
+      scoringutils::transform_forecasts(
+        fun = scoringutils::log_shift,
+        offset = 1
+      ) |>
+      scoringutils::check_forecasts() |>
       scoringutils::score(metrics = metrics)
   }
   return(scores)
@@ -270,8 +279,7 @@ score_hub_submissions <- function(model_name,
         these_log_scores <- quantiles_w_truth |>
           scoringutils::transform_forecasts(
             fun = scoringutils::log_shift,
-            offset = 1,
-            append = FALSE
+            offset = 1
           ) |>
           scoringutils::score(metrics = NULL) |>
           dplyr::mutate(horizon_days = as.integer(
