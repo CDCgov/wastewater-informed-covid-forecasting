@@ -821,7 +821,6 @@ init_subset_nwss_data <- function(raw_nwss_data) {
     #* but now now we're just going to exclude
     select(
       lab_id, sample_collect_date, wwtp_name, pcr_target_avg_conc,
-      pcr_target_flowpop_lin,
       wwtp_jurisdiction, county_names, population_served, pcr_target_units,
       pcr_target_below_lod, lod_sewage, quality_flag, county_names
     ) %>%
@@ -887,7 +886,6 @@ init_subset_nwss_data <- function(raw_nwss_data) {
     group_by(lab_wwtp_unique_id, sample_collect_date) %>%
     summarise(
       pcr_target_avg_conc = mean(pcr_target_avg_conc, na.rm = TRUE),
-      pcr_target_flowpop_lin = mean(pcr_target_flowpop_lin, na.rm = TRUE),
       population_served = mean(population_served, na.rm = TRUE),
       county_names = county_names[which.max(nchar(county_names))] # mult entries
       # for a site-lab-day will list different countys, pick the most inclusive one
@@ -897,7 +895,6 @@ init_subset_nwss_data <- function(raw_nwss_data) {
   nwss_subset_clean <- nwss_subset %>%
     dplyr::select(
       -pcr_target_avg_conc,
-      -pcr_target_flowpop_lin,
       -population_served,
       -county_names
     ) %>%
