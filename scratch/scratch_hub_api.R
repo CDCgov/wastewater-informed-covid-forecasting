@@ -37,6 +37,16 @@ state_codes <- cfaforecastrenewalww::loc_abbr_to_flusight_code(
 
 # Submit query, poll job, get job data
 
+forecast_data <- do_zoltar_query(
+  zoltar_connection = zoltar_connection,
+  project_url = project_url,
+  query_type = "forecasts",
+  models = NULL, # "cfa-wwrenewal",
+  units = c(state_codes),
+  targets = NULL,
+  types = "quantile",
+  timezeros = seq(from = ymd("2023-10-16"), to = ymd("2024-03-11"), by = "week")
+)
 
 
 n_unique_forecasts <- forecast_data |>
