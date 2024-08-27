@@ -6,20 +6,29 @@
 \usage{
 query_and_select_models(
   prop_dates_for_incl_hub,
+  prop_locs_for_incl_hub,
   forecast_dates,
+  locations,
   project_name = "COVID-19 Forecasts"
 )
 }
 \arguments{
 \item{prop_dates_for_incl_hub}{Numeric less than 1 indicating the inclusion
 threshold for the proportion of forecast dates that a model must have
-submitted forecasts to be included}
+submitted forecasts to be included in analysis}
 
 \item{forecast_dates}{vector of dates formatted in ISO8601 convention
 (YYYY-MM-DD) indicating the forecast dates for the analysis}
 
+\item{locations}{vector of state abbreviations that we want to ensure the
+submitting teams have produced forecasts for}
+
 \item{project_name}{name of the Zoltar project, default is
 \code{"COVID-19 Forecasts"}}
+
+\item{prop_locs_incl_hub}{Numeric less than 1 indicating the inclusion
+threshold for the proportion of the locations we expect that a model
+must have subbmited forecasts for to be included in analysis}
 }
 \value{
 a vector of character strings indicating the unique model names

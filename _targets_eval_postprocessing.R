@@ -1081,6 +1081,8 @@ hub_targets <- list(
     name = covidhub_models_to_score,
     command = query_and_select_models(
       prop_dates_for_incl_hub = eval_config$prop_dates_for_incl_hub,
+      prop_locs_for_incl_hub = eval_config$prop_locs_for_incl_hub,
+      locations = unique(eval_config$location_hosp),
       forecast_dates = seq(
         from = lubridate::ymd(
           min(eval_config$forecast_date_hosp)

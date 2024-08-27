@@ -43,7 +43,7 @@ forecast_data <- do_zoltar_query(
   query_type = "forecasts",
   models = NULL, # "cfa-wwrenewal",
   units = c(state_codes),
-  targets = NULL,
+  targets = c("1 day ahead inc hosp"),
   types = "quantile",
   timezeros = seq(from = ymd("2023-10-16"), to = ymd("2024-03-11"), by = "week")
 )

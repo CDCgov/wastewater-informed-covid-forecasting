@@ -200,9 +200,14 @@ make_baseline_score_table <- function(all_ww_scores,
 #'
 #' @param prop_dates_for_incl_hub Numeric less than 1 indicating the inclusion
 #' threshold for the proportion of forecast dates that a model must have
-#' submitted forecasts to be included
+#' submitted forecasts to be included in analysis
+#' @param prop_locs_incl_hub Numeric less than 1 indicating the inclusion
+#' threshold for the proportion of the locations we expect that a model
+#' must have subbmited forecasts for to be included in analysis
 #' @param forecast_dates vector of dates formatted in ISO8601 convention
 #' (YYYY-MM-DD) indicating the forecast dates for the analysis
+#' @param locations vector of state abbreviations that we want to ensure the
+#' submitting teams have produced forecasts for
 #' @param project_name name of the Zoltar project, default is
 #' `"COVID-19 Forecasts"`
 #'
@@ -210,15 +215,29 @@ make_baseline_score_table <- function(all_ww_scores,
 #' that fit the inclusion criteria
 #' @export
 query_and_select_models <- function(prop_dates_for_incl_hub,
+                                    prop_locs_for_incl_hub,
                                     forecast_dates,
+                                    locations,
                                     project_name = "COVID-19 Forecasts") {
+  # get state abbreviation codes
+  state_codes <- cfaforecastrenewalww::loc_abbr_to_flusight_code(
+    unique(locations)
+  )
+
   if (prop_dates_for_incl_hub > 1) {
     cli::cli_abort(c(
       "Proportion of forecast dates required for hub inclusion",
       "must be less than 1."
     ))
   }
-  cli::cli_abort()
+
+  if (prop_locs_for_incl_hub > 1) {
+    cli::cli_abort(c(
+      "Proportion of locations required for hub inclusion",
+      "must be less than 1."
+    ))
+  }
+
   zoltar_connection <- zoltr::new_connection()
   zoltr::zoltar_authenticate(
     zoltar_connection, get_secret("Z_USERNAME"),
@@ -242,10 +261,10 @@ query_and_select_models <- function(prop_dates_for_incl_hub,
     project_url = project_url,
     query_type = "forecasts",
     models = NULL, # all models by default
-    units = c("06"), # We could query all of them, but this will be very slow.
-    # Suggest we use a single state as a proxy. I don't know what this refers
-    # to since the state codes here don't correspond to those in github...
-    targets = NULL,
+    units = state_codes,
+    # We could query all of them, but this was very slow. This ensures
+    # that the forecasts submitted have at leastr eached 28 days.
+    targets = c("28 day ahead inc hosp"),
     types = "quantile",
     timezeros = forecast_dates
   )
