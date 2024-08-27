@@ -203,6 +203,8 @@ make_baseline_score_table <- function(all_ww_scores,
 #' submitted forecasts to be included
 #' @param forecast_dates vector of dates formatted in ISO8601 convention
 #' (YYYY-MM-DD) indicating the forecast dates for the analysis
+#' @param project_name name of the Zoltar project, default is
+#' `"COVID-19 Forecasts"`
 #'
 #' @return a vector of character strings indicating the unique model names
 #' that fit the inclusion criteria

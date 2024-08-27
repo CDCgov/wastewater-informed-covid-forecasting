@@ -17,6 +17,9 @@ submitted forecasts to be included}
 
 \item{forecast_dates}{vector of dates formatted in ISO8601 convention
 (YYYY-MM-DD) indicating the forecast dates for the analysis}
+
+\item{project_name}{name of the Zoltar project, default is
+\code{"COVID-19 Forecasts"}}
 }
 \value{
 a vector of character strings indicating the unique model names
