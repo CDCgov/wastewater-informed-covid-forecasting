@@ -2,10 +2,15 @@
 
 library(zoltr)
 library(cfaforecastrenewalww)
+library(lubridate)
 
 truth_data_path <- "https://media.githubusercontent.com/media/reichlab/covid19-forecast-hub/master/data-truth/truth-Incident%20Hospitalizations.csv" # nolint
 truth_data <- truth_data <- readr::read_csv(truth_data_path)
 cfaforecastrenewalww::setup_secrets("secrets.yaml")
+eval_config <- yaml::read_yaml(file.path(
+  "input", "config",
+  "eval", "eval_config.yaml"
+))
 
 
 zoltar_connection <- new_connection()
@@ -25,18 +30,14 @@ names(the_project_info)
 the_models <- models(zoltar_connection, project_url)
 str(the_models)
 
+# get state abbreviation codes
+state_codes <- cfaforecastrenewalww::loc_abbr_to_flusight_code(
+  unique(eval_config$location_hosp)
+)
+
 # Submit query, poll job, get job data
 
-forecast_data <- do_zoltar_query(
-  zoltar_connection = zoltar_connection,
-  project_url = project_url,
-  query_type = "forecasts",
-  models = NULL, # "cfa-wwrenewal",
-  units = c("06", "08041"), # would need state codes
-  targets = NULL,
-  types = "quantile",
-  timezeros = seq(from = ymd("2023-10-16"), to = ymd("2024-03-11"), by = "week")
-)
+
 
 n_unique_forecasts <- forecast_data |>
   dplyr::distinct(timezero) |>
@@ -44,7 +45,14 @@ n_unique_forecasts <- forecast_data |>
   length()
 
 n_forecasts_per_model <- forecast_data |>
-  dplyr::distinct(timezero, model) |>
+  dplyr::distinct(timezero, model, unit) |>
+  dplyr::group_by(model, timezero) |>
+  dplyr::summarize(
+    n_locs = dplyr::n(),
+    prop_locs = n_locs / length(state_codes)
+  ) |>
+  # Exclude any forecast dates/models with too few locations submitted
+  dplyr::filter(prop_locs >= 50 / 52) |>
   dplyr::group_by(model) |>
   dplyr::summarize(
     n_forecast_dates = dplyr::n(),
@@ -52,7 +60,7 @@ n_forecasts_per_model <- forecast_data |>
   )
 
 models <- n_forecasts_per_model |>
-  dplyr::filter(prop_present > 0.85) |>
+  dplyr::filter(prop_present >= 19 / 22) |>
   dplyr::pull(model)
 
 see_missing_dates <- forecast_data |>
