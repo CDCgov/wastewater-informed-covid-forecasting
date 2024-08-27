@@ -186,6 +186,88 @@ make_baseline_score_table <- function(all_ww_scores,
   return(scores)
 }
 
+
+#' Query Zoltar for models to include in the analysis
+#'
+#' @description
+#' This function uses the `zoltr` R package to connect to the Zoltar database
+#' which contains forecasts from the COVID Hub forecast project, and query it
+#' for the specified forecast dates. It queries for all dates, computes the
+#' proportion of dates for which the model has submitted, filters for models
+#' that have submitted for greater than the specified proportion of forecast
+#' dates for inclusion, and returns the vector of model names.
+#'
+#'
+#' @param prop_dates_for_incl_hub Numeric less than 1 indicating the inclusion
+#' threshold for the proportion of forecast dates that a model must have
+#' submitted forecasts to be included
+#' @param forecast_dates vector of dates formatted in ISO8601 convention
+#' (YYYY-MM-DD) indicating the forecast dates for the analysis
+#'
+#' @return a vector of character strings indicating the unique model names
+#' that fit the inclusion criteria
+#' @export
+query_and_select_models <- function(prop_dates_for_incl_hub,
+                                    forecast_dates,
+                                    project_name = "COVID-19 Forecasts") {
+  if (prop_dates_for_incl_hub > 1) {
+    cli::cli_abort(c(
+      "Proportion of forecast dates required for hub inclusion",
+      "must be less than 1."
+    ))
+  }
+  cli::cli_abort()
+  zoltar_connection <- zoltr::new_connection()
+  zoltr::zoltar_authenticate(
+    zoltar_connection, get_secret("Z_USERNAME"),
+    get_secret("Z_PASSWORD")
+  )
+
+  # list of project on zoltar
+  the_projects <- zoltr::projects(zoltar_connection)
+
+  # Grabbing a specific project
+  project_url <- the_projects[the_projects$name == !!project_name, "url"]
+  the_project_info <- zoltr::project_info(zoltar_connection, project_url)
+
+  # get the models
+  the_models <- zoltr::models(zoltar_connection, project_url)
+
+  # Submit query, poll job, get job data
+
+  forecast_data <- zoltr::do_zoltar_query(
+    zoltar_connection = zoltar_connection,
+    project_url = project_url,
+    query_type = "forecasts",
+    models = NULL, # all models by default
+    units = c("06"), # We could query all of them, but this will be very slow.
+    # Suggest we use a single state as a proxy. I don't know what this refers
+    # to since the state codes here don't correspond to those in github...
+    targets = NULL,
+    types = "quantile",
+    timezeros = forecast_dates
+  )
+
+  n_unique_forecasts <- forecast_data |>
+    dplyr::distinct(timezero) |>
+    dplyr::pull() |>
+    length()
+
+  n_forecasts_per_model <- forecast_data |>
+    dplyr::distinct(timezero, model) |>
+    dplyr::group_by(model) |>
+    dplyr::summarize(
+      n_forecast_dates = dplyr::n(),
+      prop_present = n_forecast_dates / n_unique_forecasts
+    )
+
+  models <- n_forecasts_per_model |>
+    dplyr::filter(prop_present > prop_dates_for_incl_hub) |>
+    dplyr::pull(model)
+
+  return(models)
+}
+
 #' Score hub submissions
 #'
 #' @param model_name a vector of character strings indicating the names of the
