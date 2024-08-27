@@ -462,7 +462,7 @@ manuscript_figures <- list(
   tar_target(
     name = ww_quants_plot,
     command = combine_outputs(
-      output_type = "quantiles",
+      output_type = "ww_quantiles",
       scenarios = "status_quo",
       forecast_dates = forecast_date_to_plot,
       locations = locs_to_plot,
