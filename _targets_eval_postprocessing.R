@@ -1123,13 +1123,8 @@ hub_targets <- list(
     )
   ),
   tar_target(
-    name = incomplete_models,
-    command = unique(scores_list_hub_submission_oct_mar$missing_forecasts$model)
-  ),
-  tar_target(
     name = log_scales_hub_score,
-    command = scores_list_hub_submission_oct_mar$log_scale_scores |>
-      dplyr::filter(!model %in% incomplete_models)
+    command = scores_list_hub_submission_oct_mar$log_scale_scores
   ),
   tar_target(
     name = combine_scores_oct_mar_raw,
