@@ -1123,13 +1123,9 @@ hub_targets <- list(
     )
   ),
   tar_target(
-    name = log_scales_hub_score,
-    command = scores_list_hub_submission_oct_mar$log_scale_scores
-  ),
-  tar_target(
     name = combine_scores_oct_mar_raw,
     command = dplyr::bind_rows(
-      log_scale_hub_scores,
+      scores_list_retro_hub_submissions$log_scale_scores,
       scores_list_hub_submission_oct_mar$log_scale_scores
     )
   ),
@@ -1229,6 +1225,13 @@ hub_comparison_plots <- list(
     command = c(
       "COVIDhub-4_week_ensemble",
       "UMass-trends_ensemble",
+      "CEPH-Rtrend_covid",
+      "MOBS-GLEAM_COVID",
+      "CMU-TimeSeries",
+      "SGroup-RandomForest",
+      "UMass-gbq",
+      "UMass-sarix",
+      "UT-Osiris",
       "cfa-wwrenewal(real-time)",
       "cfa-wwrenewal(retro)",
       "cfa-hosponlyrenewal(retro)"

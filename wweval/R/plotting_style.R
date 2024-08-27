@@ -105,6 +105,11 @@ plot_components <- function() {
     "COVIDhub-4_week_ensemble" = pastel_model[3],
     "UMass-trends_ensemble" = pastel_model[4],
     "UT-Osiris" = pastel_model[5],
+    "CEPH-Rtrend_covid" = pastel_model[1],
+    "CMU-TimeSeries" = pastel_model[2],
+    "Sgroup-RandomForest" = pastel_model[7],
+    "UMass-gbq" = pastel_model[8],
+    "UMass-sarix" = pal_model[3],
     "COVIDhub-baseline" = pastel_model[6]
   )
 
