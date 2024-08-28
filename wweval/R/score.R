@@ -32,7 +32,9 @@ get_full_scores <- function(draws,
       # Rename for scoring utils
       rename(
         sample = draw,
-        model = model_type
+        model = model_type,
+        true_value = eval_data,
+        prediction = value,
       ) |>
       select(
         location,
@@ -91,7 +93,9 @@ get_scores_from_quantiles <- function(quantiles,
       ungroup() |>
       # Rename for scoring utils
       rename(
-        model = model_type
+        model = model_type,
+        true_value = eval_data,
+        prediction = value,
       ) |>
       select(
         location,
@@ -274,7 +278,7 @@ query_and_select_models <- function(prop_dates_for_incl_hub,
     dplyr::pull() |>
     length()
 
-  n_forecasts_per_model <- forecast_data |>
+  forecasts_present_per_model <- forecast_data |>
     dplyr::distinct(timezero, model, unit) |>
     dplyr::group_by(model, timezero) |>
     dplyr::summarize(
@@ -289,7 +293,7 @@ query_and_select_models <- function(prop_dates_for_incl_hub,
       prop_present = n_forecast_dates / !!n_unique_forecasts
     )
 
-  models <- n_forecasts_per_model |>
+  models <- forecasts_present_per_model |>
     dplyr::filter(prop_present > !!prop_dates_for_incl_hub) |>
     dplyr::pull(model)
 
