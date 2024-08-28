@@ -224,7 +224,7 @@ query_and_select_models <- function(prop_dates_for_incl_hub,
     unique(locations)
   )
 
-  if (prop_dates_for_incl_hub > 1) {
+  if (prop_dates_for_incl_hub > 1 | prop_dates_for_incl_hub <= 0) {
     cli::cli_abort(c(
       "Proportion of forecast dates required for hub inclusion",
       "must be greater than 0 and less than or equal to 1."
