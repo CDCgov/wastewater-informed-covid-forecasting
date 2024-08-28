@@ -18,3 +18,4 @@ jobs:
         path: |
           ~/.cache/R/renv
         key: r-precommit-cache|${{ env.pythonLocation }}|${{ hashFiles('.pre-commit-config.yaml') }}
+    - uses: pre-commit/action@v3.0.1
