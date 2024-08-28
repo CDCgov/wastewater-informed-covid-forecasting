@@ -1274,7 +1274,9 @@ hub_comparison_plots <- list(
   tar_target(
     name = models_to_plot,
     command = c(
-      covidhub_models_to_score,
+      "UMass-gbq",
+      "CMU-TimeSeries",
+      "COVIDhub-4_week_ensemble",
       "cfa-wwrenewal(real-time)",
       "cfa-wwrenewal(retro)",
       "cfa-hosponlyrenewal(retro)"
