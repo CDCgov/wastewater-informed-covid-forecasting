@@ -198,9 +198,9 @@ make_baseline_score_table <- function(all_ww_scores,
 #' dates for inclusion, and returns the vector of model names.
 #'
 #'
-#' @param prop_dates_for_incl_hub Numeric greater than 0 and less than or equal to 1 indicating the inclusion
-#' threshold for the proportion of forecast dates that a model must have
-#' submitted forecasts to be included in analysis
+#' @param prop_dates_for_incl_hub Numeric greater than 0 and less than or equal
+#' to 1 indicating the inclusion threshold for the proportion of forecast dates
+#' that a model must have submitted forecasts to be included in analysis
 #' @param prop_locs_for_incl_hub Numeric less than 1 indicating the inclusion
 #' threshold for the proportion of the locations we expect that a model
 #' must have subbmited forecasts for to be included in analysis
@@ -224,14 +224,14 @@ query_and_select_models <- function(prop_dates_for_incl_hub,
     unique(locations)
   )
 
-  if (prop_dates_for_incl_hub > 1 | prop_dates_for_incl_hub <= 0) {
+  if (prop_dates_for_incl_hub > 1 || prop_dates_for_incl_hub <= 0) {
     cli::cli_abort(c(
       "Proportion of forecast dates required for hub inclusion",
       "must be greater than 0 and less than or equal to 1."
     ))
   }
 
-  if (prop_locs_for_incl_hub > 1 | prop_locs_for_incl_hub <= 0) {
+  if (prop_locs_for_incl_hub > 1 || prop_locs_for_incl_hub <= 0) {
     cli::cli_abort(c(
       "Proportion of locations required for hub inclusion",
       "must be greater than 0 and less than or equal to 1."
@@ -275,7 +275,14 @@ query_and_select_models <- function(prop_dates_for_incl_hub,
     length()
 
   n_forecasts_per_model <- forecast_data |>
-    dplyr::distinct(timezero, model) |>
+    dplyr::distinct(timezero, model, unit) |>
+    dplyr::group_by(model, timezero) |>
+    dplyr::summarize(
+      n_locs = dplyr::n(),
+      prop_locs = n_locs / length(state_codes)
+    ) |>
+    # Exclude any forecast dates/models with too few locations submitted
+    dplyr::filter(prop_locs >= !!prop_locs_for_incl_hub) |>
     dplyr::group_by(model) |>
     dplyr::summarize(
       n_forecast_dates = dplyr::n(),
