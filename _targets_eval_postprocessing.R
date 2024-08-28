@@ -330,6 +330,10 @@ head_to_head_targets <- list(
         by = c("location", "forecast_date")
       )
   ),
+  tar_target(
+    name = table_of_ww_exclusions,
+    command = as.data.frame(eval_config$ww_data_exclusions)
+  ),
   # Get the full set of quantiles, filtered down to only states and
   # forecast dates with sufficient wastewater for both ww model and hosp only
   # model. Then join the convergence df
@@ -351,6 +355,13 @@ head_to_head_targets <- list(
       ) |>
       dplyr::left_join(
         convergence_df,
+        by = c(
+          "location",
+          "forecast_date"
+        )
+      ) |>
+      dplyr::anti_join(
+        table_of_ww_exclusions,
         by = c(
           "location",
           "forecast_date"
@@ -1331,9 +1342,9 @@ hub_comparison_plots <- list(
 list(
   upstream_targets,
   combined_targets,
-  head_to_head_targets,
-  manuscript_figures,
-  scenario_targets,
-  hub_targets,
-  hub_comparison_plots
+  head_to_head_targets
+  # manuscript_figures,
+  # scenario_targets,
+  # hub_targets,
+  # hub_comparison_plots
 )
