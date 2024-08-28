@@ -231,7 +231,7 @@ query_and_select_models <- function(prop_dates_for_incl_hub,
     ))
   }
 
-  if (prop_locs_for_incl_hub > 1) {
+  if (prop_locs_for_incl_hub > 1 | prop_locs_for_incl_hub <= 0) {
     cli::cli_abort(c(
       "Proportion of locations required for hub inclusion",
       "must be less than 1."
