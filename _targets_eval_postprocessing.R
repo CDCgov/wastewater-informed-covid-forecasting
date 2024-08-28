@@ -361,7 +361,8 @@ head_to_head_targets <- list(
         )
       ) |>
       dplyr::anti_join(
-        table_of_ww_exclusions,
+        table_of_ww_exclusions |>
+          dplyr::mutate(forecast_date = lubridate::ymd(forecast_date)),
         by = c(
           "location",
           "forecast_date"
@@ -393,6 +394,14 @@ head_to_head_targets <- list(
       dplyr::filter(scale == "log") |>
       dplyr::left_join(table_of_loc_dates_w_ww,
         by = c("location", "forecast_date")
+      ) |>
+      dplyr::anti_join(
+        table_of_ww_exclusions |>
+          dplyr::mutate(forecast_date = lubridate::ymd(forecast_date)),
+        by = c(
+          "location",
+          "forecast_date"
+        )
       ) |>
       dplyr::filter(ww_sufficient) |>
       dplyr::left_join(
@@ -426,6 +435,14 @@ head_to_head_targets <- list(
       dplyr::filter(scale == "log") |>
       dplyr::left_join(table_of_loc_dates_w_ww,
         by = c("location", "forecast_date")
+      ) |>
+      dplyr::anti_join(
+        table_of_ww_exclusions |>
+          dplyr::mutate(forecast_date = lubridate::ymd(forecast_date)),
+        by = c(
+          "location",
+          "forecast_date"
+        )
       ) |>
       dplyr::filter(ww_sufficient) |>
       dplyr::left_join(
@@ -1059,9 +1076,20 @@ scenario_targets <- list(
 
 # Hub targets-------------------------------------------------------
 hub_targets <- list(
+  # Exclude the same locations and forecast dates that we exclude in the
+  # retrospective head to head analysis, for only the wastewater model.
+  # This mirrors real-time production workflow, where we replaced with
+  # hospital admissions model.
+  tar_target(
+    name = filtered_ww_hosp_quantiles,
+    command = hosp_quantiles_filtered |>
+      dplyr::filter(model_type == "ww") |>
+      dplyr::select(colnames(all_ww_hosp_quantiles))
+  ),
   tar_target(
     name = metadata_hub_submissions,
-    command = create_hub_submissions(all_ww_hosp_quantiles,
+    command = create_hub_submissions(
+      filtered_ww_hosp_quantiles,
       all_hosp_model_quantiles,
       forecast_dates = seq(
         from = lubridate::ymd(
@@ -1076,7 +1104,8 @@ hub_targets <- list(
   ),
   tar_target(
     name = metadata_hosp_hub_submissions,
-    command = create_hub_submissions(all_hosp_model_quantiles,
+    command = create_hub_submissions(
+      all_hosp_model_quantiles,
       all_hosp_model_quantiles,
       forecast_dates = seq(
         from = lubridate::ymd(
@@ -1342,9 +1371,9 @@ hub_comparison_plots <- list(
 list(
   upstream_targets,
   combined_targets,
-  head_to_head_targets
-  # manuscript_figures,
+  head_to_head_targets,
+  manuscript_figures,
   # scenario_targets,
-  # hub_targets,
-  # hub_comparison_plots
+  hub_targets,
+  hub_comparison_plots
 )
