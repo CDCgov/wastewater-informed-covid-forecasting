@@ -106,6 +106,7 @@ plot_components <- function() {
     "COVIDhub-trained_ensemble" = pal_horizons[1],
     "COVIDhub_CDC-ensemble" = pal_horizons[2],
     "COVIDhub_ensemble" = pal_horizons[3],
+    "MUNI-ARIMA" = pal_horizons[4],
     "UMass-trends_ensemble" = pastel_model[4],
     "UT-Osiris" = pastel_model[5],
     "CEPH-Rtrend_covid" = pastel_model[1],
