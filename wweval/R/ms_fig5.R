@@ -261,14 +261,14 @@ make_fig5_heatmap_relative_wis <- function(scores,
       model != {{ baseline_model }},
       location != "US",
       model %in% !!models_to_show
-    ) # exclued the US bc not available for
+    ) # exclude the US bc not available for
   # retro model
 
 
   p <- ggplot(relative_scores) +
     geom_tile(aes(x = model, y = short_name, fill = relative_interval_score)) +
     scale_fill_gradient2(
-      high = "red", mid = "white", low = "blue", transform = "log2",
+      high = "red", mid = "white", low = "blue",
       midpoint = 1, guide = "colourbar", aesthetics = "fill"
     ) +
     geom_text(aes(
