@@ -41,7 +41,7 @@ forecast_data <- do_zoltar_query(
   zoltar_connection = zoltar_connection,
   project_url = project_url,
   query_type = "forecasts",
-  models = NULL, # "cfa-wwrenewal",
+  models = NULL,
   units = c(state_codes),
   targets = c("1 day ahead inc hosp"),
   types = "quantile",
