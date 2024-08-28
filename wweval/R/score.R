@@ -279,7 +279,7 @@ query_and_select_models <- function(prop_dates_for_incl_hub,
     dplyr::group_by(model) |>
     dplyr::summarize(
       n_forecast_dates = dplyr::n(),
-      prop_present = n_forecast_dates / n_unique_forecasts
+      prop_present = n_forecast_dates / !!n_unique_forecasts
     )
 
   models <- n_forecasts_per_model |>
