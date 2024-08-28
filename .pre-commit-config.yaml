@@ -18,7 +18,17 @@ repos:
     rev: v0.4.2
     hooks:
     -   id: style-files
+        args: [--style_pkg=styler, --style_fun=tidyverse_style,
+               --cache-root=styler-perm]
+    -   id: use-tidy-description
     -   id: lintr
+    -   id: readme-rmd-rendered
+    -   id: parsable-R
+    -   id: no-browser-statement
+    -   id: no-print-statement
+    -   id: no-debug-statement
+    -   id: deps-in-desc
+        exclude: data-raw
 
 ########
 # Python
