@@ -375,6 +375,7 @@ head_to_head_targets <- list(
       all_ww_scores |>
         dplyr::filter(scenario == "status_quo")
     ) |>
+      dplyr::filter(scale == "log") |>
       dplyr::left_join(table_of_loc_dates_w_ww,
         by = c("location", "forecast_date")
       ) |>
@@ -407,6 +408,7 @@ head_to_head_targets <- list(
       all_ww_scores_quantiles |>
         dplyr::filter(scenario == "status_quo")
     ) |>
+      dplyr::filter(scale == "log") |>
       dplyr::left_join(table_of_loc_dates_w_ww,
         by = c("location", "forecast_date")
       ) |>
