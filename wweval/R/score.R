@@ -278,7 +278,7 @@ query_and_select_models <- function(prop_dates_for_incl_hub,
     dplyr::pull() |>
     length()
 
-  n_forecasts_per_model <- forecast_data |>
+  forecasts_present_per_model <- forecast_data |>
     dplyr::distinct(timezero, model, unit) |>
     dplyr::group_by(model, timezero) |>
     dplyr::summarize(
