@@ -75,8 +75,8 @@ write_eval_config <- function(locations, forecast_dates,
   score_subdir <- file.path("output", "eval", "hub")
   # Proportion of forecast dates that a model must have submitted for to be
   # included in the Hub analysis
-  prop_dates_for_incl_hub <- 19 / 22
-  prop_locs_for_incl_hub <- 51 / 52
+  prop_dates_for_incl_hub <- 18 / 22
+  prop_locs_for_incl_hub <- 40 / 52
   raw_output_dir <- file.path(output_dir, "raw_output")
   ww_data_mapping <- "Monday: Monday, Wednesday: Monday"
   calibration_time <- 90
