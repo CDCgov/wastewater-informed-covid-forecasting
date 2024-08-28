@@ -252,7 +252,7 @@ query_and_select_models <- function(prop_dates_for_incl_hub,
   the_projects <- zoltr::projects(zoltar_connection)
 
   # Grabbing a specific project
-  project_url <- the_projects[the_projects$name == !!project_name, "url"]
+  project_url <- the_projects[the_projects$name == project_name, "url"]
   the_project_info <- zoltr::project_info(zoltar_connection, project_url)
 
   # get the models
