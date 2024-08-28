@@ -263,7 +263,7 @@ query_and_select_models <- function(prop_dates_for_incl_hub,
     models = NULL, # all models by default
     units = state_codes,
     # We could query all of them, but this was very slow. This ensures
-    # that the forecasts submitted have at leastr eached 28 days.
+    # that the forecasts submitted have at least reached 28 days.
     targets = c("28 day ahead inc hosp"),
     types = "quantile",
     timezeros = forecast_dates
