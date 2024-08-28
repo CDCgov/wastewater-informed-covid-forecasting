@@ -195,7 +195,7 @@ fit_aggregated_model <- function(train_data, params,
         state_agg_inits(train_data, params, stan_data)
       }
 
-      print(paste0("Model type: ", model_type))
+      message(paste0("Model type: ", model_type))
 
       fit_dynamic_rt <- model_file$sample(
         data = stan_data,
@@ -543,7 +543,7 @@ fit_site_level_model <- function(train_data,
         max_treedepth = max_treedepth,
         parallel_chains = n_parallel_chains
       )
-      print("Model ran")
+      message("Model ran")
 
       # get model draws for all parameters
       all_draws <- fit_dynamic_rt$draws()
