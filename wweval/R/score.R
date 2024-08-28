@@ -283,7 +283,7 @@ query_and_select_models <- function(prop_dates_for_incl_hub,
     )
 
   models <- n_forecasts_per_model |>
-    dplyr::filter(prop_present > prop_dates_for_incl_hub) |>
+    dplyr::filter(prop_present > !!prop_dates_for_incl_hub) |>
     dplyr::pull(model)
 
   return(models)
