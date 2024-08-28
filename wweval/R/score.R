@@ -201,7 +201,7 @@ make_baseline_score_table <- function(all_ww_scores,
 #' @param prop_dates_for_incl_hub Numeric less than 1 indicating the inclusion
 #' threshold for the proportion of forecast dates that a model must have
 #' submitted forecasts to be included in analysis
-#' @param prop_locs_incl_hub Numeric less than 1 indicating the inclusion
+#' @param prop_locs_for_incl_hub Numeric less than 1 indicating the inclusion
 #' threshold for the proportion of the locations we expect that a model
 #' must have subbmited forecasts for to be included in analysis
 #' @param forecast_dates vector of dates formatted in ISO8601 convention
