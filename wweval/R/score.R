@@ -227,7 +227,7 @@ query_and_select_models <- function(prop_dates_for_incl_hub,
   if (prop_dates_for_incl_hub > 1) {
     cli::cli_abort(c(
       "Proportion of forecast dates required for hub inclusion",
-      "must be less than 1."
+      "must be greater than 0 and less than or equal to 1."
     ))
   }
 
