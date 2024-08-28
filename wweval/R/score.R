@@ -32,7 +32,9 @@ get_full_scores <- function(draws,
       # Rename for scoring utils
       rename(
         sample = draw,
-        model = model_type
+        model = model_type,
+        true_value = eval_data,
+        prediction = value,
       ) |>
       select(
         location,
@@ -91,7 +93,9 @@ get_scores_from_quantiles <- function(quantiles,
       ungroup() |>
       # Rename for scoring utils
       rename(
-        model = model_type
+        model = model_type,
+        true_value = eval_data,
+        prediction = value,
       ) |>
       select(
         location,
