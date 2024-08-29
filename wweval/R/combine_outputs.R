@@ -59,7 +59,7 @@ combine_outputs <- function(output_type =
     )
 
 
-    print(fp)
+    message(fp)
     if (file.exists(fp)) {
       tryCatch(
         {

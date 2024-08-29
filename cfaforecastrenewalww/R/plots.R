@@ -19,7 +19,7 @@ plot_combined_data <- function(comb, figure_file_path,
     pull(location) %>%
     unique()
   if (length(selected_location) != 1) {
-    print("Training data consists of more than one location")
+    message("Training data consists of more than one location")
   }
 
   forecast_date <- comb %>%
@@ -1491,7 +1491,7 @@ get_plot_labsite_ww_draws <- function(df,
 
 
   if (isTRUE(write_files)) {
-    print("Saving figure")
+    message("Saving figure")
     full_file_path <- file.path(
       figure_file_path, location
     )

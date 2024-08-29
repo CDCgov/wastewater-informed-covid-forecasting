@@ -1161,7 +1161,7 @@ get_ww_data <- function(ww_data_source, geo_type, ww_data_type,
       geo_type == "state"
   ) {
     if (!file.exists(ww_data_path)) {
-      print("NWSS data not in specified location")
+      message("NWSS data not in specified location")
     }
     nwss <- readr::read_csv(ww_data_path)
     nwss_subset <- init_subset_nwss_data(nwss)
