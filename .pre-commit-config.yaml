@@ -28,6 +28,10 @@ repos:
     -   id: no-print-statement
     -   id: no-debug-statement
     -   id: deps-in-desc
+        args: [--root=wweval] 
+        exclude: data-raw
+    -   id: deps-in-desc
+        args: [--root=cfaforecastrenewalww] 
         exclude: data-raw
 
 ########
