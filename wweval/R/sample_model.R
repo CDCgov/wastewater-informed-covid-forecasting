@@ -79,7 +79,6 @@ sample_model <- function(standata,
       chains = n_chains,
       seed = seed
     )
-    print(fit)
     return(fit)
   }
 
