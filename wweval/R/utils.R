@@ -27,7 +27,8 @@ check_package_is_installed <- function(pkg_name) {
   }
 }
 
-#' Helper function to pass along dependencies
+#' Helper function to note targets dependencies not explicitly 
+#' noted in the function call
 #'
 #' @param x any dependecy
 #' @param ... additional args
