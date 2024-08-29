@@ -34,7 +34,7 @@ check_package_is_installed <- function(pkg_name) {
 #' @param ... additional arguments, which can be used to indicate additional upstream targets 
 #' to treat as dependencies when this function is used in a target `command`
 #'
-#' @return NULL
+#' @return the first argument
 #'
 #' @noRd
 with_dependencies <- function(x, ...) {
