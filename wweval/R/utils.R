@@ -26,3 +26,15 @@ check_package_is_installed <- function(pkg_name) {
     )
   }
 }
+
+#' Helper function to pass along dependencies
+#'
+#' @param x any dependecy
+#' @param ... additional args
+#'
+#' @return NULL
+#'
+#' @noRd
+with_dependencies <- function(x, ...) {
+  x
+}

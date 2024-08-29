@@ -1098,13 +1098,6 @@ hub_targets <- list(
   # horizon by week, location, forecast_date + eval data alongside it
   # for the models specified in the eval config
   tar_target(
-    name = boolean_to_pull_locally,
-    command = any(is.null(c(
-      dim(metadata_hub_submissions),
-      dim(metadata_hosp_hub_submissions)
-    )))
-  ),
-  tar_target(
     name = scores_list_retro_hub_submissions,
     command = score_hub_submissions(
       model_name = c("cfa-wwrenewal", "cfa-hosponlyrenewal"),
@@ -1116,8 +1109,11 @@ hub_targets <- list(
         ),
         to = lubridate::ymd(max(eval_config$forecast_date_hosp)),
         by = "week"
-      )
-    )
+      ) # Ensure that local retrospective hub submission files have been made
+    ) |> with_dependencies(c(
+      metadata_hub_submissions,
+      metadata_hosp_hub_submissions
+    ))
   ),
   tar_target(
     name = scores_list_hub_submission_oct_mar,
