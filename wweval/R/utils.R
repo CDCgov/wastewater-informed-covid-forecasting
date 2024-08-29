@@ -30,7 +30,7 @@ check_package_is_installed <- function(pkg_name) {
 #' Helper function to note targets dependencies not explicitly 
 #' noted in the function call
 #'
-#' @param x any dependecy
+#' @param output to be passed along (typically the output of a function call
 #' @param ... additional arguments, which can be used to indicate additional upstream targets 
 #' to treat as dependencies when this function is used in a target `command`
 #'
