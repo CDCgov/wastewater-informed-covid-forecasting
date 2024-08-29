@@ -1110,10 +1110,9 @@ hub_targets <- list(
         to = lubridate::ymd(max(eval_config$forecast_date_hosp)),
         by = "week"
       ) # Ensure that local retrospective hub submission files have been made
-    ) |> with_dependencies(c(
+    ) |> with_dependencies(
       metadata_hub_submissions,
-      metadata_hosp_hub_submissions
-    ))
+      metadata_hosp_hub_submissions)
   ),
   tar_target(
     name = scores_list_hub_submission_oct_mar,
