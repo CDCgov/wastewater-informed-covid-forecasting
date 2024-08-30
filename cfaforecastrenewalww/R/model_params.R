@@ -72,7 +72,7 @@ get_model_param_df <- function(x) {
     static_params <- c(
       "eta_sd", "autoreg_rt", "autoreg_conc", "log_R",
       "sigma_log_conc", "i0_over_n", "initial_growth", "inv_sqrt_phi_h",
-      "sigma_ww_site_mean", "sigma_ww_site_sd", "p_hosp_mean", "p_hosp_w_sd",
+      "mode_sigma_ww_site", "sd_log_sigma_ww_site", , "p_hosp_mean", "p_hosp_w_sd",
       "t_peak", "viral_peak", "dur_shed", "log10_g",
       "ww_site_mod_sd", "infection_feedback"
     )
