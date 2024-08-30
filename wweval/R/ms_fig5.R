@@ -261,7 +261,7 @@ make_fig5_heatmap_relative_wis <- function(scores,
       model != {{ baseline_model }},
       location != "US",
       model %in% !!models_to_show
-    ) # exclued the US bc not available for
+    ) # exclude the US bc not available for
   # retro model
 
 
