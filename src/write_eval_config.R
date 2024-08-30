@@ -73,10 +73,10 @@ write_eval_config <- function(locations, forecast_dates,
   hub_subdir <- file.path("output", "eval", "hub")
   retro_rt_path <- file.path("input", "retro_Rt", "Rt_draws.parquet")
   score_subdir <- file.path("output", "eval", "hub")
-  hub_model_names <- c(
-    "COVIDhub-4_week_ensemble", "UMass-trends_ensemble",
-    "UT-Osiris", "COVIDhub-baseline"
-  )
+  # Proportion of forecast dates that a model must have submitted for to be
+  # included in the Hub analysis
+  prop_dates_for_incl_hub <- 18 / 22
+  prop_locs_for_incl_hub <- 40 / 52
   raw_output_dir <- file.path(output_dir, "raw_output")
   ww_data_mapping <- "Monday: Monday, Wednesday: Monday"
   calibration_time <- 90
@@ -135,7 +135,8 @@ write_eval_config <- function(locations, forecast_dates,
     raw_output_dir = raw_output_dir,
     figure_dir = figure_dir,
     ms_fig_dir = ms_fig_dir,
-    hub_model_names = hub_model_names,
+    prop_dates_for_incl_hub = prop_dates_for_incl_hub,
+    prop_locs_for_incl_hub = prop_locs_for_incl_hub,
     population_data_path = population_data_path,
     init_dir = init_dir,
     init_fps = init_fps,

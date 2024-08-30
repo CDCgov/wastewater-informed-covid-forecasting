@@ -2,7 +2,7 @@
 % Please edit documentation in R/ms_fig4.R
 \name{make_sfig_crps_by_phase}
 \alias{make_sfig_crps_by_phase}
-\title{Make figure that plots distribution of crps scores stratified by
+\title{Make figure that plots distribution of absolute crps stratified by
 epidemic phase}
 \usage{
 make_sfig_crps_by_phase(scores)
@@ -14,10 +14,10 @@ transformed into a tibble.}
 }
 \value{
 A ggplot object containing plots of the distribution of
-CRPS scores, colored by model, stratified by epidemic phase, across
+continuous ranked probability scores, colored by model, stratified by epidemic phase, across
 locations and forecast dates
 }
 \description{
-Make figure that plots distribution of crps scores stratified by
+Make figure that plots distribution of absolute crps stratified by
 epidemic phase
 }
