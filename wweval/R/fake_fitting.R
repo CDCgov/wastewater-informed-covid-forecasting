@@ -29,7 +29,6 @@ orig_sample_model <- function(standata, compiled_model, init_lists,
       num_chains = n_chains,
       seed = seed
     )
-    print(fit)
     return(fit)
   }
 
