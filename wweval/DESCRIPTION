@@ -76,12 +76,13 @@ Imports:
     ggridges,
     cowplot,
     patchwork,
-    RColorBrewer
+    RColorBrewer,
+    zoltr
 SystemRequirements: CmdStan (>=2.34.1)
 Encoding: UTF-8
 Roxygen: list(markdown = TRUE)
 Config/Needs/check: rcmdcheck, testthat
-RoxygenNote: 7.3.1
+RoxygenNote: 7.3.2
 Remotes:
     cfaforecastrenewalww=CDCgov/wastewater-informed-covid-forecasting/cfaforecastrenewalww,
     stan-dev/cmdstanr

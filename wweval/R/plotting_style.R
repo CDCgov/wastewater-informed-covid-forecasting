@@ -103,8 +103,17 @@ plot_components <- function() {
     "cfa-wwrenewal(real-time)" = pal_model[5],
     "cfa-hosponlyrenewal(retro)" = pal_model[2],
     "COVIDhub-4_week_ensemble" = pastel_model[3],
+    "COVIDhub-trained_ensemble" = pal_horizons[1],
+    "COVIDhub_CDC-ensemble" = pal_horizons[2],
+    "COVIDhub_ensemble" = pal_horizons[3],
+    "MUNI-ARIMA" = pal_horizons[4],
     "UMass-trends_ensemble" = pastel_model[4],
     "UT-Osiris" = pastel_model[5],
+    "CEPH-Rtrend_covid" = pastel_model[1],
+    "CMU-TimeSeries" = pastel_model[2],
+    "Sgroup-RandomForest" = pastel_model[7],
+    "UMass-gbq" = pastel_model[8],
+    "UMass-sarix" = pal_model[3],
     "COVIDhub-baseline" = pastel_model[6]
   )
 

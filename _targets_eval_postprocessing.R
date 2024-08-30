@@ -19,6 +19,9 @@ controller <- crew_controller_local(
   seconds_idle = 600,
   seconds_timeout = 120, # default is 60
 )
+# Setup secrets, needs `Z_USERNAME` and `Z_PASSWORD` from Zoltar
+# to query to identify the model names
+cfaforecastrenewalww::setup_secrets("secrets.yaml")
 
 # Set target options:
 tar_option_set(
@@ -58,7 +61,8 @@ setup_interactive_dev_run <- function() {
       "ggdist",
       "patchwork",
       "RColorBrewer",
-      "cowplot"
+      "cowplot",
+      "zoltr"
     )
   )
 }
@@ -375,6 +379,7 @@ head_to_head_targets <- list(
       all_ww_scores |>
         dplyr::filter(scenario == "status_quo")
     ) |>
+      dplyr::filter(scale == "log") |>
       dplyr::left_join(table_of_loc_dates_w_ww,
         by = c("location", "forecast_date")
       ) |>
@@ -407,6 +412,7 @@ head_to_head_targets <- list(
       all_ww_scores_quantiles |>
         dplyr::filter(scenario == "status_quo")
     ) |>
+      dplyr::filter(scale == "log") |>
       dplyr::left_join(table_of_loc_dates_w_ww,
         by = c("location", "forecast_date")
       ) |>
@@ -1072,16 +1078,14 @@ hub_targets <- list(
       model_name = "cfa-hosponlyrenewal"
     )
   ),
-  # Write a function that will get hub scores + all the metadata
-  # horizon by week, location, forecast_date + eval data alongside it
-  # for the models specified in the eval config
+  # Get the models that we will include in the analysis
   tar_target(
-    name = scores_list_retro_hub_submissions,
-    command = score_hub_submissions(
-      model_name = c("cfa-wwrenewal", "cfa-hosponlyrenewal"),
-      hub_subdir = eval_config$hub_subdir,
-      pull_from_github = FALSE,
-      dates = seq(
+    name = covidhub_models_to_score,
+    command = query_and_select_models(
+      prop_dates_for_incl_hub = eval_config$prop_dates_for_incl_hub,
+      prop_locs_for_incl_hub = eval_config$prop_locs_for_incl_hub,
+      locations = unique(eval_config$location_hosp),
+      forecast_dates = seq(
         from = lubridate::ymd(
           min(eval_config$forecast_date_hosp)
         ),
@@ -1090,10 +1094,31 @@ hub_targets <- list(
       )
     )
   ),
+  # Write a function that will get hub scores + all the metadata
+  # horizon by week, location, forecast_date + eval data alongside it
+  # for the models specified in the eval config
+  tar_target(
+    name = scores_list_retro_hub_submissions,
+    command = score_hub_submissions(
+      model_name = c("cfa-wwrenewal", "cfa-hosponlyrenewal"),
+      hub_subdir = eval_config$hub_subdir,
+      pull_from_github = boolean_to_pull_locally,
+      dates = seq(
+        from = lubridate::ymd(
+          min(eval_config$forecast_date_hosp)
+        ),
+        to = lubridate::ymd(max(eval_config$forecast_date_hosp)),
+        by = "week"
+      ) # Ensure that local retrospective hub submission files have been made
+    ) |> with_dependencies(
+      metadata_hub_submissions,
+      metadata_hosp_hub_submissions
+    )
+  ),
   tar_target(
     name = scores_list_hub_submission_oct_mar,
     command = score_hub_submissions(
-      model_name = eval_config$hub_model_names,
+      model_name = covidhub_models_to_score,
       pull_from_github = TRUE,
       dates = seq(
         from = lubridate::ymd(
@@ -1205,8 +1230,7 @@ hub_comparison_plots <- list(
   tar_target(
     name = models_to_plot,
     command = c(
-      "COVIDhub-4_week_ensemble",
-      "UMass-trends_ensemble",
+      covidhub_models_to_score,
       "cfa-wwrenewal(real-time)",
       "cfa-wwrenewal(retro)",
       "cfa-hosponlyrenewal(retro)"
