@@ -331,8 +331,8 @@ head_to_head_targets <- list(
       )
   ),
   tar_target(
-    name = table_of_ww_exclusions,
-    command = as.data.frame(eval_config$ww_data_exclusions)
+    name = ww_forecast_date_locs_to_excl,
+    command = as.data.frame(eval_config$www_forecast_date_locs_to_excl)
   ),
   # Get the full set of quantiles, filtered down to only states and
   # forecast dates with sufficient wastewater for both ww model and hosp only
@@ -361,7 +361,7 @@ head_to_head_targets <- list(
         )
       ) |>
       dplyr::anti_join(
-        table_of_ww_exclusions |>
+        ww_forecast_date_locs_to_excl |>
           dplyr::mutate(forecast_date = lubridate::ymd(forecast_date)),
         by = c(
           "location",
