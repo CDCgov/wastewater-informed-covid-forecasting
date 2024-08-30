@@ -55,10 +55,10 @@ log10_g_prior_sd = 2
 log_g_prior_mean = 27.63102 # 12 * log(10)
 log_g_prior_sd = 4.60517 # 2 * log(10)
 
-sigma_ww_site_prior_mean_mean = 1
-sigma_ww_site_prior_mean_sd = 1
-sigma_ww_site_prior_sd_mean = 0
-sigma_ww_site_prior_sd_sd = 1
+mode_sigma_ww_site_prior_mode = 1
+mode_sigma_ww_site_prior_sd = 1
+sd_log_sigma_ww_site_prior_mode = 0
+sd_log_sigma_ww_site_prior_sd = 0.693 # log(2)
 
 ww_site_mod_sd_sd = 0.25
 log_phi_g_prior_mean = -2.302585 # log(0.1)

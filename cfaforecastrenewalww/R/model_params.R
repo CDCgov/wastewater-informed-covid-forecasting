@@ -72,7 +72,7 @@ get_model_param_df <- function(x) {
     static_params <- c(
       "eta_sd", "autoreg_rt", "autoreg_conc", "log_R",
       "sigma_log_conc", "i0_over_n", "initial_growth", "inv_sqrt_phi_h",
-      "sigma_ww_site_mean", "sigma_ww_site_sd", "p_hosp_mean", "p_hosp_w_sd",
+      "mode_sigma_ww_site", "sd_log_sigma_ww_site", , "p_hosp_mean", "p_hosp_w_sd",
       "t_peak", "viral_peak", "dur_shed", "log10_g",
       "ww_site_mod_sd", "infection_feedback"
     )
@@ -95,7 +95,8 @@ get_model_param_df <- function(x) {
     static_params <- c(
       "eta_sd", "autoreg_rt", "log_r_mu_intercept", "sigma_rt",
       "autoreg_rt_site", "i0_over_n", "sigma_i0", "sigma_growth",
-      "initial_growth", "inv_sqrt_phi_h", "sigma_ww_site_mean", "sigma_ww_site_sd",
+      "initial_growth", "inv_sqrt_phi_h",
+      "mode_sigma_ww_site", "sd_log_sigma_ww_site",
       "p_hosp_w_sd", "t_peak", "dur_shed", "ww_site_mod_sd",
       "infection_feedback", "p_hosp_mean"
     )
@@ -106,7 +107,7 @@ get_model_param_df <- function(x) {
     site_static_params <- c("eta_i0", "eta_growth")
     site_daily_params <- c("r_site_t")
 
-    lab_site_static_params <- c("ww_site_mod_raw", "sigma_ww_site_raw")
+    lab_site_static_params <- c("ww_site_mod_raw", "eta_log_sigma_ww_site")
 
     daily_gq <- c("pred_hosp")
     lab_site_daily_gq <- c("pred_ww")

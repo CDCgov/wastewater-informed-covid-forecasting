@@ -59,10 +59,10 @@ log_g_prior_sd = 4.60517 # 2 * log(10)
 
 sigma_ww_prior_sd = 0.5
 
-sigma_ww_site_prior_mean_mean = 1
-sigma_ww_site_prior_mean_sd = 1
-sigma_ww_site_prior_sd_mean = 0
-sigma_ww_site_prior_sd_sd = 1
+mode_sigma_ww_site_prior_mode = 1
+mode_sigma_ww_site_prior_sd = 1
+sd_log_sigma_ww_site_prior_mode = 0
+sd_log_sigma_ww_site_prior_sd = 0.693 # log(2)
 autoreg_conc_a = 1
 # shape1 parameter of Beta dist for autoreg term on Ct trend
 autoreg_conc_b = 2
