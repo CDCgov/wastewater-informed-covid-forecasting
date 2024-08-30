@@ -396,7 +396,7 @@ head_to_head_targets <- list(
         by = c("location", "forecast_date")
       ) |>
       dplyr::anti_join(
-        table_of_ww_exclusions |>
+        ww_forecast_date_locs_to_excl |>
           dplyr::mutate(forecast_date = lubridate::ymd(forecast_date)),
         by = c(
           "location",
