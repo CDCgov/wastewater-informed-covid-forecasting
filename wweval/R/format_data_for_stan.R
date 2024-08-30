@@ -241,10 +241,10 @@ get_stan_data_list <- function(model_type,
       wday_effect_prior_sd = wday_effect_prior_sd,
       initial_growth_prior_mean = initial_growth_prior_mean,
       initial_growth_prior_sd = initial_growth_prior_sd,
-      sigma_ww_site_prior_mean_mean = sigma_ww_site_prior_mean_mean,
-      sigma_ww_site_prior_mean_sd = sigma_ww_site_prior_mean_sd,
-      sigma_ww_site_prior_sd_mean = sigma_ww_site_prior_sd_mean,
-      sigma_ww_site_prior_sd_sd = sigma_ww_site_prior_sd_sd,
+      mode_sigma_ww_site_prior_mode = mode_sigma_ww_site_prior_mode,
+      mode_sigma_ww_site_prior_sd = mode_sigma_ww_site_prior_sd,
+      sd_log_sigma_ww_site_prior_mode = sd_log_sigma_ww_site_prior_mode,
+      sd_log_sigma_ww_site_prior_sd = sd_log_sigma_ww_site_prior_sd,
       eta_sd_sd = eta_sd_sd,
       sigma_i0_prior_mode = sigma_i0_prior_mode,
       sigma_i0_prior_sd = sigma_i0_prior_sd,
@@ -373,15 +373,15 @@ get_inits <- function(model_type, stan_data, params,
         i0_over_n = stats::plogis(stats::rnorm(1, stats::qlogis(i0 / pop), 0.05)),
         initial_growth = stats::rnorm(1, 0, 0.001),
         inv_sqrt_phi_h = 1 / sqrt(200) + stats::rnorm(1, 1 / 10000, 1 / 10000),
-        sigma_ww_site_mean = abs(stats::rnorm(
-          1, sigma_ww_site_prior_mean_mean,
-          0.1 * sigma_ww_site_prior_mean_sd
+        mode_sigma_ww_site = abs(stats::rnorm(
+          1, mode_sigma_ww_site_prior_mode,
+          0.1 * mode_sigma_ww_site_prior_sd
         )),
-        sigma_ww_site_sd = abs(stats::rnorm(
-          1, sigma_ww_site_prior_sd_mean,
-          0.1 * sigma_ww_site_prior_sd_sd
+        sd_log_sigma_ww_site = abs(stats::rnorm(
+          1, sd_log_sigma_ww_site_prior_mode,
+          stdev * sd_log_sigma_ww_site_prior_sd
         )),
-        sigma_ww_site_raw = abs(stats::rnorm(n_ww_lab_sites, 0, 0.05)),
+        eta_log_sigma_ww_site = abs(stats::rnorm(n_ww_lab_sites, 0, stdev)),
         p_hosp_mean = stats::rnorm(1, stats::qlogis(p_hosp_mean), 0.01),
         p_hosp_w = stats::rnorm(tot_weeks, 0, 0.01),
         p_hosp_w_sd = abs(stats::rnorm(1, 0.01, 0.001)),

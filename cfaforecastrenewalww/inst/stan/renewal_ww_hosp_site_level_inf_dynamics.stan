@@ -73,10 +73,10 @@ data {
   real<lower=0> wday_effect_prior_sd;
   real initial_growth_prior_mean;
   real<lower=0> initial_growth_prior_sd;
-  real sigma_ww_site_prior_mean_mean;
-  real<lower=0> sigma_ww_site_prior_mean_sd;
-  real sigma_ww_site_prior_sd_mean;
-  real<lower=0> sigma_ww_site_prior_sd_sd;
+  real mode_sigma_ww_site_prior_mode;
+  real<lower=0> mode_sigma_ww_site_prior_sd;
+  real sd_log_sigma_ww_site_prior_mode;
+  real<lower=0> sd_log_sigma_ww_site_prior_sd;
   real<lower=0> eta_sd_sd;
   real p_hosp_prior_mean;
   real<lower=0> p_hosp_sd_logit;
@@ -128,9 +128,9 @@ parameters {
   real<lower=0> sigma_growth;
   real<lower=-1, upper=1> initial_growth; // initial growth from I0 to first observed time
   real<lower=1/sqrt(5000)> inv_sqrt_phi_h;
-  real<lower=0> sigma_ww_site_mean; //mean of site level stdev
-  real<lower=0> sigma_ww_site_sd; // stdev of site level stdev
-  vector<lower=0>[n_ww_lab_sites]sigma_ww_site_raw; // let each lab-site combo have its own observation error
+  real mode_sigma_ww_site; //mode of site level stdev
+  real<lower=0> sd_log_sigma_ww_site; // stdev of the log site level stdev
+  vector[n_ww_lab_sites] eta_log_sigma_ww_site; // let each lab-site combo have its own observation error
   real p_hosp_mean; // Estimated mean IHR
   vector[tot_weeks] p_hosp_w; // weekly random walk for IHR
   real<lower=0> p_hosp_w_sd; // Estimated IHR sd
@@ -158,7 +158,7 @@ transformed parameters {
   vector[n_ww_lab_sites] ww_site_mod; // site specific WW mod
   row_vector [ot + uot + ht] model_net_i; // number of net infected individuals shedding on each day (sum of individuals in dift stages of infection)
   real<lower=0> phi_h = inv_square(inv_sqrt_phi_h);
-  vector[n_ww_lab_sites] sigma_ww_site;
+  vector<lower=0>[n_ww_lab_sites] sigma_ww_site;
   vector[n_weeks] log_r_mu_t_in_weeks; // log of state level mean R(t) in weeks
   vector[n_weeks] log_r_site_t_in_weeks; // log of site level mean R(t) in weeks, used as a placeholder in loop
   vector<lower=0>[ot + ht] unadj_r; // state level R(t) before damping
@@ -266,8 +266,11 @@ transformed parameters {
   exp_obs_log_v = exp_obs_log_v_true + ww_site_mod[ww_sampled_lab_sites];
   // Option to add a population offset here at some point  log(model_V) + site_level_multiplier+ pop_ww[ww_sampled_sites]
 
-  // Get the transformed lab-site level error (NCP for sigma_site ~ n(mean_sigma_site, sigma_sigma_ww_site))
-  sigma_ww_site = sigma_ww_site_mean + sigma_ww_site_sd*sigma_ww_site_raw;
+  // Get the transformed lab-site level error
+  //log(sigma_site) ~ Noormal(log(mode_sigma_site), sd_log_sigma_site)
+  sigma_ww_site = exp(
+  log(mode_sigma_ww_site) + sd_log_sigma_ww_site * eta_log_sigma_ww_site);
+
 }
 
 // Prior and sampling distribution
@@ -292,9 +295,11 @@ model {
   eta_growth ~ std_normal();
   initial_growth ~ normal(initial_growth_prior_mean, initial_growth_prior_sd);
   inv_sqrt_phi_h ~ normal(inv_sqrt_phi_prior_mean, inv_sqrt_phi_prior_sd);
-  sigma_ww_site_mean ~ normal(sigma_ww_site_prior_mean_mean, sigma_ww_site_prior_mean_sd);
-  sigma_ww_site_sd ~ normal(sigma_ww_site_prior_sd_mean, sigma_ww_site_prior_sd_sd);
-  sigma_ww_site_raw ~ std_normal();
+  mode_sigma_ww_site ~ normal(mode_sigma_ww_site_prior_mode,
+                              mode_sigma_ww_site_prior_sd);
+  sd_log_sigma_ww_site ~ normal(sd_log_sigma_ww_site_prior_mode,
+                                sd_log_sigma_ww_site_prior_sd);
+  eta_log_sigma_ww_site ~ std_normal();
   log10_g ~ normal(log10_g_prior_mean, log10_g_prior_sd);
   hosp_wday_effect ~ normal(effect_mean, wday_effect_prior_sd);
   p_hosp_mean ~ normal(logit(p_hosp_prior_mean), p_hosp_sd_logit); // logit scale
