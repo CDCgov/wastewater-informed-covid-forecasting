@@ -176,7 +176,7 @@ get_stan_data <- function(train_data,
     wday_effect_prior_sd = wday_effect_prior_sd,
     initial_growth_prior_mean = initial_growth_prior_mean,
     initial_growth_prior_sd = initial_growth_prior_sd,
-    sigma_ww_prior_mean = sigma_ww_site_prior_mean_mean,
+    sigma_ww_prior_mean = mode_sigma_ww_site_prior_mode,
     eta_sd_sd = eta_sd_sd,
     p_hosp_prior_mean = p_hosp_mean,
     p_hosp_sd_logit = p_hosp_sd_logit,
@@ -489,10 +489,10 @@ get_stan_data_site_level_model <- function(train_data,
     wday_effect_prior_sd = wday_effect_prior_sd,
     initial_growth_prior_mean = initial_growth_prior_mean,
     initial_growth_prior_sd = initial_growth_prior_sd,
-    sigma_ww_site_prior_mean_mean = sigma_ww_site_prior_mean_mean,
-    sigma_ww_site_prior_mean_sd = sigma_ww_site_prior_mean_sd,
-    sigma_ww_site_prior_sd_mean = sigma_ww_site_prior_sd_mean,
-    sigma_ww_site_prior_sd_sd = sigma_ww_site_prior_sd_sd,
+    mode_sigma_ww_site_prior_mode = mode_sigma_ww_site_prior_mode,
+    mode_sigma_ww_site_prior_sd = mode_sigma_ww_site_prior_sd,
+    sd_log_sigma_ww_site_prior_mode = sd_log_sigma_ww_site_prior_mode,
+    sd_log_sigma_ww_site_prior_sd = sd_log_sigma_ww_site_prior_sd,
     eta_sd_sd = eta_sd_sd,
     sigma_i0_prior_mode = sigma_i0_prior_mode,
     sigma_i0_prior_sd = sigma_i0_prior_sd,
@@ -757,15 +757,15 @@ site_level_inf_inits <- function(train_data, params, stan_data) {
     i0_over_n = plogis(rnorm(1, qlogis(i0 / pop), 0.05)),
     initial_growth = rnorm(1, 0, 0.001),
     inv_sqrt_phi_h = 1 / sqrt(200) + rnorm(1, 1 / 10000, 1 / 10000),
-    sigma_ww_site_mean = abs(rnorm(
-      1, sigma_ww_site_prior_mean_mean,
-      0.1 * sigma_ww_site_prior_mean_sd
+    mode_sigma_ww_site = abs(stats::rnorm(
+      1, mode_sigma_ww_site_prior_mode,
+      0.1 * mode_sigma_ww_site_prior_sd
     )),
-    sigma_ww_site_sd = abs(rnorm(
-      1, sigma_ww_site_prior_sd_mean,
-      0.1 * sigma_ww_site_prior_sd_sd
+    sd_log_sigma_ww_site = abs(stats::rnorm(
+      1, sd_log_sigma_ww_site_prior_mode,
+      stdev * sd_log_sigma_ww_site_prior_sd
     )),
-    sigma_ww_site_raw = abs(rnorm(n_ww_lab_sites, 0, 0.05)),
+    eta_log_sigma_ww_site = abs(stats::rnorm(n_ww_lab_sites, 0, stdev)),
     p_hosp_mean = rnorm(1, qlogis(p_hosp_mean), 0.01),
     p_hosp_w = rnorm(tot_weeks, 0, 0.01),
     p_hosp_w_sd = abs(rnorm(1, 0.01, 0.001)),
