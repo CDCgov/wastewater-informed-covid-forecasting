@@ -408,16 +408,24 @@ score_hub_submissions <- function(model_name,
 
 
         log_scale_scores <- dplyr::bind_rows(log_scale_scores, these_log_scores)
-        natural_scale_scores <- dplyr::bind_rows(natural_scale_scores, these_natural_scale_scores)
+        natural_scale_scores <- dplyr::bind_rows(
+          natural_scale_scores,
+          these_natural_scale_scores
+        )
       } else { # end if statement for quantiles empty
         these_missing_forecasts <- tibble(
           model = this_model_name,
           forecast_date = this_forecast_date
         )
-        missing_forecasts <- dplyr::bind_rows(missing_forecasts, these_missing_forecasts)
+        missing_forecasts <- dplyr::bind_rows(
+          missing_forecasts,
+          these_missing_forecasts
+        )
       }
     } # end loop forecast dates
   } # end loop model name
+  log_scale_scores <- log_scale_scores |>
+    dplyr::filter(scale == "log")
 
   scores_list <- list(
     natural_scale_scores = natural_scale_scores,

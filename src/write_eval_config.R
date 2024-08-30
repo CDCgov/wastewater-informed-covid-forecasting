@@ -116,6 +116,14 @@ write_eval_config <- function(locations, forecast_dates,
     dates_to_exclude = c("2024-01-30", "2024-01-31", "2024-02-01", "2024-02-02")
   )
 
+  ww_forecast_date_locs_to_excl <- data.frame(
+    location = c("MN", "MN", "MN", "MN"),
+    forecast_date = c(
+      "2024-01-15", "2024-01-22", "2024-01-29",
+      "2024-02-05"
+    )
+  )
+
   config <- list(
     location_ww = df_ww |> dplyr::pull(location) |> as.vector(),
     forecast_date_ww = df_ww |> dplyr::pull(forecast_date) |> as.vector(),
@@ -145,6 +153,7 @@ write_eval_config <- function(locations, forecast_dates,
     forecast_time = forecast_time,
     ww_data_mapping = ww_data_mapping,
     table_of_exclusions = table_of_exclusions,
+    ww_forecast_date_locs_to_excl = ww_forecast_date_locs_to_excl,
     # MCMC settings
     iter_warmup = iter_warmup,
     iter_sampling = iter_sampling,
