@@ -381,7 +381,7 @@ get_inits <- function(model_type, stan_data, params,
           1, sd_log_sigma_ww_site_prior_mode,
           0.1 * sd_log_sigma_ww_site_prior_sd
         )),
-        eta_log_sigma_ww_site = abs(stats::rnorm(n_ww_lab_sites, 0, stdev)),
+        eta_log_sigma_ww_site = abs(stats::rnorm(n_ww_lab_sites, 0, 0.05)),
         p_hosp_mean = stats::rnorm(1, stats::qlogis(p_hosp_mean), 0.01),
         p_hosp_w = stats::rnorm(tot_weeks, 0, 0.01),
         p_hosp_w_sd = abs(stats::rnorm(1, 0.01, 0.001)),
