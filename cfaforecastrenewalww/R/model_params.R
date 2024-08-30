@@ -107,7 +107,7 @@ get_model_param_df <- function(x) {
     site_static_params <- c("eta_i0", "eta_growth")
     site_daily_params <- c("r_site_t")
 
-    lab_site_static_params <- c("ww_site_mod_raw", "sigma_ww_site_raw")
+    lab_site_static_params <- c("ww_site_mod_raw", "eta_log_sigma_ww_site")
 
     daily_gq <- c("pred_hosp")
     lab_site_daily_gq <- c("pred_ww")
