@@ -763,7 +763,7 @@ site_level_inf_inits <- function(train_data, params, stan_data) {
     )),
     sd_log_sigma_ww_site = abs(stats::rnorm(
       1, sd_log_sigma_ww_site_prior_mode,
-      stdev * sd_log_sigma_ww_site_prior_sd
+      0.1 * sd_log_sigma_ww_site_prior_sd
     )),
     eta_log_sigma_ww_site = abs(stats::rnorm(n_ww_lab_sites, 0, stdev)),
     p_hosp_mean = rnorm(1, qlogis(p_hosp_mean), 0.01),
