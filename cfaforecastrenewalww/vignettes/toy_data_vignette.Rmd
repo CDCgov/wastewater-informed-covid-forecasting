@@ -324,14 +324,14 @@ static_params <- c(
   "autoreg_rt_site",
   "log_r_mu_intercept",
   "i0_over_n", "initial_growth",
-  "inv_sqrt_phi_h", "sigma_ww_site_mean", "sigma_ww_site_sd",
+  "inv_sqrt_phi_h", "mode_sigma_ww_site", "sd_log_sigma_ww_site",
   "p_hosp_mean", "p_hosp_w_sd", "t_peak", "viral_peak",
   "dur_shed", "log10_g", "ww_site_mod_sd",
   "infection_feedback"
 )
 vector_params <- c(
   "w", "p_hosp_w", "rt", "state_inf_per_capita", "p_hosp",
-  "sigma_ww_site_raw", "ww_site_mod_raw",
+  "eta_log_sigma_ww_site", "ww_site_mod_raw",
   "ww_site_mod", "sigma_ww_site",
   "hosp_wday_effect"
 )
