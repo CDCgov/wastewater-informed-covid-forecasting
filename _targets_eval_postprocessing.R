@@ -332,7 +332,7 @@ head_to_head_targets <- list(
   ),
   tar_target(
     name = ww_forecast_date_locs_to_excl,
-    command = as.data.frame(eval_config$www_forecast_date_locs_to_excl)
+    command = as.data.frame(eval_config$ww_forecast_date_locs_to_excl)
   ),
   # Get the full set of quantiles, filtered down to only states and
   # forecast dates with sufficient wastewater for both ww model and hosp only
@@ -1142,7 +1142,7 @@ hub_targets <- list(
     command = score_hub_submissions(
       model_name = c("cfa-wwrenewal", "cfa-hosponlyrenewal"),
       hub_subdir = eval_config$hub_subdir,
-      pull_from_github = boolean_to_pull_locally,
+      pull_from_github = FALSE,
       dates = seq(
         from = lubridate::ymd(
           min(eval_config$forecast_date_hosp)
