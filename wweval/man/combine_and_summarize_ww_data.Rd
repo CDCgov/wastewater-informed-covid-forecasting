@@ -7,7 +7,8 @@
 combine_and_summarize_ww_data(forecast_dates, locations, eval_output_subdir)
 }
 \arguments{
-\item{forecast_dates}{The vector of character strings of all the forecast dates}
+\item{forecast_dates}{The vector of character strings of all the forecast
+dates}
 
 \item{locations}{The vector of character strings of all the locations}
 

@@ -7,7 +7,8 @@
 #' metadata. Locations without wastewater data are indicated as such and have
 #' NAs for the wastewater specific entries
 #'
-#' @param forecast_dates The vector of character strings of all the forecast dates
+#' @param forecast_dates The vector of character strings of all the forecast
+#' dates
 #' @param locations The vector of character strings of all the locations
 #' @param eval_output_subdir The outer subdirectory of the nested file structure
 #'
@@ -184,6 +185,47 @@ combine_and_summarize_ww_data <- function(forecast_dates,
   }
 
   return(ww_metadata)
+}
+
+
+#' Get additional wastewater metadata
+#'
+#' @param granular_ww_metadata a tibble with a row for each forecast date
+#' location and columns that provide summaries of the wastewater data. This
+#' is focused on input data
+#' @param ww_forecast_date_locs_to_excl table of forecast date-locations
+#' to manually exclude
+#' @param convergence_df table containing convergence flags for every forecast
+#' date location combination
+#' @param table_of_loc_dates_w_ww table containing wastewater metadata
+#' for every location-forecast date with wastewater
+#'
+#' @return a tibble with a number of additional columns indicating whether
+#' or not there were any flags for manual exclusions, convergence issues,
+#' or wastewater quality issues
+#' @export
+get_add_ww_metadata <- function(granular_ww_metadata,
+                                ww_forecast_date_locs_to_excl,
+                                convergence_df,
+                                table_of_loc_dates_w_ww) {
+  granular_ww_metadata_used <- granular_ww_metadata |>
+    dplyr::mutate(forecast_date = lubridate::ymd(forecast_date)) |>
+    dplyr::left_join(
+      ww_forecast_date_locs_to_excl |>
+        mutate(
+          ww_exclude_manual = 1,
+          forecast_date = lubridate::ymd(forecast_date)
+        ),
+      by = c("location", "forecast_date")
+    ) |>
+    dplyr::left_join(convergence_df,
+      by = c("location", "forecast_date")
+    ) |>
+    dplyr::left_join(table_of_loc_dates_w_ww,
+      by = c("location", "forecast_date")
+    )
+
+  return(granular_ww_metadata_used)
 }
 
 #' Get wastewater data summary tables

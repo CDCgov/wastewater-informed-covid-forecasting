@@ -343,6 +343,7 @@ head_to_head_targets <- list(
     name = ww_forecast_date_locs_to_excl,
     command = as.data.frame(eval_config$ww_forecast_date_locs_to_excl)
   ),
+
   # Get the full set of quantiles, filtered down to only states and
   # forecast dates with sufficient wastewater for both ww model and hosp only
   # model. Then join the convergence df
@@ -483,8 +484,17 @@ head_to_head_targets <- list(
 manuscript_figures <- list(
   ## Summary metadata table-----------------------------------------
   tar_target(
+    name = granular_ww_metadata_used,
+    command = get_add_ww_metadata(
+      granular_ww_metadata,
+      ww_forecast_date_locs_to_excl,
+      convergence_df,
+      table_of_loc_dates_w_ww
+    )
+  ),
+  tar_target(
     name = list_of_summary_ww_tables,
-    command = get_summary_ww_table(granular_ww_metadata)
+    command = get_summary_ww_table(granular_ww_metadata_used)
   ),
   ## Figure specifications----------------------------------------
   tar_target(
