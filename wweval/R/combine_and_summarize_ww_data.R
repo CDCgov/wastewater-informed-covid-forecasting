@@ -24,8 +24,9 @@ combine_and_summarize_ww_data <- function(forecast_dates,
   }
 
   ww_metadata <- tibble()
+  flag_failed_output <- tibble()
 
-  for (i in seq_len(forecast_dates)) {
+  for (i in seq_along(forecast_dates)) {
     this_forecast_date <- forecast_dates[i]
     this_location <- locations[i]
 
@@ -79,6 +80,7 @@ combine_and_summarize_ww_data <- function(forecast_dates,
               )) |>
               dplyr::pull(ww_total_pop)
             pop_coverage <- sum_site_pops / state_pop
+
             avg_latency <- this_ww_data |>
               dplyr::group_by(lab_wwtp_unique_id) |>
               dplyr::summarize(max_date = max(date)) |>
@@ -91,18 +93,32 @@ combine_and_summarize_ww_data <- function(forecast_dates,
                 mean_latency = mean(latency, na.rm = TRUE)
               ) |>
               dplyr::pull(mean_latency)
+
             avg_sampling_freq <- this_ww_data |>
               dplyr::group_by(lab_wwtp_unique_id) |>
               dplyr::arrange(date, desc = TRUE) |>
+              # There are some duplicate dates within a site and lab
+              dplyr::distinct(date) |>
               dplyr::mutate(
                 prev_date = dplyr::lag(date, 1),
-                diff_time = as.numeric(difftime(date, prev_date))
+                diff_time = as.numeric(lubridate::days(
+                  difftime(date, prev_date)
+                ), "days")
               ) |>
               dplyr::ungroup() |>
               dplyr::summarize(
                 mean_collection_freq = mean(diff_time, na.rm = TRUE)
               ) |>
               dplyr::pull(mean_collection_freq)
+
+            n_duplicate_obs <- this_ww_data |>
+              dplyr::group_by(lab_wwtp_unique_id, date) |>
+              dplyr::summarize(n_obs = dplyr::n()) |>
+              dplyr::ungroup() |>
+              dplyr::summarize(
+                n_duplicates = sum(n_obs > 1)
+              ) |>
+              dplyr::pull(n_duplicates)
 
             this_ww_metadata <- tibble::tibble(
               forecast_date = this_forecast_date,
@@ -113,7 +129,8 @@ combine_and_summarize_ww_data <- function(forecast_dates,
               pop_coverage,
               state_pop,
               avg_latency,
-              avg_sampling_freq
+              avg_sampling_freq,
+              n_duplicate_obs
             )
           } else {
             this_ww_metadata <- tibble::tibble(
@@ -125,7 +142,8 @@ combine_and_summarize_ww_data <- function(forecast_dates,
               pop_coverage = NA,
               state_pop = state_pop,
               avg_latency = NA,
-              avg_sampling_freq = NA
+              avg_sampling_freq = NA,
+              n_duplicate_obs = NA
             )
           }
 
@@ -166,4 +184,74 @@ combine_and_summarize_ww_data <- function(forecast_dates,
   }
 
   return(ww_metadata)
+}
+
+#' Get wastewater data summary tables
+#'
+#' @param ww_metadata a tibble containing one row for every forecast date
+#' location containing metrics averaged across that forecast date location
+#' about the wastewater data
+#'
+#' @return a list containing a summary overall table, a summary by forecast
+#' date and a summary by state
+#' @export
+get_summary_ww_table <- function(ww_metadata) {
+  n_combinations <- nrow(ww_metadata)
+
+  n_combos_w_ww_data <- sum(ww_metadata$ww_data_present, na.rm = TRUE)
+
+  n_states_w_complete_ww_data <- ww_metadata |>
+    dplyr::group_by(location) |>
+    dplyr::summarize(
+      complete_ww = all(ww_data_present == 1)
+    ) |>
+    ungroup() |>
+    dplyr::summarize(n_complete_ww = sum(complete_ww)) |>
+    dplyr::pull(n_complete_ww)
+
+  n_states_w_no_ww_data <- ww_metadata |>
+    dplyr::group_by(location) |>
+    dplyr::summarize(
+      no_ww = all(ww_data_present == 0)
+    ) |>
+    ungroup() |>
+    dplyr::summarize(n_zero_ww = sum(no_ww)) |>
+    dplyr::pull(n_zero_ww)
+
+  forecast_date_summary_table <-
+    ww_metadata |>
+    dplyr::group_by(forecast_date) |>
+    dplyr::summarize(
+      prop_states_w_ww = sum(ww_data_present) / dplyr::n(),
+      pop_coverage_by_date = sum(pop_coverage * state_pop, na.rm = TRUE) / sum(state_pop),
+      avg_avg_latency = mean(avg_latency, na.rm = TRUE),
+      avg_avg_sampling_freq = mean(avg_sampling_freq, na.rm = TRUE),
+      n_states_w_duplicate_obs = sum(n_duplicate_obs > 0, na.rm = TRUE)
+    )
+
+  state_summary_table <-
+    ww_metadata |>
+    dplyr::group_by(location) |>
+    dplyr::summarize(
+      prop_forecast_dates_w_ww = sum(ww_data_present) / dplyr::n(),
+      avg_pop_coverage_by_state = mean(pop_coverage, na.rm = TRUE),
+      avg_avg_latency = mean(avg_latency, na.rm = TRUE),
+      avg_avg_sampling_frequency = mean(avg_sampling_freq, na.rm = TRUE),
+      n_forecast_dates_w_duplicate_obs = sum(n_duplicate_obs > 0, na.rm = TRUE)
+    )
+
+  summary_table <- tibble::tibble(
+    n_forecast_date_states = n_combinations,
+    n_forecast_date_states_w_ww = n_combos_w_ww_data,
+    prop_combos_w_ww = n_combos_w_ww_data / n_combinations
+  )
+
+  ww_metadata_list <- list(
+    summary_table = summary_table,
+    state_summary_table = state_summary_table,
+    forecast_date_summary_table = forecast_date_summary_table
+  )
+
+
+  return(ww_metadata_list)
 }

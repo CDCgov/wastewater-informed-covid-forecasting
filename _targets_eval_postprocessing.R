@@ -240,9 +240,9 @@ combined_targets <- list(
   tar_target(
     name = granular_ww_metadata,
     command = combine_and_summarize_ww_data(
-      forecast_dates = c("2023-10-16", "2024-02-05"), # eval_config$forecast_date_ww,
-      locations = c("MA", "PR"), # eval_config$location_ww,
-      eval_output_subdir = eval_config$output_dir,
+      forecast_dates = eval_config$forecast_date_ww,
+      locations = eval_config$location_ww,
+      eval_output_subdir = eval_config$output_dir
     )
   ),
 
@@ -482,10 +482,10 @@ head_to_head_targets <- list(
 # specification for the figure components that are examples.
 manuscript_figures <- list(
   ## Summary metadata table-----------------------------------------
-  # tar_target( #nolint
-  #   name = summary_ww_table,#nolint
-  #   command = get_summary_ww_table(granular_ww_metadata)#nolint
-  # ),#nolint
+  tar_target(
+    name = list_of_summary_ww_tables,
+    command = get_summary_ww_table(granular_ww_metadata)
+  ),
   ## Figure specifications----------------------------------------
   tar_target(
     name = locs_to_plot,
