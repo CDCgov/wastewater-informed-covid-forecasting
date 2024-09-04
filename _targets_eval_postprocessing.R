@@ -494,7 +494,10 @@ manuscript_figures <- list(
   ),
   tar_target(
     name = list_of_summary_ww_tables,
-    command = get_summary_ww_table(granular_ww_metadata_used)
+    command = get_summary_ww_table(
+      granular_ww_metadata_used,
+      hosp_quantiles_filtered
+    )
   ),
   ## Figure specifications----------------------------------------
   tar_target(
