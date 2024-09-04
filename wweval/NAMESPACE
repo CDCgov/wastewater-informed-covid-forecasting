@@ -3,6 +3,7 @@
 export(add_horizons)
 export(add_time_indexing)
 export(clean_ww_data)
+export(combine_and_summarize_ww_data)
 export(combine_outputs)
 export(compute_relative_crps)
 export(create_hub_submissions)
