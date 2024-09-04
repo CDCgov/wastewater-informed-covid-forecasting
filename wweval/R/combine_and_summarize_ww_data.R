@@ -233,14 +233,34 @@ get_add_ww_metadata <- function(granular_ww_metadata,
 #' @param ww_metadata a tibble containing one row for every forecast date
 #' location containing metrics averaged across that forecast date location
 #' about the wastewater data
+#' @param hosp_quantiles_filtered a large tibble containing all of the
+#' quantiled forecasts for the wastewater and hospital admissions only models
+#' after it has been filtered for convergence, wastewater data quality,
+#' manual exclusions, and dates that don't have any wastewater present
 #'
 #' @return a list containing a summary overall table, a summary by forecast
 #' date and a summary by state
 #' @export
-get_summary_ww_table <- function(ww_metadata) {
+get_summary_ww_table <- function(ww_metadata, hosp_quantiles_filtered) {
+  # First, get the true number of forecast-date locations with wastewater
+  # in the current analysis
+  n_w_ww_actual <- hosp_quantiles_filtered |>
+    dplyr::filter(
+      model_type == "ww"
+    ) |>
+    dplyr::distinct(forecast_date, location) |>
+    nrow()
+
+  n_no_ww_actual <- nrow(ww_metadata) - n_w_ww_actual
+
+  # Then get what would be expected
+
   n_combinations <- nrow(ww_metadata)
 
-  n_combos_w_ww_data <- sum(ww_metadata$ww_data_present, na.rm = TRUE)
+  n_combos_w_ww_data <- ww_metadata |>
+    dplyr::summarise(
+      n_ww_present = sum(ww_data_present, na.rm = TRUE)
+    )
 
   n_states_w_complete_ww_data <- ww_metadata |>
     dplyr::group_by(location) |>
@@ -260,6 +280,59 @@ get_summary_ww_table <- function(ww_metadata) {
     dplyr::summarize(n_zero_ww = sum(no_ww)) |>
     dplyr::pull(n_zero_ww)
 
+  n_combos_w_hosp_conv_flags <- ww_metadata |>
+    dplyr::summarise(n_hosp_flags = sum(any_flags_hosp, na.rm = TRUE)) |>
+    dplyr::pull(n_hosp_flags)
+  n_combos_w_ww_conv_flags <- ww_metadata |>
+    dplyr::summarise(n_ww_flags = sum(any_flags_ww, na.rm = TRUE)) |>
+    dplyr::pull(n_ww_flags)
+
+  n_insuff_ww <- ww_metadata |>
+    dplyr::summarise(
+      n_ww_insuff = sum(ww_sufficient == FALSE, na.rm = TRUE)
+    ) |>
+    dplyr::pull(n_ww_insuff)
+
+  n_ww_excluded <- ww_metadata |>
+    dplyr::summarise(
+      n_ww_excl = sum(ww_exclude_manual, na.rm = TRUE)
+    ) |>
+    dplyr::pull(n_ww_excl)
+
+  n_w_ww_expected <- ww_metadata |>
+    dplyr::mutate(
+      ww_expected = dplyr::case_when(
+        ww_data_present == 1 & is.na(ww_exclude_manual) &
+          !isTRUE(any_flags_hosp) & !isTRUE(any_flags_ww) &
+          ww_sufficient == TRUE ~ TRUE,
+        TRUE ~ FALSE
+      )
+    ) |>
+    dplyr::summarise(
+      n_expected_exclude = sum(ww_expected, na.rm = TRUE)
+    ) |>
+    dplyr::pull(n_expected_exclude)
+
+  n_no_ww_expected <- nrow(ww_metadata) - n_w_ww_expected
+
+  summary_table <- tibble::tibble(
+    n_forecast_date_states = n_combinations,
+    n_forecast_date_states_w_ww = n_combos_w_ww_data,
+    prop_combos_w_ww = n_combos_w_ww_data / n_combinations,
+    n_states_w_complete_ww_data,
+    n_states_w_no_ww_data,
+    n_combos_w_hosp_conv_flags,
+    n_combos_w_ww_conv_flags,
+    n_insuff_ww,
+    n_ww_excluded,
+    n_no_ww_expected,
+    n_no_ww_actual,
+    n_w_ww_expected,
+    n_w_ww_actual
+  )
+
+
+  # Summarize across states by forecast date
   forecast_date_summary_table <-
     ww_metadata |>
     dplyr::group_by(forecast_date) |>
@@ -271,6 +344,7 @@ get_summary_ww_table <- function(ww_metadata) {
       n_states_w_duplicate_obs = sum(n_duplicate_obs > 0, na.rm = TRUE)
     )
 
+  # Summarize across forecast dates by state
   state_summary_table <-
     ww_metadata |>
     dplyr::group_by(location) |>
@@ -282,11 +356,6 @@ get_summary_ww_table <- function(ww_metadata) {
       n_forecast_dates_w_duplicate_obs = sum(n_duplicate_obs > 0, na.rm = TRUE)
     )
 
-  summary_table <- tibble::tibble(
-    n_forecast_date_states = n_combinations,
-    n_forecast_date_states_w_ww = n_combos_w_ww_data,
-    prop_combos_w_ww = n_combos_w_ww_data / n_combinations
-  )
 
   ww_metadata_list <- list(
     summary_table = summary_table,
