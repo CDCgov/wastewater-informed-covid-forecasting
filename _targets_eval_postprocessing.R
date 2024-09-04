@@ -1142,7 +1142,7 @@ hub_targets <- list(
     command = score_hub_submissions(
       model_name = c("cfa-wwrenewal", "cfa-hosponlyrenewal"),
       hub_subdir = eval_config$hub_subdir,
-      pull_from_github = boolean_to_pull_locally,
+      pull_from_github = FALSE,
       dates = seq(
         from = lubridate::ymd(
           min(eval_config$forecast_date_hosp)
