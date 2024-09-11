@@ -139,6 +139,12 @@ Open an R session and run the following command to install `cmdstanr` per that p
 install.packages("cmdstanr", repos = c("https://mc-stan.org/r-packages/", getOption("repos")))
 ```
 
+If using `renv` to manage your R packages and environment, use the following command to install `cmdstanr`.
+
+```R
+renv::install("stan-dev/cmdstanr")
+```
+
 `cmdstanr` provides tools for installing `CmdStan` itself. First check that everything is properly configured by running:
 
 ```R
@@ -170,6 +176,13 @@ Once you have downloaded this repository, navigate to it within an R session and
 install.packages('remotes')
 remotes::install_local("cfaforecastrenewalww")
 ```
+
+If using `renv` to manage your R packages and environment, use the following command from within the `wastewater-informed-covid-forecasting` repository to install `cfaforecastrenewalww`.
+
+```R
+renv::install("./cfaforecastrenewalww")
+```
+
 If that fails, confirm that your R working directory is indeed the project directory by running R's `getwd()` command.
 
 ## R dependencies
