@@ -227,7 +227,6 @@ load_data_and_summarize <- function(fp_hosp, fp_ww,
 #' data (granular_ww_metadata) and joins the downstream metadata about
 #' convergenece and manual exclusions and combines them all into one table
 #'
-#'
 #' @param granular_ww_metadata a tibble with a row for each forecast date
 #' location and columns that provide summaries of the wastewater data. This
 #' is focused on input data. It is the output of
