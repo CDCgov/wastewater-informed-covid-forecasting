@@ -41,7 +41,7 @@ combine_and_summarize_ww_data <- function(forecast_dates,
       forecast_date = this_forecast_date,
       model_type = "ww",
       location = this_location,
-      output_type = glue::glue("input_ww_data"),
+      output_type = "input_ww_data",
       file_extension = "tsv"
     )
     fp_hosp <- get_filepath(
@@ -50,31 +50,16 @@ combine_and_summarize_ww_data <- function(forecast_dates,
       forecast_date = this_forecast_date,
       model_type = "ww",
       location = this_location,
-      output_type = glue::glue("input_hosp_data"),
+      output_type = "input_hosp_data",
       file_extension = "tsv"
     )
 
     if (file.exists(fp_ww)) {
-      safe_data_load <- purrr::safely(load_data_and_summarize)
-      out <- safe_data_load(fp_hosp, fp_ww, this_forecast_date, this_location)
-
-      # If it doesn't error, then get metadata
-      if (is.null(out$error)) {
-        this_ww_metadata <- out$result
-      } else { # if it errored but file exists, this means that ww data was empty
-        this_ww_metadata <- tibble::tibble(
-          forecast_date = this_forecast_date,
-          location = this_location,
-          ww_data_present = 0,
-          n_sites = NA,
-          n_labs = NA,
-          pop_coverage = NA,
-          state_pop = state_pop,
-          avg_latency = NA,
-          avg_sampling_freq = NA,
-          n_duplicate_obs = NA
-        )
-      } # End ifelse for indiividual file erroring
+      this_ww_metadata <- load_data_and_summarize(
+        fp_hosp, fp_ww,
+        this_forecast_date,
+        this_location
+      )
       ww_metadata <- rbind(ww_metadata, this_ww_metadata)
     } else {
       warning(glue::glue(
@@ -98,11 +83,11 @@ combine_and_summarize_ww_data <- function(forecast_dates,
       "files_missing", model_type
     ))
 
-    write.csv(
+    read::write_csv(
       flag_failed_output,
       file.path(
         eval_output_subdir, "files_missing", model_type,
-        glue::glue("ww_data_metadata.csv")
+        "ww_data_metadata.csv"
       )
     )
   }
@@ -140,6 +125,9 @@ load_data_and_summarize <- function(fp_hosp, fp_ww,
   state_pop <- this_hosp_data |>
     dplyr::distinct(pop) |>
     dplyr::pull()
+  if (length(state_pop) != 1) {
+    cli::cli_abort(message = "multiple state pops reported")
+  }
 
   this_ww_data <- readr::read_tsv(fp_ww)
   if (!nrow(this_ww_data) == 0) {
@@ -149,73 +137,84 @@ load_data_and_summarize <- function(fp_hosp, fp_ww,
     n_labs <- this_ww_data |>
       dplyr::distinct(lab) |>
       nrow()
+    sum_site_pops <- this_ww_data |>
+      dplyr::group_by(site) |>
+      dplyr::summarise(
+        mean_site_pop = mean(ww_pop, na.rm = TRUE)
+      ) |>
+      dplyr::ungroup() |>
+      dplyr::summarise(ww_total_pop = sum(mean_site_pop,
+        na.rm = TRUE
+      )) |>
+      dplyr::pull(ww_total_pop)
+    pop_coverage <- sum_site_pops / state_pop
+
+    avg_latency <- this_ww_data |>
+      dplyr::group_by(lab_wwtp_unique_id) |>
+      dplyr::summarize(max_date = max(date)) |>
+      dplyr::mutate(
+        latency = as.numeric(lubridate::ymd(
+          !!this_forecast_date
+        ) - lubridate::ymd(max_date))
+      ) |>
+      dplyr::summarize(
+        mean_latency = mean(latency, na.rm = TRUE)
+      ) |>
+      dplyr::pull(mean_latency)
+
+    avg_sampling_freq <- this_ww_data |>
+      dplyr::group_by(lab_wwtp_unique_id) |>
+      dplyr::arrange(date, desc = TRUE) |>
+      # There are some duplicate dates within a site and lab
+      dplyr::distinct(date) |>
+      dplyr::mutate(
+        prev_date = dplyr::lag(date, 1),
+        diff_time = as.numeric(lubridate::days(
+          difftime(date, prev_date)
+        ), "days")
+      ) |>
+      dplyr::ungroup() |>
+      dplyr::summarize(
+        mean_collection_freq = mean(diff_time, na.rm = TRUE)
+      ) |>
+      dplyr::pull(mean_collection_freq)
+
+    n_duplicate_obs <- this_ww_data |>
+      dplyr::group_by(lab_wwtp_unique_id, date) |>
+      dplyr::summarize(n_obs = dplyr::n()) |>
+      dplyr::ungroup() |>
+      dplyr::summarize(
+        n_duplicates = sum(n_obs > 1)
+      ) |>
+      dplyr::pull(n_duplicates)
+
+    this_ww_metadata <- tibble::tibble(
+      forecast_date = this_forecast_date,
+      location = this_location,
+      ww_data_present = 1,
+      n_sites,
+      n_labs,
+      pop_coverage,
+      state_pop,
+      avg_latency,
+      avg_sampling_freq,
+      n_duplicate_obs
+    )
+  } else { # Wastewater data has no rows -- fill in rows with NAs for ww metrics
+    this_ww_metadata <- tibble::tibble(
+      forecast_date = this_forecast_date,
+      location = this_location,
+      ww_data_present = 0,
+      n_sites = NA,
+      n_labs = NA,
+      pop_coverage = NA,
+      state_pop = state_pop,
+      avg_latency = NA,
+      avg_sampling_freq = NA,
+      n_duplicate_obs = NA
+    )
   }
-  if (length(state_pop) != 1) {
-    cli::cli_abort(message = "multiple state pops reported")
-  }
-  sum_site_pops <- this_ww_data |>
-    dplyr::group_by(site) |>
-    dplyr::summarise(
-      mean_site_pop = mean(ww_pop, na.rm = TRUE)
-    ) |>
-    dplyr::ungroup() |>
-    dplyr::summarise(ww_total_pop = sum(mean_site_pop,
-      na.rm = TRUE
-    )) |>
-    dplyr::pull(ww_total_pop)
-  pop_coverage <- sum_site_pops / state_pop
 
-  avg_latency <- this_ww_data |>
-    dplyr::group_by(lab_wwtp_unique_id) |>
-    dplyr::summarize(max_date = max(date)) |>
-    dplyr::mutate(
-      latency = as.numeric(lubridate::ymd(
-        !!this_forecast_date
-      ) - lubridate::ymd(max_date))
-    ) |>
-    dplyr::summarize(
-      mean_latency = mean(latency, na.rm = TRUE)
-    ) |>
-    dplyr::pull(mean_latency)
-
-  avg_sampling_freq <- this_ww_data |>
-    dplyr::group_by(lab_wwtp_unique_id) |>
-    dplyr::arrange(date, desc = TRUE) |>
-    # There are some duplicate dates within a site and lab
-    dplyr::distinct(date) |>
-    dplyr::mutate(
-      prev_date = dplyr::lag(date, 1),
-      diff_time = as.numeric(lubridate::days(
-        difftime(date, prev_date)
-      ), "days")
-    ) |>
-    dplyr::ungroup() |>
-    dplyr::summarize(
-      mean_collection_freq = mean(diff_time, na.rm = TRUE)
-    ) |>
-    dplyr::pull(mean_collection_freq)
-
-  n_duplicate_obs <- this_ww_data |>
-    dplyr::group_by(lab_wwtp_unique_id, date) |>
-    dplyr::summarize(n_obs = dplyr::n()) |>
-    dplyr::ungroup() |>
-    dplyr::summarize(
-      n_duplicates = sum(n_obs > 1)
-    ) |>
-    dplyr::pull(n_duplicates)
-
-  this_ww_metadata <- tibble::tibble(
-    forecast_date = this_forecast_date,
-    location = this_location,
-    ww_data_present = 1,
-    n_sites,
-    n_labs,
-    pop_coverage,
-    state_pop,
-    avg_latency,
-    avg_sampling_freq,
-    n_duplicate_obs
-  )
 
   return(this_ww_metadata)
 }
