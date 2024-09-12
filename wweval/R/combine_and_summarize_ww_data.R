@@ -252,10 +252,13 @@ get_add_ww_metadata <- function(granular_ww_metadata,
     dplyr::left_join(
       ww_forecast_date_locs_to_excl |>
         mutate(
-          ww_exclude_manual = 1,
-          forecast_date = lubridate::ymd(forecast_date)
+          ww_exclude_manual = TRUE,
+          forecast_date = lubridate::ymd(.data$orecast_date)
         ),
       by = c("location", "forecast_date")
+    ) |>
+    dplyr::mutate(
+       ww_exclude_manual = dplyr::replace_na(.data$ww_exclude_manual, FALSE)
     ) |>
     dplyr::left_join(convergence_df,
       by = c("location", "forecast_date")
