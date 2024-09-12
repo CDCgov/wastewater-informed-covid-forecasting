@@ -344,7 +344,7 @@ get_summary_ww_table <- function(ww_metadata, hosp_quantiles_filtered) {
     dplyr::summarise(
       n_ww_insuff = sum(.data$ww_sufficient == FALSE, na.rm = TRUE)
     ) |>
-    dplyr::pull(n_ww_insuff)
+    dplyr::pull("n_ww_insuff")
 
   n_ww_excluded <- ww_metadata |>
     dplyr::summarise(
