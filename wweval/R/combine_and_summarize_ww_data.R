@@ -388,13 +388,13 @@ get_summary_ww_table <- function(ww_metadata, hosp_quantiles_filtered) {
   # Summarize across states by forecast date
   forecast_date_summary_table <-
     ww_metadata |>
-    dplyr::group_by(forecast_date) |>
+    dplyr::group_by("forecast_date") |>
     dplyr::summarize(
-      prop_states_w_ww = sum(ww_data_present) / dplyr::n(),
-      pop_coverage_by_date = sum(pop_coverage * state_pop, na.rm = TRUE) / sum(state_pop),
-      avg_avg_latency = mean(avg_latency, na.rm = TRUE),
-      avg_avg_sampling_freq = mean(avg_sampling_freq, na.rm = TRUE),
-      n_states_w_duplicate_obs = sum(n_duplicate_obs > 0, na.rm = TRUE)
+      prop_states_w_ww = sum(.data$ww_data_present) / dplyr::n(),
+      pop_coverage_by_date = sum(.data$pop_coverage * .data$state_pop, na.rm = TRUE) / sum(.data$state_pop),
+      avg_avg_latency = mean(.data$avg_latency, na.rm = TRUE),
+      avg_avg_sampling_freq = mean(.data$avg_sampling_freq, na.rm = TRUE),
+      n_states_w_duplicate_obs = sum(.data$n_duplicate_obs > 0, na.rm = TRUE)
     )
 
   # Summarize across forecast dates by state
