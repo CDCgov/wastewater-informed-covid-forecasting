@@ -402,11 +402,11 @@ get_summary_ww_table <- function(ww_metadata, hosp_quantiles_filtered) {
     ww_metadata |>
     dplyr::group_by(location) |>
     dplyr::summarize(
-      prop_forecast_dates_w_ww = sum(ww_data_present) / dplyr::n(),
-      avg_pop_coverage_by_state = mean(pop_coverage, na.rm = TRUE),
-      avg_avg_latency = mean(avg_latency, na.rm = TRUE),
-      avg_avg_sampling_frequency = mean(avg_sampling_freq, na.rm = TRUE),
-      n_forecast_dates_w_duplicate_obs = sum(n_duplicate_obs > 0, na.rm = TRUE)
+      prop_forecast_dates_w_ww = sum(.data$ww_data_present) / dplyr::n(),
+      avg_pop_coverage_by_state = mean(.data$pop_coverage, na.rm = TRUE),
+      avg_avg_latency = mean(.data$avg_latency, na.rm = TRUE),
+      avg_avg_sampling_frequency = mean(.data$avg_sampling_freq, na.rm = TRUE),
+      n_forecast_dates_w_duplicate_obs = sum(.data$n_duplicate_obs > 0, na.rm = TRUE)
     )
 
 
