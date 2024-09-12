@@ -295,7 +295,7 @@ get_summary_ww_table <- function(ww_metadata, hosp_quantiles_filtered) {
     dplyr::filter(
       model_type == "ww"
     ) |>
-    dplyr::distinct(forecast_date, location) |>
+    dplyr::distinct(.data$forecast_date, .data$location) |>
     nrow()
 
   n_no_ww_actual <- nrow(ww_metadata) - n_w_ww_actual
