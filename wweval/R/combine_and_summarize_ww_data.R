@@ -300,11 +300,11 @@ get_summary_ww_table <- function(ww_metadata, hosp_quantiles_filtered) {
     dplyr::distinct(.data$forecast_date, .data$location) |>
     nrow()
 
-  n_no_ww_actual <- dplyr::nrow(ww_metadata) - n_w_ww_actual
+  n_no_ww_actual <- nrow(ww_metadata) - n_w_ww_actual
 
   # Then get what would be expected
 
-  n_combinations <- dplyr::nrow(ww_metadata)
+  n_combinations <- nrow(ww_metadata)
 
   n_combos_w_ww_data <- ww_metadata |>
     dplyr::summarise(
