@@ -348,16 +348,16 @@ get_summary_ww_table <- function(ww_metadata, hosp_quantiles_filtered) {
 
   n_ww_excluded <- ww_metadata |>
     dplyr::summarise(
-      n_ww_excl = sum(.data$ww_exclude_manual, na.rm = TRUE)
+      n_ww_excluded = sum(.data$ww_exclude_manual, na.rm = TRUE)
     ) |>
-    dplyr::pull(.data$n_ww_excl)
+    dplyr::pull(.data$n_ww_excluded)
 
   n_w_ww_expected <- ww_metadata |>
     dplyr::mutate(
       ww_expected = dplyr::case_when(
         ww_data_present == 1 & !(.data$ww_exclude_manual) &
           !(.data$any_flags_hosp) & !(.data$any_flags_ww) &
-         isTRUE(.data$ww_sufficient) ~ TRUE,
+          isTRUE(.data$ww_sufficient) ~ TRUE,
         TRUE ~ FALSE
       )
     ) |>
@@ -391,7 +391,9 @@ get_summary_ww_table <- function(ww_metadata, hosp_quantiles_filtered) {
     dplyr::group_by("forecast_date") |>
     dplyr::summarize(
       prop_states_w_ww = sum(.data$ww_data_present) / dplyr::n(),
-      pop_coverage_by_date = sum(.data$pop_coverage * .data$state_pop, na.rm = TRUE) / sum(.data$state_pop),
+      pop_coverage_by_date = sum(.data$pop_coverage * .data$state_pop,
+        na.rm = TRUE
+      ) / sum(.data$state_pop),
       avg_avg_latency = mean(.data$avg_latency, na.rm = TRUE),
       avg_avg_sampling_freq = mean(.data$avg_sampling_freq, na.rm = TRUE),
       n_states_w_duplicate_obs = sum(.data$n_duplicate_obs > 0, na.rm = TRUE)
