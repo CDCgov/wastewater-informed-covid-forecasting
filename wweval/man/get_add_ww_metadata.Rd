@@ -14,7 +14,8 @@ get_add_ww_metadata(
 \arguments{
 \item{granular_ww_metadata}{a tibble with a row for each forecast date
 location and columns that provide summaries of the wastewater data. This
-is focused on input data}
+is focused on input data. It is the output of
+"combine_and_summarize_ww_data".}
 
 \item{ww_forecast_date_locs_to_excl}{table of forecast date-locations
 to manually exclude}
@@ -31,5 +32,7 @@ or not there were any flags for manual exclusions, convergence issues,
 or wastewater quality issues
 }
 \description{
-Get additional wastewater metadata
+This function takes the summary statistics from just the input wastewater
+data (granular_ww_metadata) and joins the downstream metadata about
+convergenece and manual exclusions and combines them all into one table
 }

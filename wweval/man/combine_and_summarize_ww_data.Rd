@@ -2,7 +2,8 @@
 % Please edit documentation in R/combine_and_summarize_ww_data.R
 \name{combine_and_summarize_ww_data}
 \alias{combine_and_summarize_ww_data}
-\title{Combine and summarize wastewater data}
+\title{Combine and summarize wastewater data across all forecast dates and
+locations}
 \usage{
 combine_and_summarize_ww_data(forecast_dates, locations, eval_output_subdir)
 }
@@ -23,6 +24,8 @@ This function iterates through the vector of forecast dates and locations,
 checks for the presence of wastewater data, and if present loads it in.
 It then computes a number of summary metrics on the wastewater data for that
 particular location and forecast date to produce a single row of output
-metadata. Locations without wastewater data are indicated as such and have
-NAs for the wastewater specific entries
+metadata for each combination. Locations without wastewater data are
+indicated as such and have NAs for the wastewater specific entries. This
+will be used to get an overall summary across locations and forecast dates
+of wastewater characteristics
 }

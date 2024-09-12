@@ -9,7 +9,7 @@ get_summary_ww_table(ww_metadata, hosp_quantiles_filtered)
 \arguments{
 \item{ww_metadata}{a tibble containing one row for every forecast date
 location containing metrics averaged across that forecast date location
-about the wastewater data}
+about the wastewater data. This is the output of "get_add_ww_metadata".}
 
 \item{hosp_quantiles_filtered}{a large tibble containing all of the
 quantiled forecasts for the wastewater and hospital admissions only models
@@ -21,5 +21,7 @@ a list containing a summary overall table, a summary by forecast
 date and a summary by state
 }
 \description{
-Get wastewater data summary tables
+This function reports out summary statistics on the presence of and
+characteristics of wastewater data across all forecast
+dates and locations.
 }

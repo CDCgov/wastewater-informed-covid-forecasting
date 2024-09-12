@@ -1,11 +1,15 @@
-#' Combine and summarize wastewater data
+#' Combine and summarize wastewater data across all forecast dates and
+#'  locations
 #'
+#' @description
 #' This function iterates through the vector of forecast dates and locations,
 #' checks for the presence of wastewater data, and if present loads it in.
 #' It then computes a number of summary metrics on the wastewater data for that
 #' particular location and forecast date to produce a single row of output
-#' metadata. Locations without wastewater data are indicated as such and have
-#' NAs for the wastewater specific entries
+#' metadata for each combination. Locations without wastewater data are
+#' indicated as such and have NAs for the wastewater specific entries. This
+#' will be used to get an overall summary across locations and forecast dates
+#' of wastewater characteristics
 #'
 #' @param forecast_dates The vector of character strings of all the forecast
 #' dates
@@ -218,9 +222,16 @@ load_data_and_summarize <- function(fp_hosp, fp_ww,
 
 #' Get additional wastewater metadata
 #'
+#' @description
+#' This function takes the summary statistics from just the input wastewater
+#' data (granular_ww_metadata) and joins the downstream metadata about
+#' convergenece and manual exclusions and combines them all into one table
+#'
+#'
 #' @param granular_ww_metadata a tibble with a row for each forecast date
 #' location and columns that provide summaries of the wastewater data. This
-#' is focused on input data
+#' is focused on input data. It is the output of
+#' "combine_and_summarize_ww_data".
 #' @param ww_forecast_date_locs_to_excl table of forecast date-locations
 #' to manually exclude
 #' @param convergence_df table containing convergence flags for every forecast
@@ -258,9 +269,15 @@ get_add_ww_metadata <- function(granular_ww_metadata,
 
 #' Get wastewater data summary tables
 #'
+#' @description
+#' This function reports out summary statistics on the presence of and
+#' characteristics of wastewater data across all forecast
+#' dates and locations.
+#'
+#'
 #' @param ww_metadata a tibble containing one row for every forecast date
 #' location containing metrics averaged across that forecast date location
-#' about the wastewater data
+#' about the wastewater data. This is the output of "get_add_ww_metadata".
 #' @param hosp_quantiles_filtered a large tibble containing all of the
 #' quantiled forecasts for the wastewater and hospital admissions only models
 #' after it has been filtered for convergence, wastewater data quality,
