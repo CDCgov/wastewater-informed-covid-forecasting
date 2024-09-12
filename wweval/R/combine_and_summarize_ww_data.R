@@ -364,7 +364,7 @@ get_summary_ww_table <- function(ww_metadata, hosp_quantiles_filtered) {
     dplyr::summarise(
       n_expected_exclude = sum(.data$ww_expected, na.rm = TRUE)
     ) |>
-    dplyr::pull(.data$n_expected_exclude)
+    dplyr::pull("n_w_ww_expected")
 
   n_no_ww_expected <- nrow(ww_metadata) - n_w_ww_expected
 
