@@ -356,8 +356,8 @@ get_summary_ww_table <- function(ww_metadata, hosp_quantiles_filtered) {
     dplyr::mutate(
       ww_expected = dplyr::case_when(
         ww_data_present == 1 & !(.data$ww_exclude_manual) &
-          !isTRUE(.data$any_flags_hosp) & !isTRUE(.data$any_flags_ww) &
-          isTRUE(.data$ww_sufficient) ~ TRUE,
+          !(.data$any_flags_hosp) & !(.data$any_flags_ww) &
+         isTRUE(.data$ww_sufficient) ~ TRUE,
         TRUE ~ FALSE
       )
     ) |>
