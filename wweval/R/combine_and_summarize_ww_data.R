@@ -24,7 +24,8 @@ combine_and_summarize_ww_data <- function(forecast_dates,
                                           eval_output_subdir) {
   if (length(forecast_dates) != length(locations)) {
     cli::cli_abort(
-      message = "Vector of forecast dates and locations must be equal in length"
+      message = c("Vector of forecast dates and vector of locations must be equal in length",
+                             "Got {length(forecast_dates)} forecast dates and {length(locations)} locations")
     )
   }
 
