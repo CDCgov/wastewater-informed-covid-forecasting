@@ -316,7 +316,7 @@ get_summary_ww_table <- function(ww_metadata, hosp_quantiles_filtered) {
     ) |>
     ungroup() |>
     dplyr::summarize(n_complete_ww = sum(.data$complete_ww)) |>
-    dplyr::pull(n_complete_ww)
+    dplyr::pull(.data$n_complete_ww)
 
   n_states_w_no_ww_data <- ww_metadata |>
     dplyr::group_by(location) |>
