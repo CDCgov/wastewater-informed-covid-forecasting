@@ -293,7 +293,7 @@ get_summary_ww_table <- function(ww_metadata, hosp_quantiles_filtered) {
   # in the current analysis
   n_w_ww_actual <- hosp_quantiles_filtered |>
     dplyr::filter(
-      model_type == "ww"
+      .data$model_type == "ww"
     ) |>
     dplyr::distinct(.data$forecast_date, .data$location) |>
     nrow()
