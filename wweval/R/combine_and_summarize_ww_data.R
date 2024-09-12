@@ -136,10 +136,10 @@ load_data_and_summarize <- function(fp_hosp, fp_ww,
   if (!nrow(this_ww_data) == 0) {
     n_sites <- this_ww_data |>
       dplyr::distinct(.data$site) |>
-      dplyr::nrow()
+      nrow()
     n_labs <- this_ww_data |>
       dplyr::distinct(.data$lab) |>
-      dplyr::nrow()
+      nrow()
     sum_site_pops <- this_ww_data |>
       dplyr::group_by(.data$site) |>
       dplyr::summarise(
@@ -259,7 +259,7 @@ get_add_ww_metadata <- function(granular_ww_metadata,
       by = c("location", "forecast_date")
     ) |>
     dplyr::mutate(
-      ww_exclude_manual = dplyr::replace_na(.data$ww_exclude_manual, FALSE)
+      ww_exclude_manual = tidyr::replace_na(.data$ww_exclude_manual, FALSE)
     ) |>
     dplyr::left_join(convergence_df,
       by = c("location", "forecast_date")
