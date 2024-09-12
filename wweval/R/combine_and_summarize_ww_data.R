@@ -400,7 +400,7 @@ get_summary_ww_table <- function(ww_metadata, hosp_quantiles_filtered) {
   # Summarize across forecast dates by state
   state_summary_table <-
     ww_metadata |>
-    dplyr::group_by(location) |>
+    dplyr::group_by("location") |>
     dplyr::summarize(
       prop_forecast_dates_w_ww = sum(.data$ww_data_present) / dplyr::n(),
       avg_pop_coverage_by_state = mean(.data$pop_coverage, na.rm = TRUE),
