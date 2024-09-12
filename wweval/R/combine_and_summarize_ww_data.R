@@ -24,8 +24,10 @@ combine_and_summarize_ww_data <- function(forecast_dates,
                                           eval_output_subdir) {
   if (length(forecast_dates) != length(locations)) {
     cli::cli_abort(
-      message = c("Vector of forecast dates and vector of locations must be equal in length",
-                             "Got {length(forecast_dates)} forecast dates and {length(locations)} locations")
+      message = c(
+        "Vector of forecast dates and vector of locations must be equal in length",
+        "Got {length(forecast_dates)} forecast dates and {length(locations)} locations"
+      )
     )
   }
 
@@ -257,7 +259,7 @@ get_add_ww_metadata <- function(granular_ww_metadata,
       by = c("location", "forecast_date")
     ) |>
     dplyr::mutate(
-       ww_exclude_manual = dplyr::replace_na(.data$ww_exclude_manual, FALSE)
+      ww_exclude_manual = dplyr::replace_na(.data$ww_exclude_manual, FALSE)
     ) |>
     dplyr::left_join(convergence_df,
       by = c("location", "forecast_date")
