@@ -86,7 +86,7 @@ combine_and_summarize_ww_data <- function(forecast_dates,
       "files_missing", model_type
     ))
 
-    read::write_csv(
+    readr::write_csv(
       flag_failed_output,
       file.path(
         eval_output_subdir, "files_missing", model_type,
@@ -126,7 +126,7 @@ load_data_and_summarize <- function(fp_hosp, fp_ww,
   # Use hospital data to get state pop
   this_hosp_data <- readr::read_tsv(fp_hosp)
   state_pop <- this_hosp_data |>
-    dplyr::distinct(pop) |>
+    dplyr::distinct(.data$pop) |>
     dplyr::pull()
   if (length(state_pop) != 1) {
     cli::cli_abort(message = "multiple state pops reported")
@@ -135,65 +135,65 @@ load_data_and_summarize <- function(fp_hosp, fp_ww,
   this_ww_data <- readr::read_tsv(fp_ww)
   if (!nrow(this_ww_data) == 0) {
     n_sites <- this_ww_data |>
-      dplyr::distinct(site) |>
-      nrow()
+      dplyr::distinct(.data$site) |>
+      dplyr::nrow()
     n_labs <- this_ww_data |>
-      dplyr::distinct(lab) |>
-      nrow()
+      dplyr::distinct(.data$lab) |>
+      dplyr::nrow()
     sum_site_pops <- this_ww_data |>
-      dplyr::group_by(site) |>
+      dplyr::group_by(.data$site) |>
       dplyr::summarise(
-        mean_site_pop = mean(ww_pop, na.rm = TRUE)
+        mean_site_pop = mean(.data$ww_pop, na.rm = TRUE)
       ) |>
       dplyr::ungroup() |>
-      dplyr::summarise(ww_total_pop = sum(mean_site_pop,
+      dplyr::summarise(ww_total_pop = sum(.data$mean_site_pop,
         na.rm = TRUE
       )) |>
-      dplyr::pull(ww_total_pop)
+      dplyr::pull(.data$ww_total_pop)
     pop_coverage <- sum_site_pops / state_pop
 
     avg_latency <- this_ww_data |>
-      dplyr::group_by(lab_wwtp_unique_id) |>
-      dplyr::summarize(max_date = max(date)) |>
+      dplyr::group_by(.data$lab_wwtp_unique_id) |>
+      dplyr::summarize(max_date = max(.data$date)) |>
       dplyr::mutate(
         latency = as.numeric(lubridate::ymd(
           !!this_forecast_date
-        ) - lubridate::ymd(max_date))
+        ) - lubridate::ymd(.data$max_date))
       ) |>
       dplyr::summarize(
-        mean_latency = mean(latency, na.rm = TRUE)
+        mean_latency = mean(.data$latency, na.rm = TRUE)
       ) |>
-      dplyr::pull(mean_latency)
+      dplyr::pull(.data$mean_latency)
 
     avg_sampling_freq <- this_ww_data |>
-      dplyr::group_by(lab_wwtp_unique_id) |>
-      dplyr::arrange(date, desc = TRUE) |>
+      dplyr::group_by(.data$lab_wwtp_unique_id) |>
+      dplyr::arrange(.data$date, desc = TRUE) |>
       # There are some duplicate dates within a site and lab
-      dplyr::distinct(date) |>
+      dplyr::distinct(.data$date) |>
       dplyr::mutate(
-        prev_date = dplyr::lag(date, 1),
+        prev_date = dplyr::lag(.data$date, 1),
         diff_time = as.numeric(lubridate::days(
-          difftime(date, prev_date)
+          difftime(.data$date, prev_date)
         ), "days")
       ) |>
       dplyr::ungroup() |>
       dplyr::summarize(
-        mean_collection_freq = mean(diff_time, na.rm = TRUE)
+        mean_collection_freq = mean(.data$diff_time, na.rm = TRUE)
       ) |>
-      dplyr::pull(mean_collection_freq)
+      dplyr::pull(.data$mean_collection_freq)
 
     n_duplicate_obs <- this_ww_data |>
-      dplyr::group_by(lab_wwtp_unique_id, date) |>
+      dplyr::group_by(.data$lab_wwtp_unique_id, .data$date) |>
       dplyr::summarize(n_obs = dplyr::n()) |>
       dplyr::ungroup() |>
       dplyr::summarize(
-        n_duplicates = sum(n_obs > 1)
+        n_duplicates = sum(.data$n_obs > 1)
       ) |>
-      dplyr::pull(n_duplicates)
+      dplyr::pull(.data$n_duplicates)
 
     this_ww_metadata <- tibble::tibble(
-      forecast_date = this_forecast_date,
-      location = this_location,
+      forecast_date = !!this_forecast_date,
+      location = !!this_location,
       ww_data_present = 1,
       n_sites,
       n_labs,
@@ -249,12 +249,12 @@ get_add_ww_metadata <- function(granular_ww_metadata,
                                 convergence_df,
                                 table_of_loc_dates_w_ww) {
   granular_ww_metadata_used <- granular_ww_metadata |>
-    dplyr::mutate(forecast_date = lubridate::ymd(forecast_date)) |>
+    dplyr::mutate(forecast_date = lubridate::ymd(.data$forecast_date)) |>
     dplyr::left_join(
       ww_forecast_date_locs_to_excl |>
         mutate(
           ww_exclude_manual = TRUE,
-          forecast_date = lubridate::ymd(.data$orecast_date)
+          forecast_date = lubridate::ymd(.data$forecast_date)
         ),
       by = c("location", "forecast_date")
     ) |>
@@ -300,19 +300,19 @@ get_summary_ww_table <- function(ww_metadata, hosp_quantiles_filtered) {
     dplyr::distinct(.data$forecast_date, .data$location) |>
     nrow()
 
-  n_no_ww_actual <- nrow(ww_metadata) - n_w_ww_actual
+  n_no_ww_actual <- dplyr::nrow(ww_metadata) - n_w_ww_actual
 
   # Then get what would be expected
 
-  n_combinations <- nrow(ww_metadata)
+  n_combinations <- dplyr::nrow(ww_metadata)
 
   n_combos_w_ww_data <- ww_metadata |>
     dplyr::summarise(
-      n_ww_present = sum(ww_data_present, na.rm = TRUE)
+      n_ww_present = sum(.data$ww_data_present, na.rm = TRUE)
     )
 
   n_states_w_complete_ww_data <- ww_metadata |>
-    dplyr::group_by(location) |>
+    dplyr::group_by(.data$location) |>
     dplyr::summarize(
       complete_ww = all(.data$ww_data_present == 1)
     ) |>
@@ -321,46 +321,46 @@ get_summary_ww_table <- function(ww_metadata, hosp_quantiles_filtered) {
     dplyr::pull(.data$n_complete_ww)
 
   n_states_w_no_ww_data <- ww_metadata |>
-    dplyr::group_by(location) |>
+    dplyr::group_by(.data$location) |>
     dplyr::summarize(
-      no_ww = all(ww_data_present == 0)
+      no_ww = all(.data$ww_data_present == 0)
     ) |>
-    ungroup() |>
-    dplyr::summarize(n_zero_ww = sum(no_ww)) |>
-    dplyr::pull(n_zero_ww)
+    dplyr::ungroup() |>
+    dplyr::summarize(n_zero_ww = sum(.data$no_ww)) |>
+    dplyr::pull(.data$n_zero_ww)
 
   n_combos_w_hosp_conv_flags <- ww_metadata |>
-    dplyr::summarise(n_hosp_flags = sum(any_flags_hosp, na.rm = TRUE)) |>
-    dplyr::pull(n_hosp_flags)
+    dplyr::summarise(n_hosp_flags = sum(.data$any_flags_hosp, na.rm = TRUE)) |>
+    dplyr::pull(.data$n_hosp_flags)
   n_combos_w_ww_conv_flags <- ww_metadata |>
-    dplyr::summarise(n_ww_flags = sum(any_flags_ww, na.rm = TRUE)) |>
-    dplyr::pull(n_ww_flags)
+    dplyr::summarise(n_ww_flags = sum(.data$any_flags_ww, na.rm = TRUE)) |>
+    dplyr::pull(.data$n_ww_flags)
 
   n_insuff_ww <- ww_metadata |>
     dplyr::summarise(
-      n_ww_insuff = sum(ww_sufficient == FALSE, na.rm = TRUE)
+      n_ww_insuff = sum(.data$ww_sufficient == FALSE, na.rm = TRUE)
     ) |>
     dplyr::pull(n_ww_insuff)
 
   n_ww_excluded <- ww_metadata |>
     dplyr::summarise(
-      n_ww_excl = sum(ww_exclude_manual, na.rm = TRUE)
+      n_ww_excl = sum(.data$ww_exclude_manual, na.rm = TRUE)
     ) |>
-    dplyr::pull(n_ww_excl)
+    dplyr::pull(.data$n_ww_excl)
 
   n_w_ww_expected <- ww_metadata |>
     dplyr::mutate(
       ww_expected = dplyr::case_when(
-        ww_data_present == 1 & is.na(ww_exclude_manual) &
-          !isTRUE(any_flags_hosp) & !isTRUE(any_flags_ww) &
-          ww_sufficient == TRUE ~ TRUE,
+        ww_data_present == 1 & is.na(.data$ww_exclude_manual) &
+          !isTRUE(.data$any_flags_hosp) & !isTRUE(.data$any_flags_ww) &
+          isTRUE(.data$ww_sufficient) ~ TRUE,
         TRUE ~ FALSE
       )
     ) |>
     dplyr::summarise(
-      n_expected_exclude = sum(ww_expected, na.rm = TRUE)
+      n_expected_exclude = sum(.data$ww_expected, na.rm = TRUE)
     ) |>
-    dplyr::pull(n_expected_exclude)
+    dplyr::pull(.data$n_expected_exclude)
 
   n_no_ww_expected <- nrow(ww_metadata) - n_w_ww_expected
 
