@@ -170,17 +170,19 @@ load_data_and_summarize <- function(fp_hosp, fp_ww,
       dplyr::arrange(.data$date, desc = TRUE) |>
       # There are some duplicate dates within a site and lab
       dplyr::distinct(.data$date) |>
-      dplyr::mutate(
-        prev_date = dplyr::lag(.data$date, 1),
-        diff_time = as.numeric(lubridate::days(
-          difftime(.data$date, prev_date)
-        ), "days")
-      ) |>
-      dplyr::ungroup() |>
       dplyr::summarize(
-        mean_collection_freq = mean(.data$diff_time, na.rm = TRUE)
+        n_days_w_samples = dplyr::n(),
+        n_days_total = as.numeric(max(.data$date) - min(.data$date)),
+        mean_collection_freq = .data$n_days_w_samples / .data$n_days_total
       ) |>
-      dplyr::pull(.data$mean_collection_freq)
+      dplyr::summarize(
+        mean_mean_collection_freq = mean(.data$mean_collection_freq)
+      ) |>
+      dplyr::pull(mean(.data$mean_mean_collection_freq))
+
+    n_days_w_samples <- this_ww_data |>
+      dplyr::summarize(n_days_w_samples = dplyr::n()) |>
+      dplyr::pull(.data$n_days_w_samples)
 
     n_duplicate_obs <- this_ww_data |>
       dplyr::group_by(.data$lab_wwtp_unique_id, .data$date) |>
@@ -201,6 +203,7 @@ load_data_and_summarize <- function(fp_hosp, fp_ww,
       state_pop,
       avg_latency,
       avg_sampling_freq,
+      n_days_w_samples,
       n_duplicate_obs
     )
   } else { # Wastewater data has no rows -- fill in rows with NAs for ww metrics
@@ -214,6 +217,7 @@ load_data_and_summarize <- function(fp_hosp, fp_ww,
       state_pop = state_pop,
       avg_latency = NA,
       avg_sampling_freq = NA,
+      n_days_w_samples = NA,
       n_duplicate_obs = NA
     )
   }
