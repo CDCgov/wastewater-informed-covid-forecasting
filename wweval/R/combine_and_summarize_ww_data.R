@@ -315,7 +315,7 @@ get_summary_ww_table <- function(ww_metadata, hosp_quantiles_filtered) {
       complete_ww = all(.data$ww_data_present == 1)
     ) |>
     ungroup() |>
-    dplyr::summarize(n_complete_ww = sum(complete_ww)) |>
+    dplyr::summarize(n_complete_ww = sum(.data$complete_ww)) |>
     dplyr::pull(n_complete_ww)
 
   n_states_w_no_ww_data <- ww_metadata |>
