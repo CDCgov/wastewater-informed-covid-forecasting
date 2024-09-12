@@ -295,9 +295,9 @@ get_summary_ww_table <- function(ww_metadata, hosp_quantiles_filtered) {
   # in the current analysis
   n_w_ww_actual <- hosp_quantiles_filtered |>
     dplyr::filter(
-      model_type == "ww"
+      .data$model_type == "ww"
     ) |>
-    dplyr::distinct(forecast_date, location) |>
+    dplyr::distinct(.data$forecast_date, .data$location) |>
     nrow()
 
   n_no_ww_actual <- nrow(ww_metadata) - n_w_ww_actual
@@ -314,11 +314,11 @@ get_summary_ww_table <- function(ww_metadata, hosp_quantiles_filtered) {
   n_states_w_complete_ww_data <- ww_metadata |>
     dplyr::group_by(location) |>
     dplyr::summarize(
-      complete_ww = all(ww_data_present == 1)
+      complete_ww = all(.data$ww_data_present == 1)
     ) |>
     ungroup() |>
-    dplyr::summarize(n_complete_ww = sum(complete_ww)) |>
-    dplyr::pull(n_complete_ww)
+    dplyr::summarize(n_complete_ww = sum(.data$complete_ww)) |>
+    dplyr::pull(.data$n_complete_ww)
 
   n_states_w_no_ww_data <- ww_metadata |>
     dplyr::group_by(location) |>
