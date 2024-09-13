@@ -7,13 +7,16 @@ on:
 
 jobs:
   check-eval:
+    strategy:
+      matrix:
+        r-version: ["4.1.0", "release"]
     runs-on: ubuntu-latest
     steps:
     - uses: actions/checkout@v4
     - uses: actions/checkout@v4
     - uses: r-lib/actions/setup-r@v2
       with:
-        r-version: "release"
+        r-version: ${{matrix.r-version}}
         use-public-rspm: true
         extra-repositories: "https://mc-stan.org/r-packages/"
     - name: "Set up dependencies for wweval"
@@ -31,12 +34,15 @@ jobs:
         working-directory: wweval
 
   check-ww:
+    strategy:
+      matrix:
+        r-version: ["4.1.0", "release"]
     runs-on: ubuntu-latest
     steps:
     - uses: actions/checkout@v4
     - uses: r-lib/actions/setup-r@v2
       with:
-        r-version: "release"
+        r-version: ${{matrix.r-version}}
         use-public-rspm: true
         extra-repositories: "https://mc-stan.org/r-packages/"
     - name: "Set up dependencies for cfaforecastrenewalww"
