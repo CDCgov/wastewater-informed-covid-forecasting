@@ -236,8 +236,17 @@ combined_targets <- list(
       model_type = "ww"
     )
   ),
+  ## Wastewater metadata---------------------------------
+  tar_target(
+    name = granular_ww_metadata,
+    command = combine_and_summarize_ww_data(
+      forecast_dates = eval_config$forecast_date_ww,
+      locations = eval_config$location_ww,
+      eval_output_subdir = eval_config$output_dir
+    )
+  ),
 
-  ### Scores from quantiles-------------------------------------------------
+  ## Scores from quantiles-------------------------------------------------
   tar_target(
     name = all_ww_scores_quantiles,
     command = combine_outputs(
@@ -332,8 +341,9 @@ head_to_head_targets <- list(
   ),
   tar_target(
     name = ww_forecast_date_locs_to_excl,
-    command = as.data.frame(eval_config$www_forecast_date_locs_to_excl)
+    command = as.data.frame(eval_config$ww_forecast_date_locs_to_excl)
   ),
+
   # Get the full set of quantiles, filtered down to only states and
   # forecast dates with sufficient wastewater for both ww model and hosp only
   # model. Then join the convergence df
@@ -472,6 +482,23 @@ head_to_head_targets <- list(
 # ggarranged, properly formatted figures, and currently require
 # specification for the figure components that are examples.
 manuscript_figures <- list(
+  ## Summary metadata table-----------------------------------------
+  tar_target(
+    name = granular_ww_metadata_used,
+    command = get_add_ww_metadata(
+      granular_ww_metadata,
+      ww_forecast_date_locs_to_excl,
+      convergence_df,
+      table_of_loc_dates_w_ww
+    )
+  ),
+  tar_target(
+    name = list_of_summary_ww_tables,
+    command = get_summary_ww_table(
+      granular_ww_metadata_used,
+      hosp_quantiles_filtered
+    )
+  ),
   ## Figure specifications----------------------------------------
   tar_target(
     name = locs_to_plot,
@@ -1142,7 +1169,7 @@ hub_targets <- list(
     command = score_hub_submissions(
       model_name = c("cfa-wwrenewal", "cfa-hosponlyrenewal"),
       hub_subdir = eval_config$hub_subdir,
-      pull_from_github = boolean_to_pull_locally,
+      pull_from_github = FALSE,
       dates = seq(
         from = lubridate::ymd(
           min(eval_config$forecast_date_hosp)
