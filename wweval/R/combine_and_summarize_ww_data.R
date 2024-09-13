@@ -26,7 +26,7 @@ combine_and_summarize_ww_data <- function(forecast_dates,
     cli::cli_abort(
       message = c(
         "Vector of forecast dates and vector of locations must be equal in length. ",
-        "Got {length(forecast_dates)} forecast dates and {length(locations)} locations"
+        "Got {length(forecast_dates)} forecast dates and {length(locations)} locations."
       )
     )
   }
