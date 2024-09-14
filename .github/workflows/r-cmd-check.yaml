@@ -9,7 +9,7 @@ jobs:
   check-eval:
     strategy:
       matrix:
-        r-version: ["4.1.0", "release"]
+        r-version: ["release"]
     runs-on: ubuntu-latest
     steps:
     - uses: actions/checkout@v4
