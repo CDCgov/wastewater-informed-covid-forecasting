@@ -47,7 +47,7 @@ License: Apache License (== 2.0)
 URL: https://github.com/cdcgov/wastewater-informed-covid-forecasting/
 BugReports: https://github.com/cdcgov/wastewater-informed-covid-forecasting/issues/
 Depends:
-    R (>= 4.1.0)
+    R (>= 4.3.0)
 Imports:
     dplyr,
     tidybayes,
