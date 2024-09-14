@@ -7,16 +7,13 @@ on:
 
 jobs:
   check-eval:
-    strategy:
-      matrix:
-        r-version: ["release"]
     runs-on: ubuntu-latest
     steps:
     - uses: actions/checkout@v4
     - uses: actions/checkout@v4
     - uses: r-lib/actions/setup-r@v2
       with:
-        r-version: ${{matrix.r-version}}
+        r-version: "release"
         use-public-rspm: true
         extra-repositories: "https://mc-stan.org/r-packages/"
     - name: "Set up dependencies for wweval"
