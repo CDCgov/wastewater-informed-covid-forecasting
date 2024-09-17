@@ -234,5 +234,9 @@ make_fig2 <- function(hosp1, hosp2, hosp3,
     filename = file.path(fig_file_dir, "fig2.png"),
     width = 10, height = 7
   )
+  ggsave(fig2,
+    filename = file.path(fig_file_dir, "fig2.svg"),
+    width = 10, height = 7
+  )
   return(fig2)
 }
