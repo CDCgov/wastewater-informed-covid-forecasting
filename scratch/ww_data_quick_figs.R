@@ -1,7 +1,7 @@
 library(ggplot2)
 
-nwss_ny <- readr::read_csv(file.path("input", "ww_data", "nwss_data", "2024-02-14.csv")) |>
-  dplyr::filter(wwtp_jurisdiction == "ny")
+nwss_az <- readr::read_csv(file.path("input", "ww_data", "monday_datasets", "2024-02-05.csv")) |>
+  dplyr::filter(wwtp_jurisdiction == "az")
 ny_old <- readr::read_csv(file.path("input", "ww_data", "nwss_data", "2024-02-11.csv")) |>
   dplyr::filter(wwtp_jurisdiction == "ny")
 

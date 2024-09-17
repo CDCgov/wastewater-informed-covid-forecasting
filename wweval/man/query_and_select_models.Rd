@@ -13,9 +13,9 @@ query_and_select_models(
 )
 }
 \arguments{
-\item{prop_dates_for_incl_hub}{Numeric greater than 0 and less than or equal to 1 indicating the inclusion
-threshold for the proportion of forecast dates that a model must have
-submitted forecasts to be included in analysis}
+\item{prop_dates_for_incl_hub}{Numeric greater than 0 and less than or equal
+to 1 indicating the inclusion threshold for the proportion of forecast dates
+that a model must have submitted forecasts to be included in analysis}
 
 \item{prop_locs_for_incl_hub}{Numeric less than 1 indicating the inclusion
 threshold for the proportion of the locations we expect that a model
