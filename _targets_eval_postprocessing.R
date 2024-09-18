@@ -1408,16 +1408,22 @@ hub_comparison_plots <- list(
   )
 )
 
-# Summaries ----------------------------------------------------------
+# Supplement ----------------------------------------------------------
 # Make some tables with summary stats to include in results
-summary_targets <- list(
+supp_targets <- list(
   tar_target(
-    name = overall_bias_comp,
-    command = get_bias(scores_filtered)
+    name = sfig_bias_over_time_comparison,
+    command = get_plot_bias_over_time(scores_filtered,
+      fig_subscript = "comp",
+      fig_file_dir = eval_config$ms_fig_dir
+    )
   ),
   tar_target(
-    name = overall_bias_Hub,
-    command = get_bias(scores_filtered)
+    name = sfig_bias_over_time_Hub,
+    command = get_plot_bias_over_time(combine_scores_oct_mar,
+      fig_subscript = "Hub",
+      fig_file_dir = eval_config$ms_fig_dir
+    )
   )
 )
 
@@ -1431,5 +1437,6 @@ list(
   manuscript_figures,
   scenario_targets,
   hub_targets,
-  hub_comparison_plots
+  hub_comparison_plots,
+  supp_targets
 )

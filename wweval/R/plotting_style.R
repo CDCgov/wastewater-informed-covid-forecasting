@@ -54,7 +54,8 @@ get_plot_theme <- function(x_axis_text_size = 8,
       plot.title = element_text(
         size = plot_title_size,
         vjust = 0.5, hjust = 0.5
-      )
+      ),
+      plot.background = element_rect(fill = "white")
     )
 
 
