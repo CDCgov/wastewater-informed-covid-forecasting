@@ -16,7 +16,7 @@
 #' @param init_lists nested list of initial parameter values for each chain
 #' @param target_dir Directory in which to save the compiled
 #' stan model binary. Passed as the `target_dir` keyword argument to
-#' [cfaforecastrenewalww::compile_model()].
+#' [wwinference::compile_model()].
 #' Defaults to a temporary directory for the R session
 #' (the output of [tempdir()]).
 #' @param iter_warmup number of iterations to save in MCMC sampling,
@@ -45,7 +45,7 @@ sample_model <- function(standata,
                          adapt_delta = 0.95,
                          n_chains = 4,
                          seed = 123) {
-  compiled_model <- cfaforecastrenewalww::compile_model(
+  compiled_model <- wwinference::compile_model(
     model_filepath = stan_model_path,
     include_paths = stan_models_dir,
     target_dir = target_dir

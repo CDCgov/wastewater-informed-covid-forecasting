@@ -71,7 +71,7 @@ eval_config <- yaml::read_yaml(file.path(
   "eval", "eval_config.yaml"
 ))
 # Get global parameter values
-params <- cfaforecastrenewalww::get_params(file.path(
+params <- wwinference::get_params(file.path(
   "input", "params.toml"
 ))
 
