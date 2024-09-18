@@ -911,6 +911,7 @@ init_subset_nwss_data <- function(raw_nwss_data) {
 #' more than once per week
 #'
 #' @param nwss_subset subsetted nwss data
+#' @param ww_target_type NEEDS DOCUMENTATION
 #'
 #' @return weekly summary of nwss data by site
 #'
@@ -1118,6 +1119,8 @@ get_state_level_summary <- function(nwss_by_week) {
 #' @param ww_target_type NEEDS DOCUMENTATION
 #' @param ww_geo_type NEEDS DOCUMENTATION
 #' @param ww_data_path NEEDS DOCUMENTATION
+#' @param dates_for_ww_removal NEEDS DOCUMENTATION
+#' @param states_for_ww_removal NEEDS DOCUMENTATION
 #'
 #' @return dataframe with observed viral concentrations at the geographic
 #' level specified and weekly temporal granularity. Dates correspond to the
@@ -1317,6 +1320,7 @@ flag_ww_outliers <- function(ww_data, rho_threshold = 2,
 #' of the corresponding dates we want to remove
 #' @param dates_for_hosp_removal dates lining up with the
 #' states we want to remove from
+#' @param ... additional arguments
 #'
 #' @return revised train data with hospital admissions removed
 #' @export

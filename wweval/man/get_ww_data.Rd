@@ -29,6 +29,10 @@ get_ww_data(
 \item{ww_geo_type}{NEEDS DOCUMENTATION}
 
 \item{ww_data_path}{NEEDS DOCUMENTATION}
+
+\item{dates_for_ww_removal}{NEEDS DOCUMENTATION}
+
+\item{states_for_ww_removal}{NEEDS DOCUMENTATION}
 }
 \value{
 dataframe with observed viral concentrations at the geographic

@@ -19,6 +19,6 @@
 #' @importFrom data.table as.data.table
 #' @importFrom tibble tibble
 #' @importFrom grDevices colors
-#' @importFrom stats density median quantile sd
+#' @importFrom stats density median quantile sd lag
 #' @importFrom utils read.table write.csv write.table
 NULL
