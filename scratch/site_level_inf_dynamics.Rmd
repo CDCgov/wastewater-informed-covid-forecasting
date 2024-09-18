@@ -254,7 +254,7 @@ $$ R_j(t) \sim  logNormal(R_{state\mu}(t), \sigma_{R(t)})$$
 # magnitude of peak viral shedding, and duration of viral shedding). These
 # were informed in combination from literature on fecal shedding and viral loads
 # in the nasal package.
-params <- get_params(config_vars_ss$param_file_path) #
+params <- get_params(config_vars_ss$param_file_path) |> as.data.frame() #
 print(params)
 
 params$p_hosp_w_sd_sd <- 0.05

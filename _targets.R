@@ -249,7 +249,7 @@ list(
   ),
   tar_target(
     name = params_id,
-    command = get_params(param_file_path_id),
+    command = get_params(param_file_path_id) |> as.data.frame(),
     deployment = "main",
     priority = 1
   ),
@@ -499,7 +499,7 @@ list(
   ),
   tar_target(
     name = params_ho,
-    command = get_params(param_file_path_ho),
+    command = get_params(param_file_path_ho) |> as.data.frame(),
     deployment = "main"
   ),
 
@@ -654,7 +654,7 @@ list(
   ),
   tar_target(
     name = params_sa,
-    command = get_params(param_file_path_sa),
+    command = get_params(param_file_path_sa) |> as.data.frame(),
     deployment = "main"
   ),
   ## Fit the model ------------------------------------------------------------

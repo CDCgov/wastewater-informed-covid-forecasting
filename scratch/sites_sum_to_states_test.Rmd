@@ -111,7 +111,7 @@ ggplot(sim_data_df) +
 params <- get_params(
   system.file("extdata", "example_params.toml",
     package = "cfaforecastrenewalww"
-  )
+  ) |> as.data.frame()
 )
 params
 

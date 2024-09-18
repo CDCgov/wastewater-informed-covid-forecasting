@@ -143,7 +143,7 @@ per person per day.
 # magnitude of peak viral shedding, and duration of viral shedding). These
 # were informed in combination from literature on fecal shedding and viral loads
 # in the nasal package.
-params <- get_params(here::here("input", "params.toml")) #
+params <- get_params(here::here("input", "params.toml")) |> as.data.frame() #
 print(params)
 
 stan_data <- do.call(get_stan_data, c(

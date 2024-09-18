@@ -73,7 +73,7 @@ eval_config <- yaml::read_yaml(file.path(
 # Get global parameter values
 params <- wwinference::get_params(file.path(
   "input", "params.toml"
-))
+)) |> as.data.frame()
 
 
 
