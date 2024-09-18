@@ -33,7 +33,6 @@ jobs:
       uses: r-lib/actions/check-r-package@v2
       with:
         working-directory: wweval
-        error-on: '"error"'
 
   check-ww:
     strategy:
