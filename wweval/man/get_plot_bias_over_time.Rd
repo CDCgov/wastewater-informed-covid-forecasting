@@ -4,12 +4,14 @@
 \alias{get_plot_bias_over_time}
 \title{Get a plot of bias over time}
 \usage{
-get_plot_bias_over_time(scores, fig_subscript)
+get_plot_bias_over_time(scores, fig_subscript, fig_file_dir)
 }
 \arguments{
 \item{scores}{a complete df of scores with a column for bias}
 
 \item{fig_subscript}{subscript to name the figure}
+
+\item{fig_file_dir}{Path to save figures}
 }
 \value{
 a plot of bias over time averaged across locations and forecast dates,
