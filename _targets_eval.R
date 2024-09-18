@@ -84,8 +84,8 @@ upstream_targets <- list(
   tar_target(
     name = eval_hosp_data,
     command = get_input_hosp_data(
-      forecast_date = eval_config$eval_date,
-      location = unique(eval_config$location_hosp),
+      forecast_date_i = eval_config$eval_date,
+      location_i = unique(eval_config$location_hosp),
       hosp_data_dir = eval_config$hosp_data_dir,
       calibration_time = 365, # Grab sufficient data for eval
       # If don't have a hospital admissions dataset from the `eval_date`,
@@ -143,7 +143,9 @@ mapped_ww <- tar_map(
   ),
   tar_target(
     name = raw_input_hosp_data,
-    command = get_input_hosp_data(forecast_date, location,
+    command = get_input_hosp_data(
+      forecast_date_i = forecast_date,
+      location_i = location,
       hosp_data_dir = eval_config$hosp_data_dir,
       calibration_time = eval_config$calibration_time
     ),
@@ -502,7 +504,9 @@ mapped_hosp <- tar_map(
   ),
   tar_target(
     name = raw_input_hosp_data,
-    command = get_input_hosp_data(forecast_date, location,
+    command = get_input_hosp_data(
+      forecast_date_i = forecast_date,
+      location_i = location,
       hosp_data_dir = eval_config$hosp_data_dir,
       calibration_time = eval_config$calibration_time
     ),

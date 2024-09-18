@@ -45,7 +45,7 @@ get_input_ww_data <- function(forecast_date_i,
 
   # Use package functions to subset NWSS data
   ww_data <- raw_nwss_data |>
-    init_subset_nwss_data()
+    cfaforecastrenewalww::init_subset_nwss_data()
   # Get the data corresponding to the scenario
   list_of_site_ids <- get_scenario_site_ids(
     ww_data,
@@ -164,7 +164,7 @@ get_input_hosp_data <- function(forecast_date_i, location_i,
       as_of = forecast_date_i
     ))
 
-    state_population_table <- readr::read_csv(population_data_path) %>%
+    state_population_table <- readr::read_csv(population_data_path) |>
       dplyr::mutate(population = as.numeric(population))
 
     hosp <- hosp_raw |>

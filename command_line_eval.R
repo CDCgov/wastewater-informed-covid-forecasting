@@ -39,8 +39,8 @@ eval_fit <- function(config_index, eval_config_path, output_dir) {
 
   # Get the evaluation data from the specified evaluation date ----------------
   eval_hosp_data <- get_input_hosp_data(
-    forecast_date = eval_config$eval_date,
-    location = unique(eval_config$location_ww),
+    forecast_date_i = eval_config$eval_date,
+    location_i = unique(eval_config$location_ww),
     hosp_data_dir = eval_config$hosp_data_dir,
     calibration_time = 365 # Grab sufficient data for eval
   )
@@ -65,7 +65,9 @@ eval_fit <- function(config_index, eval_config_path, output_dir) {
     stan_models_dir = eval_config$stan_models_dir
   )
 
-  input_hosp_data <- get_input_hosp_data(forecast_date, location,
+  input_hosp_data <- get_input_hosp_data(
+    forecast_date_i = forecast_date,
+    location_i = location,
     hosp_data_dir = eval_config$hosp_data_dir,
     calibration_time = eval_config$calibration_time
   )

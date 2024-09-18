@@ -40,8 +40,8 @@ eval_fit_ww <- function(config_index,
 
   # Get the evaluation data from the specified evaluation date ----------------
   eval_hosp_data <- get_input_hosp_data(
-    forecast_date = eval_config$eval_date,
-    location = location,
+    forecast_date_i = eval_config$eval_date,
+    location_i = location,
     hosp_data_dir = eval_config$hosp_data_dir,
     calibration_time = 365 # Grab sufficient data for eval
   )
@@ -70,7 +70,9 @@ eval_fit_ww <- function(config_index,
     model_type = "ww",
     stan_models_dir = eval_config$stan_models_dir
   )
-  raw_input_hosp_data <- get_input_hosp_data(forecast_date, location,
+  raw_input_hosp_data <- get_input_hosp_data(
+    forecast_date_i = forecast_date,
+    location_i = location,
     hosp_data_dir = eval_config$hosp_data_dir,
     calibration_time = eval_config$calibration_time
   )
@@ -174,8 +176,8 @@ eval_fit_hosp <- function(config_index,
 
   # Get the evaluation data from the specified evaluation date ----------------
   eval_hosp_data <- get_input_hosp_data(
-    forecast_date = eval_config$eval_date,
-    location = location,
+    forecast_date_i = eval_config$eval_date,
+    location_i = location,
     hosp_data_dir = eval_config$hosp_data_dir,
     calibration_time = 365 # Grab sufficient data for eval
   )
@@ -191,7 +193,9 @@ eval_fit_hosp <- function(config_index,
     stan_models_dir = eval_config$stan_models_dir
   )
 
-  raw_input_hosp_data <- get_input_hosp_data(forecast_date, location,
+  raw_input_hosp_data <- get_input_hosp_data(
+    forecast_date_i = forecast_date,
+    location_i = location,
     hosp_data_dir = eval_config$hosp_data_dir,
     calibration_time = eval_config$calibration_time
   )
