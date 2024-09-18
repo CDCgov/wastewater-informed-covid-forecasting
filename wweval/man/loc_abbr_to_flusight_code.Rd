@@ -21,6 +21,3 @@ the corresponding FluSight challenge location
 code (legacy FIPS code for states and territories,
 \code{US} for the US).
 }
-\seealso{
-\code{\link[=loc_flusight_code_to_abbr]{loc_flusight_code_to_abbr()}}
-}
