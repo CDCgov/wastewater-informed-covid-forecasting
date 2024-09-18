@@ -116,7 +116,10 @@ get_plot_score_by_horizon_t <- function(scores,
 get_avg_scores_model_horizon <- function(scores,
                                          score_type) {
   avg_scores <- scores |>
-    dplyr::filter(!horizon %in% c("0 week ahead", "5 week ahead")) |>
+    dplyr::filter(
+      !horizon %in% c("0 week ahead", "5 week ahead"),
+      !is.na(horizon)
+    ) |>
     # hack, will fix upstream
     bind_rows(
       scores |>
@@ -125,7 +128,8 @@ get_avg_scores_model_horizon <- function(scores,
     dplyr::group_by(model, horizon) |>
     dplyr::summarize(
       avg_score = mean(!!sym({{ score_type }}))
-    )
+    ) |>
+    tidyr::pivot_wider(names_from = model, values_from = avg_score)
 
   return(avg_scores)
 }

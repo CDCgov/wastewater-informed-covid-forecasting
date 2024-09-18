@@ -1441,7 +1441,7 @@ supp_targets <- list(
   ),
   tar_target(
     name = avg_crps_by_horizon,
-    command = get_avg_scores_by_model_horizon(
+    command = get_avg_scores_model_horizon(
       scores_filtered,
       "crps"
     )
