@@ -24,13 +24,13 @@ pull_nhsn(
 use. Defaults to the HTTPS:// Socrata
 endpoint for HHS Protect / NHSN
 on HealthData.gov as of 2023-10-23, namely
-\verb{[https://healthdata.gov/resource/g62h-syeh]}}
+<[https://healthdata.gov/resource/g62h-syeh>}
 
 \item{api_key_id}{Key ID of an API key to use
 when querying the dataset. Not required,
 but polite and reduces throttling.
 You can create one at
-\link{https://healthdata.gov/profile/edit/developer_settings}.
+\url{https://healthdata.gov/profile/edit/developer_settings}.
 Default \code{NULL} (no API key).}
 
 \item{api_key_secret}{Associated key secret

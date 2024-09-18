@@ -75,12 +75,12 @@ trajectories_to_quantiles <- function(trajectories,
 #' use. Defaults to the HTTPS:// Socrata
 #' endpoint for HHS Protect / NHSN
 #' on HealthData.gov as of 2023-10-23, namely
-#' `[https://healthdata.gov/resource/g62h-syeh]`
+#' <[https://healthdata.gov/resource/g62h-syeh>
 #' @param api_key_id Key ID of an API key to use
 #' when querying the dataset. Not required,
 #' but polite and reduces throttling.
 #' You can create one at
-#' [https://healthdata.gov/profile/edit/developer_settings].
+#' <https://healthdata.gov/profile/edit/developer_settings>.
 #' Default `NULL` (no API key).
 #' @param api_key_secret Associated key secret
 #' for the API key given in `api_key_id`.
