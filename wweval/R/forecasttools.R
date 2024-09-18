@@ -358,9 +358,9 @@ plot_quantiles <- function(data,
 loc_abbr_to_flusight_code <- function(abbrs) {
   mask <- match(
     x = abbrs,
-    table = cfaforecastrenewalww::flusight_location_table$short_name
+    table = wweval::flusight_location_table$short_name
   )
   return(
-    cfaforecastrenewalww::flusight_location_table$location_code[mask]
+    wweval::flusight_location_table$location_code[mask]
   )
 }

@@ -88,3 +88,4 @@ Remotes:
     cfaforecastrenewalww=CDCgov/wastewater-informed-covid-forecasting/cfaforecastrenewalww,
     stan-dev/cmdstanr,
     wwinference=CDCgov/ww-inference-model
+LazyData: true

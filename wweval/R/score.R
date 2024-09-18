@@ -224,7 +224,7 @@ query_and_select_models <- function(prop_dates_for_incl_hub,
                                     locations,
                                     project_name = "COVID-19 Forecasts") {
   # get state abbreviation codes
-  state_codes <- cfaforecastrenewalww::loc_abbr_to_flusight_code(
+  state_codes <- loc_abbr_to_flusight_code(
     unique(locations)
   )
 
@@ -374,7 +374,7 @@ score_hub_submissions <- function(model_name,
         # Filter locations if they are specified, otherwise leave them all in
         if (!is.null(locations)) {
           quantiles_w_truth <- quantiles_w_truth |>
-            dplyr::filter(location %in% cfaforecastrenewalww::loc_abbr_to_flusight_code(locations))
+            dplyr::filter(location %in% loc_abbr_to_flusight_code(locations))
         }
 
         # Pass to scoring utils, no summaries just daily, quantiled scores

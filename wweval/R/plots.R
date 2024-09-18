@@ -1129,7 +1129,7 @@ get_heatmap_relative_wis <- function(scores,
     scoringutils::summarise_scores(
       by = c("model", "location")
     ) |>
-    dplyr::left_join(cfaforecastrenewalww::flusight_location_table,
+    dplyr::left_join(wweval::flusight_location_table,
       by = c("location" = "location_code")
     )
 
