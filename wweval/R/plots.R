@@ -271,7 +271,7 @@ get_plot_quantile_comparison <- function(hosp_quantiles,
 
   if (isTRUE(save_files)) {
     full_file_path <- file.path(figure_file_path, "quantile_comparison")
-    cfaforecastrenewalww::create_dir(full_file_path)
+    wwinference::create_dir(full_file_path)
     ggsave(
       file.path(
         full_file_path,
@@ -541,7 +541,7 @@ get_plot_scores_w_data <- function(all_scores,
 
   if (isTRUE(save_files)) {
     full_file_path <- file.path(figure_file_path, "scores_w_data_overlaid")
-    cfaforecastrenewalww::create_dir(full_file_path)
+    wwinference::create_dir(full_file_path)
     ggsave(
       file.path(
         full_file_path,
@@ -754,7 +754,7 @@ get_box_plot <- function(all_scores,
 
   if (isTRUE(save_files)) {
     full_file_path <- file.path(figure_file_path)
-    cfaforecastrenewalww::create_dir(full_file_path)
+    wwinference::create_dir(full_file_path)
     ggsave(
       file.path(
         full_file_path,
@@ -856,7 +856,7 @@ get_n_states_improved_plot <- function(all_scores,
 
   if (isTRUE(save_files)) {
     full_file_path <- file.path(figure_file_path)
-    cfaforecastrenewalww::create_dir(full_file_path)
+    wwinference::create_dir(full_file_path)
     ggsave(
       file.path(
         full_file_path,
@@ -954,7 +954,7 @@ get_plot_wis_over_time <- function(all_scores,
 
   if (isTRUE(save_files)) {
     full_file_path <- file.path(figure_file_path, "hub_comparison")
-    cfaforecastrenewalww::create_dir(full_file_path)
+    wwinference::create_dir(full_file_path)
     ggsave(
       file.path(
         full_file_path,
@@ -1085,7 +1085,7 @@ get_plot_hub_performance <- function(all_scores,
 
   if (isTRUE(save_files)) {
     full_file_path <- file.path(figure_file_path, "hub_comparison")
-    cfaforecastrenewalww::create_dir(full_file_path)
+    wwinference::create_dir(full_file_path)
     ggsave(
       file.path(
         full_file_path,
@@ -1181,7 +1181,7 @@ get_heatmap_relative_wis <- function(scores,
 
   if (isTRUE(save_files)) {
     full_file_path <- file.path(figure_file_path, "hub_comparison")
-    cfaforecastrenewalww::create_dir(full_file_path)
+    wwinference::create_dir(full_file_path)
     ggsave(
       file.path(
         full_file_path,
@@ -1226,7 +1226,7 @@ get_qq_plot <- function(scores,
 
   if (isTRUE(save_files)) {
     full_file_path <- file.path(figure_file_path, "hub_comparison")
-    cfaforecastrenewalww::create_dir(full_file_path)
+    wwinference::create_dir(full_file_path)
     ggsave(
       file.path(
         full_file_path,

@@ -23,8 +23,8 @@ eval_fit_ww <- function(config_index,
   }
 
 
-  cfaforecastrenewalww::create_dir(output_dir)
-  cfaforecastrenewalww::create_dir(raw_output_dir)
+  wwinference::create_dir(output_dir)
+  wwinference::create_dir(raw_output_dir)
 
   params <- cfaforecastrenewalww::get_params(params_path)
   location <- eval_config$location_ww[config_index]
@@ -157,8 +157,8 @@ eval_fit_hosp <- function(config_index,
     )
   }
 
-  cfaforecastrenewalww::create_dir(output_dir)
-  cfaforecastrenewalww::create_dir(raw_output_dir)
+  wwinference::create_dir(output_dir)
+  wwinference::create_dir(raw_output_dir)
 
   params <- cfaforecastrenewalww::get_params(params_path)
   location <- eval_config$location_hosp[config_index]

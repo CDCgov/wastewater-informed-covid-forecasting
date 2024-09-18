@@ -262,7 +262,7 @@ save_table <- function(data_to_save,
 
 
 
-    cfaforecastrenewalww::create_dir(full_dir)
+    wwinference::create_dir(full_dir)
 
     readr::write_tsv(as_tibble(data_to_save),
       file = fp

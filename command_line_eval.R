@@ -18,7 +18,7 @@ eval_fit <- function(config_index, eval_config_path, output_dir) {
     )
   }
 
-  cfaforecastrenewalww::create_dir(output_dir)
+  wwinference::create_dir(output_dir)
 
   eval_config <- yaml::read_yaml(eval_config_path)
   params <- cfaforecastrenewalww::get_params(file.path(

@@ -24,8 +24,8 @@ eval_post_process_ww <- function(config_index,
     readRDS(file.path(raw_output_dir, paste0(object_name, output_file_suffix)))
   }
 
-  cfaforecastrenewalww::create_dir(output_dir)
-  cfaforecastrenewalww::create_dir(raw_output_dir)
+  wwinference::create_dir(output_dir)
+  wwinference::create_dir(raw_output_dir)
 
 
   params <- cfaforecastrenewalww::get_params(params_path)
@@ -307,8 +307,8 @@ eval_post_process_hosp <- function(config_index,
   }
 
 
-  cfaforecastrenewalww::create_dir(output_dir)
-  cfaforecastrenewalww::create_dir(raw_output_dir)
+  wwinference::create_dir(output_dir)
+  wwinference::create_dir(raw_output_dir)
 
 
   params <- cfaforecastrenewalww::get_params(params_path)
