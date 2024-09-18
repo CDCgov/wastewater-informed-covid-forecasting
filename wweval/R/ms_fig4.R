@@ -641,6 +641,10 @@ FGGG
     width = 8, height = 11
   )
 
+  ggsave(fig4,
+    filename = file.path(fig_file_dir, "fig4.svg"),
+    width = 8, height = 11
+  )
 
   return(fig4)
 }

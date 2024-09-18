@@ -73,14 +73,30 @@ combine_outputs <- function(output_type =
         "File missing for {this_scenario}",
         "in {this_location} on {this_forecast_date}"
       ))
-      # Create a tibble of the combos that are missing, to save
-      this_failed_output <- tibble(
-        scenario = this_scenario,
-        location = this_location,
-        forecast_date = this_forecast_date
-      )
-      flag_failed_output <- rbind(flag_failed_output, this_failed_output)
-    }
+
+      # Check that input data is present:
+      if (this_scenario == "status_quo") {
+        fp_ww_data <- get_filepath(
+          eval_output_subdir,
+          this_scenario,
+          this_forecast_date,
+          model_type,
+          this_location,
+          glue::glue("input_ww_data"),
+          "tsv"
+        )
+        ww_data <- readr::read_tsv(fp_ww_data)
+        if (nrow(ww_data) != 0) {
+          # Create a tibble of the combos that are missing, to save
+          this_failed_output <- tibble(
+            scenario = this_scenario,
+            location = this_location,
+            forecast_date = this_forecast_date
+          )
+          flag_failed_output <- rbind(flag_failed_output, this_failed_output)
+        }
+      } # end check for ww data
+    } # end if file missing
   }
 
   if (nrow(combined_output) == 0) {

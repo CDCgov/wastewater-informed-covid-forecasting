@@ -310,5 +310,10 @@ OSTU
     filename = file.path(fig_file_dir, "fig3.png"),
     width = 10, height = 7
   )
+  ggsave(fig3,
+    filename = file.path(fig_file_dir, "fig3.svg"),
+    width = 10, height = 7
+  )
+
   return(fig3)
 }
