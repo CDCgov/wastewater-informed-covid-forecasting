@@ -63,7 +63,7 @@ setup_interactive_dev_run()
 # Set up secrets if planning on using epidatr API or NWSS API,
 # otherwise if using local time stamped vintages, the secrets aren't
 # necessary
-# cfaforecastrenewalww::setup_secrets("secrets.yaml")#nolint
+# wweval::setup_secrets("secrets.yaml")#nolint
 
 # Need to specify the evaluation variable combinations outside of targets
 eval_config <- yaml::read_yaml(file.path(

@@ -15,7 +15,7 @@ library(here)
 library(tidybayes)
 source(here::here("src/write_config.R"))
 knitr::opts_chunk$set(echo = TRUE)
-cfaforecastrenewalww::setup_secrets(here::here("secrets.yaml"))
+wweval::setup_secrets(here::here("secrets.yaml"))
 ```
 
 # Motivation

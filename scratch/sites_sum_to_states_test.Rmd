@@ -16,7 +16,7 @@ library(tidybayes)
 library(scoringutils)
 source(here::here("src/write_config.R"))
 knitr::opts_chunk$set(echo = TRUE)
-cfaforecastrenewalww::setup_secrets(here::here("secrets.yaml"))
+wweval::setup_secrets(here::here("secrets.yaml"))
 ```
 # Motivation
 The purpose of this Rmd is to generate simulated data with known per capita

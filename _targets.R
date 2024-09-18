@@ -47,7 +47,7 @@ tar_option_set(
   # Set other options as needed.
 )
 source("src/write_config.R")
-cfaforecastrenewalww::setup_secrets(here::here("secrets.yaml"))
+wweval::setup_secrets(here::here("secrets.yaml"))
 # For testing changes to the package without a re-install
 # source("cfaforecastrenewalww/R/utils.R") #nolint
 # source("cfaforecastrenewalww/R/get_data.R") #nolint
