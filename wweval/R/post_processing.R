@@ -145,7 +145,7 @@ get_model_draws_w_data <- function(model_output,
 #' required for the Hub submission
 #' @export
 get_state_level_quantiles <- function(draws) {
-  quantiles <- cfaforecastrenewalww::trajectories_to_quantiles(
+  quantiles <- wweval::trajectories_to_quantiles(
     draws,
     timepoint_cols = "date",
     value_col = "value",
@@ -182,7 +182,7 @@ get_state_level_quantiles <- function(draws) {
 #' required for the Hub submission for each site lab in the state
 #' @export
 get_state_level_ww_quantiles <- function(ww_draws) {
-  quantiles <- cfaforecastrenewalww::trajectories_to_quantiles(
+  quantiles <- wweval::trajectories_to_quantiles(
     ww_draws,
     timepoint_cols = "date",
     value_col = "value",

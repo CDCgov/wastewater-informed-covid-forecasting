@@ -208,7 +208,7 @@ mapped_ww <- tar_map(
   ),
   tar_target(
     name = ww_fit_obj,
-    command = sample_model(
+    command = wweval::sample_model(
       standata,
       stan_model_path = stan_model_path_target,
       stan_models_dir = eval_config$stan_models_dir,
@@ -550,7 +550,7 @@ mapped_hosp <- tar_map(
   ),
   tar_target(
     name = hosp_fit_obj,
-    command = sample_model(
+    command = wweval::sample_model(
       standata,
       stan_model_path = stan_model_path_target,
       stan_models_dir = eval_config$stan_models_dir,

@@ -108,7 +108,7 @@ eval_fit <- function(config_index, eval_config_path, output_dir) {
   save_object("init_lists", output_file_suffix)
 
 
-  ww_fit_obj <- sample_model(
+  ww_fit_obj <- wweval::sample_model(
     standata,
     stan_model_path = stan_model_path_target,
     stan_models_dir = eval_config$stan_models_dir,

@@ -33,18 +33,17 @@
 #' flags if the model failed to pass convergence tests. If the model errored,
 #' just contains a list with errors
 #' @export
-
-sample_model <- function(standata,
-                         stan_model_path,
-                         stan_models_dir,
-                         init_lists,
-                         target_dir = tempdir(),
-                         iter_warmup = 250,
-                         iter_sampling = 250,
-                         max_treedepth = 12,
-                         adapt_delta = 0.95,
-                         n_chains = 4,
-                         seed = 123) {
+wweval::sample_model <- function(standata,
+                                 stan_model_path,
+                                 stan_models_dir,
+                                 init_lists,
+                                 target_dir = tempdir(),
+                                 iter_warmup = 250,
+                                 iter_sampling = 250,
+                                 max_treedepth = 12,
+                                 adapt_delta = 0.95,
+                                 n_chains = 4,
+                                 seed = 123) {
   compiled_model <- wwinference::compile_model(
     model_filepath = stan_model_path,
     include_paths = stan_models_dir,
