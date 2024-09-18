@@ -1424,6 +1424,48 @@ supp_targets <- list(
       fig_subscript = "Hub",
       fig_file_dir = eval_config$ms_fig_dir
     )
+  ),
+  tar_target(
+    name = sfig_crps_over_time_comp,
+    command = get_plot_score_by_horizon_t(scores_filtered,
+      score_type = "crps",
+      fig_file_dir = eval_config$ms_fig_dir
+    )
+  ),
+  tar_target(
+    name = sfig_wis_over_time_Hub,
+    command = get_plot_score_by_horizon_t(combine_scores_oct_mar,
+      score_type = "interval_score",
+      fig_file_dir = eval_config$ms_fig_dir
+    )
+  ),
+  tar_target(
+    name = avg_crps_by_horizon,
+    command = get_avg_scores_by_model_horizon(
+      scores_filtered,
+      "crps"
+    )
+  ),
+  tar_target(
+    name = avg_wis_by_horizon_oct_mar,
+    command = get_avg_scores_model_horizon(
+      combine_scores_oct_mar,
+      "interval_score"
+    )
+  ),
+  tar_target(
+    name = avg_wis_by_horizon_feb_mar,
+    command = get_avg_scores_model_horizon(
+      combine_scores_feb_mar,
+      "interval_score"
+    )
+  ),
+  tar_target(
+    name = comp_stats,
+    command = get_stats_improved_forecasts(
+      scores = scores_filtered,
+      threshold = 0.1
+    )
   )
 )
 
