@@ -77,6 +77,8 @@ make_fig3_single_loc_comp <- function(scores,
 #' to plot
 #' @param horizon_to_plot A string indicating what horizon period to plot,
 #' one of `nowcast`, `1 wk`, or `4 wks`
+#' @param horizon_days_ahead An integer corresponding to the horizon days to
+#' plot
 #' @param days_to_show_prev_data An ingeger indicating how many days before the
 #' last forecast date to show the data, default is `14`
 #'
@@ -87,6 +89,7 @@ make_fig3_single_loc_comp <- function(scores,
 make_fig3_forecast_comp_fig <- function(hosp_quantiles,
                                         loc_to_plot,
                                         horizon_to_plot,
+                                        horizon_days_ahead,
                                         days_to_show_prev_data = 14) {
   hosp_quants_horizons <- hosp_quantiles |>
     dplyr::filter(location == !!loc_to_plot) |>
@@ -107,11 +110,18 @@ make_fig3_forecast_comp_fig <- function(hosp_quantiles,
       values_from = value
     )
   colors <- plot_components()
+
+
+
+  date_lims <- c(
+    min(hosp_quantiles$forecast_date) + lubridate::days(horizon_days_ahead - 7),
+    max(hosp_quantiles$forecast_date) + lubridate::days(horizon_days_ahead + 3)
+  )
   p <- ggplot(hosp) +
     geom_point(
       data = hosp_quants_horizons,
       aes(x = date, y = eval_data),
-      fill = "black", size = 1, shape = 21,
+      fill = "black", size = 0.5, shape = 21,
       show.legend = FALSE
     ) +
     geom_ribbon(
@@ -142,7 +152,7 @@ make_fig3_forecast_comp_fig <- function(hosp_quantiles,
       ),
     ) +
     xlab("") +
-    ylab("Daily hospital /n admissions") +
+    ylab("Daily hospital \n admissions") +
     ggtitle(glue::glue(
       "{horizon_to_plot}"
     )) +
@@ -151,7 +161,7 @@ make_fig3_forecast_comp_fig <- function(hosp_quantiles,
     scale_x_date(
       date_breaks = "2 weeks",
       labels = scales::date_format("%Y-%m-%d"),
-      limits = as.Date(c("2023-10-02", "2024-03-18"))
+      limits = date_lims
     ) +
     get_plot_theme(
       x_axis_dates = TRUE,
@@ -171,6 +181,8 @@ make_fig3_forecast_comp_fig <- function(hosp_quantiles,
 #' to plot
 #' @param horizon_to_plot A string indicating what horizon period to plot,
 #' one of `nowcast`, `1 wk`, or `4 wks`
+#' @param horizon_days_ahead An integer corresponding to the horizon days to
+#' plot
 #' @param days_to_shift An integer corresponding to the number of days to shift
 #' the x axis of the underly plot to line up with the corresponding forecast
 #' horizon, default is 0
@@ -181,6 +193,7 @@ make_fig3_forecast_comp_fig <- function(hosp_quantiles,
 make_fig3_crps_underlay_fig <- function(scores,
                                         loc_to_plot,
                                         horizon_to_plot,
+                                        horizon_days_ahead,
                                         days_to_shift = 0) {
   scores_by_horizon <- scores |>
     dplyr::filter(location == !!loc_to_plot) |>
@@ -196,20 +209,24 @@ make_fig3_crps_underlay_fig <- function(scores,
     )
 
   colors <- plot_components()
+  date_lims <- c(
+    min(scores$forecast_date) + lubridate::days(horizon_days_ahead - 7),
+    max(scores$forecast_date) +
+      lubridate::days(horizon_days_ahead + 3)
+  )
 
   p <- ggplot(scores_by_horizon) +
     geom_bar(aes(x = forecast_date_shifted, y = crps, fill = model),
       stat = "identity", position = "dodge", show.legend = FALSE
     ) +
     xlab("") +
-    ylab("CRPS scores") +
+    ylab("CRPS") +
     theme_bw() +
-    scale_color_manual(values = colors$model_colors) +
     scale_fill_manual(values = colors$model_colors) +
     scale_x_date(
       date_breaks = "2 weeks",
       labels = scales::date_format("%Y-%m-%d"),
-      limits = as.Date(c("2023-10-02", "2024-03-18"))
+      limits = date_lims
     ) +
     get_plot_theme(
       x_axis_dates = TRUE,

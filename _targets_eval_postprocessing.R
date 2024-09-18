@@ -608,7 +608,8 @@ manuscript_figures <- list(
     command = make_fig3_forecast_comp_fig(
       hosp_quantiles_filtered,
       loc_to_plot = locs_to_plot[1],
-      horizon_to_plot = "nowcast"
+      horizon_to_plot = "nowcast",
+      horizon_days_ahead = -10
     )
   ),
   tar_target(
@@ -616,7 +617,8 @@ manuscript_figures <- list(
     command = make_fig3_forecast_comp_fig(
       hosp_quantiles_filtered,
       loc_to_plot = locs_to_plot[1],
-      horizon_to_plot = "1 wk"
+      horizon_to_plot = "1 wk",
+      horizon_days_ahead = 7
     )
   ),
   tar_target(
@@ -624,7 +626,8 @@ manuscript_figures <- list(
     command = make_fig3_forecast_comp_fig(
       hosp_quantiles_filtered,
       loc_to_plot = locs_to_plot[1],
-      horizon_to_plot = "4 wks"
+      horizon_to_plot = "4 wks",
+      horizon_days_ahead = 28
     )
   ),
   tar_target(
@@ -633,6 +636,7 @@ manuscript_figures <- list(
       scores_filtered,
       loc_to_plot = locs_to_plot[1],
       horizon_to_plot = "nowcast",
+      horizon_days_ahead = -10,
       days_to_shift = -10
     )
   ),
@@ -642,6 +646,7 @@ manuscript_figures <- list(
       scores_filtered,
       loc_to_plot = locs_to_plot[1],
       horizon_to_plot = "1 wk",
+      horizon_days_ahead = 7,
       days_to_shift = 0
     )
   ),
@@ -651,6 +656,7 @@ manuscript_figures <- list(
       scores_filtered,
       loc_to_plot = locs_to_plot[1],
       horizon_to_plot = "4 wks",
+      horizon_days_ahead = 28,
       days_to_shift = 21
     )
   ),
@@ -685,7 +691,8 @@ manuscript_figures <- list(
     command = make_fig3_forecast_comp_fig(
       hosp_quantiles_filtered,
       loc_to_plot = locs_to_plot[2],
-      horizon_to_plot = "nowcast"
+      horizon_to_plot = "nowcast",
+      horizon_days_ahead = -10
     )
   ),
   tar_target(
@@ -693,7 +700,8 @@ manuscript_figures <- list(
     command = make_fig3_forecast_comp_fig(
       hosp_quantiles_filtered,
       loc_to_plot = locs_to_plot[2],
-      horizon_to_plot = "1 wk"
+      horizon_to_plot = "1 wk",
+      horizon_days_ahead = 7
     )
   ),
   tar_target(
@@ -701,7 +709,8 @@ manuscript_figures <- list(
     command = make_fig3_forecast_comp_fig(
       hosp_quantiles_filtered,
       loc_to_plot = locs_to_plot[2],
-      horizon_to_plot = "4 wks"
+      horizon_to_plot = "4 wks",
+      horizon_days_ahead = 28
     )
   ),
   tar_target(
@@ -710,7 +719,8 @@ manuscript_figures <- list(
       scores_filtered,
       loc_to_plot = locs_to_plot[2],
       horizon_to_plot = "nowcast",
-      days_to_shift = -10
+      days_to_shift = -10,
+      horizon_days_ahead = -10
     )
   ),
   tar_target(
@@ -719,7 +729,8 @@ manuscript_figures <- list(
       scores_filtered,
       loc_to_plot = locs_to_plot[2],
       horizon_to_plot = "1 wk",
-      days_to_shift = 0
+      days_to_shift = 0,
+      horizon_days_ahead = 7
     )
   ),
   tar_target(
@@ -728,7 +739,8 @@ manuscript_figures <- list(
       scores_filtered,
       loc_to_plot = locs_to_plot[2],
       horizon_to_plot = "4 wks",
-      days_to_shift = 21
+      days_to_shift = 21,
+      horizon_days_ahead = 28
     )
   ),
   # Supplementary
@@ -760,7 +772,8 @@ manuscript_figures <- list(
     command = make_fig3_forecast_comp_fig(
       hosp_quantiles_filtered,
       loc_to_plot = locs_to_plot[3],
-      horizon_to_plot = "nowcast"
+      horizon_to_plot = "nowcast",
+      horizon_days_ahead = -10
     )
   ),
   tar_target(
@@ -768,7 +781,8 @@ manuscript_figures <- list(
     command = make_fig3_forecast_comp_fig(
       hosp_quantiles_filtered,
       loc_to_plot = locs_to_plot[3],
-      horizon_to_plot = "1 wk"
+      horizon_to_plot = "1 wk",
+      horizon_days_ahead = 7
     )
   ),
   tar_target(
@@ -776,7 +790,8 @@ manuscript_figures <- list(
     command = make_fig3_forecast_comp_fig(
       hosp_quantiles_filtered,
       loc_to_plot = locs_to_plot[3],
-      horizon_to_plot = "4 wks"
+      horizon_to_plot = "4 wks",
+      horizon_days_ahead = 28
     )
   ),
   tar_target(
@@ -785,7 +800,8 @@ manuscript_figures <- list(
       scores_filtered,
       loc_to_plot = locs_to_plot[3],
       horizon_to_plot = "nowcast",
-      days_to_shift = -10
+      days_to_shift = -10,
+      horizon_days_ahead = -10
     )
   ),
   tar_target(
@@ -794,7 +810,8 @@ manuscript_figures <- list(
       scores_filtered,
       loc_to_plot = locs_to_plot[3],
       horizon_to_plot = "1 wk",
-      days_to_shift = 0
+      days_to_shift = 0,
+      horizon_days_ahead = 7
     )
   ),
   tar_target(
@@ -803,7 +820,8 @@ manuscript_figures <- list(
       scores_filtered,
       loc_to_plot = locs_to_plot[3],
       horizon_to_plot = "4 wks",
-      days_to_shift = 21
+      days_to_shift = 21,
+      horizon_days_ahead = 28
     )
   ),
   # Supplement to fig 3
@@ -1387,6 +1405,19 @@ hub_comparison_plots <- list(
       fig5_std_rank_all_time = fig5_std_rank_all_time,
       fig_file_dir = eval_config$ms_fig_dir
     )
+  )
+)
+
+# Summaries ----------------------------------------------------------
+# Make some tables with summary stats to include in results
+summary_targets <- list(
+  tar_target(
+    name = overall_bias_comp,
+    command = get_bias(scores_filtered)
+  ),
+  tar_target(
+    name = overall_bias_Hub,
+    command = get_bias(scores_filtered)
   )
 )
 

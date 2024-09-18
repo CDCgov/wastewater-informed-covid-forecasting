@@ -8,6 +8,7 @@ make_fig3_crps_underlay_fig(
   scores,
   loc_to_plot,
   horizon_to_plot,
+  horizon_days_ahead,
   days_to_shift = 0
 )
 }
@@ -21,6 +22,9 @@ to plot}
 
 \item{horizon_to_plot}{A string indicating what horizon period to plot,
 one of \code{nowcast}, \verb{1 wk}, or \verb{4 wks}}
+
+\item{horizon_days_ahead}{An integer corresponding to the horizon days to
+plot}
 
 \item{days_to_shift}{An integer corresponding to the number of days to shift
 the x axis of the underly plot to line up with the corresponding forecast
