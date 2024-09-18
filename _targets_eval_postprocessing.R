@@ -104,8 +104,8 @@ upstream_targets <- list(
   tar_target(
     name = eval_ww_data,
     command = get_input_ww_data(
-      forecast_date = eval_config$eval_date,
-      location = unique(eval_config$location_ww),
+      forecast_date_i = eval_config$eval_date,
+      location_i = unique(eval_config$location_ww),
       scenario = "status_quo",
       scenario_dir = eval_config$scenario_dir,
       ww_data_dir = eval_config$ww_data_dir,

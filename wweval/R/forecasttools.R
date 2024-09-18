@@ -354,7 +354,6 @@ plot_quantiles <- function(data,
 #' @return vector of the same length recoded as flusight
 #' location codes
 #' @export
-#' @seealso [loc_flusight_code_to_abbr()]
 loc_abbr_to_flusight_code <- function(abbrs) {
   mask <- match(
     x = abbrs,

@@ -49,8 +49,8 @@ eval_fit_ww <- function(config_index,
   save_object("eval_hosp_data", output_file_suffix)
 
   eval_ww_data <- get_input_ww_data(
-    forecast_date = eval_config$eval_date,
-    location = location,
+    forecast_date_i = eval_config$eval_date,
+    location_i = location,
     scenario = "status_quo",
     scenario_dir = eval_config$scenario_dir,
     ww_data_dir = eval_config$ww_data_dir,
@@ -86,8 +86,8 @@ eval_fit_ww <- function(config_index,
 
   last_hosp_data_date <- get_last_hosp_data_date(input_hosp_data)
   input_ww_data <- get_input_ww_data(
-    forecast_date = forecast_date,
-    location = location,
+    forecast_date_i = forecast_date,
+    location_i = location,
     scenario = scenario,
     scenario_dir = eval_config$scenario_dir,
     ww_data_dir = eval_config$ww_data_dir,
