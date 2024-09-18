@@ -45,7 +45,7 @@ get_input_ww_data <- function(forecast_date_i,
 
   # Use package functions to subset NWSS data
   ww_data <- raw_nwss_data |>
-    cfaforecastrenewalww::init_subset_nwss_data()
+    wweval::init_subset_nwss_data()
   # Get the data corresponding to the scenario
   list_of_site_ids <- get_scenario_site_ids(
     ww_data,
@@ -64,7 +64,7 @@ get_input_ww_data <- function(forecast_date_i,
     )
 
   # Get extra columns that identify wastewater outliers
-  ww_w_outliers <- flag_ww_outliers(ww) |>
+  ww_w_outliers <- wwinference::flag_ww_outliers(ww) |>
     select(
       date, location, ww, site, lab, lab_wwtp_unique_id,
       ww_pop, below_LOD, lod_sewage, flag_as_ww_outlier

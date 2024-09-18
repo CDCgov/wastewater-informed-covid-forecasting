@@ -99,7 +99,7 @@ train_data_orig <- do.call(
     prop_sites = 0.2
   )
 )
-train_data <- flag_ww_outliers(train_data_orig)
+train_data <- wwinference::flag_ww_outliers(train_data_orig)
 train_data <- train_data %>% mutate(
   site_lab = stringr::str_glue("Site: {site}, Lab: {lab}")
 )

@@ -88,7 +88,7 @@ Roxygen: list(markdown = TRUE)
 Config/Needs/check: rcmdcheck, testthat
 RoxygenNote: 7.3.2
 Remotes:
-    cfaforecastrenewalww=CDCgov/wastewater-informed-covid-forecasting/cfaforecastrenewalww,
+    cfaforecastrenewalww=CDCgov/wastewater-informed-covid-forecasting/cfaforecastrenewalww@less-cfaforecastrenewalww-2,
     stan-dev/cmdstanr,
     wwinference=CDCgov/ww-inference-model
 LazyData: true

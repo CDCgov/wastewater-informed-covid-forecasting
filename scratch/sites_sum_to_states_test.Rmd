@@ -146,7 +146,7 @@ train_data_raw <- sim_data_df %>%
   )
 
 # Apply outliers to data
-train_data <- flag_ww_outliers(train_data_raw)
+train_data <- wwinference::flag_ww_outliers(train_data_raw)
 
 # Get the generation interval and time from infection to hospital admission
 # delay distribution to pass to stan.
