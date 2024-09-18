@@ -168,7 +168,7 @@ write_eval_config <- function(locations, forecast_dates,
     inf_to_hosp = inf_to_hosp
   )
 
-  cfaforecastrenewalww::create_dir(config_dir)
+  wwinference::create_dir(config_dir)
   yaml::write_yaml(config, file = file.path(
     config_dir,
     glue::glue("eval_config.yaml")

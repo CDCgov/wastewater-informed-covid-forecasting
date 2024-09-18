@@ -19,7 +19,7 @@ render_diagnostic_report(
 
 \item{report_rmd}{path to Rmarkdown skeleton}
 
-\item{...}{additional parameters passed to `rmarkdown::render`}
+\item{...}{additional parameters passed to \code{rmarkdown::render}}
 }
 \description{
 Render diagnostic report
