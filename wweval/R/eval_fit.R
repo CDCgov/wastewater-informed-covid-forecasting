@@ -51,7 +51,7 @@ eval_fit_ww <- function(config_index,
   eval_ww_data <- get_input_ww_data(
     forecast_date_i = eval_config$eval_date,
     location_i = location,
-    scenario = "status_quo",
+    scenario_i = "status_quo",
     scenario_dir = eval_config$scenario_dir,
     ww_data_dir = eval_config$ww_data_dir,
     calibration_time = 365, # Grab sufficient data for eval
@@ -88,7 +88,7 @@ eval_fit_ww <- function(config_index,
   input_ww_data <- get_input_ww_data(
     forecast_date_i = forecast_date,
     location_i = location,
-    scenario = scenario,
+    scenario_i = scenario,
     scenario_dir = eval_config$scenario_dir,
     ww_data_dir = eval_config$ww_data_dir,
     calibration_time = eval_config$calibration_time,

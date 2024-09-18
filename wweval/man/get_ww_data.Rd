@@ -18,7 +18,17 @@ get_ww_data(
 )
 }
 \arguments{
-\item{ww_data_path}{}
+\item{ww_data_source}{NEEDS DOCUMENTATION}
+
+\item{geo_type}{NEEDS DOCUMENTATION}
+
+\item{ww_data_type}{NEEDS DOCUMENTATION}
+
+\item{ww_target_type}{NEEDS DOCUMENTATION}
+
+\item{ww_geo_type}{NEEDS DOCUMENTATION}
+
+\item{ww_data_path}{NEEDS DOCUMENTATION}
 }
 \value{
 dataframe with observed viral concentrations at the geographic

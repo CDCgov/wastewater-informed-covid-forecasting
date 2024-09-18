@@ -36,7 +36,6 @@ get_nearest_forecast_date <- function() {
 #' admission date
 #' @export
 #'
-#' @examples
 get_hosp_reporting_delay <- function(forecast_date) {
   hosp_reporting_delay <-
     case_when(
@@ -69,7 +68,6 @@ get_hosp_reporting_delay <- function(forecast_date) {
 #'
 #' @export
 #'
-#' @examples
 get_state_level_hosp_data <- function(hosp_data_source,
                                       forecast_date,
                                       hosp_data_dir,
@@ -206,7 +204,6 @@ get_state_level_hosp_data <- function(hosp_data_source,
 #'
 #' @export
 #'
-#' @examples
 get_hosp_data <- function(hosp_data_source,
                           geo_type,
                           forecast_date,
@@ -272,22 +269,20 @@ get_hosp_data <- function(hosp_data_source,
 
 #' Get dataframe with wastewater and hospitalizaiton data for training the model
 #'
-#' @param ww_data_raw
-#' @param hosp_data_raw
-#' @param forecast_date
-#' @param calibration_time
-#' @param location
-#' @param hosp_reporting_delay
-#' @param forecast_time
+#' @param ww_data_raw NEEDS DOCUMENTATION
+#' @param hosp_data_raw NEEDS DOCUMENTATION
+#' @param forecast_date NEEDS DOCUMENTATION
+#' @param calibration_time NEEDS DOCUMENTATION
+#' @param location NEEDS DOCUMENTATION
+#' @param hosp_reporting_delay NEEDS DOCUMENTATION
+#' @param forecast_time NEEDS DOCUMENTATION
 #'
 #' @return a dataframe of daily hospital admits, observed wastewater
 #' concentrations, time starting at the start of the calibration period and
 #' going til the end of the forecast period, the day of the week, period, date,
 #' and location
 #'
-#' @export
-#'
-#' @examples
+#' @noRd
 get_training_data <- function(ww_data_raw,
                               hosp_data_raw,
                               forecast_date,
@@ -399,9 +394,8 @@ get_training_data <- function(ww_data_raw,
 #' but only for a single model type, forecast date, and
 #' hospitalizaiton reporting delay
 #'
-#' @export
+#' @noRd
 #'
-#' @examples
 get_testing_data <- function(data_as_of,
                              forecast_date,
                              location,
@@ -500,26 +494,29 @@ get_testing_data <- function(data_as_of,
 
 #' Get long tibble of data needed for model fitting
 #'
-#' @param ww_data_raw
-#' @param forecast_date
-#' @param location
-#' @param calibration_time
-#' @param geo_type
-#' @param pull_from_local
-#' @param hosp_data_dir
-#' @param population_data_path
-#' @param forecast_time
-#' @param hosp_reporting_delay
-#' @param ww_geo_type
-#' @param hosp_data_source
-#' @param include_ww
+#' @param ww_data_raw NEEDS DOCUMENTATION
+#' @param forecast_date NEEDS DOCUMENTATION
+#' @param location NEEDS DOCUMENTATION
+#' @param calibration_time NEEDS DOCUMENTATION
+#' @param geo_type NEEDS DOCUMENTATION
+#' @param pull_from_local NEEDS DOCUMENTATION
+#' @param hosp_data_dir NEEDS DOCUMENTATION
+#' @param population_data_path NEEDS DOCUMENTATION
+#' @param forecast_time NEEDS DOCUMENTATION
+#' @param hosp_reporting_delay NEEDS DOCUMENTATION
+#' @param ww_geo_type NEEDS DOCUMENTATION
+#' @param hosp_data_source NEEDS DOCUMENTATION
+#' @param include_ww NEEDS DOCUMENTATION
+#' @param train_data_dir NEEDS DOCUMENTATION
+#' @param model_type NEEDS DOCUMENTATION
+#' @param write_files NEEDS DOCUMENTATION
+#' @param ... additional arguments
 #'
 #' @return a long stacked dataframe with columns corresponding to model specs
 #' and data specs
 #'
 #' @export
 #'
-#' @examples
 get_all_training_data <- function(ww_data_raw,
                                   forecast_date,
                                   location,
@@ -698,7 +695,6 @@ get_all_training_data <- function(ww_data_raw,
 #' @return ww_data_path
 #' @export
 #'
-#' @examples
 save_timestamped_nwss_data <- function(ww_path_to_save) {
   hour <- lubridate::hour(Sys.time())
   minute <- lubridate::minute(Sys.time())
@@ -774,7 +770,6 @@ save_timestamped_nwss_data <- function(ww_path_to_save) {
 #' prop_sites included. These sites are chosen randomly
 #' @export
 #'
-#' @examples
 subsample_sites <- function(ww_data, prop_sites = 0.2,
                             sampled_sites = NULL) {
   if (is.null(sampled_sites)) {
@@ -808,7 +803,6 @@ subsample_sites <- function(ww_data, prop_sites = 0.2,
 #'
 #' @export
 #'
-#' @examples
 init_subset_nwss_data <- function(raw_nwss_data) {
   nwss_subset_raw <- raw_nwss_data %>%
     dplyr::filter(
@@ -922,7 +916,6 @@ init_subset_nwss_data <- function(raw_nwss_data) {
 #'
 #' @export
 #'
-#' @examples
 get_weekly_summary <- function(nwss_subset, ww_target_type = "pcr_target_avg_conc") {
   nwss_subset <- nwss_subset %>% mutate(
     week = epiweek(lubridate::ymd(sample_collect_date)),
@@ -990,13 +983,12 @@ get_weekly_summary <- function(nwss_subset, ww_target_type = "pcr_target_avg_con
 #' data to be missing data when the model is fit (rather than have NA values).
 #'
 #'
-#' @param nwss_by_week
+#' @param nwss_by_week NEEDS DOCUMENTATION
 #'
-#' @return
+#' @return NEEDS DOCUMENTATION
 #'
 #' @export
 #'
-#' @examples
 get_state_level_summary <- function(nwss_by_week) {
   nwss_by_state <- nwss_by_week %>%
     dplyr::group_by(
@@ -1120,12 +1112,12 @@ get_state_level_summary <- function(nwss_by_week) {
 #' the pipeline is site level (ww_geo_type != geo_type)
 #' or state level
 #'
-#' @param ww_data_source
-#' @param geo_type
-#' @param ww_data_type
-#' @param ww_target_type
-#' @param ww_geo_type
-#' @param ww_data_path
+#' @param ww_data_source NEEDS DOCUMENTATION
+#' @param geo_type NEEDS DOCUMENTATION
+#' @param ww_data_type NEEDS DOCUMENTATION
+#' @param ww_target_type NEEDS DOCUMENTATION
+#' @param ww_geo_type NEEDS DOCUMENTATION
+#' @param ww_data_path NEEDS DOCUMENTATION
 #'
 #' @return dataframe with observed viral concentrations at the geographic
 #' level specified and weekly temporal granularity. Dates correspond to the
@@ -1133,7 +1125,6 @@ get_state_level_summary <- function(nwss_by_week) {
 #'
 #' @export
 #'
-#' @examples
 get_ww_data <- function(ww_data_source, geo_type, ww_data_type,
                         ww_target_type, ww_geo_type, ww_data_path,
                         dates_for_ww_removal = c(),
@@ -1218,7 +1209,6 @@ get_ww_data <- function(ww_data_source, geo_type, ww_data_type,
 #'
 #' @export
 #'
-#' @examples
 get_regions_for_mapping <- function() {
   # Need regions if we're mapping to biobot data only
   # Biobot uses US Census regions, but puts Maryland in the Northeast
@@ -1243,7 +1233,6 @@ get_regions_for_mapping <- function() {
 #' @return ww_data + columns for outlier flagging
 #' @export
 #'
-#' @examples
 flag_ww_outliers <- function(ww_data, rho_threshold = 2,
                              log_conc_threshold = 3,
                              threshold_n_dps = 1) {
@@ -1332,7 +1321,6 @@ flag_ww_outliers <- function(ww_data, rho_threshold = 2,
 #' @return revised train data with hospital admissions removed
 #' @export
 #'
-#' @examples
 manual_removal_of_hosp_data <- function(train_data,
                                         states_for_hosp_removal,
                                         dates_for_hosp_removal,
@@ -1362,7 +1350,6 @@ manual_removal_of_hosp_data <- function(train_data,
 #' the weekly avg pcr concentration, and the date
 #' @export
 #'
-#' @examples
 aggregate_ww <- function(ww_data_raw, forecast_date, calibration_time,
                          hosp_reporting_delay) {
   ww_data <- ww_data_raw %>%
@@ -1427,7 +1414,6 @@ aggregate_ww <- function(ww_data_raw, forecast_date, calibration_time,
 #' @return a mapping from the unique county fips in the ww data to the major county
 #' @export
 #'
-#' @examples
 get_site_county_map <- function(nwss,
                                 county_site_map_path) {
   if (fs::file_exists(county_site_map_path)) {

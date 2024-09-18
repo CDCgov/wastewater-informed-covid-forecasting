@@ -25,7 +25,39 @@ get_all_training_data(
 )
 }
 \arguments{
-\item{include_ww}{}
+\item{ww_data_raw}{NEEDS DOCUMENTATION}
+
+\item{forecast_date}{NEEDS DOCUMENTATION}
+
+\item{location}{NEEDS DOCUMENTATION}
+
+\item{calibration_time}{NEEDS DOCUMENTATION}
+
+\item{geo_type}{NEEDS DOCUMENTATION}
+
+\item{pull_from_local}{NEEDS DOCUMENTATION}
+
+\item{hosp_data_dir}{NEEDS DOCUMENTATION}
+
+\item{population_data_path}{NEEDS DOCUMENTATION}
+
+\item{forecast_time}{NEEDS DOCUMENTATION}
+
+\item{hosp_reporting_delay}{NEEDS DOCUMENTATION}
+
+\item{ww_geo_type}{NEEDS DOCUMENTATION}
+
+\item{hosp_data_source}{NEEDS DOCUMENTATION}
+
+\item{include_ww}{NEEDS DOCUMENTATION}
+
+\item{train_data_dir}{NEEDS DOCUMENTATION}
+
+\item{model_type}{NEEDS DOCUMENTATION}
+
+\item{write_files}{NEEDS DOCUMENTATION}
+
+\item{...}{additional arguments}
 }
 \value{
 a long stacked dataframe with columns corresponding to model specs

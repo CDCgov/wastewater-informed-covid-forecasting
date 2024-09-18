@@ -64,7 +64,6 @@ Imports:
     rlang,
     cli,
     epidatr,
-    sjmisc,
     data.table,
     purrr,
     scales,
@@ -79,7 +78,8 @@ Imports:
     patchwork,
     RColorBrewer,
     zoltr,
-    wwinference
+    wwinference,
+    fs
 Suggests:
     httr
 SystemRequirements: CmdStan (>=2.34.1)

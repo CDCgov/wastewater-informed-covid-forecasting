@@ -7,7 +7,10 @@
 get_state_level_summary(nwss_by_week)
 }
 \arguments{
-\item{nwss_by_week}{}
+\item{nwss_by_week}{NEEDS DOCUMENTATION}
+}
+\value{
+NEEDS DOCUMENTATION
 }
 \description{
 This uses the same processing steps that biobot uses (described in:
