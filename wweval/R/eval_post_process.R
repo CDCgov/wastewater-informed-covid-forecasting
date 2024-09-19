@@ -177,19 +177,7 @@ eval_post_process_ww <- function(config_index,
   }
   save_object("full_hosp_quantiles", output_file_suffix)
 
-  # Get a plot of hospital admission fits vs forecasts
-  # Here can use fig2 plotting
-  plot_hosp_t <- make_fig2_hosp_t(full_hosp_quantiles,
-    loc_to_plot = location,
-    date_to_plot = forecast_date
-  ) +
-    ggtitle(glue::glue("{location} on {forecast_date}"))
 
-  ggsave(plot_hosp_t, filename = file.path(
-    output_dir, scenario,
-    forecast_date, "ww", location,
-    "plot_hosp_t.png"
-  ))
 
   full_ww_quantiles <- {
     if (is.null(ww_draws)) {
@@ -201,25 +189,6 @@ eval_post_process_ww <- function(config_index,
     }
   }
   save_object("full_ww_quantiles", output_file_suffix)
-
-  # Get a plot of the wastewater concentrations
-  plot_ww_t <- make_fig2_ct(full_ww_quantiles,
-    loc_to_plot = location,
-    date_to_plot = forecast_date,
-    n_forecast_days = 28,
-    n_calib_days = 90,
-    max_n_site_labs_to_show = length(
-      unique(full_ww_quantiles$lab_site_index)
-    )
-  ) +
-    facet_wrap(~site_lab_name) +
-    ggtitle(glue::glue("{location} on {forecast_date}"))
-
-  ggsave(plot_ww_t, filename = file.path(
-    output_dir, scenario,
-    forecast_date, "ww",
-    location, "plot_hosp_t.png"
-  ))
 
   hosp_quantiles <- {
     if (is.null(full_hosp_quantiles)) {
@@ -275,6 +244,26 @@ eval_post_process_ww <- function(config_index,
     }
   }
 
+  ggsave(plot_hosp_draws, filename = file.path(
+    output_dir, scenario,
+    forecast_date, "ww", location,
+    "plot_hosp_draws.png"
+  ))
+
+  plot_hosp_t <- make_fig2_hosp_t(
+    hosp_quantiles = full_hosp_quantiles,
+    loc_to_plot = location,
+    date_to_plot = forecast_date
+  ) +
+    ggtitle(glue::glue("{location} on {forecast_date}")) +
+    theme_bw()
+
+  ggsave(plot_hosp_t, filename = file.path(
+    output_dir, scenario,
+    forecast_date, "ww", location,
+    "plot_hosp_t.png"
+  ))
+
   save_object("plot_hosp_draws", output_file_suffix)
 
   plot_ww_draws <- {
@@ -288,6 +277,29 @@ eval_post_process_ww <- function(config_index,
       )
     }
   }
+
+  ggsave(plot_ww_draws, filename = file.path(
+    output_dir, scenario,
+    forecast_date, "ww",
+    location, "plot_ww_draws.png"
+  ))
+
+  plot_ww_t <- make_fig2_ct(
+    full_ww_quantiles,
+    loc_to_plot = location,
+    date_to_plot = forecast_date,
+    max_n_site_labs_to_show = length(unique(full_ww_quantiles$lab_site_index))
+  ) +
+    facet_wrap(~site_lab_name) +
+    ggtitle(glue::glue("{location} on {forecast_date}")) +
+    theme_bw()
+
+  ggsave(plot_ww_t, filename = file.path(
+    output_dir, scenario,
+    forecast_date, "ww",
+    location, "plot_ww_t.png"
+  ))
+
   save_object("plot_ww_draws", output_file_suffix)
   ## Score hospital admissions forecasts----------------------------------
   hosp_scores <- get_full_scores(hosp_draws, scenario)
@@ -444,6 +456,28 @@ eval_post_process_hosp <- function(config_index,
     model_type = "hosp"
   )
   save_object("plot_hosp_draws_hosp_model", output_file_suffix)
+  ggsave(plot_hosp_draws_hosp_model,
+    filename = file.path(
+      output_dir, scenario,
+      forecast_date, "hosp", location,
+      "plot_hosp_draws.png"
+    ),
+    bg = "white"
+  )
+
+  plot_hosp_t <- make_fig2_hosp_t(
+    hosp_quantiles = full_hosp_quantiles,
+    loc_to_plot = location,
+    date_to_plot = forecast_date
+  ) +
+    ggtitle(glue::glue("{location} on {forecast_date}"))
+
+  ggsave(plot_hosp_draws, filename = file.path(
+    output_dir, scenario,
+    forecast_date, "hosp", location,
+    "plot_hosp_t.png"
+  ))
+
   ## Score the hospital admissions only model-------------------------
   hosp_scores <- get_full_scores(hosp_model_hosp_draws,
     scenario = "no_wastewater"

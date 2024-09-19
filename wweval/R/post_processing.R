@@ -36,8 +36,8 @@ get_model_draws_w_data <- function(model_output,
   ht <- nowcast_time + forecast_time
   # Date spine for joining data
   date_df <- tibble::tibble(date = seq(
-    from = min(input_data$date),
-    to = min(input_data$date) + ot + ht,
+    from = ymd(forecast_date) - days(ot) - days(nowcast_time) + days(1),
+    to = ymd(forecast_date) + days(forecast_time),
     by = "days"
   )) |>
     mutate(t = row_number())
