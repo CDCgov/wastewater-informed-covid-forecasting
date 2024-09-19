@@ -33,6 +33,8 @@ get_ww_data(
 \item{dates_for_ww_removal}{NEEDS DOCUMENTATION}
 
 \item{states_for_ww_removal}{NEEDS DOCUMENTATION}
+
+\item{...}{additional arguments}
 }
 \value{
 dataframe with observed viral concentrations at the geographic

@@ -1121,6 +1121,7 @@ get_state_level_summary <- function(nwss_by_week) {
 #' @param ww_data_path NEEDS DOCUMENTATION
 #' @param dates_for_ww_removal NEEDS DOCUMENTATION
 #' @param states_for_ww_removal NEEDS DOCUMENTATION
+#' @param ... additional arguments
 #'
 #' @return dataframe with observed viral concentrations at the geographic
 #' level specified and weekly temporal granularity. Dates correspond to the
