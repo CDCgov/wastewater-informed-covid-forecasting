@@ -151,14 +151,18 @@ get_stats_improved_forecasts <- function(scores,
     dplyr::summarize(crps = mean(crps)) |>
     compute_relative_crps(id_cols = c(
       "location"
-    ))
+    )) |>
+    ungroup() |>
+    dplyr::mutate(
+      pct_change_crps = (ww - hosp) / hosp
+    )
 
   n_states_better <- relative_crps_by_loc |>
-    dplyr::filter(rel_crps < 1 - threshold) |>
+    dplyr::filter(pct_change_crps < threshold) |>
     nrow()
 
   n_states_worse <- relative_crps_by_loc |>
-    dplyr::filter(rel_crps > 1 + threshold) |>
+    dplyr::filter(pct_change_crps > threshold) |>
     nrow()
 
   relative_crps_by_forecast <- scores |>
@@ -166,14 +170,17 @@ get_stats_improved_forecasts <- function(scores,
     dplyr::summarize(crps = mean(crps)) |>
     compute_relative_crps(id_cols = c(
       "location", "forecast_date"
-    ))
+    )) |>
+    dplyr::mutate(
+      pct_change_crps = (ww - hosp) / hosp
+    )
 
   n_forecasts_better <- relative_crps_by_forecast |>
-    dplyr::filter(rel_crps < 1 - threshold) |>
+    dplyr::filter(pct_change_crps < threshold) |>
     nrow()
 
   n_forecasts_worse <- relative_crps_by_forecast |>
-    dplyr::filter(rel_crps > 1 + threshold) |>
+    dplyr::filter(pct_change_crps > threshold) |>
     nrow()
 
 
