@@ -63,7 +63,7 @@ get_plot_score_by_horizon_t <- function(scores,
                                         fig_file_dir) {
   scores_by_horizon_and_t <- scores |>
     # hack, will fix upstream
-    dplyr::filter(!horizon %in% c("0 week ahead", "5 week ahead")) |>
+    # dplyr::filter(!horizon %in% c("0 week ahead", "5 week ahead")) |>
     dplyr::group_by(horizon, forecast_date, model) |>
     dplyr::filter(!is.na(horizon)) |>
     dplyr::summarize(
@@ -117,7 +117,6 @@ get_avg_scores_model_horizon <- function(scores,
                                          score_type) {
   avg_scores <- scores |>
     dplyr::filter(
-      !horizon %in% c("0 week ahead", "5 week ahead"),
       !is.na(horizon)
     ) |>
     # hack, will fix upstream

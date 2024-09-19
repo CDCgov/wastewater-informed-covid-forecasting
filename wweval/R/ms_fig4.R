@@ -37,6 +37,10 @@ make_fig4_rel_crps_over_time <- function(scores,
 
 
   colors <- plot_components()
+  date_lims <- c(
+    min(scores$forecast_date),
+    max(scores$forecast_date)
+  )
 
   p <- ggplot(
     relative_crps,
@@ -164,6 +168,11 @@ make_fig4_admissions_overall <- function(eval_hosp_data) {
     )
   max_total_hosp <- max(total_hosp$total_hosp)
 
+  date_lims <- c(
+    lubridate::ymd("2023-10-16"),
+    lubridate::ymd("2024-03-11")
+  )
+
   p <- ggplot() +
     geom_point(
       data = total_hosp,
@@ -179,8 +188,7 @@ make_fig4_admissions_overall <- function(eval_hosp_data) {
     scale_x_date(
       date_breaks = "1 week",
       labels = scales::date_format("%Y-%m-%d"),
-      limits = as.Date(c("2023-10-16", "2024-03-11")),
-      expand = expansion(c(0.03, 0.03))
+      limits = date_lims
     )
   return(p)
 }
@@ -556,6 +564,10 @@ make_fig4_avg_crps_over_time <- function(scores,
       ))
   }
 
+  date_lims <- c(
+    min(scores$forecast_date),
+    max(scores$forecast_date)
+  )
   colors <- plot_components()
   p <- ggplot(scores_by_forecast_date) +
     geom_line(
@@ -580,9 +592,11 @@ make_fig4_avg_crps_over_time <- function(scores,
     ) +
     theme(axis.title.x = element_blank()) +
     scale_x_date(
-      date_breaks = "2 weeks",
-      labels = scales::date_format("%Y-%m-%d")
+      date_breaks = "1 week",
+      labels = scales::date_format("%Y-%m-%d"),
+      limits = date_lims
     ) +
+    ylab("CRPS") +
     scale_color_manual(values = colors$model_colors)
 
   return(p)
