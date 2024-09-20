@@ -20,5 +20,6 @@
 #' @importFrom tibble tibble
 #' @importFrom grDevices colors
 #' @importFrom stats density median quantile sd lag
+#' dgamma dlnorm dnbinom dweibull ecdf time
 #' @importFrom utils read.table write.csv write.table
 NULL
