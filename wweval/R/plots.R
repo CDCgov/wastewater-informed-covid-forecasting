@@ -1,3 +1,125 @@
+#' Compare growth rates in wastewater and hospital admissions data
+#'
+#' @param input_hosp_data tibble of hospital admissions counts for a
+#' particular location and forecast date
+#' @param input_ww_data tibble of wastewater concentrations for a particular
+#' location and forecast date
+#' @param location string indicating the location of interest
+#' @param forecast_date string indicating the forecast date of interest
+#' @param rate string indicating whether the plot should be a daily or
+#' weekly growth rates. Default is `"daily"`
+#' @param align string indicating how to align the 7 day rolling average
+#' of the hospital admissions and wastewater data. Default is `"center"`
+#'
+#' @return a ggplot object containing site-lab level exponential growth rates
+#' with the state level hospital admissions growth rates overlaid
+#' @export
+get_growth_rate_plot <- function(input_hosp_data,
+                                 input_ww_data,
+                                 location,
+                                 forecast_date,
+                                 rate = "daily",
+                                 align = "center") {
+  hosp_data <- input_hosp_data |> dplyr::mutate(
+    admits_7d_rolling = zoo::rollmean(daily_hosp_admits,
+      k = 7, na.pad = TRUE,
+      align = {{ align }}
+    )
+  )
+
+  # linear interpolation of ww data
+  ww_data <- input_ww_data |>
+    dplyr::group_by(lab, site, lab_site_index) |>
+    tidyr::complete(date = seq.Date(min(hosp_data$date),
+      max(hosp_data$date),
+      by = "day"
+    )) |>
+    dplyr::mutate(
+      ww_interpolated = zoo::na.approx(ww, na.rm = FALSE)
+    ) |>
+    dplyr::ungroup() |>
+    # Get 7 day rolling average of interpolated data
+    dplyr::mutate(
+      ww_7d_rolling = zoo::rollmean(ww_interpolated,
+        k = 7, na.pad = TRUE,
+        align = {{ align }}
+      )
+    )
+  # Put the two datasets together:
+  comb_data <- ww_data |>
+    dplyr::left_join(
+      hosp_data,
+      by = "date"
+    ) |>
+    dplyr::mutate(
+      log_ww = log(ww_7d_rolling),
+      log_hosp = log(admits_7d_rolling),
+      prev_log_ww = dplyr::lag(log_ww, 1),
+      prev_week_log_ww = dplyr::lag(log_ww, 7),
+      prev_log_hosp = dplyr::lag(log_hosp, 1),
+      prev_week_log_hosp = dplyr::lag(log_hosp, 7),
+      daily_r_ww = log_ww - prev_log_ww,
+      daily_r_hosp = log_hosp - prev_log_hosp,
+      weekly_r_ww = (log_ww - prev_week_log_ww) / 7,
+      weekly_r_hosp = (log_hosp - prev_week_log_hosp) / 7
+    ) |>
+    dplyr::mutate(
+      lab_site_name = glue::glue("Site: {site}, Lab: {lab}")
+    )
+
+
+  daily_p <- ggplot(comb_data) +
+    geom_line(aes(x = date, y = daily_r_ww, color = lab_site_name)) +
+    geom_line(aes(x = date, y = daily_r_hosp)) +
+    facet_wrap(~lab_site_name) +
+    theme(
+      legend.position = "bottom",
+      panel.background = element_rect(fill = "white"),
+      panel.grid.major = element_line(color = "gray"),
+      axis.text.x = element_text(
+        size = 8, vjust = 1,
+        hjust = 1, angle = 45
+      )
+    ) +
+    # coord_cartesian(ylim = c(-1, 1)) +
+    ylab("Daily growth rate") +
+    xlab("")
+  ggtitle(glue::glue(
+    "{location} {forecast_date} daily growth rate comparison"
+  ))
+
+  weekly_p <- ggplot(comb_data) +
+    geom_line(aes(x = date, y = weekly_r_ww, color = lab_site_name)) +
+    geom_line(aes(x = date, y = weekly_r_hosp)) +
+    facet_wrap(~lab_site_name) +
+    theme(
+      legend.position = "bottom",
+      panel.background = element_rect(fill = "white"),
+      panel.grid.major = element_line(color = "gray"),
+      axis.text.x = element_text(
+        size = 8, vjust = 1,
+        hjust = 1, angle = 45
+      )
+    ) +
+    xlab("") +
+    # coord_cartesian(ylim = c(-0.5, 0.5)) +
+    ylab("Weekly growth rate") +
+    ggtitle(glue::glue(
+      "{location} {forecast_date} weekly growth rate comparison"
+    ))
+
+  if (rate == "weekly") {
+    p <- weekly_p
+  } else {
+    p <- daily_p
+  }
+  return(p)
+}
+
+
+
+
+
 #' Get plot of wastewater data compared to model draws
 #'
 #' @param draws_w_data A long tidy dataframe containing draws from the model of

@@ -274,10 +274,10 @@ make_fig5_heatmap_relative_wis <- function(scores,
     geom_text(aes(
       x = model, y = short_name,
       label = round(relative_interval_score, 2)
-    ), size = 2.5) +
+    ), size = 1.5) +
     get_plot_theme(
       x_axis_dates = TRUE,
-      y_axis_text_size = 6
+      y_axis_text_size = 3
     ) +
     xlab("") +
     ylab("") +
@@ -454,6 +454,11 @@ FGH
 
   ggsave(fig5,
     filename = file.path(fig_file_dir, "fig5.png"),
+    width = 12, height = 12
+  )
+
+  ggsave(fig5,
+    filename = file.path(fig_file_dir, "fig5.svg"),
     width = 12, height = 12
   )
 
