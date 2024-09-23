@@ -70,6 +70,7 @@ Imports:
     scales,
     scoringutils,
     tibble,
+    zoo,
     cfaforecastrenewalww,
     cmdstanr (>= 0.7.1),
     forcats,
