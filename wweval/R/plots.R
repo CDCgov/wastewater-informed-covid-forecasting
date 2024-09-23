@@ -7,7 +7,9 @@
 #' @param location string indicating the location of interest
 #' @param forecast_date string indicating the forecast date of interest
 #' @param rate string indicating whether the plot should be a daily or
-#' weekly growth rates
+#' weekly growth rates. Default is `"daily"`
+#' @param align string indicating how to align the 7 day rolling average
+#' of the hospital admissions and wastewater data. Default is `"center"`
 #'
 #' @return a ggplot object containing site-lab level exponential growth rates
 #' with the state level hospital admissions growth rates overlaid
@@ -16,11 +18,12 @@ get_growth_rate_plot <- function(input_hosp_data,
                                  input_ww_data,
                                  location,
                                  forecast_date,
-                                 rate = "daily") {
+                                 rate = "daily",
+                                 align = "center") {
   hosp_data <- input_hosp_data |> dplyr::mutate(
     admits_7d_rolling = zoo::rollmean(daily_hosp_admits,
       k = 7, na.pad = TRUE,
-      align = "center"
+      align = {{ align }}
     )
   )
 
@@ -39,7 +42,7 @@ get_growth_rate_plot <- function(input_hosp_data,
     dplyr::mutate(
       ww_7d_rolling = zoo::rollmean(ww_interpolated,
         k = 7, na.pad = TRUE,
-        align = "center"
+        align = {{ align }}
       )
     )
   # Put the two datasets together:

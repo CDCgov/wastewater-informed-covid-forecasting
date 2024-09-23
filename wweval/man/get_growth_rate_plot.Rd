@@ -9,7 +9,8 @@ get_growth_rate_plot(
   input_ww_data,
   location,
   forecast_date,
-  rate = "daily"
+  rate = "daily",
+  align = "center"
 )
 }
 \arguments{
@@ -24,7 +25,10 @@ location and forecast date}
 \item{forecast_date}{string indicating the forecast date of interest}
 
 \item{rate}{string indicating whether the plot should be a daily or
-weekly growth rates}
+weekly growth rates. Default is \code{"daily"}}
+
+\item{align}{string indicating how to align the 7 day rolling average
+of the hospital admissions and wastewater data. Default is \code{"center"}}
 }
 \value{
 a ggplot object containing site-lab level exponential growth rates
