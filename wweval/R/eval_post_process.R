@@ -123,6 +123,20 @@ eval_post_process_ww <- function(config_index,
     model_type = "ww",
     location = location
   )
+  # Plots of overlaid exponential growth rates in ww vs hosp
+  plot_growth_rates <- get_growth_rate_plot(input_hosp_data,
+    input_ww_data,
+    location,
+    forecast_date,
+    rate = "weekly"
+  )
+
+  ggsave(plot_growth_rates, filename = file.path(
+    output_dir, scenario,
+    forecast_date, "ww", location,
+    "plot_growth_rates.png"
+  ))
+
 
   hosp_draws <- {
     if (is.null(ww_raw_draws)) {
