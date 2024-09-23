@@ -16,7 +16,7 @@ library(tidybayes)
 library(scoringutils)
 source(here::here("src/write_config.R"))
 knitr::opts_chunk$set(echo = TRUE)
-cfaforecastrenewalww::setup_secrets(here::here("secrets.yaml"))
+wweval::setup_secrets(here::here("secrets.yaml"))
 ```
 # Motivation
 The purpose of this Rmd is to generate simulated data with known per capita
@@ -111,7 +111,7 @@ ggplot(sim_data_df) +
 params <- get_params(
   system.file("extdata", "example_params.toml",
     package = "cfaforecastrenewalww"
-  )
+  ) |> as.data.frame()
 )
 params
 

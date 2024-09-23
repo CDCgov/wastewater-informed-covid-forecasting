@@ -104,7 +104,7 @@ create_hub_submissions <- function(hosp_quantiles_ww,
         # have submitted
       )
 
-      cfaforecastrenewalww::create_dir(file.path(hub_subdir, model_name))
+      wwinference::create_dir(file.path(hub_subdir, model_name))
 
       readr::write_csv(submission_df, file.path(
         hub_subdir, model_name,

@@ -26,6 +26,6 @@ site_to_wwtp_map <- nwss_w_site_id |>
 
 # Write the maps to input data
 fp <- file.path("input", "site_maps")
-cfaforecastrenewalww::create_dir(fp)
+wwinference::create_dir(fp)
 write.csv(site_to_wwtp_map, file.path(fp, "site_map.csv"), row.names = FALSE)
 write.csv(nwss_map, file.path(fp, "site_lab_map.csv"), row.names = FALSE)

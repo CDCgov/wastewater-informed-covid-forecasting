@@ -179,7 +179,7 @@ make_baseline_score_table <- function(all_ww_scores,
     # Check that is only one forecast_date
     stopifnot("more than one forecast_date" = length(unique(scores$forecast_date)) == 1)
 
-    cfaforecastrenewalww::create_dir(baseline_score_table_dir)
+    wwinference::create_dir(baseline_score_table_dir)
 
     write.table(scores, file.path(
       baseline_score_table_dir,

@@ -26,6 +26,7 @@ Authors:
   \item Andrew Magee \email{rzg0@cdc.gov}
   \item Dylan Morris \email{dylan@dylanhmorris.com} (\href{https://orcid.org/0000-0002-3655-406X}{ORCID})
   \item Scott Olesen \email{ulp7@cdc.gov}
+  \item Damon Bayer \email{xum8@cdc.gov}
 }
 
 Other contributors:

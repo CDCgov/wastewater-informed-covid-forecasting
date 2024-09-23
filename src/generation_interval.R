@@ -18,7 +18,7 @@ generation_interval <- data.frame(
 )
 
 
-cfaforecastrenewalww::create_dir(file.path("repo_data", "saved_pmfs"))
+wwinference::create_dir(file.path("repo_data", "saved_pmfs"))
 write.csv(generation_interval, file.path(
   "repo_data", "saved_pmfs",
   glue::glue("generation_interval.csv")
