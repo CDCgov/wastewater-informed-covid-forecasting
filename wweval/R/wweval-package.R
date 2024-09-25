@@ -11,7 +11,7 @@
 #' @importFrom yaml read_yaml
 #' @importFrom tidybayes spread_draws stat_halfeye stat_slab
 #' @importFrom dplyr filter left_join select pull distinct mutate as_tibble
-#' rename ungroup arrange row_number group_by
+#' rename ungroup arrange row_number group_by case_when summarize n
 #' @importFrom tidyr pivot_wider pivot_longer
 #' @import ggplot2
 #' @importFrom colorspace scale_fill_continuous_diverging
