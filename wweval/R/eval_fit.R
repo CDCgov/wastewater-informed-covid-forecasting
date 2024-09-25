@@ -99,6 +99,7 @@ eval_fit_ww <- function(config_index,
   save_object("input_ww_data", output_file_suffix)
 
   ## Get the stan data for this location, forecast_date, and scenario ----------
+  # We should replace this with wwinference, just bandaging for now
   standata <- get_stan_data_list(
     model_type = "ww",
     forecast_date = forecast_date,
@@ -109,6 +110,7 @@ eval_fit_ww <- function(config_index,
     generation_interval = eval_config$generation_interval,
     inf_to_hosp = eval_config$inf_to_hosp,
     infection_feedback_pmf = eval_config$infection_feedback_pmf,
+    lod_col_name = "below_lod",
     params = params
   )
 

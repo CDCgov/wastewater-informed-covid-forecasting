@@ -61,13 +61,14 @@ get_input_ww_data <- function(forecast_date_i,
       location %in% c(!!location_i),
       date >= lubridate::ymd(!!last_hosp_data_date) -
         lubridate::days(!!calibration_time) + lubridate::days(1)
-    )
+    ) |>
+    dplyr::rename("below_lod" = "below_LOD")
 
   # Get extra columns that identify wastewater outliers
   ww_w_outliers <- wwinference::flag_ww_outliers(ww) |>
     select(
       date, location, ww, site, lab, lab_wwtp_unique_id,
-      ww_pop, below_LOD, lod_sewage, flag_as_ww_outlier
+      ww_pop, below_lod, lod_sewage, flag_as_ww_outlier
     )
   # If more than one location, than this data isn't being used for fitting
   # And we don't wanto generate these
