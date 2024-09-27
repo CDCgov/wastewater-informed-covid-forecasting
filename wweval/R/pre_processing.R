@@ -858,9 +858,10 @@ clean_and_filter_nwss_data <- function(raw_nwss_data) {
     ungroup() |>
     distinct() |>
     # If there are multiple population sizes in a site, replace with the mean
+    # and round to the nearest whole number
     group_by(wwtp_name) |>
     mutate(
-      population_served = mean(population_served, na.rm = TRUE),
+      population_served = round(mean(population_served, na.rm = TRUE), 0),
     ) |>
     dplyr::select(
       sample_collect_date, wwtp_name, lab_id, pcr_target_avg_conc,

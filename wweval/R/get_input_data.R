@@ -188,7 +188,7 @@ get_input_hosp_data <- function(forecast_date_i, location_i,
     count_col_name = "daily_hosp_admits",
     pop_size_col_name = "pop"
   )
-  return(input_hosp)
+  return(hosp_data_preprocessed)
 }
 
 #' Date of wastewater data
