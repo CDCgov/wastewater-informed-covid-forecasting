@@ -33,8 +33,8 @@ folder with time stamped datasets}
 \code{NULL}, only needed if pulling from epidatr}
 }
 \value{
-a dataframe containing the cleaned hospital admissions needed as
-an input to the stan model for the specified forecast date and location
+a tibble containing the preprocessed hospital admissions data ready
+to be passed into the wwinference function
 }
 \description{
 Get input hospital admissions data

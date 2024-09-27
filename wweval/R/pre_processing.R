@@ -803,7 +803,7 @@ subsample_sites <- function(ww_data, prop_sites = 0.2,
 #'
 #' @export
 #'
-init_subset_nwss_data <- function(raw_nwss_data) {
+clean_and_filter_nwss_data <- function(raw_nwss_data) {
   nwss_subset_raw <- raw_nwss_data |>
     dplyr::filter(
       sample_location == "wwtp",
@@ -816,7 +816,7 @@ init_subset_nwss_data <- function(raw_nwss_data) {
     select(
       lab_id, sample_collect_date, wwtp_name, pcr_target_avg_conc,
       wwtp_jurisdiction, county_names, population_served, pcr_target_units,
-      pcr_target_below_lod, lod_sewage, quality_flag, county_names
+      pcr_target_below_lod, lod_sewage, quality_flag
     ) |>
     mutate(
       pcr_target_avg_conc = dplyr::case_when(
@@ -838,68 +838,35 @@ init_subset_nwss_data <- function(raw_nwss_data) {
   conservative_lod <- as.numeric(
     quantile(nwss_subset_raw$lod_sewage, 0.95, na.rm = TRUE)
   )
-  nwss_subset_raw <- nwss_subset_raw |>
-    mutate(lod_sewage = ifelse(is.na(lod_sewage),
-      conservative_lod,
-      lod_sewage
-    )) |>
-    mutate(below_LOD = dplyr::case_when(
-      pcr_target_below_lod == "Yes" ~ 1,
-      pcr_target_below_lod == "No" ~ 0,
-      pcr_target_avg_conc < lod_sewage ~ 1,
-      pcr_target_avg_conc >= lod_sewage ~ 0,
-      round(pcr_target_avg_conc) == 0 ~ 1
-    )) |>
-    mutate( # if value below LOD, set at LOD
-      pcr_target_avg_conc = ifelse(below_LOD == 1, lod_sewage, pcr_target_avg_conc)
+  nwss_subset <- nwss_subset_raw |>
+    mutate(
+      lod_sewage = ifelse(is.na(lod_sewage),
+        conservative_lod,
+        lod_sewage
+      ),
+      sample_collect_date = lubridate::ymd(sample_collect_date)
     )
 
-  unique_combos_map <- nwss_subset_raw |>
-    select(wwtp_name, lab_id) |>
-    unique() |>
-    mutate(lab_wwtp_unique_id = row_number())
 
-  nwss_subset <- nwss_subset_raw |>
-    left_join(unique_combos_map,
-      by = c("wwtp_name", "lab_id")
-    ) |>
-    mutate(sample_collect_date = lubridate::ymd(sample_collect_date))
-
-  # Find the number of datapoints in each lab site (exclude rows
-  # where lab_wwtp_unique_id is NA bc those are days with no WW obs)
-  n_dps <- nwss_subset |>
-    group_by(lab_wwtp_unique_id) |>
-    summarize(n_data_points = dplyr::n())
-  # Remove labs that have only 1 data point
-  nwss_subset <- nwss_subset |>
-    left_join(n_dps, by = "lab_wwtp_unique_id") |>
-    dplyr::filter(n_data_points > 1)
 
   # If there are multiple values per lab-site-day, replace with the mean
-  nwss_subset_no_repeats <- nwss_subset |>
-    group_by(lab_wwtp_unique_id, sample_collect_date) |>
-    summarize(
-      pcr_target_avg_conc = mean(pcr_target_avg_conc, na.rm = TRUE),
+  nwss_subset_clean <- nwss_subset |>
+    group_by(wwtp_name, lab_id, sample_collect_date) |>
+    mutate(
+      pcr_target_avg_conc = mean(pcr_target_avg_conc, na.rm = TRUE)
+    ) |>
+    ungroup() |>
+    distinct() |>
+    # If there are multiple population sizes in a site, replace with the mean
+    group_by(wwtp_name) |>
+    mutate(
       population_served = mean(population_served, na.rm = TRUE),
-      county_names = county_names[which.max(nchar(county_names))] # mult entries
-      # for a site-lab-day will list different countys, pick the most inclusive one
+    ) |>
+    dplyr::select(
+      sample_collect_date, wwtp_name, lab_id, pcr_target_avg_conc,
+      wwtp_jurisdiction, lod_sewage, population_served
     )
 
-  # Get only one value per lab-site-day combo
-  nwss_subset_clean <- nwss_subset |>
-    dplyr::select(
-      -pcr_target_avg_conc,
-      -population_served,
-      -county_names
-    ) |>
-    dplyr::distinct() |>
-    dplyr::left_join(nwss_subset_no_repeats,
-      by = c(
-        "lab_wwtp_unique_id",
-        "sample_collect_date"
-      )
-    ) |>
-    dplyr::select(colnames(nwss_subset))
 
   return(nwss_subset_clean)
 }
