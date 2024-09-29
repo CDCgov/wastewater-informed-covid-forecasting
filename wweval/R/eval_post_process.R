@@ -28,7 +28,14 @@ eval_post_process_ww <- function(config_index,
   wwinference::create_dir(raw_output_dir)
 
 
-  params <- wwinference::get_params(params_path) |> as.data.frame()
+  # params <- wwinference::get_params(params_path) #nolint
+  # Temporarily get parameters from local package install to test, since
+  # need updates from branch of wwinferece
+  params <- get_params(
+    system.file("extdata", "example_params.toml",
+      package = "wwinference"
+    )
+  )
   location <- eval_config$location_ww[config_index]
   forecast_date <- eval_config$forecast_date_ww[config_index]
   scenario <- eval_config$scenario[config_index]
@@ -44,16 +51,15 @@ eval_post_process_ww <- function(config_index,
   eval_hosp_data <- load_object("eval_hosp_data", output_file_suffix)
   input_ww_data <- load_object("input_ww_data", output_file_suffix)
   eval_ww_data <- load_object("eval_ww_data", output_file_suffix)
-  ww_fit_obj <- load_object("ww_fit_obj", output_file_suffix)
+  ww_fit_obj_wwinference <- load_object("ww_fit_obj", output_file_suffix)
+  ww_fit_obj <- ww_fit_obj_wwinference$fit$result
 
-  ww_raw_draws <- ww_fit_obj$draws
+  ww_raw_draws <- ww_fit_obj$draws()
   save_object("ww_raw_draws", output_file_suffix)
-  ww_diagnostics <- ww_fit_obj$diagnostics
+  ww_diagnostics <- ww_fit_obj$diagnostics()
   save_object("ww_diagnostics", output_file_suffix)
-  ww_diagnostic_summary <- ww_fit_obj$summary_diagnostics
+  ww_diagnostic_summary <- ww_fit_obj$diagnostic_summary()
   save_object("ww_diagnostic_summary", output_file_suffix)
-  ww_summary <- ww_fit_obj$summary
-  save_object("ww_summary", output_file_suffix)
   errors <- ww_fit_obj$error
   save_object("errors", output_file_suffix)
   raw_flags <- data.frame(ww_fit_obj$flags)
