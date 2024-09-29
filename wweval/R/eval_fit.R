@@ -26,7 +26,14 @@ eval_fit_ww <- function(config_index,
   wwinference::create_dir(output_dir)
   wwinference::create_dir(raw_output_dir)
 
-  params <- wwinference::get_params(params_path)
+  # params <- wwinference::get_params(params_path) #nolint
+  # Temporarily get parameters from local package install to test, since
+  # need updates from branch of wwinferece
+  params <- get_params(
+    system.file("extdata", "example_params.toml",
+      package = "wwinference"
+    )
+  )
   location <- eval_config$location_ww[config_index]
   forecast_date <- eval_config$forecast_date_ww[config_index]
   scenario <- eval_config$scenario[config_index]
@@ -103,7 +110,7 @@ eval_fit_ww <- function(config_index,
     forecast_horizon = eval_config$forecast_time,
     model_spec = wwinference::get_model_spec(
       generation_interval = eval_config$generation_interval,
-      inf_to_count_delay = eval_config$inf_to_hosp,
+      inf_to_count_delay = wwinference::default_covid_inf_to_hosp, # eval_config$inf_to_hosp,
       infection_feedback_pmf = eval_config$infection_feedback_pmf,
       params = params
     ),
@@ -116,44 +123,7 @@ eval_fit_ww <- function(config_index,
     )
   )
 
-  ## Get the stan data for this location, forecast_date, and scenario ----------
-  # We should replace this with wwinference, just bandaging for now
-  #   standata <- get_stan_data_list(
-  #     model_type = "ww",
-  #     forecast_date = forecast_date,
-  #     forecast_time = eval_config$forecast_time,
-  #     calibration_time = eval_config$calibration_time,
-  #     input_ww_data = input_ww_data,
-  #     input_hosp_data = input_hosp_data,
-  #     generation_interval = eval_config$generation_interval,
-  #     inf_to_hosp = eval_config$inf_to_hosp,
-  #     infection_feedback_pmf = eval_config$infection_feedback_pmf,
-  #     lod_col_name = "below_lod",
-  #     params = params
-  #   )
-  #
-  #   save_object("standata", output_file_suffix)
-  #   ## Model fitting ----------------------------------------------------------
-  #   init_lists <- get_inits(
-  #     model_type = "ww", standata, params,
-  #     n_chains = eval_config$n_chains
-  #   )
-  #
-  #   save_object("init_lists", output_file_suffix)
-  #
-  #   ww_fit_obj <- sample_model(
-  #     standata = standata,
-  #     stan_model_path = stan_model_path_target,
-  #     stan_models_dir = eval_config$stan_models_dir,
-  #     init_lists = init_lists,
-  #     iter_warmup = eval_config$iter_warmup,
-  #     iter_sampling = eval_config$iter_sampling,
-  #     adapt_delta = eval_config$adapt_delta,
-  #     n_chains = eval_config$n_chains,
-  #     max_treedepth = eval_config$max_treedepth,
-  #     seed = eval_config$seed
-  #   )
-  #   save_object("ww_fit_obj", output_file_suffix)
+  save_object("ww_fit_obj", output_file_suffix)
 }
 
 #' Fit Hospitalizations Model for Evaluation
@@ -182,7 +152,14 @@ eval_fit_hosp <- function(config_index,
   wwinference::create_dir(output_dir)
   wwinference::create_dir(raw_output_dir)
 
-  params <- wwinference::get_params(params_path) |> as.data.frame()
+  # params <- wwinference::get_params(params_path) #nolint
+  # Temporarily get parameters from local package install to test, since
+  # need updates from branch of wwinferece
+  params <- get_params(
+    system.file("extdata", "example_params.toml",
+      package = "wwinference"
+    )
+  )
   location <- eval_config$location_hosp[config_index]
   forecast_date <- eval_config$forecast_date_hosp[config_index]
   scenario <- "no_wastewater"
@@ -208,11 +185,6 @@ eval_fit_hosp <- function(config_index,
   table_of_exclusions <- tibble::as_tibble(eval_config$table_of_exclusions)
 
   # Hospital admissions model fitting loop-----------------------------------------------
-  stan_model_path_target <- get_model_path(
-    model_type = "hosp",
-    stan_models_dir = eval_config$stan_models_dir
-  )
-
   raw_input_hosp_data <- get_input_hosp_data(
     forecast_date_i = forecast_date,
     location_i = location,
@@ -225,40 +197,32 @@ eval_fit_hosp <- function(config_index,
     table_of_exclusions = table_of_exclusions
   )
   save_object("input_hosp_data", output_file_suffix)
+
+
   last_hosp_data_date <- get_last_hosp_data_date(input_hosp_data)
 
-  ## Get the stan data for this location, forecast_date, and scenario ----------
-  standata <- get_stan_data_list(
-    model_type = "hosp",
+  ## Use wwinference to fit the model------------------------------------------
+  hosp_fit_obj <- wwinference::wwinference(
+    ww_data = NULL,
+    count_data = input_hosp_data,
     forecast_date = forecast_date,
-    forecast_time = eval_config$forecast_time,
     calibration_time = eval_config$calibration_time,
-    input_ww_data = NA,
-    input_hosp_data = input_hosp_data,
-    generation_interval = eval_config$generation_interval,
-    inf_to_hosp = eval_config$inf_to_hosp,
-    infection_feedback_pmf = eval_config$infection_feedback_pmf,
-    params = params
+    forecast_horizon = eval_config$forecast_time,
+    model_spec = wwinference::get_model_spec(
+      generation_interval = eval_config$generation_interval,
+      inf_to_count_delay = wwinference::default_covid_inf_to_hosp, # eval_config$inf_to_hosp,
+      infection_feedback_pmf = eval_config$infection_feedback_pmf,
+      params = params,
+      include_ww = FALSE
+    ),
+    fit_opts = list(
+      seed = eval_config$seed,
+      iter_sampling = eval_config$iter_sampling,
+      adapt_delta = eval_config$adapt_delta,
+      chains = eval_config$n_chains,
+      max_treedepth = eval_config$max_treedepth
+    )
   )
-  save_object("standata", output_file_suffix)
-  ## Model fitting-----------------------------------------------------------
-  init_lists <- get_inits(
-    model_type = "hosp",
-    standata, params,
-    n_chains = eval_config$n_chains
-  )
-  save_object("init_lists", output_file_suffix)
-  hosp_fit_obj <- sample_model(
-    standata = standata,
-    stan_model_path = stan_model_path_target,
-    stan_models_dir = eval_config$stan_models_dir,
-    init_lists = init_lists,
-    iter_warmup = eval_config$iter_warmup,
-    iter_sampling = eval_config$iter_sampling,
-    adapt_delta = eval_config$adapt_delta,
-    n_chains = eval_config$n_chains,
-    max_treedepth = eval_config$max_treedepth,
-    seed = eval_config$seed
-  )
+
   save_object("hosp_fit_obj", output_file_suffix)
 }
