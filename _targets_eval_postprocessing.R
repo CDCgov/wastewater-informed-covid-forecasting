@@ -487,17 +487,23 @@ manuscript_figures <- list(
     name = table_of_forecast_date_locs,
     command = scores_filtered |>
       dplyr::distinct(forecast_date, location) |>
-      dplyr::select(forecast_date, location) |>
+      dplyr::select(forecast_date, location)
+  ),
+  tar_target(
+    name = scores_filtered_grouped,
+    command = scores_filtered |>
       group_by(forecast_date, location) |>
-      tar_group()
+      targets::tar_group(),
+    iteration = "group"
   ),
   tar_target(
     name = plot_scores_w_forecasts,
     command = get_plot_scores_and_forecasts(
-      scores_filtered
+      scores_filtered_grouped,
+      eval_output_subdir = eval_config$output_dir
     ),
-    pattern = map(table_of_forecast_date_locs),
-    iteration = "group"
+    pattern = map(scores_filtered_grouped),
+    iteration = "list"
   ),
   ## Summary metadata table-----------------------------------------
   tar_target(
