@@ -482,6 +482,23 @@ head_to_head_targets <- list(
 # ggarranged, properly formatted figures, and currently require
 # specification for the figure components that are examples.
 manuscript_figures <- list(
+  ## Forecast date location combinations----------------------------
+  tar_target(
+    name = table_of_forecast_date_locs,
+    command = scores_filtered |>
+      dplyr::distinct(forecast_date, location) |>
+      dplyr::select(forecast_date, location) |>
+      group_by(forecast_date, location) |>
+      tar_group()
+  ),
+  tar_target(
+    name = plot_scores_w_forecasts,
+    command = get_plot_scores_and_forecasts(
+      scores_filtered
+    ),
+    pattern = map(table_of_forecast_date_locs),
+    iteration = "group"
+  ),
   ## Summary metadata table-----------------------------------------
   tar_target(
     name = granular_ww_metadata_used,

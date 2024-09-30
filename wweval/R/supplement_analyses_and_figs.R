@@ -1,3 +1,36 @@
+get_plot_scores_and_forecasts <- function(scores_single_loc_date) {
+  location <- scores_single_loc_date |>
+    dplyr::distinct(location) |>
+    dplyr::pull()
+
+  forecast_date <- scores_single_loc_date |>
+    dplyr::distinct(forecast_date) |>
+    dplyr::pull()
+  colors <- plot_components()
+  p_scores_t <- ggplot(scores_single_loc_date) +
+    geom_line(aes(x = date, y = crps, color = model)) +
+    get_plot_theme(
+      x_axis_dates = TRUE,
+      y_axis_title_size = 8
+    ) +
+    scale_x_date(
+      date_breaks = "2 weeks",
+      labels = scales::date_format("%Y-%m-%d"),
+    ) +
+    xlab("") +
+    ylab("CRPS")
+  geom_vline(aes(xintercept = forecast_date), linetype = "dashed") +
+    scale_color_manual(values = colors$model_colors)
+
+  p_scores_avg <- ggplot(scores_avg) +
+    geom_bar(aes(x = model, y = avg_crps, fill = model),
+      stat = "identity", position = "dodge"
+    )
+}
+
+
+
+
 #' Get a plot of bias over time
 #'
 #' @param scores a complete df of scores with a column for bias
