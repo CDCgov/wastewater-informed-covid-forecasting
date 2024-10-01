@@ -691,3 +691,9 @@ get_stats_improved_forecasts <- function(scores,
 
   return(stats)
 }
+
+get_plot_sites_vs_performance <- function(scores,
+                                          ww_metadata,
+                                          fig_file_dir) {
+  scores_summarized <- scores
+}

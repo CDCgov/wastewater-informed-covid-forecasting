@@ -1474,6 +1474,14 @@ supp_targets <- list(
     )
   ),
   tar_target(
+    name = sfig_n_sites_vs_performance,
+    command = get_plot_sites_vs_performance(
+      scores_filtered,
+      granular_ww_metadata_used,
+      fig_file_dir = eval_config$ms_fig_dir
+    )
+  ),
+  tar_target(
     name = sfig_wis_over_time_Hub,
     command = get_plot_score_by_horizon_t(combine_scores_oct_mar,
       score_type = "interval_score",
