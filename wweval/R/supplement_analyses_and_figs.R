@@ -409,6 +409,7 @@ get_plot_wis_t <- function(hosp_quantiles,
     this_location
   )
   cfaforecastrenewalww::create_dir(alt_fig_file_dir)
+  cfaforecastrenewalww::create_dir(fig_file_dir)
 
   ggsave(fig,
     filename = file.path(fig_file_dir, "hub_comparison_fig.png"),
@@ -460,6 +461,8 @@ get_plot_bias_over_time <- function(scores,
     xlab("") +
     ylab("Average bias") +
     ggtitle("Average bias over time, across horizons and locations")
+
+  cfaforecastrenewalww::create_dir(fig_file_dir)
 
   ggsave(p,
     width = 10, height = 5,
@@ -516,6 +519,7 @@ get_plot_score_by_horizon_t <- function(scores,
     ylab(glue::glue("Average {score_type}")) +
     ggtitle(glue::glue("Average {score_type} over time, across locations"))
 
+  cfaforecastrenewalww::create_dir(fig_file_dir)
   ggsave(p,
     width = 10, height = 10,
     filename = file.path(

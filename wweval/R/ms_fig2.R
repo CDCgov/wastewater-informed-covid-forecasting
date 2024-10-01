@@ -230,6 +230,8 @@ make_fig2 <- function(hosp1, hosp2, hosp3,
     legend.position = "top",
     legend.justification = "left"
   )
+
+  cfaforecastrenewalww::create_dir(fig_file_dir)
   ggsave(fig2,
     filename = file.path(fig_file_dir, "fig2.png"),
     width = 10, height = 7
