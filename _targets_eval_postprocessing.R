@@ -1255,6 +1255,28 @@ hub_targets <- list(
       )
     )
   ),
+  tar_target(
+    name = hosp_quantiles_filtered_grouped,
+    command = hosp_quantiles_filtered |>
+      group_by(forecast_date, location) |>
+      dplyr::filter(
+        location %in% c("AK", "NJ"),
+        forecast_date %in% c("2023-10-16", "2024-02-05")
+      ) |>
+      targets::tar_group(),
+    iteration = "group"
+  ),
+  tar_target(
+    name = plot_wis_w_forecasts,
+    command = get_plot_wis_t(
+      hosp_quantiles_filtered_grouped,
+      combine_scores_oct_mar_raw,
+      eval_output_subdir = eval_config$output_dir
+    ),
+    pattern = map(hosp_quantiles_filtered_grouped),
+    iteration = "list"
+  ),
+
   # Filter out the states that not every model has estimates for,
   # start by doing this manually, can write functions if needed as
   # we expand to other models

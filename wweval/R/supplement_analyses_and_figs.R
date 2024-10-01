@@ -152,15 +152,276 @@ get_plot_scores_and_forecasts <- function(scores_single_loc_date,
       eval_output_subdir, "status_quo",
       this_forecast_date, "ww", this_location
     )
+    alt_fig_file_dir <- file.path(
+      eval_output_subdir, "status_quo",
+      this_location
+    )
+    cfaforecastrenewalww::create_dir(alt_fig_file_dir)
 
     ggsave(fig,
       filename = file.path(fig_file_dir, "forecast_and_score_comp_fig.png"),
       width = 7, height = 10
     )
+
+    ggsave(fig,
+      filename = file.path(
+        alt_fig_file_dir,
+        glue::glue("comp_{this_forecast_date}.png")
+      )
+    )
   } else {
     fig <- NULL
   }
 
+  return(fig)
+}
+
+get_plot_wis_t <- function(hosp_quantiles,
+                           scores,
+                           eval_output_subdir,
+                           submissions_path = "https://raw.githubusercontent.com/reichlab/covid19-forecast-hub/master/data-processed/", # nolint
+                           truth_data_path = "https://media.githubusercontent.com/media/reichlab/covid19-forecast-hub/master/data-truth/truth-Incident%20Hospitalizations.csv", # nolint
+                           hub_comparison_model = "COVIDhub-4_week_ensemble") {
+  truth_data <- truth_data <- readr::read_csv(truth_data_path)
+  min_scores_date <- min(scores$target_end_date)
+
+  this_location <- hosp_quantiles |>
+    dplyr::distinct(location) |>
+    dplyr::pull()
+
+  loc_code <- cfaforecastrenewalww::loc_abbr_to_flusight_code(this_location)
+
+  this_forecast_date <- hosp_quantiles |>
+    dplyr::distinct(forecast_date) |>
+    dplyr::pull()
+  scores <- scores |> dplyr::filter(
+    forecast_date == !!this_forecast_date,
+    location == !!this_location
+  )
+
+
+  hub_quantiles <-
+    readr::read_csv(glue::glue(
+      "{submissions_path}{hub_comparison_model}/{this_forecast_date}-{hub_comparison_model}.csv"
+    )) |>
+    dplyr::filter(
+      type == "quantile",
+      location == loc_code
+    )
+  hub_quantiles_wide <- hub_quantiles |>
+    dplyr::filter(
+      quantile %in% c(0.025, 0.25, 0.5, 0.75, 0.975)
+    ) |>
+    tidyr::pivot_wider(
+      id_cols = c(
+        location, forecast_date, target_end_date
+      ),
+      names_from = quantile,
+      values_from = value
+    ) |>
+    dplyr::left_join(
+      truth_data |>
+        dplyr::filter(
+          location == loc_code,
+          date > this_forecast_date,
+          date <= this_forecast_date + 28
+        ) |>
+        dplyr::rename(truth = value),
+      by = c("target_end_date" = "date", "location")
+    )
+
+
+  p_hub_forecasts <- ggplot(hub_quantiles_wide) +
+    geom_point(aes(x = target_end_date, y = truth),
+      fill = "white", size = 1, shape = 21,
+      show.legend = FALSE
+    ) +
+    geom_line(
+      aes(
+        x = target_end_date, y = `0.5`
+      ),
+      color = "gray"
+    ) +
+    geom_ribbon(
+      aes(
+        x = target_end_date, ymin = `0.025`, ymax = `0.975`
+      ),
+      fill = "gray",
+      alpha = 0.1
+    ) +
+    geom_ribbon(
+      aes(
+        x = target_end_date, ymin = `0.25`, ymax = `0.75`
+      ),
+      fill = "gray",
+      alpha = 0.2,
+    ) +
+    geom_vline(aes(xintercept = lubridate::ymd(this_forecast_date)),
+      linetype = "dashed"
+    ) +
+    scale_x_date(
+      date_breaks = "1 week",
+      labels = scales::date_format("%Y-%m-%d")
+    ) +
+    xlab("") +
+    ylab("Daily hospital admissions") +
+    get_plot_theme(x_axis_dates = TRUE) +
+    theme(
+      legend.position = "top",
+      legend.justification = "left"
+    ) +
+    coord_cartesian(ylim = c(0, 2 * max(hosp_quantiles$eval_data))) +
+    ggtitle(glue::glue("{this_forecast_date} in {this_location} {hub_comparison_model}"))
+
+
+  quantiles_wide <- hosp_quantiles |>
+    dplyr::filter(
+      quantile %in% c(0.025, 0.25, 0.5, 0.75, 0.975),
+      date >= this_forecast_date
+    ) |>
+    tidyr::pivot_wider(
+      id_cols = c(
+        location, forecast_date, period, scenario,
+        date, t, eval_data, calib_data, model_type
+      ),
+      names_from = quantile,
+      values_from = value
+    )
+  colors <- plot_components()
+  ## First plot the forecasts from renewal models
+  p_forecasts <- ggplot(quantiles_wide) +
+    geom_point(aes(x = date, y = eval_data),
+      fill = "white", size = 1, shape = 21,
+      show.legend = FALSE
+    ) +
+    geom_point(
+      aes(x = date, y = calib_data),
+      color = "black", show.legend = FALSE
+    ) +
+    geom_line(
+      aes(
+        x = date, y = `0.5`,
+        color = model_type
+      ),
+      show.legend = FALSE
+    ) +
+    geom_ribbon(
+      aes(
+        x = date, ymin = `0.025`, ymax = `0.975`,
+        fill = model_type
+      ),
+      alpha = 0.1,
+      show.legend = FALSE
+    ) +
+    geom_ribbon(
+      aes(
+        x = date, ymin = `0.25`, ymax = `0.75`,
+        fill = model_type
+      ),
+      alpha = 0.2,
+      show.legend = FALSE
+    ) +
+    geom_vline(aes(xintercept = lubridate::ymd(this_forecast_date)),
+      linetype = "dashed"
+    ) +
+    scale_x_date(
+      date_breaks = "1 week",
+      labels = scales::date_format("%Y-%m-%d")
+    ) +
+    xlab("") +
+    ylab("Daily hospital admissions") +
+    scale_color_manual(values = colors$model_colors) +
+    scale_fill_manual(values = colors$model_colors) +
+    get_plot_theme(x_axis_dates = TRUE) +
+    theme(
+      legend.position = "top",
+      legend.justification = "left"
+    ) +
+    labs(color = "Model", fill = "Model") +
+    coord_cartesian(ylim = c(0, 2 * max(hosp_quantiles$eval_data))) +
+    ggtitle(glue::glue("{this_forecast_date} in {this_location}"))
+
+  scores_to_plot <- scores |>
+    dplyr::filter(model %in% c(
+      "cfa-wwrenewal", "cfa-hosponlyrenewal", {{ hub_comparison_model }}
+    )) |>
+    dplyr::group_by(model, target_end_date) |>
+    dplyr::summarize(avg_wis = mean(interval_score)) |>
+    dplyr::mutate(
+      model =
+        dplyr::case_when(
+          model == "cfa-wwrenewal" ~ "cfa-wwrenewal(retro)",
+          model == "cfa-hosponlyrenewal" ~ "cfa-hosponlyrenewal(retro)",
+          TRUE ~ model
+        )
+    )
+
+  avg_scores <- scores |>
+    dplyr::filter(model %in% c(
+      "cfa-wwrenewal", "cfa-hosponlyrenewal", {{ hub_comparison_model }}
+    )) |>
+    dplyr::group_by(model) |>
+    dplyr::summarize(avg_wis = mean(interval_score)) |>
+    dplyr::mutate(model = dplyr::case_when(
+      model == "cfa-wwrenewal" ~ "cfa-wwrenewal(retro)",
+      model == "cfa-hosponlyrenewal" ~ "cfa-hosponlyrenewal(retro)",
+      TRUE ~ model
+    ))
+
+  scores_t <- ggplot(scores_to_plot) +
+    geom_line(aes(x = target_end_date, y = avg_wis, color = model)) +
+    get_plot_theme(x_axis_dates = TRUE) +
+    theme(
+      legend.position = "top",
+      legend.justification = "left"
+    ) +
+    labs(color = "Model") +
+    scale_color_manual(values = colors$model_colors) +
+    xlab("") +
+    ylab("WIS")
+
+  scores_bar <- ggplot(avg_scores) +
+    geom_bar(aes(x = model, y = avg_wis, fill = model),
+      show.legend = FALSE,
+      stat = "identity", position = "dodge"
+    ) +
+    get_plot_theme() +
+    scale_fill_manual(values = colors$model_colors) +
+    xlab("") +
+    ylab("WIS")
+
+  fig <- p_forecasts + p_hub_forecasts + scores_t + scores_bar +
+    patchwork::plot_layout(
+      guides = "collect",
+      nrow = 4, ncol = 1,
+      axes = "collect",
+      widths = c(1, 1.5)
+    ) & theme(
+    legend.position = "top",
+    legend.justification = "left"
+  )
+
+  fig_file_dir <- file.path(
+    eval_output_subdir, "status_quo",
+    this_forecast_date, "ww", this_location
+  )
+  alt_fig_file_dir <- file.path(
+    eval_output_subdir, "status_quo",
+    this_location
+  )
+  cfaforecastrenewalww::create_dir(alt_fig_file_dir)
+
+  ggsave(fig,
+    filename = file.path(fig_file_dir, "hub_comparison_fig.png"),
+    width = 7, height = 11
+  )
+
+  ggsave(fig,
+    filename = file.path(
+      alt_fig_file_dir,
+      glue::glue("hub_comp_{this_forecast_date}.png")
+    )
+  )
   return(fig)
 }
 
