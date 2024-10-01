@@ -89,7 +89,9 @@ get_growth_rate_plot <- function(input_hosp_data,
   ))
 
   weekly_p <- ggplot(comb_data) +
-    geom_line(aes(x = date, y = weekly_r_ww, color = lab_site_name)) +
+    geom_line(aes(x = date, y = weekly_r_ww, color = lab_site_name),
+      show.legend = FALSE
+    ) +
     geom_line(aes(x = date, y = weekly_r_hosp)) +
     facet_wrap(~lab_site_name) +
     theme(
