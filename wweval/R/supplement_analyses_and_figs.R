@@ -183,7 +183,6 @@ get_plot_wis_t <- function(hosp_quantiles,
                            truth_data_path = "https://media.githubusercontent.com/media/reichlab/covid19-forecast-hub/master/data-truth/truth-Incident%20Hospitalizations.csv", # nolint
                            hub_comparison_model = "COVIDhub-4_week_ensemble") {
   truth_data <- truth_data <- readr::read_csv(truth_data_path)
-  min_scores_date <- min(scores$target_end_date)
 
   this_location <- hosp_quantiles |>
     dplyr::distinct(location) |>
@@ -196,7 +195,7 @@ get_plot_wis_t <- function(hosp_quantiles,
     dplyr::pull()
   scores <- scores |> dplyr::filter(
     forecast_date == !!this_forecast_date,
-    location == !!this_location
+    location == !!loc_code
   )
 
 

@@ -1259,10 +1259,6 @@ hub_targets <- list(
     name = hosp_quantiles_filtered_grouped,
     command = hosp_quantiles_filtered |>
       group_by(forecast_date, location) |>
-      dplyr::filter(
-        location %in% c("AK", "NJ"),
-        forecast_date %in% c("2023-10-16", "2024-02-05")
-      ) |>
       targets::tar_group(),
     iteration = "group"
   ),
