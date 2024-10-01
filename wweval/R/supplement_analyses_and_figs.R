@@ -44,8 +44,7 @@ get_plot_scores_and_forecasts <- function(scores_single_loc_date,
 
     quantiles_wide <- quantiles |>
       dplyr::filter(
-        quantile %in% c(0.025, 0.25, 0.5, 0.75, 0.975),
-        date >= min_scores_date
+        quantile %in% c(0.025, 0.25, 0.5, 0.75, 0.975)
       ) |>
       tidyr::pivot_wider(
         id_cols = c(
@@ -55,6 +54,9 @@ get_plot_scores_and_forecasts <- function(scores_single_loc_date,
         names_from = quantile,
         values_from = value
       )
+
+    quantiles_wide_forecast <- quantiles_wide |>
+      dplyr::filter(date >= min_scores_date)
 
 
     scores_avg <- scores_single_loc_date |>
@@ -89,7 +91,7 @@ get_plot_scores_and_forecasts <- function(scores_single_loc_date,
       ylab("Mean CRPS") +
       scale_fill_manual(values = colors$model_colors)
 
-    p_forecasts <- ggplot(quantiles_wide) +
+    p_forecasts <- ggplot(quantiles_wide_forecast) +
       geom_point(aes(x = date, y = eval_data),
         fill = "white", size = 1, shape = 21,
         show.legend = FALSE
@@ -174,6 +176,69 @@ get_plot_scores_and_forecasts <- function(scores_single_loc_date,
   }
 
   return(fig)
+
+
+
+  # Also make and save a figure with the full calibration period
+  p_forecasts_all <- ggplot(quantiles_wide) +
+    geom_point(aes(x = date, y = eval_data),
+      fill = "white", size = 1, shape = 21,
+      show.legend = FALSE
+    ) +
+    geom_point(
+      aes(x = date, y = calib_data),
+      color = "black", show.legend = FALSE
+    ) +
+    geom_line(
+      aes(
+        x = date, y = `0.5`,
+        color = model_type
+      )
+    ) +
+    geom_ribbon(
+      aes(
+        x = date, ymin = `0.025`, ymax = `0.975`,
+        fill = model_type
+      ),
+      alpha = 0.1
+    ) +
+    geom_ribbon(
+      aes(
+        x = date, ymin = `0.25`, ymax = `0.75`,
+        fill = model_type
+      ),
+      alpha = 0.2,
+    ) +
+    geom_vline(aes(xintercept = lubridate::ymd(this_forecast_date)),
+      linetype = "dashed"
+    ) +
+    scale_x_date(
+      date_breaks = "1 week",
+      labels = scales::date_format("%Y-%m-%d")
+    ) +
+    xlab("") +
+    ylab("Daily hospital admissions") +
+    scale_color_manual(values = colors$model_colors) +
+    scale_fill_manual(values = colors$model_colors) +
+    get_plot_theme(x_axis_dates = TRUE) +
+    theme(
+      legend.position = "top",
+      legend.justification = "left"
+    ) +
+    labs(color = "Model", fill = "Model") +
+    ggtitle(glue::glue("{this_forecast_date} in {this_location}"))
+
+  ggsave(p_forecasts_all,
+    filename = file.path(fig_file_dir, "calib_and_forecasts.png"),
+    width = 7, height = 10
+  )
+
+  ggsave(p_forecasts_all,
+    filename = file.path(
+      alt_fig_file_dir,
+      glue::glue("calib_and_forecasts_{this_forecast_date}.png")
+    )
+  )
 }
 
 get_plot_wis_t <- function(hosp_quantiles,
