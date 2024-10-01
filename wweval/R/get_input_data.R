@@ -63,8 +63,17 @@ get_input_ww_data <- function(forecast_date_i,
         lubridate::days(!!calibration_time) + lubridate::days(1)
     )
 
+  deduplicated_data <- ww_data_pkg |>
+    dplyr::group_by(lab, site, date) |>
+    dplyr::summarize(
+      log_genome_copies_per_ml = mean(log_genome_copies_per_ml),
+      log_lod = mean(log_lod),
+      site_pop = mean(site_pop)
+    ) |>
+    dplyr::ungroup()
+
   ww_data_preprocessed <- wwinference::preprocess_ww_data(
-    ww_data_pkg,
+    deduplicated_data,
     conc_col_name = "log_genome_copies_per_ml",
     lod_col_name = "log_lod"
   )
