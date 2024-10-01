@@ -696,30 +696,33 @@ get_plot_sites_vs_performance <- function(scores,
                                           ww_metadata,
                                           fig_file_dir) {
   scores_summarized <- scores |>
-  dplyr::group_by(location, forecast_date) |>
-  dplyr::summarise(avg_crps = mean(crps)) 
+    dplyr::group_by(location, forecast_date) |>
+    dplyr::summarise(avg_crps = mean(crps))
 
   scores_joined <- scores_summarized |>
-  dplyr::left_join(ww_metadata, by = c("forecast_date", "location"))
+    dplyr::left_join(ww_metadata,
+      by = c("forecast_date", "location")
+    )
 
   p_n_sites <- ggplot(scores_joined) +
-  geom_point(aes(x = n_sites, y= avg_crps))
+    geom_point(aes(x = n_sites, y = avg_crps))
 
   p_coverage <- ggplot(scores_joined) +
-  geom_point(aes(x = pop_coverage, y = avg_crps))
- ggsave(p_n_sites,
+    geom_point(aes(x = pop_coverage, y = avg_crps))
+
+  ggsave(p_n_sites,
     filename = file.path(
       fig_file_dir,
       glue::glue("sfig_n_sites_vs_crps.png")
     )
   )
 
-   ggsave(p_coverage,
+  ggsave(p_coverage,
     filename = file.path(
       fig_file_dir,
       glue::glue("sfig_pop_coverage_vs_crps.png")
     )
   )
-  
+
   return(p_n_sites)
 }
