@@ -56,13 +56,18 @@ eval_post_process_ww <- function(config_index,
 
   ww_raw_draws <- ww_fit_obj$draws()
   save_object("ww_raw_draws", output_file_suffix)
-  ww_diagnostics <- ww_fit_obj$diagnostics()
+  ww_diagnostics <- ww_fit_obj$sampler_diagnostics(format = "df")
   save_object("ww_diagnostics", output_file_suffix)
   ww_diagnostic_summary <- ww_fit_obj$diagnostic_summary()
   save_object("ww_diagnostic_summary", output_file_suffix)
   errors <- ww_fit_obj$error
   save_object("errors", output_file_suffix)
-  raw_flags <- data.frame(ww_fit_obj$flags)
+  metadata <- ww_fit_obj$metadata()
+  raw_flags <- get_diagnostic_flags(
+    ww_fit_obj,
+    metadata$num_chains,
+    metadata$iter_sampling
+  )
   save_object("raw_flags", output_file_suffix)
 
   # Get table of wastewater data flags
