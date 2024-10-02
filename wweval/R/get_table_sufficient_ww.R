@@ -80,9 +80,9 @@ get_ww_data_flags <- function(input_ww_data,
     dplyr::summarize(
       last_date = max(date),
       n_dps = dplyr::n(),
-      prop_below_lod = sum(below_lod == 1) / dplyr::n(),
+      prop_below_lod = sum(below_LOD == 1) / dplyr::n(),
       sd = sd(ww),
-      mean_log_ww = mean(log_genome_copies_per_ml)
+      mean_log_ww = mean(log(ww))
     ) |>
     dplyr::mutate(
       location = !!this_location,

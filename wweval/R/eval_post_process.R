@@ -70,9 +70,41 @@ eval_post_process_ww <- function(config_index,
   )
   save_object("raw_flags", output_file_suffix)
 
+  # Make the data look like it did in wweval-------------------------------
+  input_hosp_data_wweval <- input_hosp_data |>
+    dplyr:::rename(
+      "daily_hosp_admits" = "count",
+      "pop" = "total_pop"
+    )
+  input_ww_data_wweval <- input_ww_data |>
+    dplyr::mutate(
+      "ww" = exp(.data$log_genome_copies_per_ml),
+      "lod_sewage" = exp(.data$log_lod)
+    ) |>
+    dplyr::rename(
+      "ww_pop" = "site_pop",
+      "below_LOD" = "below_lod"
+    )
+  eval_hosp_data_wweval <- eval_hosp_data |>
+    dplyr:::rename(
+      "daily_hosp_admits" = "count",
+      "pop" = "total_pop"
+    )
+
+  eval_ww_data_wweval <- eval_ww_data |>
+    dplyr::mutate(
+      "ww" = exp(.data$log_genome_copies_per_ml),
+      "lod_sewage" = exp(.data$log_lod)
+    ) |>
+    dplyr::rename(
+      "ww_pop" = "site_pop",
+      "below_LOD" = "below_lod"
+    )
+
+
   # Get table of wastewater data flags
   ww_data_flags <- get_ww_data_flags(
-    input_ww_data,
+    input_ww_data_wweval,
     forecast_date
   )
   # save the flags alongside the input wastewater data and admissions data
@@ -86,7 +118,7 @@ eval_post_process_ww <- function(config_index,
     location = location
   )
   save_table(
-    data_to_save = input_ww_data,
+    data_to_save = input_ww_data_wweval,
     type_of_output = "input_ww_data",
     output_dir = output_dir,
     scenario = scenario,
@@ -95,7 +127,7 @@ eval_post_process_ww <- function(config_index,
     location = location
   )
   save_table(
-    data_to_save = input_hosp_data,
+    data_to_save = input_hosp_data_wweval,
     type_of_output = "input_hosp_data",
     output_dir = output_dir,
     scenario = scenario,
@@ -135,8 +167,8 @@ eval_post_process_ww <- function(config_index,
     location = location
   )
   # Plots of overlaid exponential growth rates in ww vs hosp
-  plot_growth_rates <- get_growth_rate_plot(input_hosp_data,
-    input_ww_data,
+  plot_growth_rates <- get_growth_rate_plot(input_hosp_data_wweval,
+    input_ww_data_wweval,
     location,
     forecast_date,
     rate = "weekly"
@@ -160,8 +192,8 @@ eval_post_process_ww <- function(config_index,
         forecast_date = forecast_date,
         scenario = scenario,
         location = location,
-        input_data = input_hosp_data,
-        eval_data = eval_hosp_data,
+        input_data = input_hosp_data_wweval,
+        eval_data = eval_hosp_data_wweval,
         last_hosp_data_date = last_hosp_data_date,
         ot = eval_config$calibration_time,
         forecast_time = eval_config$forecast_time
@@ -181,8 +213,8 @@ eval_post_process_ww <- function(config_index,
         forecast_date = forecast_date,
         scenario = scenario,
         location = location,
-        input_data = input_ww_data,
-        eval_data = eval_ww_data,
+        input_data = input_ww_data_wweval,
+        eval_data = eval_ww_data_wweval,
         last_hosp_data_date = last_hosp_data_date,
         ot = eval_config$calibration_time,
         forecast_time = eval_config$forecast_time
