@@ -78,7 +78,8 @@ Imports:
     cowplot,
     patchwork,
     RColorBrewer,
-    zoltr
+    zoltr,
+    fs
 SystemRequirements: CmdStan (>=2.34.1)
 Encoding: UTF-8
 Roxygen: list(markdown = TRUE)
