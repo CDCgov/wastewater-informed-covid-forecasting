@@ -43,32 +43,6 @@ eval_fit_ww <- function(config_index,
   ) |> paste0(".rds")
 
 
-
-
-  # Get the evaluation data from the specified evaluation date ----------------
-  eval_hosp_data <- get_input_hosp_data(
-    forecast_date_i = eval_config$eval_date,
-    location_i = location,
-    hosp_data_dir = eval_config$hosp_data_dir,
-    calibration_time = 365 # Grab sufficient data for eval
-  )
-
-  save_object("eval_hosp_data", output_file_suffix)
-
-  eval_ww_data <- get_input_ww_data(
-    forecast_date_i = eval_config$eval_date,
-    location_i = location,
-    scenario_i = "status_quo",
-    scenario_dir = eval_config$scenario_dir,
-    ww_data_dir = eval_config$ww_data_dir,
-    calibration_time = 365, # Grab sufficient data for eval
-    last_hosp_data_date = eval_config$eval_date,
-    ww_data_mapping = eval_config$ww_data_mapping
-  )
-
-  save_object("eval_ww_data", output_file_suffix)
-
-  # Get the table of hospital admissions outliers ----------------------------
   table_of_exclusions <- tibble::as_tibble(eval_config$table_of_exclusions)
 
   # Wastewater model fitting loop-----------------------------------------------
@@ -124,6 +98,34 @@ eval_fit_ww <- function(config_index,
   )
 
   save_object("ww_fit_obj", output_file_suffix)
+
+
+  # Get the evaluation data from the specified evaluation date ----------------
+  eval_hosp_data <- get_input_hosp_data(
+    forecast_date_i = eval_config$eval_date,
+    location_i = location,
+    hosp_data_dir = eval_config$hosp_data_dir,
+    calibration_time = 365 # Grab sufficient data for eval
+  ) |>
+    dplyr::filter(date >= min(input_hosp_data$date))
+
+  save_object("eval_hosp_data", output_file_suffix)
+
+  eval_ww_data <- get_input_ww_data(
+    forecast_date_i = eval_config$eval_date,
+    location_i = location,
+    scenario_i = "status_quo",
+    scenario_dir = eval_config$scenario_dir,
+    ww_data_dir = eval_config$ww_data_dir,
+    calibration_time = 365, # Grab sufficient data for eval
+    last_hosp_data_date = eval_config$eval_date,
+    ww_data_mapping = eval_config$ww_data_mapping
+  ) |>
+    dplyr::filter(date >= min(input_ww_data$date))
+
+  save_object("eval_ww_data", output_file_suffix)
+
+  # Get the table of hospital admissions outliers -----------
 }
 
 #' Fit Hospitalizations Model for Evaluation
