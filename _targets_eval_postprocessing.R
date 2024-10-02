@@ -906,7 +906,9 @@ manuscript_figures <- list(
   tar_target(
     name = fig4_natl_admissions,
     command = make_fig4_admissions_overall(
-      eval_hosp_data
+      eval_hosp_data,
+      first_forecast_date = min(eval_config$forecast_date_ww),
+      last_forecast_date = max(eval_config$forecast_date_ww)
     )
   ),
   tar_target(

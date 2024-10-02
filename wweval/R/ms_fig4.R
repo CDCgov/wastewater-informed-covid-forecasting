@@ -37,10 +37,7 @@ make_fig4_rel_crps_over_time <- function(scores,
 
 
   colors <- plot_components()
-  date_lims <- c(
-    min(scores$forecast_date),
-    max(scores$forecast_date)
-  )
+  date_lims <- c(range(scores$forecast_date))
 
   p <- ggplot(
     relative_crps,
@@ -156,10 +153,14 @@ make_fig4_pct_better_w_ww <- function(scores,
 #'
 #' @param eval_hosp_data Hospital admissions data for evaluating against,
 #' for all locations
+#' @param first_forecast_date The first forecast date we are evaluating
+#' @param last_forecast_date The last forecast date we are evaluating
 #'
 #' @return ggplot object containing total hospital admissions in the US
 #' @export
-make_fig4_admissions_overall <- function(eval_hosp_data) {
+make_fig4_admissions_overall <- function(eval_hosp_data,
+                                         first_forecast_date,
+                                         last_forecast_date) {
   total_hosp <- eval_hosp_data |>
     distinct(location, daily_hosp_admits, date) |>
     dplyr::group_by(date) |>
@@ -169,8 +170,8 @@ make_fig4_admissions_overall <- function(eval_hosp_data) {
   max_total_hosp <- max(total_hosp$total_hosp)
 
   date_lims <- c(
-    lubridate::ymd("2023-10-16"),
-    lubridate::ymd("2024-03-11")
+    first_forecast_date,
+    last_forecast_date
   )
 
   p <- ggplot() +
