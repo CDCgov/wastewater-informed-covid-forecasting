@@ -188,7 +188,7 @@ make_fig4_admissions_overall <- function(eval_hosp_data,
     ) +
     scale_x_date(
       date_breaks = "1 week",
-      labels = scales::date_format("%Y-%m-%d"),
+      date_labels = "%Y-%m-%d",
       limits = date_lims
     )
   return(p)
@@ -594,7 +594,7 @@ make_fig4_avg_crps_over_time <- function(scores,
     theme(axis.title.x = element_blank()) +
     scale_x_date(
       date_breaks = "1 week",
-      labels = scales::date_format("%Y-%m-%d"),
+      date_labels = "%Y-%m-%d",
       limits = date_lims
     ) +
     ylab("CRPS") +
@@ -652,7 +652,7 @@ FGGG
   ) #+ plot_annotation(tag_levels = "A") #nolint not working
   fig4
 
-  cfaforecastrenewalww::create_dir(fig_file_dir)
+  dir_create(fig_file_dir)
 
   ggsave(fig4,
     filename = file.path(fig_file_dir, "fig4.png"),

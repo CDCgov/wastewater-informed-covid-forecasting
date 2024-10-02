@@ -1,13 +1,10 @@
 get_plot_scores_and_forecasts <- function(scores_single_loc_date,
                                           eval_output_subdir,
                                           n_calib_days = 10) {
-  this_location <- scores_single_loc_date |>
-    dplyr::distinct(location) |>
-    dplyr::pull()
+  this_location <- unique(scores_single_loc_date$location)
 
-  this_forecast_date <- scores_single_loc_date |>
-    dplyr::distinct(forecast_date) |>
-    dplyr::pull()
+  this_forecast_date <- unique(scores_single_loc_date$forecast_date)
+
   colors <- plot_components()
 
 
@@ -72,9 +69,9 @@ get_plot_scores_and_forecasts <- function(scores_single_loc_date,
       ) +
       scale_x_date(
         date_breaks = "1 week",
-        labels = scales::date_format("%Y-%m-%d"),
+        date_labels = "%Y-%m-%d",
       ) +
-      xlab("") +
+      xlab(NULL) +
       ylab("CRPS") +
       geom_vline(aes(xintercept = forecast_date), linetype = "dashed") +
       scale_color_manual(values = colors$model_colors)
@@ -125,9 +122,9 @@ get_plot_scores_and_forecasts <- function(scores_single_loc_date,
       ) +
       scale_x_date(
         date_breaks = "1 week",
-        labels = scales::date_format("%Y-%m-%d")
+        date_labels = "%Y-%m-%d"
       ) +
-      xlab("") +
+      xlab(NULL) +
       ylab("Daily hospital admissions") +
       scale_color_manual(values = colors$model_colors) +
       scale_fill_manual(values = colors$model_colors) +
@@ -158,7 +155,7 @@ get_plot_scores_and_forecasts <- function(scores_single_loc_date,
       eval_output_subdir, "status_quo",
       this_location
     )
-    cfaforecastrenewalww::create_dir(alt_fig_file_dir)
+    fs::dir_create(alt_fig_file_dir)
 
     ggsave(fig,
       filename = file.path(fig_file_dir, "forecast_and_score_comp_fig.png"),
@@ -214,9 +211,9 @@ get_plot_scores_and_forecasts <- function(scores_single_loc_date,
     ) +
     scale_x_date(
       date_breaks = "1 week",
-      labels = scales::date_format("%Y-%m-%d")
+      date_labels = "%Y-%m-%d"
     ) +
-    xlab("") +
+    xlab(NULL) +
     ylab("Daily hospital admissions") +
     scale_color_manual(values = colors$model_colors) +
     scale_fill_manual(values = colors$model_colors) +
@@ -247,7 +244,7 @@ get_plot_wis_t <- function(hosp_quantiles,
                            submissions_path = "https://raw.githubusercontent.com/reichlab/covid19-forecast-hub/master/data-processed/", # nolint
                            truth_data_path = "https://media.githubusercontent.com/media/reichlab/covid19-forecast-hub/master/data-truth/truth-Incident%20Hospitalizations.csv", # nolint
                            hub_comparison_model = "COVIDhub-4_week_ensemble") {
-  truth_data <- truth_data <- readr::read_csv(truth_data_path)
+  truth_data <- readr::read_csv(truth_data_path)
 
   this_location <- hosp_quantiles |>
     dplyr::distinct(location) |>
@@ -325,9 +322,9 @@ get_plot_wis_t <- function(hosp_quantiles,
     ) +
     scale_x_date(
       date_breaks = "1 week",
-      labels = scales::date_format("%Y-%m-%d")
+      date_labels = "%Y-%m-%d"
     ) +
-    xlab("") +
+    xlab(NULL) +
     ylab("Daily hospital admissions") +
     get_plot_theme(x_axis_dates = TRUE) +
     theme(
@@ -390,9 +387,9 @@ get_plot_wis_t <- function(hosp_quantiles,
     ) +
     scale_x_date(
       date_breaks = "1 week",
-      labels = scales::date_format("%Y-%m-%d")
+      date_labels = "%Y-%m-%d"
     ) +
-    xlab("") +
+    xlab(NULL) +
     ylab("Daily hospital admissions") +
     scale_color_manual(values = colors$model_colors) +
     scale_fill_manual(values = colors$model_colors) +
@@ -441,7 +438,7 @@ get_plot_wis_t <- function(hosp_quantiles,
     ) +
     labs(color = "Model") +
     scale_color_manual(values = colors$model_colors) +
-    xlab("") +
+    xlab(NULL) +
     ylab("WIS")
 
   scores_bar <- ggplot(avg_scores) +
@@ -451,7 +448,7 @@ get_plot_wis_t <- function(hosp_quantiles,
     ) +
     get_plot_theme() +
     scale_fill_manual(values = colors$model_colors) +
-    xlab("") +
+    xlab(NULL) +
     ylab("WIS")
 
   fig <- p_forecasts + p_hub_forecasts + scores_t + scores_bar +
@@ -473,8 +470,8 @@ get_plot_wis_t <- function(hosp_quantiles,
     eval_output_subdir, "status_quo",
     this_location
   )
-  cfaforecastrenewalww::create_dir(alt_fig_file_dir)
-  cfaforecastrenewalww::create_dir(fig_file_dir)
+  fs::dir_create(alt_fig_file_dir)
+  fs::dir_create(fig_file_dir)
 
   ggsave(fig,
     filename = file.path(fig_file_dir, "hub_comparison_fig.png"),
@@ -519,15 +516,15 @@ get_plot_bias_over_time <- function(scores,
     ) +
     scale_x_date(
       date_breaks = "2 weeks",
-      labels = scales::date_format("%Y-%m-%d"),
+      date_labels = "%Y-%m-%d"
     ) +
     geom_hline(aes(yintercept = 0), linetype = "dashed") +
     scale_color_manual(values = colors$model_colors) +
-    xlab("") +
+    xlab(NULL) +
     ylab("Average bias") +
     ggtitle("Average bias over time, across horizons and locations")
 
-  cfaforecastrenewalww::create_dir(fig_file_dir)
+  fs::dir_create(fig_file_dir)
 
   ggsave(p,
     width = 10, height = 5,
@@ -574,17 +571,17 @@ get_plot_score_by_horizon_t <- function(scores,
       x_axis_dates = TRUE,
       y_axis_title_size = 8
     ) +
-    facet_wrap(~horizon, nrow = length(unique(scores$horizon))) +
+    facet_wrap(~horizon, ncol = 1) +
     scale_x_date(
       date_breaks = "2 weeks",
-      labels = scales::date_format("%Y-%m-%d"),
+      date_labels = "%Y-%m-%d"
     ) +
     scale_color_manual(values = colors$model_colors) +
-    xlab("") +
+    xlab(NULL) +
     ylab(glue::glue("Average {score_type}")) +
     ggtitle(glue::glue("Average {score_type} over time, across locations"))
 
-  cfaforecastrenewalww::create_dir(fig_file_dir)
+  fs::dir_create(fig_file_dir)
   ggsave(p,
     width = 10, height = 10,
     filename = file.path(

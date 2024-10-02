@@ -323,7 +323,7 @@ OSTU
   ) #+ plot_annotation(tag_levels = "A") #nolint , not working
 
   fig3
-  cfaforecastrenewalww::create_dir(fig_file_dir)
+  fs::dir_create(fig_file_dir)
   ggsave(fig3,
     filename = file.path(fig_file_dir, "fig3.png"),
     width = 10, height = 7

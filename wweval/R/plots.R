@@ -185,7 +185,10 @@ get_plot_ww_data_comparison <- function(draws_w_data,
     ) +
     theme_bw() +
     theme(
-      axis.text.x = element_blank(), # temporarily remove date so can see ww
+      axis.text.x = element_text(
+        size = 8, vjust = 1,
+        hjust = 1, angle = 45
+      ),
       axis.title.x = element_text(size = 12),
       axis.title.y = element_text(size = 12),
       plot.title = element_text(
