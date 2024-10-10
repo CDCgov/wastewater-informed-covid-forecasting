@@ -45,8 +45,8 @@ forecast date to the wastewater dates (see \code{\link[=date_of_ww_data]{date_of
 for more details)}
 }
 \value{
-a dataframe containing the transformed and clean NWSS data
-at the site and lab label for the forecast date and location specified
+a tibble containing the pre-processed wastewater data ready to
+be passed into the wwinference function
 }
 \description{
 Get input wastewater data

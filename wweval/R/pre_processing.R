@@ -12,7 +12,7 @@ get_nearest_forecast_date <- function() {
   today_weekday <- lubridate::wday(lubridate::today(tzone = "EST"))
   today_date <- lubridate::today(tzone = "EST")
 
-  forecast_date <- case_when(
+  forecast_date <- dplyr::case_when(
     today_weekday == 6 ~ as.character(today_date + days(3)), # if Fri the Mon
     today_weekday == 7 ~ as.character(today_date + days(2)), # if Sat then Mon
     today_weekday == 1 ~ as.character(today_date + days(1)), # if Sun then Mon
@@ -38,7 +38,7 @@ get_nearest_forecast_date <- function() {
 #'
 get_hosp_reporting_delay <- function(forecast_date) {
   hosp_reporting_delay <-
-    case_when(
+    dplyr::case_when(
       lubridate::wday(forecast_date) %in% c(1, 2, 3, 7) ~ 9, # Sun Mon Tues Wed
       lubridate::wday(forecast_date) %in% c(4, 5, 6) ~ 4
     ) # Wed Thurs Fri
@@ -246,7 +246,7 @@ get_hosp_data <- function(hosp_data_source,
   usa_hosp <- state_hosp_data |>
     dplyr::filter(!is.na(daily_hosp_admits)) |>
     dplyr::group_by(date) |>
-    dplyr::summarise(daily_hosp_admits = sum(daily_hosp_admits)) |>
+    dplyr::summarize(daily_hosp_admits = sum(daily_hosp_admits)) |>
     dplyr::ungroup() |>
     dplyr::mutate(
       week = round_date(date, "week", week_start = 3),
@@ -619,7 +619,7 @@ get_all_training_data <- function(ww_data_raw,
             forecast_date = single_forecast_date,
             hosp_reporting_delay = single_hosp_reporting_delay,
             include_ww = single_include_ww,
-            period = case_when(
+            period = dplyr::case_when(
               date <= last_hosp_data_date ~ "calibration",
               (date > last_hosp_data_date & date <= single_forecast_date) ~ "nowcast",
               date > forecast_date ~ "forecast"
@@ -803,7 +803,7 @@ subsample_sites <- function(ww_data, prop_sites = 0.2,
 #'
 #' @export
 #'
-init_subset_nwss_data <- function(raw_nwss_data) {
+clean_and_filter_nwss_data <- function(raw_nwss_data) {
   nwss_subset_raw <- raw_nwss_data |>
     dplyr::filter(
       sample_location == "wwtp",
@@ -816,14 +816,14 @@ init_subset_nwss_data <- function(raw_nwss_data) {
     select(
       lab_id, sample_collect_date, wwtp_name, pcr_target_avg_conc,
       wwtp_jurisdiction, county_names, population_served, pcr_target_units,
-      pcr_target_below_lod, lod_sewage, quality_flag, county_names
+      pcr_target_below_lod, lod_sewage, quality_flag
     ) |>
     mutate(
-      pcr_target_avg_conc = case_when(
+      pcr_target_avg_conc = dplyr::case_when(
         pcr_target_units == "copies/l wastewater" ~ pcr_target_avg_conc / 1000,
         pcr_target_units == "log10 copies/l wastewater" ~ (10^(pcr_target_avg_conc)) / 1000
       ),
-      lod_sewage = case_when(
+      lod_sewage = dplyr::case_when(
         pcr_target_units == "copies/l wastewater" ~ lod_sewage / 1000,
         pcr_target_units == "log10 copies/l wastewater" ~ (10^(lod_sewage)) / 1000
       ),
@@ -838,68 +838,36 @@ init_subset_nwss_data <- function(raw_nwss_data) {
   conservative_lod <- as.numeric(
     quantile(nwss_subset_raw$lod_sewage, 0.95, na.rm = TRUE)
   )
-  nwss_subset_raw <- nwss_subset_raw |>
-    mutate(lod_sewage = ifelse(is.na(lod_sewage),
-      conservative_lod,
-      lod_sewage
-    )) |>
-    mutate(below_LOD = case_when(
-      pcr_target_below_lod == "Yes" ~ 1,
-      pcr_target_below_lod == "No" ~ 0,
-      pcr_target_avg_conc < lod_sewage ~ 1,
-      pcr_target_avg_conc >= lod_sewage ~ 0,
-      round(pcr_target_avg_conc) == 0 ~ 1
-    )) |>
-    mutate( # if value below LOD, set at LOD
-      pcr_target_avg_conc = ifelse(below_LOD == 1, lod_sewage, pcr_target_avg_conc)
+  nwss_subset <- nwss_subset_raw |>
+    mutate(
+      lod_sewage = ifelse(is.na(lod_sewage),
+        conservative_lod,
+        lod_sewage
+      ),
+      sample_collect_date = lubridate::ymd(sample_collect_date)
     )
 
-  unique_combos_map <- nwss_subset_raw |>
-    select(wwtp_name, lab_id) |>
-    unique() |>
-    mutate(lab_wwtp_unique_id = row_number())
 
-  nwss_subset <- nwss_subset_raw |>
-    left_join(unique_combos_map,
-      by = c("wwtp_name", "lab_id")
-    ) |>
-    mutate(sample_collect_date = lubridate::ymd(sample_collect_date))
-
-  # Find the number of datapoints in each lab site (exclude rows
-  # where lab_wwtp_unique_id is NA bc those are days with no WW obs)
-  n_dps <- nwss_subset |>
-    group_by(lab_wwtp_unique_id) |>
-    summarise(n_data_points = n())
-  # Remove labs that have only 1 data point
-  nwss_subset <- nwss_subset |>
-    left_join(n_dps, by = "lab_wwtp_unique_id") |>
-    dplyr::filter(n_data_points > 1)
 
   # If there are multiple values per lab-site-day, replace with the mean
-  nwss_subset_no_repeats <- nwss_subset |>
-    group_by(lab_wwtp_unique_id, sample_collect_date) |>
-    summarise(
-      pcr_target_avg_conc = mean(pcr_target_avg_conc, na.rm = TRUE),
-      population_served = mean(population_served, na.rm = TRUE),
-      county_names = county_names[which.max(nchar(county_names))] # mult entries
-      # for a site-lab-day will list different countys, pick the most inclusive one
+  nwss_subset_clean <- nwss_subset |>
+    group_by(wwtp_name, lab_id, sample_collect_date) |>
+    mutate(
+      pcr_target_avg_conc = mean(pcr_target_avg_conc, na.rm = TRUE)
+    ) |>
+    ungroup() |>
+    distinct() |>
+    # If there are multiple population sizes in a site, replace with the mean
+    # and round to the nearest whole number
+    group_by(wwtp_name) |>
+    mutate(
+      population_served = round(mean(population_served, na.rm = TRUE), 0),
+    ) |>
+    dplyr::select(
+      sample_collect_date, wwtp_name, lab_id, pcr_target_avg_conc,
+      wwtp_jurisdiction, lod_sewage, population_served
     )
 
-  # Get only one value per lab-site-day combo
-  nwss_subset_clean <- nwss_subset |>
-    dplyr::select(
-      -pcr_target_avg_conc,
-      -population_served,
-      -county_names
-    ) |>
-    dplyr::distinct() |>
-    dplyr::left_join(nwss_subset_no_repeats,
-      by = c(
-        "lab_wwtp_unique_id",
-        "sample_collect_date"
-      )
-    ) |>
-    dplyr::select(colnames(nwss_subset))
 
   return(nwss_subset_clean)
 }
@@ -928,7 +896,7 @@ get_weekly_summary <- function(nwss_subset, ww_target_type = "pcr_target_avg_con
   if (ww_target_type == "pcr_target_avg_conc") {
     nwss_by_week <- nwss_subset |>
       dplyr::group_by(wwtp_name, midweek_date) |>
-      dplyr::summarise(
+      dplyr::summarize(
         site_weekly_avg_conc = mean(pcr_target_avg_conc,
           na.rm = TRUE
         )
@@ -949,7 +917,7 @@ get_weekly_summary <- function(nwss_subset, ww_target_type = "pcr_target_avg_con
   if (ww_target_type == "pcr_target_flowpop_lin") {
     nwss_by_week <- nwss_subset |>
       dplyr::group_by(wwtp_name, midweek_date) |>
-      dplyr::summarise(
+      dplyr::summarize(
         site_weekly_avg_conc = mean(pcr_target_flowpop_lin,
           na.rm = TRUE
         )
@@ -996,7 +964,7 @@ get_state_level_summary <- function(nwss_by_week) {
       wwtp_jurisdiction,
       midweek_date
     ) |>
-    dplyr::summarise(
+    dplyr::summarize(
       pop_weighted_conc = sum(site_weekly_avg_conc * population_served) /
         sum(population_served),
       unweighted_avg_conc = mean(site_weekly_avg_conc),
@@ -1017,7 +985,7 @@ get_state_level_summary <- function(nwss_by_week) {
     dplyr::left_join(
       nwss_by_week |>
         dplyr::group_by(midweek_date) |>
-        dplyr::summarise(
+        dplyr::summarize(
           ntl_pop_weighted_conc = sum(site_weekly_avg_conc * population_served,
             na.rm = TRUE
           ) / sum(population_served),
@@ -1042,7 +1010,7 @@ get_state_level_summary <- function(nwss_by_week) {
 
   nwss_usa <- nwss_by_week |>
     dplyr::group_by(midweek_date) |>
-    dplyr::summarise(
+    dplyr::summarize(
       pop_weighted_conc = sum(site_weekly_avg_conc * population_served) /
         sum(population_served),
       unweighted_avg_conc = mean(site_weekly_avg_conc),
@@ -1067,7 +1035,7 @@ get_state_level_summary <- function(nwss_by_week) {
     dplyr::left_join(
       nwss_by_week |>
         dplyr::group_by(midweek_date) |>
-        dplyr::summarise(
+        dplyr::summarize(
           ntl_pop_weighted_conc = sum(
             site_weekly_avg_conc *
               population_served,
@@ -1148,7 +1116,7 @@ get_ww_data <- function(ww_data_source, geo_type, ww_data_type,
       dplyr::filter(region != "Nationwide") |>
       dplyr::rename(location = region) |>
       dplyr::group_by(location, sampling_week) |>
-      dplyr::summarise(ww = mean(ww, na.rm = TRUE))
+      dplyr::summarize(ww = mean(ww, na.rm = TRUE))
   }
 
   if (
@@ -1243,7 +1211,7 @@ flag_ww_outliers <- function(ww_data, rho_threshold = 2,
   n_dps <- ww_data |>
     dplyr::filter(below_LOD == 0) |>
     group_by(lab_wwtp_unique_id) |>
-    summarise(n_data_points = n())
+    summarize(n_data_points = n())
 
   # Get the ww statistics we need for outlier detection
   ww_stats <- ww_data |>
@@ -1272,7 +1240,7 @@ flag_ww_outliers <- function(ww_data, rho_threshold = 2,
     dplyr::left_join(
       ww_rho |>
         dplyr::group_by(lab_wwtp_unique_id) |>
-        dplyr::summarise(
+        dplyr::summarize(
           mean_rho = mean(rho, na.rm = TRUE),
           std_rho = sd(rho, na.rm = TRUE),
           mean_conc = mean(ww, na.rm = TRUE),
@@ -1377,7 +1345,7 @@ aggregate_ww <- function(ww_data_raw, forecast_date, calibration_time,
   # Summarize over the week
   ww_weekly <- ww_full_data |>
     dplyr::group_by(lab_wwtp_unique_id, midweek_date) |>
-    dplyr::summarise(ww = mean(ww, na.rm = TRUE)) |>
+    dplyr::summarize(ww = mean(ww, na.rm = TRUE)) |>
     dplyr::left_join(
       ww_full_data |> select(
         lab_wwtp_unique_id,
@@ -1393,7 +1361,7 @@ aggregate_ww <- function(ww_data_raw, forecast_date, calibration_time,
   # Summarize over the sites within each location
   ww_agg <- ww_weekly |>
     dplyr::group_by(location, midweek_date) |>
-    dplyr::summarise(ww = mean(ww, na.rm = TRUE)) |>
+    dplyr::summarize(ww = mean(ww, na.rm = TRUE)) |>
     dplyr::left_join(
       ww_weekly |>
         dplyr::select(
