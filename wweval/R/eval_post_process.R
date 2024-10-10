@@ -178,19 +178,26 @@ eval_post_process_ww <- function(config_index,
     if (is.null(ww_raw_draws)) {
       NULL
     } else {
-      get_model_draws_w_data(
-        model_output = "hosp",
-        model_type = "ww",
-        draws = ww_raw_draws,
-        forecast_date = forecast_date,
-        scenario = scenario,
-        location = location,
-        input_data = input_hosp_data_wweval,
-        eval_data = eval_hosp_data_wweval,
-        last_hosp_data_date = last_hosp_data_date,
-        ot = eval_config$calibration_time,
-        forecast_time = eval_config$forecast_time
+      # This will return a hosp draws object in the format
+      # of the wwinference package.
+      # Will need to be modified to look like hosp_draws in wweval
+      wwinference::get_draws(ww_fit_obj_wwinference,
+        what = "predicted_counts"
       )
+
+      # get_model_draws_w_data(
+      #   model_output = "hosp",
+      #   model_type = "ww",
+      #   draws = ww_raw_draws,
+      #   forecast_date = forecast_date,
+      #   scenario = scenario,
+      #   location = location,
+      #   input_data = input_hosp_data_wweval,
+      #   eval_data = eval_hosp_data_wweval,
+      #   last_hosp_data_date = last_hosp_data_date,
+      #   ot = eval_config$calibration_time,
+      #   forecast_time = eval_config$forecast_time
+      # )
     }
   }
   save_object("hosp_draws", output_file_suffix)
@@ -199,19 +206,23 @@ eval_post_process_ww <- function(config_index,
     if (is.null(ww_raw_draws)) {
       NULL
     } else {
-      get_model_draws_w_data(
-        model_output = "ww",
-        model_type = "ww",
-        draws = ww_raw_draws,
-        forecast_date = forecast_date,
-        scenario = scenario,
-        location = location,
-        input_data = input_ww_data_wweval,
-        eval_data = eval_ww_data_wweval,
-        last_hosp_data_date = last_hosp_data_date,
-        ot = eval_config$calibration_time,
-        forecast_time = eval_config$forecast_time
+      wwinference::get_draws(ww_fit_obj_wwinference,
+        what = "predicted_ww"
       )
+
+      # get_model_draws_w_data(
+      #   model_output = "ww",
+      #   model_type = "ww",
+      #   draws = ww_raw_draws,
+      #   forecast_date = forecast_date,
+      #   scenario = scenario,
+      #   location = location,
+      #   input_data = input_ww_data_wweval,
+      #   eval_data = eval_ww_data_wweval,
+      #   last_hosp_data_date = last_hosp_data_date,
+      #   ot = eval_config$calibration_time,
+      #   forecast_time = eval_config$forecast_time
+      # )
     }
   }
   save_object("ww_draws", output_file_suffix)
@@ -464,19 +475,23 @@ eval_post_process_hosp <- function(config_index,
     model_type = "hosp",
     location = location
   )
-  hosp_model_hosp_draws <- get_model_draws_w_data(
-    model_output = "hosp",
-    model_type = "hosp",
-    draws = hosp_raw_draws,
-    forecast_date = forecast_date,
-    scenario = "no_wastewater",
-    location = location,
-    input_data = input_hosp_data,
-    eval_data = eval_hosp_data,
-    last_hosp_data_date = last_hosp_data_date,
-    ot = eval_config$calibration_time,
-    forecast_time = eval_config$forecast_time
+  hosp_model_hosp_draws <- wwinference::get_draws(
+    hosp_fit_obj,
+    what = "predicted_counts"
   )
+  #   get_model_draws_w_data(
+  #   model_output = "hosp",
+  #   model_type = "hosp",
+  #   draws = hosp_raw_draws,
+  #   forecast_date = forecast_date,
+  #   scenario = "no_wastewater",
+  #   location = location,
+  #   input_data = input_hosp_data,
+  #   eval_data = eval_hosp_data,
+  #   last_hosp_data_date = last_hosp_data_date,
+  #   ot = eval_config$calibration_time,
+  #   forecast_time = eval_config$forecast_time
+  # )
   save_object("hosp_model_hosp_draws", output_file_suffix)
   full_hosp_model_quantiles <- get_state_level_quantiles(
     draws = hosp_model_hosp_draws
