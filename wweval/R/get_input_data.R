@@ -271,11 +271,13 @@ get_last_hosp_data_date <- function(input_hosp) {
 #' Clean wastewater data
 #'
 #' @param nwss_subset the raw nwss data filtered down to only the columns we use
-#'
+#' @param log_offset small numeric value to prevent numerical instability
+#' in converting from natural scale to log scale
 #' @return A site-lab level dataset with names and variables that can be used
 #' for model fitting
 #' @export
-clean_ww_data <- function(nwss_subset) {
+clean_ww_data <- function(nwss_subset,
+                          log_offset = 1e-20) {
   ww_data <- nwss_subset |>
     ungroup() |>
     rename(
@@ -286,7 +288,7 @@ clean_ww_data <- function(nwss_subset) {
       location = toupper(wwtp_jurisdiction),
       site = wwtp_name,
       lab = lab_id,
-      log_genome_copies_per_ml = log(pcr_target_avg_conc + 1e-8),
+      log_genome_copies_per_ml = log(pcr_target_avg_conc + log_offset),
       log_lod = log(lod_sewage)
     ) |>
     select(
