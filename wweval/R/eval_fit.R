@@ -26,14 +26,7 @@ eval_fit_ww <- function(config_index,
   wwinference::create_dir(output_dir)
   wwinference::create_dir(raw_output_dir)
 
-  # params <- wwinference::get_params(params_path) #nolint
-  # Temporarily get parameters from local package install to test, since
-  # need updates from branch of wwinferece
-  params <- get_params(
-    system.file("extdata", "example_params.toml",
-      package = "wwinference"
-    )
-  )
+  params <- wwinference::get_params(params_path)
   location <- eval_config$location_ww[config_index]
   forecast_date <- eval_config$forecast_date_ww[config_index]
   scenario <- eval_config$scenario[config_index]
@@ -156,14 +149,7 @@ eval_fit_hosp <- function(config_index,
   wwinference::create_dir(output_dir)
   wwinference::create_dir(raw_output_dir)
 
-  # params <- wwinference::get_params(params_path) #nolint
-  # Temporarily get parameters from local package install to test, since
-  # need updates from branch of wwinferece
-  params <- get_params(
-    system.file("extdata", "example_params.toml",
-      package = "wwinference"
-    )
-  )
+  params <- wwinference::get_params(params_path)
   location <- eval_config$location_hosp[config_index]
   forecast_date <- eval_config$forecast_date_hosp[config_index]
   scenario <- "no_wastewater"
