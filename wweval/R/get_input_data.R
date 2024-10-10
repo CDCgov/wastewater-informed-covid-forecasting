@@ -84,7 +84,11 @@ get_input_ww_data <- function(forecast_date_i,
     ww_data_preprocessed,
     outlier_col_name = "flag_as_ww_outlier",
     remove_outliers = TRUE
-  )
+  ) |>
+    dplyr::mutate(
+      "location" = !!location_i,
+      "forecast_date" = !!forecast_date_i
+    )
 
 
   return(ww_data_to_fit)
@@ -199,7 +203,11 @@ get_input_hosp_data <- function(forecast_date_i, location_i,
     input_hosp,
     count_col_name = "daily_hosp_admits",
     pop_size_col_name = "pop"
-  )
+  ) |>
+    dplyr::mutate(
+      "forecast_date" = !!forecast_date_i,
+      "location" = !!location_i
+    )
   return(hosp_data_preprocessed)
 }
 

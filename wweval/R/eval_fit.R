@@ -52,10 +52,7 @@ eval_fit_ww <- function(config_index,
     location_i = location,
     hosp_data_dir = eval_config$hosp_data_dir,
     calibration_time = eval_config$calibration_time
-  ) |>
-    dplyr::mutate(
-      forecast_date = forecast_date
-    )
+  )
 
 
   input_hosp_data <- exclude_hosp_outliers(
@@ -76,11 +73,7 @@ eval_fit_ww <- function(config_index,
     calibration_time = eval_config$calibration_time,
     last_hosp_data_date = last_hosp_data_date,
     ww_data_mapping = eval_config$ww_data_mapping
-  ) |>
-    dplyr::mutate(
-      "location" = !!location,
-      forecast_date = forecast_date
-    )
+  )
 
   save_object("input_ww_data", output_file_suffix)
 
@@ -116,11 +109,7 @@ eval_fit_ww <- function(config_index,
     hosp_data_dir = eval_config$hosp_data_dir,
     calibration_time = 365 # Grab sufficient data for eval
   ) |>
-    dplyr::filter(date >= min(input_hosp_data$date)) |>
-    dplyr::mutate(
-      "location" = !!location
-    )
-
+    dplyr::filter(date >= min(input_hosp_data$date))
 
   save_object("eval_hosp_data", output_file_suffix)
 
@@ -134,11 +123,7 @@ eval_fit_ww <- function(config_index,
     last_hosp_data_date = eval_config$eval_date,
     ww_data_mapping = eval_config$ww_data_mapping
   ) |>
-    dplyr::filter(date >= min(input_ww_data$date)) |>
-    dplyr::mutate(
-      "location" = !!location
-    )
-
+    dplyr::filter(date >= min(input_ww_data$date))
 
   save_object("eval_ww_data", output_file_suffix)
 
@@ -202,10 +187,7 @@ eval_fit_hosp <- function(config_index,
     raw_input_hosp_data = raw_input_hosp_data,
     forecast_date = forecast_date,
     table_of_exclusions = table_of_exclusions
-  ) |>
-    dplyr::mutate(
-      forecast_date = forecast_date
-    )
+  )
 
   save_object("input_hosp_data", output_file_suffix)
 
