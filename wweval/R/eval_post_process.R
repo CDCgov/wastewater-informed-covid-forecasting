@@ -431,19 +431,26 @@ eval_post_process_hosp <- function(config_index,
   input_hosp_data <- load_object("input_hosp_data", output_file_suffix)
   last_hosp_data_date <- get_last_hosp_data_date(input_hosp_data)
   eval_hosp_data <- load_object("eval_hosp_data", output_file_suffix)
-  hosp_fit_obj <- load_object("hosp_fit_obj", output_file_suffix)
+  hosp_fit_obj_wwinference <- load_object(
+    "hosp_fit_obj",
+    output_file_suffix
+  )
+  hosp_fit_obj <- hosp_fit_obj_wwinference$fit$result
 
-  hosp_raw_draws <- hosp_fit_obj$draws
+  hosp_raw_draws <- hosp_fit_obj$draws()
   save_object("hosp_raw_draws", output_file_suffix)
-  hosp_diagnostics <- hosp_fit_obj$diagnostics
+  hosp_diagnostics <- hosp_fit_obj$sampler_diagnostics(format = "df")
   save_object("hosp_diagnostics", output_file_suffix)
-  hosp_diagnostic_summary <- hosp_fit_obj$summary_diagnostics
+  hosp_diagnostic_summary <- hosp_fit_obj$diagnostic_summary()
   save_object("hosp_diagnostic_summary", output_file_suffix)
-  hosp_summary <- hosp_fit_obj$summary
-  save_object("hosp_summary", output_file_suffix)
   errors <- hosp_fit_obj$error
   save_object("errors", output_file_suffix)
-  raw_flags <- data.frame(hosp_fit_obj$flags)
+  metadata <- hosp_fit_obj$metadata()
+  raw_flags <- get_diagnostic_flags(
+    hosp_fit_obj,
+    metadata$num_chains,
+    metadata$iter_sampling
+  )
   save_object("raw_flags", output_file_suffix)
   # Save errors
   save_table(
@@ -475,6 +482,19 @@ eval_post_process_hosp <- function(config_index,
     model_type = "hosp",
     location = location
   )
+  # Make the data look like it did in wweval-------------------------------
+  input_hosp_data_wweval <- input_hosp_data |>
+    dplyr:::rename(
+      "daily_hosp_admits" = "count",
+      "pop" = "total_pop"
+    )
+  eval_hosp_data_wweval <- eval_hosp_data |>
+    dplyr:::rename(
+      "daily_hosp_admits" = "count",
+      "pop" = "total_pop"
+    )
+
+
   hosp_model_hosp_draws <- wwinference::get_draws(
     hosp_fit_obj,
     what = "predicted_counts"
