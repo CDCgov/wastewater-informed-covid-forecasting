@@ -116,13 +116,26 @@ write_eval_config <- function(locations, forecast_dates,
     dates_to_exclude = c("2024-01-30", "2024-01-31", "2024-02-01", "2024-02-02")
   )
 
-  ww_forecast_date_locs_to_excl <- data.frame(
-    location = c("MN", "MN", "MN", "MN"),
+  forecast_dates <- df_ww |>
+    dplyr::filter(lubridate::ymd(forecast_date) >= lubridate::ymd("2024-02-05")) |>
+    dplyr::pull(forecast_date) |>
+    as.vector() |>
+    unique()
+
+  dates_we_excluded <- wweval::get_date_locs_excluded(forecast_dates)
+  add_to_exclude <- data.frame(
+    location = c("MN", "MN", "MN"),
     forecast_date = c(
-      "2024-01-15", "2024-01-22", "2024-01-29",
-      "2024-02-05"
+      "2024-01-15", "2024-01-22", "2024-01-29"
     )
   )
+
+  ww_forecast_date_locs_to_excl <- dplyr::bind_rows(
+    dates_we_excluded,
+    add_to_exclude
+  )
+
+
 
   config <- list(
     location_ww = df_ww |> dplyr::pull(location) |> as.vector(),
