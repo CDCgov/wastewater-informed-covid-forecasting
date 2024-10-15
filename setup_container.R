@@ -31,8 +31,3 @@ cmdstanr::install_cmdstan()
 pak::pkg_install("local::wweval")
 pak::pkg_install(additional_deps)
 dir.create("stanmodels")
-wwinference::compile_model(
-  "cfaforecastrenewalww/inst/stan/renewal_ww_hosp_site_level_inf_dynamics.stan",
-  "cfaforecastrenewalww/inst/stan",
-  "stanmodels"
-)
