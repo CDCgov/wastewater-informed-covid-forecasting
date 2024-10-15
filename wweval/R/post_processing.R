@@ -52,7 +52,7 @@ new_get_model_draws_w_data <- function(fit_obj_wwinference,
       ) |>
       dplyr::left_join(
         eval_data |>
-          dplyr::select(-"total_pop", -"location"),
+          dplyr::select("date", "count"),
         by = c("date")
       ) |>
       dplyr::rename("eval_data" = "count") |>
