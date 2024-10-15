@@ -508,7 +508,7 @@ eval_post_process_hosp <- function(config_index,
   )
 
   plot_hosp_t <- make_fig2_hosp_t(
-    hosp_quantiles = full_hosp_quantiles,
+    hosp_quantiles = full_hosp_model_quantiles,
     loc_to_plot = location,
     date_to_plot = forecast_date
   ) +
