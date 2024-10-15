@@ -1,3 +1,103 @@
+new_get_model_draws_w_data <- function(model_output,
+                                       model_type = c("ww", "hosp"),
+                                       draws,
+                                       forecast_date,
+                                       scenario,
+                                       location,
+                                       eval_data) {
+  model_type <- arg_match(model_type)
+  eval_data <- eval_data |>
+    dplyr::filter(location == !!location)
+  stopifnot(
+    "More than one location in eval data that is getting joined" =
+      eval_data |> dplyr::pull(location) |> unique() |> length() == 1
+  )
+
+
+  # Dataframe with columns
+  if (model_output == "hosp") {
+    new_hosp_draws <- wwinference::get_draws(
+      ww_fit_obj_wwinference,
+      what = "predicted_counts"
+    )$predicted_counts
+
+    draws_w_data <- new_hosp_draws |>
+      dplyr::mutate(
+        "name" = "pred_hosp",
+        "forecast_date" = lubridate::ymd(!!forecast_date),
+        "model_type" = !!model_type,
+        "location" = !!location,
+        "scenario" = !!scenario
+      ) |>
+      dplyr::rename(
+        "value" = "pred_value",
+        "calib_data" = "observed_value",
+        "pop" = "total_pop"
+      ) |>
+      dplyr::left_join(
+        eval_data |>
+          dplyr::select(-"total_pop", -"location"),
+        by = c("date")
+      ) |>
+      dplyr::rename("eval_data" = "count") |>
+      dplyr::ungroup()
+  }
+
+  if (model_output == "ww") {
+    # Then we also want to output the wastewater predictions
+    lab_site_map <- input_data |>
+      dplyr::distinct(lab_site_index, site, lab, location)
+    # Get mean population in the site over the calibration period, this
+    # is the same pop size we use in the model fitting
+    site_pop_map <- input_data |>
+      dplyr::group_by(site) |>
+      dplyr::summarise(ww_pop = mean(ww_pop))
+
+    draws_w_data <- draws |>
+      tidybayes::spread_draws(pred_ww[lab_site_index, t]) |>
+      dplyr::rename(value = pred_ww) |>
+      dplyr::mutate(
+        draw = `.draw`,
+        name = "pred_ww",
+        value = exp(value)
+      ) |>
+      dplyr::select(name, lab_site_index, t, value, draw) |>
+      dplyr::left_join(date_df, by = "t") |>
+      dplyr::left_join(lab_site_map, by = "lab_site_index") |>
+      dplyr::left_join(site_pop_map, by = c("site")) |>
+      dplyr::left_join(
+        input_data |> select(
+          date, lab_site_index,
+          ww, below_LOD,
+          lod_sewage, flag_as_ww_outlier
+        ),
+        by = c("date", "lab_site_index")
+      ) |>
+      dplyr::ungroup() |>
+      dplyr::rename(calib_data = ww) |>
+      dplyr::left_join(
+        eval_data |>
+          dplyr::select(date, ww, lab, site) |>
+          unique(),
+        by = c("date", "lab", "site")
+      ) |>
+      dplyr::rename(eval_data = ww) |>
+      dplyr::mutate(
+        forecast_date = ymd(!!forecast_date),
+        model_type = !!model_type,
+        scenario = !!scenario,
+        site_lab_name = glue::glue("Site: {site}, Lab: {lab}"),
+        location = !!location
+      ) |>
+      dplyr::ungroup()
+  }
+
+  return(draws_w_data)
+}
+
+
+
+
 #' Get model draws combined with input and evaluation data
 #'
 #' @param model_output the type of model expected observation you want,

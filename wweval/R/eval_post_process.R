@@ -178,14 +178,20 @@ eval_post_process_ww <- function(config_index,
     if (is.null(ww_raw_draws)) {
       NULL
     } else {
-      # This will return a hosp draws object in the format
-      # of the wwinference package.
-      # Will need to be modified to look like hosp_draws in wweval
-      wwinference::get_draws(ww_fit_obj_wwinference,
-        what = "predicted_counts"
+      # Call a function that uses wwinference::get_draws(), joins the
+      # evaluation data to it, and renames so everything looks the same
+      # as is expected by downstream wweval functions.
+      new_get_model_draws_w_data(
+        model_output = "hosp",
+        model_type = "ww",
+        draws = ww_raw_draws,
+        forecast_date = forecast_date,
+        scenario = scenario,
+        location = location,
+        eval_data = eval_hosp_data
       )
 
-      # get_model_draws_w_data(
+      # orig_hosp_draws<- get_model_draws_w_data(
       #   model_output = "hosp",
       #   model_type = "ww",
       #   draws = ww_raw_draws,
