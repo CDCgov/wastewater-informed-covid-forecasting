@@ -1,9 +1,10 @@
 #' Get model draws combined with input and evaluation data
 #'
+#' @param fit_obj_wwinference wwinference_fit object that is returned when
+#' wwinference::wwinference() is run.
 #' @param model_output the type of model expected observation you want,
 #' options are "hosp" and "ww"
 #' @param model_type The type of model, options are "ww" and "hosp"
-#' @param draws The raw draws dataframe
 #' @param forecast_date The date the forecast was made
 #' @param scenario A name for the scenario that the input
 #' data represents, as a string.
@@ -14,9 +15,9 @@
 #' @return a dataframe of model draws subsetted to only the specified output
 #' type, joined with the evaluation data and the input calibration data
 #' @export
-new_get_model_draws_w_data <- function(model_output,
+new_get_model_draws_w_data <- function(fit_obj_wwinference,
+                                       model_output,
                                        model_type = c("ww", "hosp"),
-                                       draws,
                                        forecast_date,
                                        scenario,
                                        location,
@@ -33,7 +34,7 @@ new_get_model_draws_w_data <- function(model_output,
   # Dataframe with columns
   if (model_output == "hosp") {
     new_hosp_draws <- wwinference::get_draws(
-      ww_fit_obj_wwinference,
+      fit_obj_wwinference,
       what = "predicted_counts"
     )$predicted_counts
 
@@ -61,7 +62,7 @@ new_get_model_draws_w_data <- function(model_output,
 
   if (model_output == "ww") {
     new_ww_draws <- wwinference::get_draws(
-      ww_fit_obj_wwinference,
+      fit_obj_wwinference,
       what = "predicted_ww"
     )$predicted_ww
 

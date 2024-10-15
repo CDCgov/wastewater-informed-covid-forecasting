@@ -5,9 +5,9 @@
 \title{Get model draws combined with input and evaluation data}
 \usage{
 new_get_model_draws_w_data(
+  fit_obj_wwinference,
   model_output,
   model_type = c("ww", "hosp"),
-  draws,
   forecast_date,
   scenario,
   location,
@@ -15,12 +15,13 @@ new_get_model_draws_w_data(
 )
 }
 \arguments{
+\item{fit_obj_wwinference}{wwinference_fit object that is returned when
+wwinference::wwinference() is run.}
+
 \item{model_output}{the type of model expected observation you want,
 options are "hosp" and "ww"}
 
 \item{model_type}{The type of model, options are "ww" and "hosp"}
-
-\item{draws}{The raw draws dataframe}
 
 \item{forecast_date}{The date the forecast was made}
 

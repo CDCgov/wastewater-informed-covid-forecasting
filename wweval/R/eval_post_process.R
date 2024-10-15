@@ -168,16 +168,16 @@ eval_post_process_ww <- function(config_index,
 
 
   hosp_draws <- {
-    if (is.null(ww_raw_draws)) {
+    if (!is.null(ww_fit_obj_wwinference$error)) {
       NULL
     } else {
       # Call a function that uses wwinference::get_draws(), joins the
       # evaluation data to it, and renames so everything looks the same
       # as is expected by downstream wweval functions.
       new_get_model_draws_w_data(
+        fit_obj_wwinference = ww_fit_obj_wwinference,
         model_output = "hosp",
         model_type = "ww",
-        draws = ww_raw_draws,
         forecast_date = forecast_date,
         scenario = scenario,
         location = location,
@@ -188,13 +188,13 @@ eval_post_process_ww <- function(config_index,
   save_object("hosp_draws", output_file_suffix)
 
   ww_draws <- {
-    if (is.null(ww_raw_draws)) {
+    if (!is.null(ww_fit_obj_wwinference$error)) {
       NULL
     } else {
       new_get_model_draws_w_data(
+        fit_obj_wwinference = ww_fit_obj_wwinference,
         model_output = "ww",
         model_type = "ww",
-        draws = ww_raw_draws,
         forecast_date = forecast_date,
         scenario = scenario,
         location = location,
@@ -461,9 +461,9 @@ eval_post_process_hosp <- function(config_index,
     location = location
   )
   hosp_model_hosp_draws <- new_get_model_draws_w_data(
+    fit_obj_wwinference = hosp_fit_obj_wwinference,
     model_output = "hosp",
     model_type = "hosp",
-    draws = ww_raw_draws,
     forecast_date = forecast_date,
     scenario = scenario,
     location = location,
