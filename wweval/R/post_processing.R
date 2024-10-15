@@ -9,7 +9,6 @@
 #' @param scenario A name for the scenario that the input
 #' data represents, as a string.
 #' @param location The location for which the model is being run.
-#' @param input_data The input dataset used for fitting the model.
 #' @param eval_data The retrospective dataset used to evaluate the model
 #' (should have data beyond the forecast date)
 #' @return a dataframe of model draws subsetted to only the specified output

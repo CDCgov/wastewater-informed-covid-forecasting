@@ -32,8 +32,6 @@ data represents, as a string.}
 
 \item{eval_data}{The retrospective dataset used to evaluate the model
 (should have data beyond the forecast date)}
-
-\item{input_data}{The input dataset used for fitting the model.}
 }
 \value{
 a dataframe of model draws subsetted to only the specified output
