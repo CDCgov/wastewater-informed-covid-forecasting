@@ -137,8 +137,8 @@ get_state_level_quantiles <- function(draws) {
     ) |>
     dplyr::mutate(
       period = dplyr::case_when(
-        !is.na(calib_data) ~ "calibration",
-        date <= forecast_date ~ "nowcast",
+        !is.na(.data$calib_data) ~ "calibration",
+        date <= .data$forecast_date ~ "nowcast",
         TRUE ~ "forecast"
       ),
       quantile = round(quantile, 4)
