@@ -78,11 +78,6 @@ eval_post_process_ww <- function(config_index,
       "ww_pop" = "site_pop",
       "below_LOD" = "below_lod"
     )
-  eval_hosp_data_wweval <- eval_hosp_data |>
-    dplyr:::rename(
-      "daily_hosp_admits" = "count",
-      "pop" = "total_pop"
-    )
 
   eval_ww_data_wweval <- eval_ww_data |>
     dplyr::mutate(
@@ -128,8 +123,6 @@ eval_post_process_ww <- function(config_index,
     model_type = "ww",
     location = location
   )
-
-
 
   # Save errors
   save_table(
@@ -190,20 +183,6 @@ eval_post_process_ww <- function(config_index,
         location = location,
         eval_data = eval_hosp_data
       )
-
-      # orig_hosp_draws<- get_model_draws_w_data(
-      #   model_output = "hosp",
-      #   model_type = "ww",
-      #   draws = ww_raw_draws,
-      #   forecast_date = forecast_date,
-      #   scenario = scenario,
-      #   location = location,
-      #   input_data = input_hosp_data_wweval,
-      #   eval_data = eval_hosp_data_wweval,
-      #   last_hosp_data_date = last_hosp_data_date,
-      #   ot = eval_config$calibration_time,
-      #   forecast_time = eval_config$forecast_time
-      # )
     }
   }
   save_object("hosp_draws", output_file_suffix)
@@ -212,23 +191,15 @@ eval_post_process_ww <- function(config_index,
     if (is.null(ww_raw_draws)) {
       NULL
     } else {
-      wwinference::get_draws(ww_fit_obj_wwinference,
-        what = "predicted_ww"
+      new_get_model_draws_w_data(
+        model_output = "ww",
+        model_type = "ww",
+        draws = ww_raw_draws,
+        forecast_date = forecast_date,
+        scenario = scenario,
+        location = location,
+        eval_data = eval_ww_data
       )
-
-      # get_model_draws_w_data(
-      #   model_output = "ww",
-      #   model_type = "ww",
-      #   draws = ww_raw_draws,
-      #   forecast_date = forecast_date,
-      #   scenario = scenario,
-      #   location = location,
-      #   input_data = input_ww_data_wweval,
-      #   eval_data = eval_ww_data_wweval,
-      #   last_hosp_data_date = last_hosp_data_date,
-      #   ot = eval_config$calibration_time,
-      #   forecast_time = eval_config$forecast_time
-      # )
     }
   }
   save_object("ww_draws", output_file_suffix)
@@ -368,6 +339,7 @@ eval_post_process_ww <- function(config_index,
   ))
 
   save_object("plot_ww_draws", output_file_suffix)
+
   ## Score hospital admissions forecasts----------------------------------
   hosp_scores <- get_full_scores(hosp_draws, scenario)
   save_object("hosp_scores", output_file_suffix)
@@ -488,36 +460,15 @@ eval_post_process_hosp <- function(config_index,
     model_type = "hosp",
     location = location
   )
-  # Make the data look like it did in wweval-------------------------------
-  input_hosp_data_wweval <- input_hosp_data |>
-    dplyr:::rename(
-      "daily_hosp_admits" = "count",
-      "pop" = "total_pop"
-    )
-  eval_hosp_data_wweval <- eval_hosp_data |>
-    dplyr:::rename(
-      "daily_hosp_admits" = "count",
-      "pop" = "total_pop"
-    )
-
-
-  hosp_model_hosp_draws <- wwinference::get_draws(
-    hosp_fit_obj,
-    what = "predicted_counts"
+  hosp_model_hosp_draws <- new_get_model_draws_w_data(
+    model_output = "hosp",
+    model_type = "hosp",
+    draws = ww_raw_draws,
+    forecast_date = forecast_date,
+    scenario = scenario,
+    location = location,
+    eval_data = eval_hosp_data
   )
-  #   get_model_draws_w_data(
-  #   model_output = "hosp",
-  #   model_type = "hosp",
-  #   draws = hosp_raw_draws,
-  #   forecast_date = forecast_date,
-  #   scenario = "no_wastewater",
-  #   location = location,
-  #   input_data = input_hosp_data,
-  #   eval_data = eval_hosp_data,
-  #   last_hosp_data_date = last_hosp_data_date,
-  #   ot = eval_config$calibration_time,
-  #   forecast_time = eval_config$forecast_time
-  # )
   save_object("hosp_model_hosp_draws", output_file_suffix)
   full_hosp_model_quantiles <- get_state_level_quantiles(
     draws = hosp_model_hosp_draws

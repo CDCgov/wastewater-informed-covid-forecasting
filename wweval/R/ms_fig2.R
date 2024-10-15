@@ -142,7 +142,7 @@ make_fig2_ct <- function(ww_quantiles,
     tidyr::pivot_wider(
       id_cols = c(
         location, site_lab_name, forecast_date, period, scenario,
-        date, t, eval_data, calib_data
+        date, eval_data, calib_data
       ),
       names_from = quantile,
       values_from = log_conc
