@@ -30,15 +30,3 @@ pak::pkg_install("github::stan-dev/cmdstanr")
 cmdstanr::install_cmdstan()
 pak::pkg_install("local::wweval")
 pak::pkg_install(additional_deps)
-dir.create("stanmodels")
-wwinference::compile_model(
-  model_filepath = system.file("stan",
-    "wwinference.stan",
-    package = "wwinference"
-  ),
-  include_paths = system.file(
-    "stan",
-    package = "wwinference"
-  ),
-  target_dir = "stanmodels"
-)
