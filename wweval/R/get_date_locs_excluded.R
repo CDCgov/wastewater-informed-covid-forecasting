@@ -3,7 +3,7 @@
 #' @param dates vector of character strings indicating the forecast dates that
 #' we want to pull from our repository to check for exclusions
 #'
-#' @return a table of locations and forecast dates to exclude because we e
+#' @return a table of locations and forecast dates to exclude because we
 #' excluded them in real-time
 #' @export
 #'
