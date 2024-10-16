@@ -71,7 +71,6 @@ Imports:
     scoringutils,
     tibble,
     zoo,
-    cfaforecastrenewalww,
     cmdstanr (>= 0.7.1),
     forcats,
     ggridges,
@@ -89,7 +88,6 @@ Roxygen: list(markdown = TRUE)
 Config/Needs/check: rcmdcheck, testthat
 RoxygenNote: 7.3.2
 Remotes:
-    cfaforecastrenewalww=CDCgov/wastewater-informed-covid-forecasting/cfaforecastrenewalww@less-cfaforecastrenewalww-2,
     stan-dev/cmdstanr,
-    wwinference=CDCgov/ww-inference-model
+    wwinference=CDCgov/ww-inference-model@v0.1.0
 LazyData: true

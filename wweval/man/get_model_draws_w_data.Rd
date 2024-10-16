@@ -5,26 +5,23 @@
 \title{Get model draws combined with input and evaluation data}
 \usage{
 get_model_draws_w_data(
+  fit_obj_wwinference,
   model_output,
   model_type = c("ww", "hosp"),
-  draws,
   forecast_date,
   scenario,
   location,
-  input_data,
-  eval_data,
-  last_hosp_data_date,
-  ot,
-  forecast_time = 28
+  eval_data
 )
 }
 \arguments{
+\item{fit_obj_wwinference}{wwinference_fit object that is returned when
+wwinference::wwinference() is run.}
+
 \item{model_output}{the type of model expected observation you want,
 options are "hosp" and "ww"}
 
 \item{model_type}{The type of model, options are "ww" and "hosp"}
-
-\item{draws}{The raw draws dataframe}
 
 \item{forecast_date}{The date the forecast was made}
 
@@ -33,18 +30,8 @@ data represents, as a string.}
 
 \item{location}{The location for which the model is being run.}
 
-\item{input_data}{The input dataset used for fitting the model.}
-
 \item{eval_data}{The retrospective dataset used to evaluate the model
 (should have data beyond the forecast date)}
-
-\item{last_hosp_data_date}{The date of the last hospital admissions data point
-that the model is calibrated to}
-
-\item{ot}{An integer indicating the number of days the model is calibrated
-to hospital admissions data}
-
-\item{forecast_time}{An integer indicate the time in days of the forecast}
 }
 \value{
 a dataframe of model draws subsetted to only the specified output

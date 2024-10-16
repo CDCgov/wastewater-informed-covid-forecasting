@@ -60,7 +60,10 @@ get_input_ww_data <- function(forecast_date_i,
     filter(
       location %in% c(!!location_i),
       date >= lubridate::ymd(!!last_hosp_data_date) -
-        lubridate::days(!!calibration_time) + lubridate::days(1)
+        lubridate::days(!!calibration_time) + lubridate::days(1),
+      # If missing lab or site, exclude data point
+      !is.na(lab),
+      !is.na(site)
     )
 
   deduplicated_data <- ww_data_pkg |>
