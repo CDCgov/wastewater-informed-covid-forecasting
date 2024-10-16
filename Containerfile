@@ -15,5 +15,7 @@ RUN Rscript -e "pak::pkg_install('argparser')"
 
 RUN mkdir -p stanmodels
 RUN Rscript -e "wwinference::compile_model( \
-  target_dir = 'stanmodels' \
+  'system.file("stan","wwinference.stan",package = "wwinference")' \
+  'system.file("stan", package = "wwinference")' \
+  'stanmodels' \
 )"
