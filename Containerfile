@@ -12,9 +12,3 @@ ADD . /.
 
 RUN Rscript -e "pak::pkg_install('local::wweval')"
 RUN Rscript -e "pak::pkg_install('argparser')"
-RUN mkdir -p stanmodels
-RUN Rscript -e "wwinference::compile_model( \
-  'cfaforecastrenewalww/inst/stan/renewal_ww_hosp_site_level_inf_dynamics.stan', \
-  'cfaforecastrenewalww/inst/stan', \
-  'stanmodels' \
-)"
