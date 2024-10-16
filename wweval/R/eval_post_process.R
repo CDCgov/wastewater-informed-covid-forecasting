@@ -174,7 +174,7 @@ eval_post_process_ww <- function(config_index,
       # Call a function that uses wwinference::get_draws(), joins the
       # evaluation data to it, and renames so everything looks the same
       # as is expected by downstream wweval functions.
-      new_get_model_draws_w_data(
+      get_model_draws_w_data(
         fit_obj_wwinference = ww_fit_obj_wwinference,
         model_output = "hosp",
         model_type = "ww",
@@ -191,7 +191,7 @@ eval_post_process_ww <- function(config_index,
     if (!is.null(ww_fit_obj_wwinference$error)) {
       NULL
     } else {
-      new_get_model_draws_w_data(
+      get_model_draws_w_data(
         fit_obj_wwinference = ww_fit_obj_wwinference,
         model_output = "ww",
         model_type = "ww",
@@ -460,7 +460,7 @@ eval_post_process_hosp <- function(config_index,
     model_type = "hosp",
     location = location
   )
-  hosp_model_hosp_draws <- new_get_model_draws_w_data(
+  hosp_model_hosp_draws <- get_model_draws_w_data(
     fit_obj_wwinference = hosp_fit_obj_wwinference,
     model_output = "hosp",
     model_type = "hosp",

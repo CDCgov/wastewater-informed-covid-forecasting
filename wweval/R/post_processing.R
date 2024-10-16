@@ -14,13 +14,13 @@
 #' @return a dataframe of model draws subsetted to only the specified output
 #' type, joined with the evaluation data and the input calibration data
 #' @export
-new_get_model_draws_w_data <- function(fit_obj_wwinference,
-                                       model_output,
-                                       model_type = c("ww", "hosp"),
-                                       forecast_date,
-                                       scenario,
-                                       location,
-                                       eval_data) {
+get_model_draws_w_data <- function(fit_obj_wwinference,
+                                   model_output,
+                                   model_type = c("ww", "hosp"),
+                                   forecast_date,
+                                   scenario,
+                                   location,
+                                   eval_data) {
   model_type <- arg_match(model_type)
   eval_data <- eval_data |>
     dplyr::filter(location == !!location)
