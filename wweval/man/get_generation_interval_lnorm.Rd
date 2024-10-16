@@ -7,7 +7,11 @@
 get_generation_interval_lnorm(mu = 0.92877, sigma = 0.526, gt_max = 15)
 }
 \arguments{
-\item{gt_max}{}
+\item{mu}{NEEDS DOCUMENTATION.}
+
+\item{sigma}{NEEDS DOCUMENTATION.}
+
+\item{gt_max}{NEEDS DOCUMENTATION.}
 }
 \value{
 a normalized generation interval assuming a lognormal distribution

@@ -4,24 +4,41 @@ uot = 50
 [infection_process]
 r_prior_mean = 1
 r_prior_sd = 1
-sigma_rt_prior = 0.3
+sigma_rt_prior = 0.1
 dur_inf = 7
 
-sigma_i0_prior_mode = 0
-sigma_i0_prior_sd = 0.1
-i0_certainty = 5
+sigma_i_first_obs_prior_mode = 0
+sigma_i_first_obs_prior_sd = 0.5
+i_first_obs_certainty = 5
   ## effective number of binomial trials
-  ## in beta prior centered on estimated i0/n
+  ## in beta prior centered on estimated i_first_obs (estimated) /n
 
-initial_growth_prior_mean = 0
-initial_growth_prior_sd = 0.01
+mean_initial_exp_growth_rate_prior_mean = 0
+mean_initial_exp_growth_rate_prior_sd = 0.01
+sigma_initial_exp_growth_rate_prior_mode = 0
+sigma_initial_exp_growth_rate_prior_sd = 0.05
+
 autoreg_rt_a = 2 # shape1 parameter of autoreg term on Rt trend
 autoreg_rt_b = 40 # shape2 parameter of autoreg on Rt trend
   # mean = a/(a+b) = 0.05, stdv = sqrt(a)/b = sqrt(2)/40 = 0.035
-autoreg_rt_site_a = 1 # shape1 parameter of autoreg term on difference between
-  # R(t) state and R(t) site
-autoreg_rt_site_b = 4 # shape2 parameter of autoreg term on difference between
-# R(t) state and R(t) site
+autoreg_rt_subpop_a = 1 # shape1 parameter of autoreg term on difference between
+  # R(t) ref and R(t) subpop
+autoreg_rt_subpop_b = 4 # shape2 parameter of autoreg term on difference between
+# R(t) ref and R(t) subpop
+
+# Normal prior on fixed offset between central log scale R(t) and reference pop
+offset_ref_log_r_t_prior_mean = 0
+offset_ref_log_r_t_prior_sd = 0.2
+
+# Normal prior on fixed offset between central logit scale i_first_obs/n and reference pop i_first_obs/n
+offset_ref_logit_i_first_obs_prior_mean = 0
+offset_ref_logit_i_first_obs_prior_sd = 0.25
+
+# Normal prior on fixed offset between central initial exponential growth rate
+# and reference population initial exponential growth rate
+offset_ref_initial_exp_growth_rate_prior_mean = 0
+offset_ref_initial_exp_growth_rate_prior_sd = 0.025
+
 autoreg_p_hosp_a = 1 # shape1 parameter of autoreg term on IHR(t) trend
 autoreg_p_hosp_b = 100 # shape2 parameter of autoreg term on IHR(t) trend
 eta_sd_sd = 0.01
@@ -39,10 +56,8 @@ p_hosp_w_sd_sd = 0.01
 
 inv_sqrt_phi_prior_mean = 0.1 # 1 / sqrt(100)
 inv_sqrt_phi_prior_sd = 0.1414214 # 1 / sqrt(50)
-phi_w_prior_mean = 100
-phi_w_prior_sd = 30
-wday_effect_prior_mean = 0.1428571 # 1 / 7
-wday_effect_prior_sd = 0.05
+hosp_wday_effect_prior_alpha = [5, 5, 5, 5, 5, 5, 5]
+# centered on equal effects for all days
 
 [wastewater_observation_process]
 ml_of_ww_per_person_day = 22.7e4
@@ -57,16 +72,11 @@ log10_g_prior_sd = 2
 log_g_prior_mean = 27.63102 # 12 * log(10)
 log_g_prior_sd = 4.60517 # 2 * log(10)
 
-sigma_ww_prior_sd = 0.5
-
 mode_sigma_ww_site_prior_mode = 1
 mode_sigma_ww_site_prior_sd = 1
 sd_log_sigma_ww_site_prior_mode = 0
 sd_log_sigma_ww_site_prior_sd = 0.693 # log(2)
-autoreg_conc_a = 1
-# shape1 parameter of Beta dist for autoreg term on Ct trend
-autoreg_conc_b = 2
-# shape 2 parameter of Beta dist for autoreg term on Ct trend
+
 ww_site_mod_sd_sd = 0.25
 log_phi_g_prior_mean = -2.302585 # log(0.1)
 # prior mean in individual level dispersion

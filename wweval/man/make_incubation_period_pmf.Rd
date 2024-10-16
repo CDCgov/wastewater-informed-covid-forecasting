@@ -10,6 +10,13 @@ make_incubation_period_pmf(
   r = 0.15
 )
 }
+\arguments{
+\item{backward_scale}{NEEDS DOCUMENTATION.}
+
+\item{backward_shape}{NEEDS DOCUMENTATION.}
+
+\item{r}{NEEDS DOCUMENTATION.}
+}
 \value{
 pmf of incubation period
 }

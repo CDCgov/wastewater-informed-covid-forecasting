@@ -7,7 +7,9 @@
 make_reporting_delay_pmf(incubation_period_pmf, hospital_onset_delay_pmf)
 }
 \arguments{
-\item{hospital_onset_delay_pmf}{}
+\item{incubation_period_pmf}{NEEDS DOCUMENTATION.}
+
+\item{hospital_onset_delay_pmf}{NEEDS DOCUMENTATION.}
 }
 \value{
 convolution of incubation period and sympton onset to hospital

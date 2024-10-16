@@ -21,6 +21,8 @@ of the corresponding dates we want to remove}
 
 \item{dates_for_hosp_removal}{dates lining up with the
 states we want to remove from}
+
+\item{...}{additional arguments}
 }
 \value{
 revised train data with hospital admissions removed

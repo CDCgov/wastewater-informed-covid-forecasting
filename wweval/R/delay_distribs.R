@@ -1,13 +1,12 @@
 #' Get the generation interval from a gamma distribution
 #'
-#' @param mean_gi
-#' @param stdev_gi
-#' @param gt_max
+#' @param mean_gi NEEDS DOCUMENTATION.
+#' @param stdev_gi NEEDS DOCUMENTATION.
+#' @param gt_max NEEDS DOCUMENTATION.
 #'
 #' @return a normalized generation interval assuming gamma distribution
 #' @export
 #'
-#' @examples
 get_generation_interval_gamma <- function(mean_gi, stdev_gi, gt_max) {
   a <- (mean_gi^2) / (stdev_gi^2)
   b <- mean_gi / (stdev_gi^2)
@@ -20,14 +19,13 @@ get_generation_interval_gamma <- function(mean_gi, stdev_gi, gt_max) {
 
 #' Get the generation interval from a lognormal distribution
 #'
-#' @param mu
-#' @param sigma
-#' @param gt_max
+#' @param mu NEEDS DOCUMENTATION.
+#' @param sigma NEEDS DOCUMENTATION.
+#' @param gt_max NEEDS DOCUMENTATION.
 #'
 #' @return a normalized generation interval assuming a lognormal distribution
 #' @export
 #'
-#' @examples
 get_generation_interval_lnorm <- function(mu = 0.92877,
                                           sigma = 0.526,
                                           gt_max = 15) {
@@ -123,14 +121,13 @@ simulate_double_censored_pmf <- function(
 #' Convolve the incubation period pmf with the symptom to hospital admission pmf
 #' and normalize
 #'
-#' @param incubation_period_pmf
-#' @param hospital_onset_delay_pmf
+#' @param incubation_period_pmf NEEDS DOCUMENTATION.
+#' @param hospital_onset_delay_pmf NEEDS DOCUMENTATION.
 #'
 #' @return convolution of incubation period and sympton onset to hospital
 #' admission pmf
 #' @export
 #'
-#' @examples
 make_reporting_delay_pmf <- function(incubation_period_pmf, hospital_onset_delay_pmf) {
   pmfs <- list(
     "incubation_period" = incubation_period_pmf,
@@ -148,11 +145,13 @@ make_reporting_delay_pmf <- function(incubation_period_pmf, hospital_onset_delay
 #' the incubation period for COVID after Omicron used in Park et al 2023
 #' (which we also use for the
 #' lognormal generation interval). These estimates are from early Omicron.
+#' @param backward_scale NEEDS DOCUMENTATION.
+#' @param backward_shape NEEDS DOCUMENTATION.
+#' @param r NEEDS DOCUMENTATION.
 #'
 #' @return pmf of incubation period
 #' @export
 #'
-#' @examples
 make_incubation_period_pmf <- function(backward_scale = 3.60,
                                        backward_shape = 1.50,
                                        r = 0.15) {
@@ -215,13 +214,12 @@ make_incubation_period_pmf <- function(backward_scale = 3.60,
 #' admission. See below:
 #' https://journals.plos.org/plosone/article?id=10.1371/journal.pone.0261428
 #'
-#' @param neg_binom_mu
-#' @param neg_binom_size
+#' @param neg_binom_mu NEEDS DOCUMENTATION.
+#' @param neg_binom_size NEEDS DOCUMENTATION.
 #'
 #' @return pmf of distribution from symptom onset to hospital admission
 #' @export
 #'
-#' @examples
 make_hospital_onset_delay_pmf <- function(neg_binom_mu = 6.98665, neg_binom_size = 2.490848) {
   density <- dnbinom(x = seq(0, 30, 1), mu = neg_binom_mu, size = neg_binom_size)
   hosp_onset_delay_pmf <- density / sum(density)

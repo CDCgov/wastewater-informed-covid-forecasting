@@ -10,7 +10,9 @@ make_hospital_onset_delay_pmf(
 )
 }
 \arguments{
-\item{neg_binom_size}{}
+\item{neg_binom_mu}{NEEDS DOCUMENTATION.}
+
+\item{neg_binom_size}{NEEDS DOCUMENTATION.}
 }
 \value{
 pmf of distribution from symptom onset to hospital admission

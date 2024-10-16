@@ -31,7 +31,7 @@ the_models <- models(zoltar_connection, project_url)
 str(the_models)
 
 # get state abbreviation codes
-state_codes <- cfaforecastrenewalww::loc_abbr_to_flusight_code(
+state_codes <- wweval::loc_abbr_to_flusight_code(
   unique(eval_config$location_hosp)
 )
 

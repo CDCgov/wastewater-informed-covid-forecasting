@@ -30,7 +30,7 @@ needed for the include paths}
 
 \item{target_dir}{Directory in which to save the compiled
 stan model binary. Passed as the \code{target_dir} keyword argument to
-\code{\link[cfaforecastrenewalww:compile_model]{wwinference::compile_model()}}.
+\code{\link[wwinference:compile_model]{wwinference::compile_model()}}.
 Defaults to a temporary directory for the R session
 (the output of \code{\link[=tempdir]{tempdir()}}).}
 

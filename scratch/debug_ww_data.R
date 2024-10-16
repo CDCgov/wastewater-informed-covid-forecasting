@@ -8,7 +8,7 @@ nwss <- readr::read_csv(here::here("input", "ww_data", "nwss_data", "2024-01-30.
 test <- nwss %>% dplyr::filter(lab_id == 4702)
 
 # EDA on outliers
-nwss_subset <- init_subset_nwss_data(nwss)
+nwss_subset <- wweval::init_subset_nwss_data(nwss)
 
 ww_target_type <- "pcr_target_avg_conc"
 ww_data <- nwss_subset %>%
@@ -44,7 +44,7 @@ ww_data2 <- ww_data %>%
       full_county_name
     )
   )
-ww_data_outliers_flagged <- flag_ww_outliers(ww_data2)
+ww_data_outliers_flagged <- wwinference::flag_ww_outliers(ww_data2)
 
 ww_data_mod <- ww_data_outliers_flagged %>%
   group_by(lab_wwtp_unique_id) %>%
@@ -250,7 +250,7 @@ ggplot(nwss %>% filter(wwtp_jurisdiction %in% c("ca"))) +
 
 
 
-nwss_subset_raw <- init_subset_nwss_data(nwss)
+nwss_subset_raw <- wweval::init_subset_nwss_data(nwss)
 
 
 

@@ -8,6 +8,8 @@ get_weekly_summary(nwss_subset, ww_target_type = "pcr_target_avg_conc")
 }
 \arguments{
 \item{nwss_subset}{subsetted nwss data}
+
+\item{ww_target_type}{NEEDS DOCUMENTATION}
 }
 \value{
 weekly summary of nwss data by site

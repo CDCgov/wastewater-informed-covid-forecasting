@@ -4,10 +4,13 @@
 \alias{clean_ww_data}
 \title{Clean wastewater data}
 \usage{
-clean_ww_data(nwss_subset)
+clean_ww_data(nwss_subset, log_offset = 1e-20)
 }
 \arguments{
 \item{nwss_subset}{the raw nwss data filtered down to only the columns we use}
+
+\item{log_offset}{small numeric value to prevent numerical instability
+in converting from natural scale to log scale}
 }
 \value{
 A site-lab level dataset with names and variables that can be used

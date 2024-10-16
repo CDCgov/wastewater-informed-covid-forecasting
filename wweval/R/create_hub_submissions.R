@@ -152,7 +152,7 @@ format_for_hub <- function(quantiles,
       quantile = {{ quantile_col_name }}
     ) |>
     dplyr::mutate(
-      location = cfaforecastrenewalww::loc_abbr_to_flusight_code(location),
+      location = loc_abbr_to_flusight_code(location),
       quantile = round(quantile, 4),
     ) |>
     dplyr::filter(

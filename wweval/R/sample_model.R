@@ -33,7 +33,6 @@
 #' flags if the model failed to pass convergence tests. If the model errored,
 #' just contains a list with errors
 #' @export
-
 sample_model <- function(standata,
                          stan_model_path,
                          stan_models_dir,

@@ -7,7 +7,11 @@
 get_generation_interval_gamma(mean_gi, stdev_gi, gt_max)
 }
 \arguments{
-\item{gt_max}{}
+\item{mean_gi}{NEEDS DOCUMENTATION.}
+
+\item{stdev_gi}{NEEDS DOCUMENTATION.}
+
+\item{gt_max}{NEEDS DOCUMENTATION.}
 }
 \value{
 a normalized generation interval assuming gamma distribution
