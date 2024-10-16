@@ -11,7 +11,7 @@ get_date_locs_excluded(dates)
 we want to pull from our repository to check for exclusions}
 }
 \value{
-a table of locations and forecast dates to exclude because we e
+a table of locations and forecast dates to exclude because we
 excluded them in real-time
 }
 \description{
