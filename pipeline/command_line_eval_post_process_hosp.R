@@ -1,5 +1,4 @@
 library(argparser, quietly = TRUE)
-library(cfaforecastrenewalww)
 library(wweval)
 library(ggplot2)
 ## some functions from plots.R complain about aes()
