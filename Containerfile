@@ -11,7 +11,7 @@ RUN Rscript -e "cmdstanr::install_cmdstan()"
 ADD . /.
 
 RUN Rscript -e "pak::pkg_install('local::wweval')"
-RUN Rscript -e "remotes::install_github("CDCgov/ww-inference-model@v0.1.0")
+RUN Rscript -e "remotes::install_github('CDCgov/ww-inference-model@v0.1.0')
 RUN Rscript -e "pak::pkg_install('argparser')"
 
 RUN mkdir -p stanmodels
