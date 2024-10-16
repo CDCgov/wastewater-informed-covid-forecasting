@@ -14,6 +14,6 @@ RUN Rscript -e "pak::pkg_install('local::wweval')"
 RUN Rscript -e "pak::pkg_install('argparser')"
 
 RUN mkdir -p stanmodels
-RUN Rscript -e "wwinference::compile_model(
+RUN Rscript -e "wwinference::compile_model( \
   target_dir = 'stanmodels' \
 )"
