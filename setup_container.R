@@ -31,3 +31,6 @@ cmdstanr::install_cmdstan()
 pak::pkg_install("local::wweval")
 pak::pkg_install(additional_deps)
 dir.create("stanmodels")
+wwinference::compile_model(
+  target_dir = "stanmodels"
+)
