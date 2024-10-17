@@ -5,7 +5,6 @@
 #' @param gt_max NEEDS DOCUMENTATION.
 #'
 #' @return a normalized generation interval assuming gamma distribution
-#' @export
 #'
 get_generation_interval_gamma <- function(mean_gi, stdev_gi, gt_max) {
   a <- (mean_gi^2) / (stdev_gi^2)
@@ -24,7 +23,6 @@ get_generation_interval_gamma <- function(mean_gi, stdev_gi, gt_max) {
 #' @param gt_max NEEDS DOCUMENTATION.
 #'
 #' @return a normalized generation interval assuming a lognormal distribution
-#' @export
 #'
 get_generation_interval_lnorm <- function(mu = 0.92877,
                                           sigma = 0.526,
@@ -51,7 +49,6 @@ get_generation_interval_lnorm <- function(mu = 0.92877,
 #'   (usually the GI distribution).
 #'
 #' @return A numeric vector, sums to 1.
-#' @export
 drop_first_and_renormalize <- function(x) {
   # Check input sums to 1
   stopifnot(abs(sum(x) - 1) < 1e-8)
@@ -91,7 +88,6 @@ drop_first_and_renormalize <- function(x) {
 #' This is an alternative to `dist_args`.
 #'
 #' @return A numeric vector representing the PMF.
-#' @export
 #' @family modelmodulehelpers
 #' @examples
 #' simulate_double_censored_pmf(10, meanlog = 0, sdlog = 1)
@@ -126,7 +122,6 @@ simulate_double_censored_pmf <- function(
 #'
 #' @return convolution of incubation period and sympton onset to hospital
 #' admission pmf
-#' @export
 #'
 make_reporting_delay_pmf <- function(incubation_period_pmf, hospital_onset_delay_pmf) {
   pmfs <- list(
@@ -150,7 +145,6 @@ make_reporting_delay_pmf <- function(incubation_period_pmf, hospital_onset_delay
 #' @param r NEEDS DOCUMENTATION.
 #'
 #' @return pmf of incubation period
-#' @export
 #'
 make_incubation_period_pmf <- function(backward_scale = 3.60,
                                        backward_shape = 1.50,
