@@ -7,7 +7,6 @@
 
 ## Hospitalization data pre-processing -------------------------------------
 #' Get forecast date from today's date
-#' @export
 get_nearest_forecast_date <- function() {
   today_weekday <- lubridate::wday(lubridate::today(tzone = "EST"))
   today_date <- lubridate::today(tzone = "EST")
@@ -34,7 +33,6 @@ get_nearest_forecast_date <- function() {
 #'
 #' @return hosp_reporting delay The delay from forecast date to last hospital
 #' admission date
-#' @export
 #'
 get_hosp_reporting_delay <- function(forecast_date) {
   hosp_reporting_delay <-
@@ -66,7 +64,6 @@ get_hosp_reporting_delay <- function(forecast_date) {
 #'
 #' @return dataframe containing number of hospital admissions by state
 #'
-#' @export
 #'
 get_state_level_hosp_data <- function(hosp_data_source,
                                       forecast_date,
@@ -202,7 +199,6 @@ get_state_level_hosp_data <- function(hosp_data_source,
 #'
 #' @return a data frame at the geo_type level of number of daily hospital admits
 #'
-#' @export
 #'
 get_hosp_data <- function(hosp_data_source,
                           geo_type,
@@ -515,8 +511,6 @@ get_testing_data <- function(data_as_of,
 #' @return a long stacked dataframe with columns corresponding to model specs
 #' and data specs
 #'
-#' @export
-#'
 get_all_training_data <- function(ww_data_raw,
                                   forecast_date,
                                   location,
@@ -693,8 +687,6 @@ get_all_training_data <- function(ww_data_raw,
 #' keys
 #'
 #' @return ww_data_path
-#' @export
-#'
 save_timestamped_nwss_data <- function(ww_path_to_save) {
   hour <- lubridate::hour(Sys.time())
   minute <- lubridate::minute(Sys.time())
@@ -768,7 +760,6 @@ save_timestamped_nwss_data <- function(ww_path_to_save) {
 #'
 #' @return a data frame structured the same way as the ww_data but with only
 #' prop_sites included. These sites are chosen randomly
-#' @export
 #'
 subsample_sites <- function(ww_data, prop_sites = 0.2,
                             sampled_sites = NULL) {
@@ -789,90 +780,6 @@ subsample_sites <- function(ww_data, prop_sites = 0.2,
 }
 
 
-#' Initial subsetting of NWSS data
-#' @description
-#' Grab the columns we want and subset to raw wastewater and to only
-#' Wastewater treatment plants (rather than downstream sites, for now).
-#' Transform concentration to copies per mL
-#'
-#'
-#' @param raw_nwss_data nwss data from nwss
-#'
-#' @return nwss_subset_raw which just dplyr::filters based on sample types and wwtp and
-#' returns a subset of the columns
-#'
-#' @export
-#'
-clean_and_filter_nwss_data <- function(raw_nwss_data) {
-  nwss_subset_raw <- raw_nwss_data |>
-    dplyr::filter(
-      sample_location == "wwtp",
-      sample_matrix != "primary sludge",
-      pcr_target_units != "copies/g dry sludge",
-      pcr_target == "sars-cov-2"
-    ) |>
-    #* Note, we need to figure out how to convert copies/g dry sludge to a WW concentration,
-    #* but now now we're just going to exclude
-    select(
-      lab_id, sample_collect_date, wwtp_name, pcr_target_avg_conc,
-      wwtp_jurisdiction, county_names, population_served, pcr_target_units,
-      pcr_target_below_lod, lod_sewage, quality_flag
-    ) |>
-    mutate(
-      pcr_target_avg_conc = dplyr::case_when(
-        pcr_target_units == "copies/l wastewater" ~ pcr_target_avg_conc / 1000,
-        pcr_target_units == "log10 copies/l wastewater" ~ (10^(pcr_target_avg_conc)) / 1000
-      ),
-      lod_sewage = dplyr::case_when(
-        pcr_target_units == "copies/l wastewater" ~ lod_sewage / 1000,
-        pcr_target_units == "log10 copies/l wastewater" ~ (10^(lod_sewage)) / 1000
-      ),
-    ) |>
-    dplyr::filter(!quality_flag %in% c(
-      "yes", "y", "result is not quantifiable",
-      "temperature not assessed upon arrival at the laboratory",
-      "> max temp and/or hold time"
-    ))
-
-  # will treat data without LOD as uninformative
-  conservative_lod <- as.numeric(
-    quantile(nwss_subset_raw$lod_sewage, 0.95, na.rm = TRUE)
-  )
-  nwss_subset <- nwss_subset_raw |>
-    mutate(
-      lod_sewage = ifelse(is.na(lod_sewage),
-        conservative_lod,
-        lod_sewage
-      ),
-      sample_collect_date = lubridate::ymd(sample_collect_date)
-    )
-
-
-
-  # If there are multiple values per lab-site-day, replace with the mean
-  nwss_subset_clean <- nwss_subset |>
-    group_by(wwtp_name, lab_id, sample_collect_date) |>
-    mutate(
-      pcr_target_avg_conc = mean(pcr_target_avg_conc, na.rm = TRUE)
-    ) |>
-    ungroup() |>
-    distinct() |>
-    # If there are multiple population sizes in a site, replace with the mean
-    # and round to the nearest whole number
-    group_by(wwtp_name) |>
-    mutate(
-      population_served = round(mean(population_served, na.rm = TRUE), 0),
-    ) |>
-    dplyr::select(
-      sample_collect_date, wwtp_name, lab_id, pcr_target_avg_conc,
-      wwtp_jurisdiction, lod_sewage, population_served
-    )
-
-
-  return(nwss_subset_clean)
-}
-
-
 #' Summarize data into weekly by site
 #' @description
 #' Get one sample per site per week by averaging over the week if a site submits
@@ -883,7 +790,6 @@ clean_and_filter_nwss_data <- function(raw_nwss_data) {
 #'
 #' @return weekly summary of nwss data by site
 #'
-#' @export
 #'
 get_weekly_summary <- function(nwss_subset, ww_target_type = "pcr_target_avg_conc") {
   nwss_subset <- nwss_subset |> mutate(
@@ -956,7 +862,6 @@ get_weekly_summary <- function(nwss_subset, ww_target_type = "pcr_target_avg_con
 #'
 #' @return NEEDS DOCUMENTATION
 #'
-#' @export
 #'
 get_state_level_summary <- function(nwss_by_week) {
   nwss_by_state <- nwss_by_week |>
@@ -1095,7 +1000,6 @@ get_state_level_summary <- function(nwss_by_week) {
 #' level specified and weekly temporal granularity. Dates correspond to the
 #' middle of the week. Will be used to map to hospitalization data.
 #'
-#' @export
 #'
 get_ww_data <- function(ww_data_source, geo_type, ww_data_type,
                         ww_target_type, ww_geo_type, ww_data_path,
@@ -1179,7 +1083,6 @@ get_ww_data <- function(ww_data_source, geo_type, ww_data_type,
 #' @return state abbreviations and region that corr to the WW data source for
 #' the biobot data
 #'
-#' @export
 #'
 get_regions_for_mapping <- function() {
   # Need regions if we're mapping to biobot data only
@@ -1203,7 +1106,6 @@ get_regions_for_mapping <- function() {
 #' @param threshold_n_dps min number of data points above the LOD per lab-site
 #'
 #' @return ww_data + columns for outlier flagging
-#' @export
 #'
 flag_ww_outliers <- function(ww_data, rho_threshold = 2,
                              log_conc_threshold = 3,
@@ -1292,7 +1194,6 @@ flag_ww_outliers <- function(ww_data, rho_threshold = 2,
 #' @param ... additional arguments
 #'
 #' @return revised train data with hospital admissions removed
-#' @export
 #'
 manual_removal_of_hosp_data <- function(train_data,
                                         states_for_hosp_removal,
@@ -1321,7 +1222,6 @@ manual_removal_of_hosp_data <- function(train_data,
 #'
 #' @return a dataframe with wastewater data for all locations,
 #' the weekly avg pcr concentration, and the date
-#' @export
 #'
 aggregate_ww <- function(ww_data_raw, forecast_date, calibration_time,
                          hosp_reporting_delay) {
@@ -1385,7 +1285,6 @@ aggregate_ww <- function(ww_data_raw, forecast_date, calibration_time,
 #' if it exists, it will be used, otherwise the file will be created and placed here
 #'
 #' @return a mapping from the unique county fips in the ww data to the major county
-#' @export
 #'
 get_site_county_map <- function(nwss,
                                 county_site_map_path) {
