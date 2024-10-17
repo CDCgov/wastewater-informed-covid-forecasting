@@ -270,6 +270,89 @@ get_last_hosp_data_date <- function(input_hosp) {
   return(last_hosp_data_date)
 }
 
+#' Initial subsetting of NWSS data
+#' @description
+#' Grab the columns we want and subset to raw wastewater and to only
+#' Wastewater treatment plants (rather than downstream sites, for now).
+#' Transform concentration to copies per mL
+#'
+#'
+#' @param raw_nwss_data nwss data from nwss
+#'
+#' @return nwss_subset_raw which just dplyr::filters based on sample types and wwtp and
+#' returns a subset of the columns
+#'
+#' @export
+#'
+clean_and_filter_nwss_data <- function(raw_nwss_data) {
+  nwss_subset_raw <- raw_nwss_data |>
+    dplyr::filter(
+      sample_location == "wwtp",
+      sample_matrix != "primary sludge",
+      pcr_target_units != "copies/g dry sludge",
+      pcr_target == "sars-cov-2"
+    ) |>
+    #* Note, we need to figure out how to convert copies/g dry sludge to a WW concentration,
+    #* but now now we're just going to exclude
+    select(
+      lab_id, sample_collect_date, wwtp_name, pcr_target_avg_conc,
+      wwtp_jurisdiction, county_names, population_served, pcr_target_units,
+      pcr_target_below_lod, lod_sewage, quality_flag
+    ) |>
+    mutate(
+      pcr_target_avg_conc = dplyr::case_when(
+        pcr_target_units == "copies/l wastewater" ~ pcr_target_avg_conc / 1000,
+        pcr_target_units == "log10 copies/l wastewater" ~ (10^(pcr_target_avg_conc)) / 1000
+      ),
+      lod_sewage = dplyr::case_when(
+        pcr_target_units == "copies/l wastewater" ~ lod_sewage / 1000,
+        pcr_target_units == "log10 copies/l wastewater" ~ (10^(lod_sewage)) / 1000
+      ),
+    ) |>
+    dplyr::filter(!quality_flag %in% c(
+      "yes", "y", "result is not quantifiable",
+      "temperature not assessed upon arrival at the laboratory",
+      "> max temp and/or hold time"
+    ))
+
+  # will treat data without LOD as uninformative
+  conservative_lod <- as.numeric(
+    quantile(nwss_subset_raw$lod_sewage, 0.95, na.rm = TRUE)
+  )
+  nwss_subset <- nwss_subset_raw |>
+    mutate(
+      lod_sewage = ifelse(is.na(lod_sewage),
+        conservative_lod,
+        lod_sewage
+      ),
+      sample_collect_date = lubridate::ymd(sample_collect_date)
+    )
+
+
+
+  # If there are multiple values per lab-site-day, replace with the mean
+  nwss_subset_clean <- nwss_subset |>
+    group_by(wwtp_name, lab_id, sample_collect_date) |>
+    mutate(
+      pcr_target_avg_conc = mean(pcr_target_avg_conc, na.rm = TRUE)
+    ) |>
+    ungroup() |>
+    distinct() |>
+    # If there are multiple population sizes in a site, replace with the mean
+    # and round to the nearest whole number
+    group_by(wwtp_name) |>
+    mutate(
+      population_served = round(mean(population_served, na.rm = TRUE), 0),
+    ) |>
+    dplyr::select(
+      sample_collect_date, wwtp_name, lab_id, pcr_target_avg_conc,
+      wwtp_jurisdiction, lod_sewage, population_served
+    )
+
+
+  return(nwss_subset_clean)
+}
+
 
 #' Clean wastewater data
 #'

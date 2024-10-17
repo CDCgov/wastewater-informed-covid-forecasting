@@ -514,7 +514,7 @@ eval_post_process_hosp <- function(config_index,
   ) +
     ggtitle(glue::glue("{location} on {forecast_date}"))
 
-  ggsave(plot_hosp_draws, filename = file.path(
+  ggsave(plot_hosp_t, filename = file.path(
     output_dir, scenario,
     forecast_date, "hosp", location,
     "plot_hosp_t.png"
