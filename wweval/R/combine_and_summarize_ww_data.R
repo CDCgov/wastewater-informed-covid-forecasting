@@ -59,7 +59,8 @@ combine_and_summarize_ww_data <- function(forecast_dates,
 
     if (file.exists(fp_ww)) {
       this_ww_metadata <- load_data_and_summarize(
-        fp_hosp, fp_ww,
+        fp_hosp,
+        fp_ww,
         this_forecast_date,
         this_location
       )
@@ -152,8 +153,9 @@ load_data_and_summarize <- function(fp_hosp, fp_ww,
       dplyr::pull(.data$ww_total_pop)
     pop_coverage <- sum_site_pops / state_pop
 
+    # Use lab_site_index for now, later switch to lab_site_na,e
     avg_latency <- this_ww_data |>
-      dplyr::group_by(.data$lab_wwtp_unique_id) |>
+      dplyr::group_by(.data$lab_site_index) |>
       dplyr::summarize(max_date = max(.data$date)) |>
       dplyr::mutate(
         latency = as.numeric(lubridate::ymd(
@@ -166,7 +168,7 @@ load_data_and_summarize <- function(fp_hosp, fp_ww,
       dplyr::pull(.data$mean_latency)
 
     avg_sampling_freq <- this_ww_data |>
-      dplyr::group_by(.data$lab_wwtp_unique_id) |>
+      dplyr::group_by(.data$lab_site_index) |>
       dplyr::arrange(.data$date, desc = TRUE) |>
       # There are some duplicate dates within a site and lab
       dplyr::distinct(.data$date) |>
@@ -185,7 +187,7 @@ load_data_and_summarize <- function(fp_hosp, fp_ww,
       dplyr::pull(.data$n_days_w_samples)
 
     n_duplicate_obs <- this_ww_data |>
-      dplyr::group_by(.data$lab_wwtp_unique_id, .data$date) |>
+      dplyr::group_by(.data$lab_site_index, .data$date) |>
       dplyr::summarize(n_obs = dplyr::n()) |>
       dplyr::ungroup() |>
       dplyr::summarize(

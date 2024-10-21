@@ -234,11 +234,13 @@ make_fig2 <- function(hosp1, hosp2, hosp3,
   fs::dir_create(fig_file_dir)
   ggsave(fig2,
     filename = file.path(fig_file_dir, "fig2.png"),
-    width = 10, height = 7
+    width = 10, height = 7,
+    create.dir = TRUE
   )
   ggsave(fig2,
     filename = file.path(fig_file_dir, "fig2.svg"),
-    width = 10, height = 7
+    width = 10, height = 7,
+    create.dir = TRUE
   )
   return(fig2)
 }

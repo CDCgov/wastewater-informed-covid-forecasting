@@ -314,7 +314,7 @@ get_plot_quantile_comparison <- function(hosp_quantiles,
     tidyr::pivot_wider(
       id_cols = c(
         forecast_date, period, scenario,
-        date, t, eval_data
+        date, eval_data
       ),
       names_from = quantile,
       values_from = value
