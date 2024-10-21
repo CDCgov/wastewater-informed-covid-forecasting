@@ -101,7 +101,7 @@ make_fig3_forecast_comp_fig <- function(hosp_quantiles,
     tidyr::pivot_wider(
       id_cols = c(
         forecast_date, model_type,
-        date, t, eval_data
+        date, eval_data
       ),
       names_from = quantile,
       values_from = value
