@@ -37,6 +37,7 @@ make_fig4_rel_crps_over_time <- function(scores,
 
 
   colors <- plot_components()
+  date_lims <- c(range(scores$forecast_date))
 
   p <- ggplot(
     relative_crps,
@@ -152,10 +153,14 @@ make_fig4_pct_better_w_ww <- function(scores,
 #'
 #' @param eval_hosp_data Hospital admissions data for evaluating against,
 #' for all locations
+#' @param first_forecast_date The first forecast date we are evaluating
+#' @param last_forecast_date The last forecast date we are evaluating
 #'
 #' @return ggplot object containing total hospital admissions in the US
 #' @export
-make_fig4_admissions_overall <- function(eval_hosp_data) {
+make_fig4_admissions_overall <- function(eval_hosp_data,
+                                         first_forecast_date,
+                                         last_forecast_date) {
   total_hosp <- eval_hosp_data |>
     distinct(location, daily_hosp_admits, date) |>
     dplyr::group_by(date) |>
@@ -163,6 +168,11 @@ make_fig4_admissions_overall <- function(eval_hosp_data) {
       total_hosp = sum(daily_hosp_admits)
     )
   max_total_hosp <- max(total_hosp$total_hosp)
+
+  date_lims <- c(
+    first_forecast_date,
+    last_forecast_date
+  )
 
   p <- ggplot() +
     geom_point(
@@ -178,9 +188,8 @@ make_fig4_admissions_overall <- function(eval_hosp_data) {
     ) +
     scale_x_date(
       date_breaks = "1 week",
-      labels = scales::date_format("%Y-%m-%d"),
-      limits = as.Date(c("2023-10-16", "2024-03-11")),
-      expand = expansion(c(0.03, 0.03))
+      date_labels = "%Y-%m-%d",
+      limits = date_lims
     )
   return(p)
 }
@@ -556,6 +565,10 @@ make_fig4_avg_crps_over_time <- function(scores,
       ))
   }
 
+  date_lims <- c(
+    min(scores$forecast_date),
+    max(scores$forecast_date)
+  )
   colors <- plot_components()
   p <- ggplot(scores_by_forecast_date) +
     geom_line(
@@ -580,9 +593,11 @@ make_fig4_avg_crps_over_time <- function(scores,
     ) +
     theme(axis.title.x = element_blank()) +
     scale_x_date(
-      date_breaks = "2 weeks",
-      labels = scales::date_format("%Y-%m-%d")
+      date_breaks = "1 week",
+      date_labels = "%Y-%m-%d",
+      limits = date_lims
     ) +
+    ylab("CRPS") +
     scale_color_manual(values = colors$model_colors)
 
   return(p)
@@ -636,6 +651,9 @@ FGGG
     legend.justification = "left"
   ) #+ plot_annotation(tag_levels = "A") #nolint not working
   fig4
+
+  dir_create(fig_file_dir)
+
   ggsave(fig4,
     filename = file.path(fig_file_dir, "fig4.png"),
     width = 8, height = 11

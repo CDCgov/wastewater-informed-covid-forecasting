@@ -4,11 +4,19 @@
 \alias{make_fig4_admissions_overall}
 \title{Make a figure of overall admissions for context}
 \usage{
-make_fig4_admissions_overall(eval_hosp_data)
+make_fig4_admissions_overall(
+  eval_hosp_data,
+  first_forecast_date,
+  last_forecast_date
+)
 }
 \arguments{
 \item{eval_hosp_data}{Hospital admissions data for evaluating against,
 for all locations}
+
+\item{first_forecast_date}{The first forecast date we are evaluating}
+
+\item{last_forecast_date}{The last forecast date we are evaluating}
 }
 \value{
 ggplot object containing total hospital admissions in the US

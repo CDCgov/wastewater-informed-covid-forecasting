@@ -54,7 +54,8 @@ get_plot_theme <- function(x_axis_text_size = 8,
       plot.title = element_text(
         size = plot_title_size,
         vjust = 0.5, hjust = 0.5
-      )
+      ),
+      plot.background = element_rect(fill = "white")
     )
 
 
@@ -111,10 +112,11 @@ plot_components <- function() {
     "UT-Osiris" = pastel_model[5],
     "CEPH-Rtrend_covid" = pastel_model[1],
     "CMU-TimeSeries" = pastel_model[2],
-    "Sgroup-RandomForest" = pastel_model[7],
+    "SGroup-RandomForest" = pastel_model[7],
     "UMass-gbq" = pastel_model[8],
     "UMass-sarix" = pal_model[3],
-    "COVIDhub-baseline" = pastel_model[6]
+    "COVIDhub-baseline" = pastel_model[6],
+    "MOBS-GLEAM_COVID" = pastel_model[8]
   )
 
   phase_colors <- c(

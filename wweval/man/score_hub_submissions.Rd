@@ -20,7 +20,8 @@ score_hub_submissions(
 \item{model_name}{a vector of character strings indicating the names of the
 models to scores}
 
-\item{dates}{a vector of dates indicating the dates of the submissions to score}
+\item{dates}{a vector of dates indicating the dates of the submissions to
+score}
 
 \item{locations}{a vector of character strings indicating the locations
 to score}
@@ -37,8 +38,9 @@ the COVIDhub github, which is where team's submissions are located}
 evaluation}
 }
 \value{
-a dataframe containing all of the scores for all models, forecast dates
-(indcated by dates), locations, target end dates, and quantiles
+a dataframe containing all of the scores for all models,
+forecast dates (indicated by dates), locations, target end dates, and
+quantiles
 }
 \description{
 Score hub submissions

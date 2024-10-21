@@ -304,7 +304,8 @@ query_and_select_models <- function(prop_dates_for_incl_hub,
 #'
 #' @param model_name a vector of character strings indicating the names of the
 #' models to scores
-#' @param dates a vector of dates indicating the dates of the submissions to score
+#' @param dates a vector of dates indicating the dates of the submissions to
+#'  score
 #' @param locations a vector of character strings indicating the locations
 #' to score
 #' @param hub_subdir path where the retrospective hub submissions are saved
@@ -315,8 +316,9 @@ query_and_select_models <- function(prop_dates_for_incl_hub,
 #' @param truth_data_path the path to the truth data used by the hub for
 #' evaluation
 #'
-#' @return a dataframe containing all of the scores for all models, forecast dates
-#' (indcated by dates), locations, target end dates, and quantiles
+#' @return a dataframe containing all of the scores for all models,
+#' forecast dates (indicated by dates), locations, target end dates, and
+#' quantiles
 #' @export
 #'
 score_hub_submissions <- function(model_name,
