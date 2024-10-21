@@ -452,6 +452,8 @@ FGH
     legend.justification = "left"
   ) #+ plot_annotation(tag_levels = "A") #nolint, not working
 
+  fs::dir_create(fig_file_dir)
+
   ggsave(fig5,
     filename = file.path(fig_file_dir, "fig5.png"),
     width = 12, height = 12

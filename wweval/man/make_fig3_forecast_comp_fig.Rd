@@ -8,6 +8,7 @@ make_fig3_forecast_comp_fig(
   hosp_quantiles,
   loc_to_plot,
   horizon_to_plot,
+  horizon_days_ahead,
   days_to_show_prev_data = 14
 )
 }
@@ -21,6 +22,9 @@ to plot}
 
 \item{horizon_to_plot}{A string indicating what horizon period to plot,
 one of \code{nowcast}, \verb{1 wk}, or \verb{4 wks}}
+
+\item{horizon_days_ahead}{An integer corresponding to the horizon days to
+plot}
 
 \item{days_to_show_prev_data}{An ingeger indicating how many days before the
 last forecast date to show the data, default is \code{14}}
