@@ -250,7 +250,7 @@ get_plot_wis_t <- function(hosp_quantiles,
     dplyr::distinct(location) |>
     dplyr::pull()
 
-  loc_code <- cfaforecastrenewalww::loc_abbr_to_flusight_code(this_location)
+  loc_code <- wweval::loc_abbr_to_flusight_code(this_location)
 
   this_forecast_date <- hosp_quantiles |>
     dplyr::distinct(forecast_date) |>
