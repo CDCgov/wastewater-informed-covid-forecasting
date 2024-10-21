@@ -392,91 +392,91 @@ head_to_head_targets <- list(
         )
       ) |>
       add_horizons()
-  ),
+  )
   # Do the same thing for the sampled scores, combining ww and hosp under
   # the status quo scenario, filtering to the locations and forecast dates
   # with sufficient wastewater, and then joining the convergence flags
-  tar_target(
-    name = scores_filtered,
-    command = dplyr::bind_rows(
-      all_hosp_scores,
-      all_ww_scores |>
-        dplyr::filter(scenario == "status_quo")
-    ) |>
-      dplyr::filter(scale == "log") |>
-      dplyr::left_join(table_of_loc_dates_w_ww,
-        by = c("location", "forecast_date")
-      ) |>
-      dplyr::anti_join(
-        ww_forecast_date_locs_to_excl |>
-          dplyr::mutate(forecast_date = lubridate::ymd(forecast_date)),
-        by = c(
-          "location",
-          "forecast_date"
-        )
-      ) |>
-      dplyr::filter(ww_sufficient) |>
-      dplyr::left_join(
-        convergence_df,
-        by = c(
-          "location",
-          "forecast_date"
-        )
-      ) |>
-      dplyr::left_join(
-        last_hosp_data_date_map,
-        by = c("location", "forecast_date")
-      ) |>
-      dplyr::left_join(
-        epidemic_phases,
-        by = c(
-          "location",
-          "forecast_date" = "date"
-        )
-      ) |>
-      add_horizons()
-  ),
-  # Repeat for the quantile-based scores
-  tar_target(
-    name = scores_quantiles_filtered,
-    command = dplyr::bind_rows(
-      all_hosp_scores_quantiles,
-      all_ww_scores_quantiles |>
-        dplyr::filter(scenario == "status_quo")
-    ) |>
-      dplyr::filter(scale == "log") |>
-      dplyr::left_join(table_of_loc_dates_w_ww,
-        by = c("location", "forecast_date")
-      ) |>
-      dplyr::anti_join(
-        ww_forecast_date_locs_to_excl |>
-          dplyr::mutate(forecast_date = lubridate::ymd(forecast_date)),
-        by = c(
-          "location",
-          "forecast_date"
-        )
-      ) |>
-      dplyr::filter(ww_sufficient) |>
-      dplyr::left_join(
-        convergence_df,
-        by = c(
-          "location",
-          "forecast_date"
-        )
-      ) |>
-      dplyr::left_join(
-        last_hosp_data_date_map,
-        by = c("location", "forecast_date")
-      ) |>
-      dplyr::left_join(
-        epidemic_phases,
-        by = c(
-          "location",
-          "forecast_date" = "date"
-        )
-      ) |>
-      add_horizons()
-  )
+  # tar_target(
+  #   name = scores_filtered,
+  #   command = dplyr::bind_rows(
+  #     all_hosp_scores,
+  #     all_ww_scores |>
+  #       dplyr::filter(scenario == "status_quo")
+  #   ) |>
+  #     dplyr::filter(scale == "log") |>
+  #     dplyr::left_join(table_of_loc_dates_w_ww,
+  #       by = c("location", "forecast_date")
+  #     ) |>
+  #     dplyr::anti_join(
+  #       ww_forecast_date_locs_to_excl |>
+  #         dplyr::mutate(forecast_date = lubridate::ymd(forecast_date)),
+  #       by = c(
+  #         "location",
+  #         "forecast_date"
+  #       )
+  #     ) |>
+  #     dplyr::filter(ww_sufficient) |>
+  #     dplyr::left_join(
+  #       convergence_df,
+  #       by = c(
+  #         "location",
+  #         "forecast_date"
+  #       )
+  #     ) |>
+  #     dplyr::left_join(
+  #       last_hosp_data_date_map,
+  #       by = c("location", "forecast_date")
+  #     ) |>
+  #     dplyr::left_join(
+  #       epidemic_phases,
+  #       by = c(
+  #         "location",
+  #         "forecast_date" = "date"
+  #       )
+  #     ) |>
+  #     add_horizons()
+  # ),
+  # # Repeat for the quantile-based scores
+  # tar_target(
+  #   name = scores_quantiles_filtered,
+  #   command = dplyr::bind_rows(
+  #     all_hosp_scores_quantiles,
+  #     all_ww_scores_quantiles |>
+  #       dplyr::filter(scenario == "status_quo")
+  #   ) |>
+  #     dplyr::filter(scale == "log") |>
+  #     dplyr::left_join(table_of_loc_dates_w_ww,
+  #       by = c("location", "forecast_date")
+  #     ) |>
+  #     dplyr::anti_join(
+  #       ww_forecast_date_locs_to_excl |>
+  #         dplyr::mutate(forecast_date = lubridate::ymd(forecast_date)),
+  #       by = c(
+  #         "location",
+  #         "forecast_date"
+  #       )
+  #     ) |>
+  #     dplyr::filter(ww_sufficient) |>
+  #     dplyr::left_join(
+  #       convergence_df,
+  #       by = c(
+  #         "location",
+  #         "forecast_date"
+  #       )
+  #     ) |>
+  #     dplyr::left_join(
+  #       last_hosp_data_date_map,
+  #       by = c("location", "forecast_date")
+  #     ) |>
+  #     dplyr::left_join(
+  #       epidemic_phases,
+  #       by = c(
+  #         "location",
+  #         "forecast_date" = "date"
+  #       )
+  #     ) |>
+  #     add_horizons()
+  # )
 )
 
 # Manuscript figures------------------------------------------------
@@ -1397,8 +1397,8 @@ hub_comparison_plots <- list(
 # Run the targets pipeline----------------------------------------------------
 list(
   upstream_targets,
-  combined_targets
-  # head_to_head_targets,
+  combined_targets,
+  head_to_head_targets
   # manuscript_figures,
   # scenario_targets,
   # hub_targets,
