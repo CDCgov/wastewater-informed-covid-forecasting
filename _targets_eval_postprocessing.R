@@ -95,6 +95,7 @@ upstream_targets <- list(
       location_i = unique(eval_config$location_hosp),
       hosp_data_dir = eval_config$hosp_data_dir,
       calibration_time = 365, # Grab sufficient data for eval
+      for_eval = TRUE # So we don't run wwinference::preprocess
       # If don't have a hospital admissions dataset from the `eval_date`,
       # can load using epidatr
       # load_from_epidatr = TRUE, #nolint
@@ -106,12 +107,13 @@ upstream_targets <- list(
     command = get_input_ww_data(
       forecast_date_i = eval_config$eval_date,
       location_i = unique(eval_config$location_ww),
-      scenario = "status_quo",
+      scenario_i = "status_quo",
       scenario_dir = eval_config$scenario_dir,
       ww_data_dir = eval_config$ww_data_dir,
       calibration_time = 365, # Grab sufficient data for eval
       last_hosp_data_date = eval_config$eval_date,
-      ww_data_mapping = eval_config$ww_data_mapping
+      ww_data_mapping = eval_config$ww_data_mapping,
+      for_eval = TRUE
     )
   ),
   tar_target(
@@ -137,7 +139,7 @@ upstream_targets <- list(
         glue::glue("eval_ww_data.pdf")
       ),
       plot = gridExtra::marrangeGrob(plot_ww_eval_data, nrow = 1, ncol = 1),
-      width = 8.5, height = 11
+      width = 8.5, height = 11, create.dir = TRUE
     )
   ),
 
@@ -1395,10 +1397,10 @@ hub_comparison_plots <- list(
 # Run the targets pipeline----------------------------------------------------
 list(
   upstream_targets,
-  combined_targets,
-  head_to_head_targets,
-  manuscript_figures,
-  scenario_targets,
-  hub_targets,
-  hub_comparison_plots
+  combined_targets
+  # head_to_head_targets,
+  # manuscript_figures,
+  # scenario_targets,
+  # hub_targets,
+  # hub_comparison_plots
 )

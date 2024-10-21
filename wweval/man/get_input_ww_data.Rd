@@ -12,7 +12,8 @@ get_input_ww_data(
   ww_data_dir,
   calibration_time,
   last_hosp_data_date,
-  ww_data_mapping
+  ww_data_mapping,
+  for_eval = FALSE
 )
 }
 \arguments{
@@ -43,6 +44,11 @@ hospital admission as of the forecast date}
 \item{ww_data_mapping}{A string indicating how to map the
 forecast date to the wastewater dates (see \code{\link[=date_of_ww_data]{date_of_ww_data()}}
 for more details)}
+
+\item{for_eval}{A boolean indicating whether the hospital admissions data
+is for evaluation. Default is FALSE which means it will be used to fit
+a single model, TRUE means we will combine with multiple locations and a
+longer time span than we would fit to.}
 }
 \value{
 a tibble containing the pre-processed wastewater data ready to

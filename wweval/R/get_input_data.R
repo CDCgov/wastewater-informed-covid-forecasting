@@ -20,6 +20,10 @@
 #' @param ww_data_mapping A string indicating how to map the
 #' forecast date to the wastewater dates (see [date_of_ww_data()]
 #' for more details)
+#' @param for_eval A boolean indicating whether the hospital admissions data
+#' is for evaluation. Default is FALSE which means it will be used to fit
+#' a single model, TRUE means we will combine with multiple locations and a
+#' longer time span than we would fit to.
 #'
 #' @return a tibble containing the pre-processed wastewater data ready to
 #' be passed into the wwinference function
@@ -31,7 +35,8 @@ get_input_ww_data <- function(forecast_date_i,
                               ww_data_dir,
                               calibration_time,
                               last_hosp_data_date,
-                              ww_data_mapping) {
+                              ww_data_mapping,
+                              for_eval = FALSE) {
   # Load in the appropriate time-stamped NWSS dataset. This depends on
   # the date `ww_data_mapping` which is a string that we will specify
   # in the config
@@ -67,7 +72,7 @@ get_input_ww_data <- function(forecast_date_i,
     )
 
   deduplicated_data <- ww_data_pkg |>
-    dplyr::group_by(lab, site, date) |>
+    dplyr::group_by(lab, site, date, location) |>
     summarize(across(
       c(
         log_genome_copies_per_ml,
@@ -78,20 +83,29 @@ get_input_ww_data <- function(forecast_date_i,
     )) |>
     dplyr::ungroup()
 
+
   ww_data_preprocessed <- wwinference::preprocess_ww_data(
     deduplicated_data,
     conc_col_name = "log_genome_copies_per_ml",
     lod_col_name = "log_lod"
   )
-  ww_data_to_fit <- wwinference::indicate_ww_exclusions(
-    ww_data_preprocessed,
-    outlier_col_name = "flag_as_ww_outlier",
-    remove_outliers = TRUE
-  ) |>
-    dplyr::mutate(
-      "location" = !!location_i,
-      "forecast_date" = !!forecast_date_i
-    )
+
+  if (!isTRUE(for_eval)) {
+    ww_data_to_fit <- wwinference::indicate_ww_exclusions(
+      ww_data_preprocessed,
+      outlier_col_name = "flag_as_ww_outlier",
+      remove_outliers = TRUE
+    ) |>
+      dplyr::mutate(
+        "location" = !!location_i,
+        "forecast_date" = !!forecast_date_i
+      )
+  } else {
+    ww_data_to_fit <- ww_data_preprocessed |>
+      dplyr::mutate(ww = exp(.data$log_genome_copies_per_ml)) |>
+      dplyr::rename("below_LOD" = "below_lod")
+  }
+
 
 
   return(ww_data_to_fit)
@@ -139,6 +153,10 @@ get_scenario_site_ids <- function(init_subset_nwss_data,
 #'  time stamped hospital admissions datasets
 #' @param calibration_time  A numeric indicating the duration of model
 #' calibration (based on the last hospital admissions data point)
+#' @param for_eval A boolean indicating whether the hospital admissions data
+#' is for evaluation. Default is FALSE which means it will be used to fit
+#' a single model, TRUE means we will combine with multiple locations and a
+#' longer time span than we would fit to.
 #' @param load_from_epidatr boolean indicating whether or not the hospital
 #' admissions datasets should be loaded directly from epidatr.
 #' `default = FALSE` because we are assuming that we have already created a
@@ -151,6 +169,7 @@ get_scenario_site_ids <- function(init_subset_nwss_data,
 #' @export
 get_input_hosp_data <- function(forecast_date_i, location_i,
                                 hosp_data_dir, calibration_time,
+                                for_eval = FALSE,
                                 load_from_epidatr = FALSE,
                                 population_data_path = NA) {
   fp <- file.path(hosp_data_dir, paste0(forecast_date_i, ".csv"))
@@ -193,6 +212,7 @@ get_input_hosp_data <- function(forecast_date_i, location_i,
   last_hosp_data_date <- max(hosp$date, na.rm = TRUE)
   input_hosp <- hosp |>
     rename(location = ABBR) |>
+    mutate(date = lubridate::ymd(date)) |>
     filter(
       location %in% c(!!location_i),
       date >= (
@@ -202,15 +222,20 @@ get_input_hosp_data <- function(forecast_date_i, location_i,
       )
     )
 
-  hosp_data_preprocessed <- wwinference::preprocess_count_data(
-    input_hosp,
-    count_col_name = "daily_hosp_admits",
-    pop_size_col_name = "pop"
-  ) |>
-    dplyr::mutate(
-      "forecast_date" = !!forecast_date_i,
-      "location" = !!location_i
-    )
+  if (!isTRUE(for_eval)) {
+    hosp_data_preprocessed <- wwinference::preprocess_count_data(
+      input_hosp,
+      count_col_name = "daily_hosp_admits",
+      pop_size_col_name = "pop"
+    ) |>
+      dplyr::mutate(
+        "forecast_date" = !!forecast_date_i,
+        "location" = !!location_i
+      )
+  } else {
+    hosp_data_preprocessed <- input_hosp
+  }
+
   return(hosp_data_preprocessed)
 }
 

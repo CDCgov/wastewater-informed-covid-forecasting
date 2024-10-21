@@ -9,6 +9,7 @@ get_input_hosp_data(
   location_i,
   hosp_data_dir,
   calibration_time,
+  for_eval = FALSE,
   load_from_epidatr = FALSE,
   population_data_path = NA
 )
@@ -23,6 +24,11 @@ time stamped hospital admissions datasets}
 
 \item{calibration_time}{A numeric indicating the duration of model
 calibration (based on the last hospital admissions data point)}
+
+\item{for_eval}{A boolean indicating whether the hospital admissions data
+is for evaluation. Default is FALSE which means it will be used to fit
+a single model, TRUE means we will combine with multiple locations and a
+longer time span than we would fit to.}
 
 \item{load_from_epidatr}{boolean indicating whether or not the hospital
 admissions datasets should be loaded directly from epidatr.
