@@ -166,12 +166,16 @@ make_fig4_admissions_overall <- function(eval_hosp_data,
     dplyr::group_by(date) |>
     dplyr::summarise(
       total_hosp = sum(daily_hosp_admits)
+    ) |>
+    dplyr::mutate(
+      date = date
     )
+
   max_total_hosp <- max(total_hosp$total_hosp)
 
   date_lims <- c(
-    first_forecast_date,
-    last_forecast_date
+    as.Date(first_forecast_date),
+    as.Date(last_forecast_date)
   )
 
   p <- ggplot() +
