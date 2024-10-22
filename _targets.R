@@ -47,7 +47,7 @@ tar_option_set(
   # Set other options as needed.
 )
 source("src/write_config.R")
-cfaforecastrenewalww::setup_secrets(here::here("secrets.yaml"))
+wweval::setup_secrets(here::here("secrets.yaml"))
 # For testing changes to the package without a re-install
 # source("cfaforecastrenewalww/R/utils.R") #nolint
 # source("cfaforecastrenewalww/R/get_data.R") #nolint
@@ -499,7 +499,7 @@ list(
   ),
   tar_target(
     name = params_ho,
-    command = get_params(param_file_path_ho),
+    command = get_params(param_file_path_ho) |> as.data.frame(),
     deployment = "main"
   ),
 
@@ -654,7 +654,7 @@ list(
   ),
   tar_target(
     name = params_sa,
-    command = get_params(param_file_path_sa),
+    command = get_params(param_file_path_sa) |> as.data.frame(),
     deployment = "main"
   ),
   ## Fit the model ------------------------------------------------------------

@@ -15,7 +15,7 @@ library(httr)
 library(tidybayes)
 source(here::here("src", "write_config.R"))
 knitr::opts_chunk$set(echo = FALSE, message = FALSE, warning = FALSE)
-cfaforecastrenewalww::setup_secrets(here::here("secrets.yaml"))
+wweval::setup_secrets(here::here("secrets.yaml"))
 ```
 # Motivation
 - This is a first attempt at implementing a renewal approach for inference of hospitalization and wastewater viral concentrations by estimating a time-varying effective reproductive number $R(t)$.
@@ -143,7 +143,7 @@ per person per day.
 # magnitude of peak viral shedding, and duration of viral shedding). These
 # were informed in combination from literature on fecal shedding and viral loads
 # in the nasal package.
-params <- get_params(here::here("input", "params.toml")) #
+params <- get_params(here::here("input", "params.toml")) |> as.data.frame() #
 print(params)
 
 stan_data <- do.call(get_stan_data, c(

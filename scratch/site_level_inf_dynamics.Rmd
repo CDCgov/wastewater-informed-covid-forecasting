@@ -15,7 +15,7 @@ library(here)
 library(tidybayes)
 source(here::here("src/write_config.R"))
 knitr::opts_chunk$set(echo = TRUE)
-cfaforecastrenewalww::setup_secrets(here::here("secrets.yaml"))
+wweval::setup_secrets(here::here("secrets.yaml"))
 ```
 
 # Motivation
@@ -99,7 +99,7 @@ train_data_orig <- do.call(
     prop_sites = 0.2
   )
 )
-train_data <- flag_ww_outliers(train_data_orig)
+train_data <- wwinference::flag_ww_outliers(train_data_orig)
 train_data <- train_data %>% mutate(
   site_lab = stringr::str_glue("Site: {site}, Lab: {lab}")
 )
@@ -254,7 +254,7 @@ $$ R_j(t) \sim  logNormal(R_{state\mu}(t), \sigma_{R(t)})$$
 # magnitude of peak viral shedding, and duration of viral shedding). These
 # were informed in combination from literature on fecal shedding and viral loads
 # in the nasal package.
-params <- get_params(config_vars_ss$param_file_path) #
+params <- get_params(config_vars_ss$param_file_path) |> as.data.frame() #
 print(params)
 
 params$p_hosp_w_sd_sd <- 0.05

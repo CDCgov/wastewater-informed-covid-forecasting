@@ -64,14 +64,13 @@ Imports:
     rlang,
     cli,
     epidatr,
-    sjmisc,
     data.table,
     purrr,
     scales,
+    soql,
     scoringutils,
     tibble,
     zoo,
-    cfaforecastrenewalww,
     cmdstanr (>= 0.7.1),
     forcats,
     ggridges,
@@ -79,12 +78,16 @@ Imports:
     patchwork,
     RColorBrewer,
     zoltr,
+    wwinference,
     fs
+Suggests:
+    httr
 SystemRequirements: CmdStan (>=2.34.1)
 Encoding: UTF-8
 Roxygen: list(markdown = TRUE)
 Config/Needs/check: rcmdcheck, testthat
 RoxygenNote: 7.3.2
 Remotes:
-    cfaforecastrenewalww=CDCgov/wastewater-informed-covid-forecasting/cfaforecastrenewalww,
-    stan-dev/cmdstanr
+    stan-dev/cmdstanr,
+    wwinference=CDCgov/ww-inference-model@v0.1.0
+LazyData: true

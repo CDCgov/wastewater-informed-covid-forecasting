@@ -89,9 +89,7 @@ get_growth_rate_plot <- function(input_hosp_data,
   ))
 
   weekly_p <- ggplot(comb_data) +
-    geom_line(aes(x = date, y = weekly_r_ww, color = lab_site_name),
-      show.legend = FALSE
-    ) +
+    geom_line(aes(x = date, y = weekly_r_ww, color = lab_site_name)) +
     geom_line(aes(x = date, y = weekly_r_hosp)) +
     facet_wrap(~lab_site_name) +
     theme(
@@ -316,7 +314,7 @@ get_plot_quantile_comparison <- function(hosp_quantiles,
     tidyr::pivot_wider(
       id_cols = c(
         forecast_date, period, scenario,
-        date, t, eval_data
+        date, eval_data
       ),
       names_from = quantile,
       values_from = value
@@ -395,7 +393,7 @@ get_plot_quantile_comparison <- function(hosp_quantiles,
 
   if (isTRUE(save_files)) {
     full_file_path <- file.path(figure_file_path, "quantile_comparison")
-    cfaforecastrenewalww::create_dir(full_file_path)
+    wwinference::create_dir(full_file_path)
     ggsave(
       file.path(
         full_file_path,
@@ -665,7 +663,7 @@ get_plot_scores_w_data <- function(all_scores,
 
   if (isTRUE(save_files)) {
     full_file_path <- file.path(figure_file_path, "scores_w_data_overlaid")
-    cfaforecastrenewalww::create_dir(full_file_path)
+    wwinference::create_dir(full_file_path)
     ggsave(
       file.path(
         full_file_path,
@@ -878,7 +876,7 @@ get_box_plot <- function(all_scores,
 
   if (isTRUE(save_files)) {
     full_file_path <- file.path(figure_file_path)
-    cfaforecastrenewalww::create_dir(full_file_path)
+    wwinference::create_dir(full_file_path)
     ggsave(
       file.path(
         full_file_path,
@@ -980,7 +978,7 @@ get_n_states_improved_plot <- function(all_scores,
 
   if (isTRUE(save_files)) {
     full_file_path <- file.path(figure_file_path)
-    cfaforecastrenewalww::create_dir(full_file_path)
+    wwinference::create_dir(full_file_path)
     ggsave(
       file.path(
         full_file_path,
@@ -1078,7 +1076,7 @@ get_plot_wis_over_time <- function(all_scores,
 
   if (isTRUE(save_files)) {
     full_file_path <- file.path(figure_file_path, "hub_comparison")
-    cfaforecastrenewalww::create_dir(full_file_path)
+    wwinference::create_dir(full_file_path)
     ggsave(
       file.path(
         full_file_path,
@@ -1209,7 +1207,7 @@ get_plot_hub_performance <- function(all_scores,
 
   if (isTRUE(save_files)) {
     full_file_path <- file.path(figure_file_path, "hub_comparison")
-    cfaforecastrenewalww::create_dir(full_file_path)
+    wwinference::create_dir(full_file_path)
     ggsave(
       file.path(
         full_file_path,
@@ -1253,7 +1251,7 @@ get_heatmap_relative_wis <- function(scores,
     scoringutils::summarise_scores(
       by = c("model", "location")
     ) |>
-    dplyr::left_join(cfaforecastrenewalww::flusight_location_table,
+    dplyr::left_join(wweval::flusight_location_table,
       by = c("location" = "location_code")
     )
 
@@ -1305,7 +1303,7 @@ get_heatmap_relative_wis <- function(scores,
 
   if (isTRUE(save_files)) {
     full_file_path <- file.path(figure_file_path, "hub_comparison")
-    cfaforecastrenewalww::create_dir(full_file_path)
+    wwinference::create_dir(full_file_path)
     ggsave(
       file.path(
         full_file_path,
@@ -1350,7 +1348,7 @@ get_qq_plot <- function(scores,
 
   if (isTRUE(save_files)) {
     full_file_path <- file.path(figure_file_path, "hub_comparison")
-    cfaforecastrenewalww::create_dir(full_file_path)
+    wwinference::create_dir(full_file_path)
     ggsave(
       file.path(
         full_file_path,

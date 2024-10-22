@@ -21,12 +21,12 @@ controller <- crew_controller_local(
 )
 # Setup secrets, needs `Z_USERNAME` and `Z_PASSWORD` from Zoltar
 # to query to identify the model names
-cfaforecastrenewalww::setup_secrets("secrets.yaml")
+wweval::setup_secrets("secrets.yaml")
 
 # Set target options:
 tar_option_set(
   workspace_on_error = TRUE,
-  packages = c("cfaforecastrenewalww", "wweval"),
+  packages = c("wweval"),
   # Run with a pre-specified crew controller
   controller = controller,
   # Setup storage on workers vs on the main node.
@@ -72,7 +72,7 @@ setup_interactive_dev_run()
 # Set up secrets if planning on using epidatr API or NWSS API,
 # otherwise if using local time stamped vintages, the secrets aren't
 # necessary
-# cfaforecastrenewalww::setup_secrets("secrets.yaml")#nolint
+# wweval::setup_secrets("secrets.yaml")#nolint
 
 # Need to specify the evaluation variable combinations outside of targets
 eval_config <- yaml::read_yaml(file.path(
@@ -80,9 +80,9 @@ eval_config <- yaml::read_yaml(file.path(
   "eval", "eval_config.yaml"
 ))
 # Get global parameter values
-params <- cfaforecastrenewalww::get_params(file.path(
+params <- wwinference::get_params(file.path(
   "input", "params.toml"
-))
+)) |> as.data.frame()
 
 
 
@@ -91,10 +91,11 @@ upstream_targets <- list(
   tar_target(
     name = eval_hosp_data,
     command = get_input_hosp_data(
-      forecast_date = eval_config$eval_date,
-      location = unique(eval_config$location_hosp),
+      forecast_date_i = eval_config$eval_date,
+      location_i = unique(eval_config$location_hosp),
       hosp_data_dir = eval_config$hosp_data_dir,
       calibration_time = 365, # Grab sufficient data for eval
+      for_eval = TRUE # So we don't run wwinference::preprocess
       # If don't have a hospital admissions dataset from the `eval_date`,
       # can load using epidatr
       # load_from_epidatr = TRUE, #nolint
@@ -104,14 +105,15 @@ upstream_targets <- list(
   tar_target(
     name = eval_ww_data,
     command = get_input_ww_data(
-      forecast_date = eval_config$eval_date,
-      location = unique(eval_config$location_ww),
-      scenario = "status_quo",
+      forecast_date_i = eval_config$eval_date,
+      location_i = unique(eval_config$location_ww),
+      scenario_i = "status_quo",
       scenario_dir = eval_config$scenario_dir,
       ww_data_dir = eval_config$ww_data_dir,
       calibration_time = 365, # Grab sufficient data for eval
       last_hosp_data_date = eval_config$eval_date,
-      ww_data_mapping = eval_config$ww_data_mapping
+      ww_data_mapping = eval_config$ww_data_mapping,
+      for_eval = TRUE
     )
   ),
   tar_target(
@@ -137,7 +139,7 @@ upstream_targets <- list(
         glue::glue("eval_ww_data.pdf")
       ),
       plot = gridExtra::marrangeGrob(plot_ww_eval_data, nrow = 1, ncol = 1),
-      width = 8.5, height = 11
+      width = 8.5, height = 11, create.dir = TRUE
     )
   ),
 

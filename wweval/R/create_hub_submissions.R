@@ -104,7 +104,7 @@ create_hub_submissions <- function(hosp_quantiles_ww,
         # have submitted
       )
 
-      cfaforecastrenewalww::create_dir(file.path(hub_subdir, model_name))
+      wwinference::create_dir(file.path(hub_subdir, model_name))
 
       readr::write_csv(submission_df, file.path(
         hub_subdir, model_name,
@@ -152,7 +152,7 @@ format_for_hub <- function(quantiles,
       quantile = {{ quantile_col_name }}
     ) |>
     dplyr::mutate(
-      location = cfaforecastrenewalww::loc_abbr_to_flusight_code(location),
+      location = loc_abbr_to_flusight_code(location),
       quantile = round(quantile, 4),
     ) |>
     dplyr::filter(

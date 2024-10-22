@@ -105,7 +105,7 @@ combine_outputs <- function(output_type =
 
   if (nrow(flag_failed_output) != 0) {
     # Save the missing files in a new subfolder in the eval_output_subdir
-    cfaforecastrenewalww::create_dir(file.path(
+    wwinference::create_dir(file.path(
       eval_output_subdir,
       "files_missing", model_type
     ))

@@ -39,7 +39,7 @@ testthat::test_that("End to end test of the pipeline. Should run without error."
   # secrets
   #######
   repo_secrets <- fs::path(repo_path, "secrets.yaml")
-  cfaforecastrenewalww::setup_secrets(repo_secrets)
+  wweval::setup_secrets(repo_secrets)
 
   #######
   # diagnostic report

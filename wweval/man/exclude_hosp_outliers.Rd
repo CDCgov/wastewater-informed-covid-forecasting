@@ -22,7 +22,7 @@ locations, forecast dates, and dates to exclude. These will be treated
 as missing by the model}
 
 \item{col_name_dates_to_exclude}{The name of the column in the table of
-exclusiosn that cooresponds to the date of hospital admissions to exclude,
+exclusions that corresponds to the date of hospital admissions to exclude,
 default is \code{dates_to_exclude}}
 }
 \value{

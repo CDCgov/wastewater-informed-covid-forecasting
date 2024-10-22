@@ -36,7 +36,7 @@ make_fig2_hosp_t <- function(hosp_quantiles,
     tidyr::pivot_wider(
       id_cols = c(
         location, forecast_date, period, scenario,
-        date, t, eval_data, calib_data, model_type
+        date, eval_data, calib_data, model_type
       ),
       names_from = quantile,
       values_from = value
@@ -142,7 +142,7 @@ make_fig2_ct <- function(ww_quantiles,
     tidyr::pivot_wider(
       id_cols = c(
         location, site_lab_name, forecast_date, period, scenario,
-        date, t, eval_data, calib_data
+        date, eval_data, calib_data
       ),
       names_from = quantile,
       values_from = log_conc
@@ -234,11 +234,13 @@ make_fig2 <- function(hosp1, hosp2, hosp3,
   fs::dir_create(fig_file_dir)
   ggsave(fig2,
     filename = file.path(fig_file_dir, "fig2.png"),
-    width = 10, height = 7
+    width = 10, height = 7,
+    create.dir = TRUE
   )
   ggsave(fig2,
     filename = file.path(fig_file_dir, "fig2.svg"),
-    width = 10, height = 7
+    width = 10, height = 7,
+    create.dir = TRUE
   )
   return(fig2)
 }

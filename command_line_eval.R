@@ -18,12 +18,12 @@ eval_fit <- function(config_index, eval_config_path, output_dir) {
     )
   }
 
-  cfaforecastrenewalww::create_dir(output_dir)
+  wwinference::create_dir(output_dir)
 
   eval_config <- yaml::read_yaml(eval_config_path)
-  params <- cfaforecastrenewalww::get_params(file.path(
+  params <- wwinference::get_params(file.path(
     "input", "params.toml"
-  ))
+  )) |> as.data.frame()
 
 
   location <- eval_config$location_ww[config_index]
@@ -39,8 +39,8 @@ eval_fit <- function(config_index, eval_config_path, output_dir) {
 
   # Get the evaluation data from the specified evaluation date ----------------
   eval_hosp_data <- get_input_hosp_data(
-    forecast_date = eval_config$eval_date,
-    location = unique(eval_config$location_ww),
+    forecast_date_i = eval_config$eval_date,
+    location_i = unique(eval_config$location_ww),
     hosp_data_dir = eval_config$hosp_data_dir,
     calibration_time = 365 # Grab sufficient data for eval
   )
@@ -48,8 +48,8 @@ eval_fit <- function(config_index, eval_config_path, output_dir) {
   save_object("eval_hosp_data", output_file_suffix)
 
   eval_ww_data <- get_input_ww_data(
-    forecast_date = eval_config$eval_date,
-    location = unique(eval_config$location_ww),
+    forecast_date_i = eval_config$eval_date,
+    location_i = unique(eval_config$location_ww),
     scenario = "status_quo",
     scenario_dir = eval_config$scenario_dir,
     ww_data_dir = eval_config$ww_data_dir,
@@ -65,7 +65,9 @@ eval_fit <- function(config_index, eval_config_path, output_dir) {
     stan_models_dir = eval_config$stan_models_dir
   )
 
-  input_hosp_data <- get_input_hosp_data(forecast_date, location,
+  input_hosp_data <- get_input_hosp_data(
+    forecast_date_i = forecast_date,
+    location_i = location,
     hosp_data_dir = eval_config$hosp_data_dir,
     calibration_time = eval_config$calibration_time
   )
@@ -108,7 +110,7 @@ eval_fit <- function(config_index, eval_config_path, output_dir) {
   save_object("init_lists", output_file_suffix)
 
 
-  ww_fit_obj <- sample_model(
+  ww_fit_obj <- wweval::sample_model(
     standata,
     stan_model_path = stan_model_path_target,
     stan_models_dir = eval_config$stan_models_dir,

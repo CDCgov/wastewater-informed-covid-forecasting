@@ -63,7 +63,7 @@ setup_interactive_dev_run()
 # Set up secrets if planning on using epidatr API or NWSS API,
 # otherwise if using local time stamped vintages, the secrets aren't
 # necessary
-# cfaforecastrenewalww::setup_secrets("secrets.yaml")#nolint
+# wweval::setup_secrets("secrets.yaml")#nolint
 
 # Need to specify the evaluation variable combinations outside of targets
 eval_config <- yaml::read_yaml(file.path(
@@ -71,9 +71,9 @@ eval_config <- yaml::read_yaml(file.path(
   "eval", "eval_config.yaml"
 ))
 # Get global parameter values
-params <- cfaforecastrenewalww::get_params(file.path(
+params <- wwinference::get_params(file.path(
   "input", "params.toml"
-))
+)) |> as.data.frame()
 
 
 
@@ -84,8 +84,8 @@ upstream_targets <- list(
   tar_target(
     name = eval_hosp_data,
     command = get_input_hosp_data(
-      forecast_date = eval_config$eval_date,
-      location = unique(eval_config$location_hosp),
+      forecast_date_i = eval_config$eval_date,
+      location_i = unique(eval_config$location_hosp),
       hosp_data_dir = eval_config$hosp_data_dir,
       calibration_time = 365, # Grab sufficient data for eval
       # If don't have a hospital admissions dataset from the `eval_date`,
@@ -97,8 +97,8 @@ upstream_targets <- list(
   tar_target(
     name = eval_ww_data,
     command = get_input_ww_data(
-      forecast_date = eval_config$eval_date,
-      location = unique(eval_config$location_ww),
+      forecast_date_i = eval_config$eval_date,
+      location_i = unique(eval_config$location_ww),
       scenario = "status_quo",
       scenario_dir = eval_config$scenario_dir,
       ww_data_dir = eval_config$ww_data_dir,
@@ -143,7 +143,9 @@ mapped_ww <- tar_map(
   ),
   tar_target(
     name = raw_input_hosp_data,
-    command = get_input_hosp_data(forecast_date, location,
+    command = get_input_hosp_data(
+      forecast_date_i = forecast_date,
+      location_i = location,
       hosp_data_dir = eval_config$hosp_data_dir,
       calibration_time = eval_config$calibration_time
     ),
@@ -166,8 +168,8 @@ mapped_ww <- tar_map(
   ),
   tar_target(input_ww_data,
     command = get_input_ww_data(
-      forecast_date = forecast_date,
-      location = location,
+      forecast_date_i = forecast_date,
+      location_i = location,
       scenario = scenario,
       scenario_dir = eval_config$scenario_dir,
       ww_data_dir = eval_config$ww_data_dir,
@@ -208,7 +210,7 @@ mapped_ww <- tar_map(
   ),
   tar_target(
     name = ww_fit_obj,
-    command = sample_model(
+    command = wweval::sample_model(
       standata,
       stan_model_path = stan_model_path_target,
       stan_models_dir = eval_config$stan_models_dir,
@@ -502,7 +504,9 @@ mapped_hosp <- tar_map(
   ),
   tar_target(
     name = raw_input_hosp_data,
-    command = get_input_hosp_data(forecast_date, location,
+    command = get_input_hosp_data(
+      forecast_date_i = forecast_date,
+      location_i = location,
       hosp_data_dir = eval_config$hosp_data_dir,
       calibration_time = eval_config$calibration_time
     ),
@@ -550,7 +554,7 @@ mapped_hosp <- tar_map(
   ),
   tar_target(
     name = hosp_fit_obj,
-    command = sample_model(
+    command = wweval::sample_model(
       standata,
       stan_model_path = stan_model_path_target,
       stan_models_dir = eval_config$stan_models_dir,

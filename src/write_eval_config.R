@@ -96,16 +96,10 @@ write_eval_config <- function(locations, forecast_dates,
   }
 
   # Pre-specified delay distributions
-  generation_interval <- read.csv(here::here(
-    "input", "saved_pmfs",
-    "generation_interval.csv"
-  )) |>
-    dplyr::pull(probability_mass)
-  inf_to_hosp <- read.csv(here::here(
-    "input", "saved_pmfs",
-    "inf_to_hosp.csv"
-  )) |>
-    dplyr::pull(probability_mass)
+  generation_interval <- wwinference::default_covid_gi
+
+  inf_to_hosp <- wwinference::default_covid_inf_to_hosp
+
 
   # Table of hospital admissions outliers by location-forecast-date-admissions-date:
   # This is currently fake/a test. We will replace with a load in to a path
@@ -185,7 +179,7 @@ write_eval_config <- function(locations, forecast_dates,
     inf_to_hosp = inf_to_hosp
   )
 
-  cfaforecastrenewalww::create_dir(config_dir)
+  wwinference::create_dir(config_dir)
   yaml::write_yaml(config, file = file.path(
     config_dir,
     glue::glue("eval_config.yaml")
