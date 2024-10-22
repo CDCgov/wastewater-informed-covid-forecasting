@@ -46,7 +46,7 @@ get_plot_scores_and_forecasts <- function(scores_single_loc_date,
       tidyr::pivot_wider(
         id_cols = c(
           location, forecast_date, period, scenario,
-          date, t, eval_data, calib_data, model_type
+          date, eval_data, calib_data, model_type
         ),
         names_from = quantile,
         values_from = value

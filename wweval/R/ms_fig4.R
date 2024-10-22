@@ -167,11 +167,12 @@ make_fig4_admissions_overall <- function(eval_hosp_data,
     dplyr::summarise(
       total_hosp = sum(daily_hosp_admits)
     )
+
   max_total_hosp <- max(total_hosp$total_hosp)
 
   date_lims <- c(
-    first_forecast_date,
-    last_forecast_date
+    as.Date(first_forecast_date),
+    as.Date(last_forecast_date)
   )
 
   p <- ggplot() +
@@ -652,7 +653,7 @@ FGGG
   ) #+ plot_annotation(tag_levels = "A") #nolint not working
   fig4
 
-  dir_create(fig_file_dir)
+  create_dir(fig_file_dir)
 
   ggsave(fig4,
     filename = file.path(fig_file_dir, "fig4.png"),
