@@ -58,9 +58,7 @@ get_input_ww_data <- function(forecast_date_i,
     scenario_dir
   )
   subsetted_ww_data <- all_ww_data |>
-    dplyr::filter(wwtp_name %in% !!list_of_site_ids)
-
-  ww_data_pkg <- subsetted_ww_data |>
+    dplyr::filter(wwtp_name %in% !!list_of_site_ids) |>
     clean_ww_data() |>
     filter(
       location %in% c(!!location_i),
@@ -69,9 +67,7 @@ get_input_ww_data <- function(forecast_date_i,
       # If missing lab or site, exclude data point
       !is.na(lab),
       !is.na(site)
-    )
-
-  deduplicated_data <- ww_data_pkg |>
+    ) |>
     dplyr::group_by(lab, site, date, location) |>
     summarize(across(
       c(
@@ -85,7 +81,7 @@ get_input_ww_data <- function(forecast_date_i,
 
 
   ww_data_preprocessed <- wwinference::preprocess_ww_data(
-    deduplicated_data,
+    subsetted_ww_data,
     conc_col_name = "log_genome_copies_per_ml",
     lod_col_name = "log_lod"
   )
