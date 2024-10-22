@@ -328,7 +328,7 @@ eval_post_process_ww <- function(config_index,
     date_to_plot = forecast_date,
     max_n_site_labs_to_show = length(unique(full_ww_quantiles$lab_site_index))
   ) +
-    facet_wrap(~site_lab_name) +
+    facet_wrap(~site_lab_name, scales = "free_y") +
     ggtitle(glue::glue("{location} on {forecast_date}")) +
     theme_bw()
 
