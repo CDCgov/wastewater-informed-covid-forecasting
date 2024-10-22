@@ -249,7 +249,7 @@ list(
   ),
   tar_target(
     name = params_id,
-    command = get_params(param_file_path_id) |> as.data.frame(),
+    command = get_params(param_file_path_id),
     deployment = "main",
     priority = 1
   ),

@@ -26,7 +26,7 @@ wweval::setup_secrets("secrets.yaml")
 # Set target options:
 tar_option_set(
   workspace_on_error = TRUE,
-  packages = c("cfaforecastrenewalww", "wweval"),
+  packages = c("wweval"),
   # Run with a pre-specified crew controller
   controller = controller,
   # Setup storage on workers vs on the main node.
