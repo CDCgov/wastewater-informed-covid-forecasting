@@ -142,7 +142,7 @@ make_fig2_ct <- function(ww_quantiles,
     tidyr::pivot_wider(
       id_cols = c(
         location, site_lab_name, forecast_date, period, scenario,
-        date, eval_data, calib_data
+        date, eval_data, calib_data, below_LOD, flag_as_ww_outlier
       ),
       names_from = quantile,
       values_from = log_conc
@@ -160,6 +160,14 @@ make_fig2_ct <- function(ww_quantiles,
     geom_point(
       aes(x = date, y = log(calib_data)),
       color = "black", show.legend = FALSE
+    ) +
+    geom_point(
+      data = quantiles_wide |> filter(.data$below_LOD == 1),
+      aes(x = date, y = log(calib_data)), color = "red", size = 1
+    ) +
+    geom_point(
+      data = quantiles_wide |> filter(.data$flag_as_ww_outlier == 1),
+      aes(x = date, y = log(calib_data)), color = "blue", size = 1
     ) +
     geom_line(
       aes(
