@@ -6,10 +6,18 @@
 #' @param scenatios the scenarios (which will pertain to site ids) to
 #' run the model on
 #' @param config_dir the directory where we want to save the config file
-#' @param scenario_dir the directory where the files defining scenarios
-#' (default `.tsv` format) are located
+#' @param benchmark_dir the directory where to save the benchmarked performance
+#' for this run
 #' @param ms_fig_dir the directory to save the manuscript figures in
 #' @param eval_date the data of the evaluation dataset, in ISO YYYY-MM-DD format
+#' @param overwrite_summary_table Boolean indicating whether or not to overwrite
+#' internal summary table
+#' @param wwinference_version Character string indicating the version
+#' of the wwinference model being run. Default's to the version on disk.
+#' @param name_of_config Character string indicating the name of the
+#' config file to write, default is 'eval_config
+#' @param overwrite_benchmark Boolean indicating whether or not to overwrite
+#' the benchmarking, default is false
 #'
 #' @return
 #' @export
@@ -19,9 +27,12 @@ write_eval_config <- function(locations, forecast_dates,
                               scenarios,
                               config_dir,
                               scenario_dir,
-                              ms_fig_dir,
+                              benchmark_dir,
                               eval_date,
-                              overwrite_summary_table) {
+                              overwrite_summary_table,
+                              wwinference_version = sessioninfo::package_info("wwinference", dependencies = FALSE)$source, # nolint
+                              name_of_config = "eval_config",
+                              overwrite_benchmark = FALSE) {
   # Will need to load in the files corresponding to the input scenarios, so we
   # get the list of locations that are relevant for each scenario. We will bind
   # these all together to create the full eval config.
@@ -58,7 +69,8 @@ write_eval_config <- function(locations, forecast_dates,
     location = locations,
     forecast_date = forecast_dates
   )
-
+  time_stamp <- as.character(lubridate::today())
+  folder_version <- glue::glue("run_on_{time_stamp}")
   # Specify other variables
   ww_data_dir <- file.path("input", "ww_data", "monday_datasets")
   scenario_dir <- file.path("input", "config", "eval", "scenarios")
@@ -68,11 +80,15 @@ write_eval_config <- function(locations, forecast_dates,
   # stan_models_dir <- system.file("stan", package = "cfaforecastrenewalww") #nolint
   stan_models_dir <- file.path("cfaforecastrenewalww", "inst", "stan")
   init_dir <- file.path("input", "init_lists")
-  output_dir <- file.path("output", "eval")
-  figure_dir <- file.path("output", "eval", "plots")
-  hub_subdir <- file.path("output", "eval", "hub")
+  output_dir <- file.path("output", "eval_timestamped", folder_version)
+  figure_dir <- file.path("output", "eval_timestamped", folder_version, "plots")
+  ms_fig_dir <- file.path(
+    "output", "eval_timestamped", folder_version,
+    "plots", "manuscript"
+  )
+  hub_subdir <- file.path("output", "eval_timestamped", folder_version, "hub")
   retro_rt_path <- file.path("input", "retro_Rt", "Rt_draws.parquet")
-  score_subdir <- file.path("output", "eval", "hub")
+  score_subdir <- file.path("output", "eval_timestamped", folder_version, "hub")
   # Proportion of forecast dates that a model must have submitted for to be
   # included in the Hub analysis
   prop_dates_for_incl_hub <- 18 / 22
@@ -149,6 +165,9 @@ write_eval_config <- function(locations, forecast_dates,
     baseline_score_table_dir = baseline_score_table_dir,
     output_dir = output_dir,
     hub_subdir = hub_subdir,
+    benchmark_dir = benchmark_dir,
+    overwrite_benchmark = overwrite_benchmark,
+    wwinference_version = wwinference_version,
     retro_rt_path = retro_rt_path,
     score_subdir = score_subdir,
     raw_output_dir = raw_output_dir,
@@ -182,7 +201,7 @@ write_eval_config <- function(locations, forecast_dates,
   wwinference::create_dir(config_dir)
   yaml::write_yaml(config, file = file.path(
     config_dir,
-    glue::glue("eval_config.yaml")
+    glue::glue("{name_of_config}.yaml")
   ))
 
   return(config)

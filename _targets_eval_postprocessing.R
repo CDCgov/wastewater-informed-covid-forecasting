@@ -55,7 +55,6 @@ setup_interactive_dev_run <- function() {
       "lubridate",
       "cmdstanr",
       "tidybayes",
-      "cfaforecastrenewalww",
       "data.table",
       "ggridges",
       "ggdist",
@@ -1453,6 +1452,21 @@ hub_comparison_plots <- list(
   )
 )
 
+# Benchmarking----------------------------------------------------------
+benchmarks <- list(
+  tar_target(
+    name = write_benchmark_table_full_run,
+    command = benchmark_performance(
+      ww_scores = all_ww_scores,
+      hosp_scores = all_hosp_scores,
+      benchmark_dir = eval_config$benchmark_dir,
+      benchmark_scope = "all_forecasts",
+      wwinference_version = eval_config$wwinference_version,
+      overwrite_benchmark = eval_config$overwrite_benchmark
+    )
+  )
+)
+
 # Supplement ----------------------------------------------------------
 # Make some tables with summary stats to include in results
 supp_targets <- list(
@@ -1533,5 +1547,6 @@ list(
   scenario_targets,
   hub_targets,
   hub_comparison_plots,
-  supp_targets
+  supp_targets,
+  benchmarks
 )
