@@ -89,5 +89,5 @@ Config/Needs/check: rcmdcheck, testthat
 RoxygenNote: 7.3.2
 Remotes:
     stan-dev/cmdstanr,
-    wwinference=CDCgov/ww-inference-model@v0.1.0
+    wwinference=CDCgov/ww-inference-model@227-inf-feedback
 LazyData: true

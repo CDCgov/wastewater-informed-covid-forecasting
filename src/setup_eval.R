@@ -34,5 +34,5 @@ write_eval_config(
   # score for all locations one forecast date
   overwrite_benchmark = TRUE, # Set as TRUE if want to save outputs of
   # benchmarking in directory
-  wwinference_version = "v0.1.0"
+  wwinference_version = "227-inf-feedback"
 )
