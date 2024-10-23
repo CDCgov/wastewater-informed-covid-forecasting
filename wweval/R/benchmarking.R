@@ -131,7 +131,7 @@ benchmark_performance <- function(ww_scores,
         )
       ))
       # check that wwinference hash is different
-      if (df$wwinference_version[1] != wwinference_version) {
+      if (df$wwinference_version[1] != wwinference_version || df$wweval_commit_hash[1] != wweval_commit_hash) { # nolint
         df_to_append <- df
       } else {
         df_to_append <- tibble::tibble()
@@ -164,7 +164,7 @@ benchmark_performance <- function(ww_scores,
         )
       ))
       # check that wwinference hash is different
-      if (df$wwinference_version[1] != wwinference_version) {
+      if (df$wwinference_version[1] != wwinference_version || df$wweval_commit_hash[1] != wweval_commit_hash) { # nolint
         df_to_append <- df
       } else {
         df_to_append <- tibble::tibble()
