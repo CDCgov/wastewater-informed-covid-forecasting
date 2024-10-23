@@ -65,7 +65,8 @@ benchmark_performance <- function(ww_scores,
     dplyr::mutate(
       wweval_commit_hash = wweval_commit_hash,
       wwinference_version = wwinference_version,
-      time_stamp = format(Sys.time(), "%Y-%m-%d %H:%M:%S")
+      time_stamp = format(Sys.time(), "%Y-%m-%d %H:%M:%S"),
+      forecast_date = as.Date(forecast_date)
     )
 
   scores_by_location <- dplyr::bind_rows(
