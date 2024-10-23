@@ -15,7 +15,7 @@
 #' @param overwrite_summary_table Boolean indicating whether or not to overwrite
 #' internal summary table
 #' @param wwinference_version Character string indicating the version
-#' of the wwinference model being run
+#' of the wwinference model being run. Default's to the version on disk.
 #' @param name_of_config Character string indicating the name of the
 #' config file to write, default is 'eval_config
 #' @param overwrite_benchmark Boolean indicating whether or not to overwrite
@@ -33,7 +33,7 @@ write_eval_config <- function(locations, forecast_dates,
                               benchmark_dir,
                               eval_date,
                               overwrite_summary_table,
-                              wwinference_version,
+                              wwinference_version = sessioninfo::package_info("wwinference", dependencies = FALSE)$ondiskversion, # nolint
                               name_of_config = "eval_config",
                               overwrite_benchmark = FALSE) {
   # Will need to load in the files corresponding to the input scenarios, so we

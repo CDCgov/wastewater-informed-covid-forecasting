@@ -27,7 +27,6 @@ setup_interactive_dev_run <- function() {
       "lubridate",
       "cmdstanr",
       "tidybayes",
-      "cfaforecastrenewalww",
       "data.table",
       "ggridges",
       "ggdist",
