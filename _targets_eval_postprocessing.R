@@ -1460,7 +1460,7 @@ benchmarks <- list(
     command = benchmark_performance(
       ww_scores = all_ww_scores,
       hosp_scores = all_hosp_scores,
-      benchmark_dir = eval_config$benchmarking_dir,
+      benchmark_dir = eval_config$benchmark_dir,
       benchmark_scope = "all_forecasts",
       overwrite_benchmark = eval_config$overwrite_benchmark
     )

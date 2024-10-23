@@ -10,7 +10,7 @@ benchmark_performance(
   hosp_scores,
   benchmark_dir,
   benchmark_scope,
-  overwrite_benchmarking
+  overwrite_benchmark
 )
 }
 \arguments{
@@ -26,7 +26,7 @@ containing tables and the git hash for benchmarking}
 \item{benchmark_scope}{A string indicating verbally what the scores
 are summarized over. Options are "all_forecasts" or "subset_of_forecasts"}
 
-\item{overwrite_benchmarking}{A boolean indicating whether or not to
+\item{overwrite_benchmark}{A boolean indicating whether or not to
 write the yaml to the benchmarking directory}
 }
 \value{

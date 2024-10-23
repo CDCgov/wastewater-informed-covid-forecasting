@@ -9,7 +9,7 @@
 #' containing tables and the git hash for benchmarking
 #' @param benchmark_scope A string indicating verbally what the scores
 #' are summarized over. Options are "all_forecasts" or "subset_of_forecasts"
-#' @param overwrite_benchmarking A boolean indicating whether or not to
+#' @param overwrite_benchmark A boolean indicating whether or not to
 #' write the yaml to the benchmarking directory
 #'
 #' @return a list containing the metadata and 3 tables summarizing forecast
@@ -19,7 +19,7 @@ benchmark_performance <- function(ww_scores,
                                   hosp_scores,
                                   benchmark_dir,
                                   benchmark_scope,
-                                  overwrite_benchmarking) {
+                                  overwrite_benchmark) {
   wweval_commit_hash <- system("git log --pretty=format:'%h' -n 1",
     intern = TRUE
   )
@@ -80,7 +80,7 @@ benchmark_performance <- function(ww_scores,
     scores_by_location = scores_by_location
   )
 
-  if (isTRUE(overwrite_benchmarking)) {
+  if (isTRUE(overwrite_benchmark)) {
     yaml::write_yaml(benchmarks, file = file.path(
       benchmark_dir,
       glue::glue("{benchmark_scope}.yaml")

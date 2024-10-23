@@ -12,6 +12,10 @@
 #' for this run
 #' @param ms_fig_dir the directory to save the manuscript figures in
 #' @param eval_date the data of the evaluation dataset, in ISO YYYY-MM-DD format
+#' @param overwrite_summary_table Boolean indicating whether or not to overwrite
+#' internal summary table
+#' @param name_of_config Character string indicating the name of the
+#' config file to write, default is 'eval_config
 #' @param overwrite_benchmark Boolean indicating whether or not to overwrite
 #' the benchmarking, default is false
 #'
@@ -27,6 +31,7 @@ write_eval_config <- function(locations, forecast_dates,
                               benchmark_dir,
                               eval_date,
                               overwrite_summary_table,
+                              name_of_config = "eval_config",
                               overwrite_benchmark = FALSE) {
   # Will need to load in the files corresponding to the input scenarios, so we
   # get the list of locations that are relevant for each scenario. We will bind
@@ -190,7 +195,7 @@ write_eval_config <- function(locations, forecast_dates,
   wwinference::create_dir(config_dir)
   yaml::write_yaml(config, file = file.path(
     config_dir,
-    glue::glue("eval_config.yaml")
+    glue::glue("{name_of_config}.yaml")
   ))
 
   return(config)
