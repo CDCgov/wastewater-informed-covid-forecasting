@@ -1462,6 +1462,7 @@ benchmarks <- list(
       hosp_scores = all_hosp_scores,
       benchmark_dir = eval_config$benchmark_dir,
       benchmark_scope = "all_forecasts",
+      wwinference_version = eval_config$wwinference_version,
       overwrite_benchmark = eval_config$overwrite_benchmark
     )
   )

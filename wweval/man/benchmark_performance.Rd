@@ -10,6 +10,7 @@ benchmark_performance(
   hosp_scores,
   benchmark_dir,
   benchmark_scope,
+  wwinference_version,
   overwrite_benchmark
 )
 }
@@ -25,6 +26,9 @@ containing tables and the git hash for benchmarking}
 
 \item{benchmark_scope}{A string indicating verbally what the scores
 are summarized over. Options are "all_forecasts" or "subset_of_forecasts"}
+
+\item{wwinference_version}{Character string indicating the version
+of the wwinference model being run}
 
 \item{overwrite_benchmark}{A boolean indicating whether or not to
 write the yaml to the benchmarking directory}

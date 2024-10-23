@@ -89,6 +89,7 @@ benchmarks <- list(
       hosp_scores = hosp_scores,
       benchmark_dir = benchmark_config$benchmark_dir,
       benchmark_scope = "subset_forecasts",
+      wwinference_version = benchmark_config$wwinference_version,
       overwrite_benchmark = benchmark_config$overwrite_benchmark
     )
   )

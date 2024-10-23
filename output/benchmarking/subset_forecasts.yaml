@@ -1,4 +1,5 @@
-wweval_commit_hash: 5a0c15e
+wweval_commit_hash: 4aebdc8
+wwinference_version: v0.1.0
 overall_scores:
   crps_hosp: 7.1109574
   crps_ww: 7.1095629

@@ -9,6 +9,8 @@
 #' containing tables and the git hash for benchmarking
 #' @param benchmark_scope A string indicating verbally what the scores
 #' are summarized over. Options are "all_forecasts" or "subset_of_forecasts"
+#' @param wwinference_version Character string indicating the version
+#' of the wwinference model being run
 #' @param overwrite_benchmark A boolean indicating whether or not to
 #' write the yaml to the benchmarking directory
 #'
@@ -19,6 +21,7 @@ benchmark_performance <- function(ww_scores,
                                   hosp_scores,
                                   benchmark_dir,
                                   benchmark_scope,
+                                  wwinference_version,
                                   overwrite_benchmark) {
   wweval_commit_hash <- system("git log --pretty=format:'%h' -n 1",
     intern = TRUE
@@ -75,6 +78,7 @@ benchmark_performance <- function(ww_scores,
 
   benchmarks <- list(
     wweval_commit_hash = wweval_commit_hash,
+    wwinference_version = wwinference_version,
     overall_scores = overall_scores,
     scores_by_forecast_date = scores_by_forecast_date,
     scores_by_location = scores_by_location
