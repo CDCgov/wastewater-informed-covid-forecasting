@@ -14,20 +14,24 @@ write_eval_config(
       "PA", "PR", "RI", "SC", "SD", "TN", "TX", "UT", "VA",
       "VT", "WA", "WI", "WV", "WY"
     ),
-  forecast_dates = as.character(
-    seq(
-      from = lubridate::ymd("2023-10-16"),
-      to = lubridate::ymd("2024-03-11"),
-      by = "week"
-    )
-  ),
+  forecast_dates =
+    as.character(
+      seq(
+        from = lubridate::ymd("2023-10-16"),
+        to = lubridate::ymd("2024-03-11"),
+        by = "week"
+      )
+    ),
   scenarios = c(
     "status_quo"
   ),
   config_dir = file.path("input", "config", "eval"),
+  benchmark_dir = file.path("output", "benchmarking"),
   scenario_dir = file.path("input", "config", "eval", "scenarios"),
   ms_fig_dir = file.path("output", "eval", "plots", "manuscript"),
   eval_date = "2024-04-29",
-  overwrite_summary_table = FALSE # Set as TRUE if trying to get a baseline
+  overwrite_summary_table = FALSE, # Set as TRUE if trying to get a baseline
   # score for all locations one forecast date
+  overwrite_benchmarking = TRUE # Set as TRUE if want to save outputs of
+  # benchmarking in directory
 )

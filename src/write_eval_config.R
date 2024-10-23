@@ -8,8 +8,12 @@
 #' @param config_dir the directory where we want to save the config file
 #' @param scenario_dir the directory where the files defining scenarios
 #' (default `.tsv` format) are located
+#' @param benchmark_dir the directory where to save the benchmarked performance
+#' for this run
 #' @param ms_fig_dir the directory to save the manuscript figures in
 #' @param eval_date the data of the evaluation dataset, in ISO YYYY-MM-DD format
+#' @param overwrite_benchmark Boolean indicating whether or not to overwrite
+#' the benchmarking, default is false
 #'
 #' @return
 #' @export
@@ -20,8 +24,10 @@ write_eval_config <- function(locations, forecast_dates,
                               config_dir,
                               scenario_dir,
                               ms_fig_dir,
+                              benchmark_dir,
                               eval_date,
-                              overwrite_summary_table) {
+                              overwrite_summary_table,
+                              overwrite_benchmark = FALSE) {
   # Will need to load in the files corresponding to the input scenarios, so we
   # get the list of locations that are relevant for each scenario. We will bind
   # these all together to create the full eval config.
@@ -149,6 +155,8 @@ write_eval_config <- function(locations, forecast_dates,
     baseline_score_table_dir = baseline_score_table_dir,
     output_dir = output_dir,
     hub_subdir = hub_subdir,
+    benchmark_dir = benchmark_dir,
+    overwrite_benchmark = overwrite_benchmark,
     retro_rt_path = retro_rt_path,
     score_subdir = score_subdir,
     raw_output_dir = raw_output_dir,
