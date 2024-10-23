@@ -40,6 +40,11 @@ benchmark_performance <- function(ww_scores,
     tidyr::pivot_wider(
       values_from = c("crps", "bias", "ae"),
       names_from = "model"
+    ) |>
+    dplyr::mutate(
+      location = "all",
+      wweval_commit_hash = wweval_commit_hash,
+      wwinference_version = wwinference_version
     )
 
   scores_by_forecast_date <- dplyr::bind_rows(
@@ -56,6 +61,10 @@ benchmark_performance <- function(ww_scores,
       id_cols = forecast_date,
       values_from = c("crps", "bias", "ae"),
       names_from = "model"
+    ) |>
+    dplyr::mutate(
+      wweval_commit_hash = wweval_commit_hash,
+      wwinference_version = wwinference_version
     )
 
   scores_by_location <- dplyr::bind_rows(
@@ -72,7 +81,14 @@ benchmark_performance <- function(ww_scores,
       id_cols = location,
       values_from = c("crps", "bias", "ae"),
       names_from = "model"
-    )
+    ) |>
+    dplyr::mutate(
+      wweval_commit_hash = wweval_commit_hash,
+      wwinference_version = wwinference_version
+    ) |>
+    dplyr::select(colnames(overall_scores)) |>
+    dplyr::bind_rows(overall_scores)
+
 
 
 
@@ -85,10 +101,24 @@ benchmark_performance <- function(ww_scores,
   )
 
   if (isTRUE(overwrite_benchmark)) {
-    yaml::write_yaml(benchmarks, file = file.path(
-      benchmark_dir,
-      glue::glue("{benchmark_scope}.yaml")
-    ))
+    readr::write_tsv(
+      scores_by_forecast_date,
+      file.path(
+        benchmark_dir,
+        glue::glue(
+          "{benchmark_scope}_by_forecast_date.tsv"
+        )
+      )
+    )
+    readr::write_tsv(
+      scores_by_location,
+      file.path(
+        benchmark_dir,
+        glue::glue(
+          "{benchmark_scope}_by_location.tsv"
+        )
+      )
+    )
   }
 
 
