@@ -17,7 +17,6 @@ hosp_scores <- tibble::tibble(
 )
 
 test_that("benchmarking writes files correctly", {
-  # Assume stan_models_dir is a directory containing your .stan files
   benchmark_dir <- tempdir()
 
 
