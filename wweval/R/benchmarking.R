@@ -64,7 +64,8 @@ benchmark_performance <- function(ww_scores,
     ) |>
     dplyr::mutate(
       wweval_commit_hash = wweval_commit_hash,
-      wwinference_version = wwinference_version
+      wwinference_version = wwinference_version,
+      time_stamp = format(Sys.time(), "%Y-%m-%d %H:%M:%S")
     )
 
   scores_by_location <- dplyr::bind_rows(
@@ -84,21 +85,17 @@ benchmark_performance <- function(ww_scores,
     ) |>
     dplyr::mutate(
       wweval_commit_hash = wweval_commit_hash,
-      wwinference_version = wwinference_version
+      wwinference_version = wwinference_version,
+      time_stamp = format(Sys.time(), "%Y-%m-%d %H:%M:%S")
     ) |>
     dplyr::select(colnames(overall_scores)) |>
     dplyr::bind_rows(overall_scores)
 
-
-
-
   benchmarks <- list(
-    wweval_commit_hash = wweval_commit_hash,
-    wwinference_version = wwinference_version,
-    overall_scores = overall_scores,
     scores_by_forecast_date = scores_by_forecast_date,
     scores_by_location = scores_by_location
   )
+
 
   if (isTRUE(overwrite_benchmark)) {
     readr::write_tsv(
@@ -106,12 +103,78 @@ benchmark_performance <- function(ww_scores,
       file.path(
         benchmark_dir,
         glue::glue(
-          "{benchmark_scope}_by_forecast_date.tsv"
+          "latest_{benchmark_scope}_by_forecast_date.tsv"
         )
       )
     )
     readr::write_tsv(
       scores_by_location,
+      file.path(
+        benchmark_dir,
+        glue::glue(
+          "latest_{benchmark_scope}_by_location.tsv"
+        )
+      )
+    )
+
+    # Read in and append scores by forecast_date
+    if (file.exists(file.path(
+      benchmark_dir,
+      glue::glue(
+        "{benchmark_scope}_by_forecast_date.tsv"
+      )
+    ))) {
+      df <- readr::read_tsv(file.path(
+        benchmark_dir,
+        glue::glue(
+          "{benchmark_scope}_by_forecast_date.tsv"
+        )
+      ))
+      # check that wwinference hash is different
+      if (df$wwinference_version[1] != wwinference_version) {
+        df_to_append <- df
+      } else {
+        df_to_append <- tibble::tibble()
+      }
+    } else {
+      df_to_append <- tibble::tibble()
+    }
+
+    readr::write_tsv(
+      dplyr::bind_rows(scores_by_forecast_date, df_to_append),
+      file.path(
+        benchmark_dir,
+        glue::glue(
+          "{benchmark_scope}_by_forecast_date.tsv"
+        )
+      )
+    )
+
+    # Read in and append scores by loc
+    if (file.exists(file.path(
+      benchmark_dir,
+      glue::glue(
+        "{benchmark_scope}_by_location.tsv"
+      )
+    ))) {
+      df <- readr::read_tsv(file.path(
+        benchmark_dir,
+        glue::glue(
+          "{benchmark_scope}_by_location.tsv"
+        )
+      ))
+      # check that wwinference hash is different
+      if (df$wwinference_version[1] != wwinference_version) {
+        df_to_append <- df
+      } else {
+        df_to_append <- tibble::tibble()
+      }
+    } else {
+      df_to_append <- tibble::tibble()
+    }
+
+    readr::write_tsv(
+      dplyr::bind_rows(scores_by_location, df_to_append),
       file.path(
         benchmark_dir,
         glue::glue(
