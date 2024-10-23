@@ -18,7 +18,7 @@ hosp_scores <- tibble::tibble(
 
 test_that("benchmarking writes files correctly", {
   # Assume stan_models_dir is a directory containing your .stan files
-  benchmark_dir <- temp_dir()
+  benchmark_dir <- tempdir()
 
 
   write_files <- benchmark_performance(ww_scores,
@@ -29,7 +29,7 @@ test_that("benchmarking writes files correctly", {
     overwrite_benchmark = TRUE
   )
 
-  df <- readr::read_tsv(file.path(benchmark_dir, "all_by_location.tsv"))
+  df <- read.csv(file.path(benchmark_dir, "all_by_location.csv"))
 
   # append
   write_files_again <- benchmark_performance(ww_scores,
@@ -40,5 +40,6 @@ test_that("benchmarking writes files correctly", {
     overwrite_benchmark = TRUE
   )
 
-  df2 <- readr::read_tsv(file.path(benchmark_dir, "all_by_location.tsv"))
+  df2 <- read.csv(file.path(benchmark_dir, "all_by_location.csv"))
+  expect_equal(nrow(df) * 2, nrow(df2))
 })

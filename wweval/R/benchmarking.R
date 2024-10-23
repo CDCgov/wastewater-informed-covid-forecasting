@@ -43,8 +43,9 @@ benchmark_performance <- function(ww_scores,
     ) |>
     dplyr::mutate(
       location = "all",
-      wweval_commit_hash = wweval_commit_hash,
-      wwinference_version = wwinference_version
+      wweval_commit_hash = as.character(wweval_commit_hash),
+      wwinference_version = wwinference_version,
+      time_stamp = format(Sys.time(), "%Y-%m-%d %H:%M:%S")
     )
 
   scores_by_forecast_date <- dplyr::bind_rows(
@@ -63,10 +64,10 @@ benchmark_performance <- function(ww_scores,
       names_from = "model"
     ) |>
     dplyr::mutate(
-      wweval_commit_hash = wweval_commit_hash,
+      wweval_commit_hash = as.character(wweval_commit_hash),
+      forecast_date = as.character(forecast_date),
       wwinference_version = wwinference_version,
-      time_stamp = format(Sys.time(), "%Y-%m-%d %H:%M:%S"),
-      forecast_date = as.Date(forecast_date)
+      time_stamp = format(Sys.time(), "%Y-%m-%d %H:%M:%S")
     )
 
   scores_by_location <- dplyr::bind_rows(
@@ -85,7 +86,7 @@ benchmark_performance <- function(ww_scores,
       names_from = "model"
     ) |>
     dplyr::mutate(
-      wweval_commit_hash = wweval_commit_hash,
+      wweval_commit_hash = as.character(wweval_commit_hash),
       wwinference_version = wwinference_version,
       time_stamp = format(Sys.time(), "%Y-%m-%d %H:%M:%S")
     ) |>
@@ -99,41 +100,47 @@ benchmark_performance <- function(ww_scores,
 
 
   if (isTRUE(overwrite_benchmark)) {
-    readr::write_tsv(
+    write.csv(
       scores_by_forecast_date,
       file.path(
         benchmark_dir,
         glue::glue(
-          "latest_{benchmark_scope}_by_forecast_date.tsv"
+          "latest_{benchmark_scope}_by_forecast_date.csv"
         )
-      )
+      ),
+      row.names = FALSE
     )
-    readr::write_tsv(
+    write.csv(
       scores_by_location,
       file.path(
         benchmark_dir,
         glue::glue(
-          "latest_{benchmark_scope}_by_location.tsv"
+          "latest_{benchmark_scope}_by_location.csv"
         )
-      )
+      ),
+      row.names = FALSE
     )
 
     # Read in and append scores by forecast_date
     if (file.exists(file.path(
       benchmark_dir,
       glue::glue(
-        "{benchmark_scope}_by_forecast_date.tsv"
+        "{benchmark_scope}_by_forecast_date.csv"
       )
     ))) {
-      df <- readr::read_tsv(file.path(
+      df <- read.csv(file.path(
         benchmark_dir,
         glue::glue(
-          "{benchmark_scope}_by_forecast_date.tsv"
+          "{benchmark_scope}_by_forecast_date.csv"
         )
       ))
       # check that wwinference hash is different
       if (df$wwinference_version[1] != wwinference_version || df$wweval_commit_hash[1] != wweval_commit_hash) { # nolint
-        df_to_append <- df
+        df_to_append <- df |>
+          dplyr::mutate(
+            time_stamp = as.character(time_stamp),
+            wweval_commit_hash = as.character(wweval_commit_hash)
+          )
       } else {
         df_to_append <- tibble::tibble()
       }
@@ -141,32 +148,37 @@ benchmark_performance <- function(ww_scores,
       df_to_append <- tibble::tibble()
     }
 
-    readr::write_tsv(
+    write.csv(
       dplyr::bind_rows(scores_by_forecast_date, df_to_append),
       file.path(
         benchmark_dir,
         glue::glue(
-          "{benchmark_scope}_by_forecast_date.tsv"
+          "{benchmark_scope}_by_forecast_date.csv"
         )
-      )
+      ),
+      row.names = FALSE
     )
 
     # Read in and append scores by loc
     if (file.exists(file.path(
       benchmark_dir,
       glue::glue(
-        "{benchmark_scope}_by_location.tsv"
+        "{benchmark_scope}_by_location.csv"
       )
     ))) {
-      df <- readr::read_tsv(file.path(
+      df <- read.csv(file.path(
         benchmark_dir,
         glue::glue(
-          "{benchmark_scope}_by_location.tsv"
+          "{benchmark_scope}_by_location.csv"
         )
       ))
       # check that wwinference hash is different
       if (df$wwinference_version[1] != wwinference_version || df$wweval_commit_hash[1] != wweval_commit_hash) { # nolint
-        df_to_append <- df
+        df_to_append <- df |>
+          dplyr::mutate(
+            time_stamp = as.character(time_stamp),
+            wweval_commit_hash = as.character(wweval_commit_hash)
+          )
       } else {
         df_to_append <- tibble::tibble()
       }
@@ -174,14 +186,15 @@ benchmark_performance <- function(ww_scores,
       df_to_append <- tibble::tibble()
     }
 
-    readr::write_tsv(
+    write.csv(
       dplyr::bind_rows(scores_by_location, df_to_append),
       file.path(
         benchmark_dir,
         glue::glue(
-          "{benchmark_scope}_by_location.tsv"
+          "{benchmark_scope}_by_location.csv"
         )
-      )
+      ),
+      row.names = FALSE
     )
   }
 
