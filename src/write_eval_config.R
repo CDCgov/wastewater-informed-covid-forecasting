@@ -33,7 +33,7 @@ write_eval_config <- function(locations, forecast_dates,
                               benchmark_dir,
                               eval_date,
                               overwrite_summary_table,
-                              wwinference_version = sessioninfo::package_info("wwinference", dependencies = FALSE)$ondiskversion, # nolint
+                              wwinference_version = sessioninfo::package_info("wwinference", dependencies = FALSE)$source, # nolint
                               name_of_config = "eval_config",
                               overwrite_benchmark = FALSE) {
   # Will need to load in the files corresponding to the input scenarios, so we
