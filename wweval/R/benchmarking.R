@@ -45,7 +45,7 @@ benchmark_performance <- function(ww_scores,
       location = "all",
       wweval_commit_hash = as.character(wweval_commit_hash),
       wwinference_version = as.character(wwinference_version),
-      time_stamp = format(Sys.time(), "%Y-%m-%d %H:%M:%S")
+      time_stamp = as.POSIXct(format(Sys.time(), "%Y-%m-%d %H:%M:%S"))
     )
 
   scores_by_forecast_date <- dplyr::bind_rows(
@@ -67,7 +67,7 @@ benchmark_performance <- function(ww_scores,
       wweval_commit_hash = as.character(wweval_commit_hash),
       forecast_date = lubridate::ymd(forecast_date),
       wwinference_version = as.character(wwinference_version),
-      time_stamp = format(Sys.time(), "%Y-%m-%d %H:%M:%S")
+      time_stamp = as.POSIXct(format(Sys.time(), "%Y-%m-%d %H:%M:%S"))
     )
 
   scores_by_location <- dplyr::bind_rows(
@@ -88,7 +88,7 @@ benchmark_performance <- function(ww_scores,
     dplyr::mutate(
       wweval_commit_hash = as.character(wweval_commit_hash),
       wwinference_version = as.character(wwinference_version),
-      time_stamp = format(Sys.time(), "%Y-%m-%d %H:%M:%S")
+      time_stamp = as.POSIXct(format(Sys.time(), "%Y-%m-%d %H:%M:%S"))
     ) |>
     dplyr::select(colnames(overall_scores)) |>
     dplyr::bind_rows(overall_scores)
