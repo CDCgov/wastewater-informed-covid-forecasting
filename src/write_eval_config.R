@@ -192,6 +192,7 @@ write_eval_config <- function(locations, forecast_dates,
     adapt_delta = adapt_delta,
     max_treedepth = max_treedepth,
     seed = seed,
+    name_of_config = name_of_config,
     # Input delay distributions
     generation_interval = generation_interval,
     infection_feedback_pmf = generation_interval,
