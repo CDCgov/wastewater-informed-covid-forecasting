@@ -44,8 +44,8 @@ benchmark_performance <- function(ww_scores,
     dplyr::mutate(
       location = "all",
       wweval_commit_hash = as.character(wweval_commit_hash),
-      wwinference_version = wwinference_version,
-      time_stamp = format(Sys.time(), "%Y-%m-%d %H:%M:%S")
+      wwinference_version = as.character(wwinference_version),
+      time_stamp = as.character(format(Sys.time(), "%Y-%m-%d %H:%M:%S"))
     )
 
   scores_by_forecast_date <- dplyr::bind_rows(
@@ -65,9 +65,9 @@ benchmark_performance <- function(ww_scores,
     ) |>
     dplyr::mutate(
       wweval_commit_hash = as.character(wweval_commit_hash),
-      forecast_date = as.character(forecast_date),
-      wwinference_version = wwinference_version,
-      time_stamp = format(Sys.time(), "%Y-%m-%d %H:%M:%S")
+      forecast_date = lubridate::ymd(forecast_date),
+      wwinference_version = as.character(wwinference_version),
+      time_stamp = as.character(format(Sys.time(), "%Y-%m-%d %H:%M:%S"))
     )
 
   scores_by_location <- dplyr::bind_rows(
@@ -87,8 +87,8 @@ benchmark_performance <- function(ww_scores,
     ) |>
     dplyr::mutate(
       wweval_commit_hash = as.character(wweval_commit_hash),
-      wwinference_version = wwinference_version,
-      time_stamp = format(Sys.time(), "%Y-%m-%d %H:%M:%S")
+      wwinference_version = as.character(wwinference_version),
+      time_stamp = as.character(format(Sys.time(), "%Y-%m-%d %H:%M:%S"))
     ) |>
     dplyr::select(colnames(overall_scores)) |>
     dplyr::bind_rows(overall_scores)
@@ -100,47 +100,56 @@ benchmark_performance <- function(ww_scores,
 
 
   if (isTRUE(overwrite_benchmark)) {
-    write.csv(
+    readr::write_tsv(
       scores_by_forecast_date,
       file.path(
         benchmark_dir,
         glue::glue(
-          "latest_{benchmark_scope}_by_forecast_date.csv"
+          "latest_{benchmark_scope}_by_forecast_date.tsv"
         )
-      ),
-      row.names = FALSE
+      )
     )
-    write.csv(
+    readr::write_tsv(
       scores_by_location,
       file.path(
         benchmark_dir,
         glue::glue(
-          "latest_{benchmark_scope}_by_location.csv"
+          "latest_{benchmark_scope}_by_location.tsv"
         )
-      ),
-      row.names = FALSE
+      )
     )
 
     # Read in and append scores by forecast_date
     if (file.exists(file.path(
       benchmark_dir,
       glue::glue(
-        "{benchmark_scope}_by_forecast_date.csv"
+        "{benchmark_scope}_by_forecast_date.tsv"
       )
     ))) {
-      df <- read.csv(file.path(
-        benchmark_dir,
-        glue::glue(
-          "{benchmark_scope}_by_forecast_date.csv"
+      df <- readr::read_tsv(
+        file.path(
+          benchmark_dir,
+          glue::glue(
+            "{benchmark_scope}_by_forecast_date.tsv"
+          )
+        ),
+        col_types = readr::cols(
+          forecast_date = readr::col_date(),
+          crps_hosp = readr::col_double(),
+          crps_ww = readr::col_double(),
+          bias_hosp = readr::col_double(),
+          bias_ww = readr::col_double(),
+          ae_hosp = readr::col_double(),
+          ae_ww = readr::col_double(),
+          wweval_commit_hash = readr::col_character(),
+          wwinference_version = readr::col_character(),
+          time_stamp = readr::col_character()
         )
-      ))
+      )
+
       # check that wwinference hash is different
       if (df$wwinference_version[1] != wwinference_version || df$wweval_commit_hash[1] != wweval_commit_hash) { # nolint
-        df_to_append <- df |>
-          dplyr::mutate(
-            time_stamp = as.character(time_stamp),
-            wweval_commit_hash = as.character(wweval_commit_hash)
-          )
+        df_to_append <- df
       } else {
         df_to_append <- tibble::tibble()
       }
@@ -148,37 +157,47 @@ benchmark_performance <- function(ww_scores,
       df_to_append <- tibble::tibble()
     }
 
-    write.csv(
+
+    readr::write_tsv(
       dplyr::bind_rows(scores_by_forecast_date, df_to_append),
       file.path(
         benchmark_dir,
         glue::glue(
-          "{benchmark_scope}_by_forecast_date.csv"
+          "{benchmark_scope}_by_forecast_date.tsv"
         )
-      ),
-      row.names = FALSE
+      )
     )
 
     # Read in and append scores by loc
     if (file.exists(file.path(
       benchmark_dir,
       glue::glue(
-        "{benchmark_scope}_by_location.csv"
+        "{benchmark_scope}_by_location.tsv"
       )
     ))) {
-      df <- read.csv(file.path(
-        benchmark_dir,
-        glue::glue(
-          "{benchmark_scope}_by_location.csv"
+      df <- readr::read_tsv(
+        file.path(
+          benchmark_dir,
+          glue::glue(
+            "{benchmark_scope}_by_location.tsv"
+          )
+        ),
+        col_types = readr::cols(
+          crps_hosp = readr::col_double(),
+          crps_ww = readr::col_double(),
+          bias_hosp = readr::col_double(),
+          bias_ww = readr::col_double(),
+          ae_hosp = readr::col_double(),
+          ae_ww = readr::col_double(),
+          location = readr::col_character(),
+          wweval_commit_hash = readr::col_character(),
+          wwinference_version = readr::col_character(),
+          time_stamp = readr::col_character()
         )
-      ))
+      )
       # check that wwinference hash is different
       if (df$wwinference_version[1] != wwinference_version || df$wweval_commit_hash[1] != wweval_commit_hash) { # nolint
-        df_to_append <- df |>
-          dplyr::mutate(
-            time_stamp = as.character(time_stamp),
-            wweval_commit_hash = as.character(wweval_commit_hash)
-          )
+        df_to_append <- df
       } else {
         df_to_append <- tibble::tibble()
       }
@@ -186,15 +205,14 @@ benchmark_performance <- function(ww_scores,
       df_to_append <- tibble::tibble()
     }
 
-    write.csv(
+    readr::write_tsv(
       dplyr::bind_rows(scores_by_location, df_to_append),
       file.path(
         benchmark_dir,
         glue::glue(
-          "{benchmark_scope}_by_location.csv"
+          "{benchmark_scope}_by_location.tsv"
         )
-      ),
-      row.names = FALSE
+      )
     )
   }
 
