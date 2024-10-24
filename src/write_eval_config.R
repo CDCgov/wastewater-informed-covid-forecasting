@@ -69,8 +69,7 @@ write_eval_config <- function(locations, forecast_dates,
     location = locations,
     forecast_date = forecast_dates
   )
-  time_stamp <- as.character(lubridate::today())
-  folder_version <- glue::glue("run_on_{time_stamp}")
+
   # Specify other variables
   ww_data_dir <- file.path("input", "ww_data", "monday_datasets")
   scenario_dir <- file.path("input", "config", "eval", "scenarios")
@@ -80,15 +79,15 @@ write_eval_config <- function(locations, forecast_dates,
   # stan_models_dir <- system.file("stan", package = "cfaforecastrenewalww") #nolint
   stan_models_dir <- file.path("cfaforecastrenewalww", "inst", "stan")
   init_dir <- file.path("input", "init_lists")
-  output_dir <- file.path("output", "eval_timestamped", folder_version)
-  figure_dir <- file.path("output", "eval_timestamped", folder_version, "plots")
+  output_dir <- file.path("output", "eval")
+  figure_dir <- file.path("output", "eval", "plots")
   ms_fig_dir <- file.path(
-    "output", "eval_timestamped", folder_version,
+    "output", "eval",
     "plots", "manuscript"
   )
-  hub_subdir <- file.path("output", "eval_timestamped", folder_version, "hub")
+  hub_subdir <- file.path("output", "eval", "hub")
   retro_rt_path <- file.path("input", "retro_Rt", "Rt_draws.parquet")
-  score_subdir <- file.path("output", "eval_timestamped", folder_version, "hub")
+  score_subdir <- file.path("output", "eval", "hub")
   # Proportion of forecast dates that a model must have submitted for to be
   # included in the Hub analysis
   prop_dates_for_incl_hub <- 18 / 22
