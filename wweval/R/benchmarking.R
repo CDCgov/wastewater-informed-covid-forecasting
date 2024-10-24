@@ -93,6 +93,7 @@ benchmark_performance <- function(ww_scores,
     dplyr::select(colnames(overall_scores)) |>
     dplyr::bind_rows(overall_scores)
 
+
   benchmarks <- list(
     scores_by_forecast_date = scores_by_forecast_date,
     scores_by_location = scores_by_location

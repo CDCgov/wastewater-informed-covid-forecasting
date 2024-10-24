@@ -42,8 +42,8 @@ offset_ref_initial_exp_growth_rate_prior_sd = 0.025
 autoreg_p_hosp_a = 1 # shape1 parameter of autoreg term on IHR(t) trend
 autoreg_p_hosp_b = 100 # shape2 parameter of autoreg term on IHR(t) trend
 eta_sd_sd = 0.01
-infection_feedback_prior_logmean = 6.37408 # log(mode) + q^2 mode = 500, q = 0.4
-infection_feedback_prior_logsd = 0.4
+infection_feedback_prior_logmean = 0 # log(mode) + q^2 mode = 1, q = 3
+infection_feedback_prior_logsd = 3
 
 [hospital_admission_observation_process]
 # Hospitalization parameters (informative priors)

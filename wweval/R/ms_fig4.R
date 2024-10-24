@@ -653,7 +653,7 @@ FGGG
   ) #+ plot_annotation(tag_levels = "A") #nolint not working
   fig4
 
-  create_dir(fig_file_dir)
+  fs::dir_create(fig_file_dir)
 
   ggsave(fig4,
     filename = file.path(fig_file_dir, "fig4.png"),
