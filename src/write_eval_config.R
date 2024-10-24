@@ -10,7 +10,6 @@
 #' (default `.tsv` format) are located
 #' @param benchmark_dir the directory where to save the benchmarked performance
 #' for this run
-#' @param ms_fig_dir the directory to save the manuscript figures in
 #' @param eval_date the data of the evaluation dataset, in ISO YYYY-MM-DD format
 #' @param overwrite_summary_table Boolean indicating whether or not to overwrite
 #' internal summary table
@@ -29,11 +28,10 @@ write_eval_config <- function(locations, forecast_dates,
                               scenarios,
                               config_dir,
                               scenario_dir,
-                              ms_fig_dir,
                               benchmark_dir,
                               eval_date,
                               overwrite_summary_table,
-                              wwinference_version = sessioninfo::package_info("wwinference", dependencies = FALSE)$ondiskversion, # nolint
+                              wwinference_version = sessioninfo::package_info("wwinference", dependencies = FALSE)$source, # nolint
                               name_of_config = "eval_config",
                               overwrite_benchmark = FALSE) {
   # Will need to load in the files corresponding to the input scenarios, so we
@@ -84,6 +82,10 @@ write_eval_config <- function(locations, forecast_dates,
   init_dir <- file.path("input", "init_lists")
   output_dir <- file.path("output", "eval")
   figure_dir <- file.path("output", "eval", "plots")
+  ms_fig_dir <- file.path(
+    "output", "eval",
+    "plots", "manuscript"
+  )
   hub_subdir <- file.path("output", "eval", "hub")
   retro_rt_path <- file.path("input", "retro_Rt", "Rt_draws.parquet")
   score_subdir <- file.path("output", "eval", "hub")
