@@ -127,10 +127,17 @@ plot_components <- function() {
     "uncertain" = "lightgray"
   )
 
+  observation_status_colors <- c(
+    "standard" = "black",
+    "outlier" = "red",
+    "below LOD" = "blue"
+  )
+
   colors_list <- list(
     horizon_colors = horizon_colors,
     model_colors = model_colors,
-    phase_colors = phase_colors
+    phase_colors = phase_colors,
+    observation_status_colors
   )
   return(colors_list)
 }
