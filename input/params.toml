@@ -3,7 +3,7 @@ uot = 50
 
 [infection_process]
 r_prior_mean = 1
-r_prior_sd = 1
+r_prior_sd = 0.4
 sigma_rt_prior = 0.1
 dur_inf = 7
 
@@ -41,7 +41,7 @@ offset_ref_initial_exp_growth_rate_prior_sd = 0.025
 
 autoreg_p_hosp_a = 1 # shape1 parameter of autoreg term on IHR(t) trend
 autoreg_p_hosp_b = 100 # shape2 parameter of autoreg term on IHR(t) trend
-eta_sd_sd = 0.01
+eta_sd_sd = 0.03
 infection_feedback_prior_logmean = 0 # log(mode) + q^2 mode = 1, q = 3
 infection_feedback_prior_logsd = 3
 
