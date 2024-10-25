@@ -166,7 +166,6 @@ eval_post_process_ww <- function(config_index,
     "plot_growth_rates.png"
   ))
 
-
   hosp_draws <- {
     if (!is.null(ww_fit_obj_wwinference$error)) {
       NULL
@@ -303,6 +302,31 @@ eval_post_process_ww <- function(config_index,
   ))
 
   save_object("plot_hosp_draws", output_file_suffix)
+
+  # Plots of R(t)s
+  draws <- wwinference::get_draws(ww_fit_obj_wwinference, what = "all")
+
+  plot_state_rt <- wwinference::get_plot_global_rt(
+    draws$global_rt,
+    forecast_date
+  )
+  ggsave(plot_state_rt, filename = file.path(
+    output_dir, scenario,
+    forecast_date, "ww", location,
+    "plot_state_rt.png"
+  ))
+
+  plot_subpop_rt <- get_plot_subpop_rt(
+    draws$subpop_rt,
+    forecast_date
+  )
+  ggsave(plot_subpop_rt, filename = file.path(
+    output_dir, scenario,
+    forecast_date, "ww", location,
+    "plot_subpop_rt.png"
+  ))
+
+
 
   plot_ww_draws <- {
     if (is.null(ww_draws)) {
@@ -518,6 +542,19 @@ eval_post_process_hosp <- function(config_index,
     output_dir, scenario,
     forecast_date, "hosp", location,
     "plot_hosp_t.png"
+  ))
+
+  # Plots of R(t)s
+  draws <- wwinference::get_draws(hosp_fit_obj_wwinference, what = "all")
+
+  plot_state_rt <- wwinference::get_plot_global_rt(
+    draws$global_rt,
+    forecast_date
+  )
+  ggsave(plot_state_rt, filename = file.path(
+    output_dir, scenario,
+    forecast_date, "ww", location,
+    "plot_state_rt.png"
   ))
 
   ## Score the hospital admissions only model-------------------------
