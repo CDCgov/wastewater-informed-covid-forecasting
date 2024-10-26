@@ -171,7 +171,8 @@ make_fig2_ct <- function(ww_quantiles,
     geom_point(
       aes(
         x = date, y = log(calib_data),
-        color = observation_status
+        color = observation_status,
+        shape = observation_status
       ),
       show.legend = FALSE
     ) +
@@ -212,7 +213,8 @@ make_fig2_ct <- function(ww_quantiles,
     ) +
     get_plot_theme(x_axis_dates = TRUE) +
     scale_fill_manual(values = colors$observation_status_colors) +
-    scale_color_manual(values = colors$observation_status_colors)
+    scale_color_manual(values = colors$observation_status_colors) +
+    scale_shape_manual(values = colors$observation_status_shapes)
   return(p)
 }
 
