@@ -275,7 +275,8 @@ plot_benchmarks <- function(grouping_var,
       theme(
         legend.position = "bottom",
         panel.background = element_rect(fill = "white")
-      )
+      ) +
+      ggtitle("Overall performance benchmarking")
     if (isTRUE(write_files)) {
       ggsave(
         filename = glue::glue(
