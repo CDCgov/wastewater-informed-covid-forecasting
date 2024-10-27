@@ -220,3 +220,106 @@ benchmark_performance <- function(ww_scores,
 
   return(benchmarks)
 }
+
+
+#' Plot benchmark summaries
+#'
+#' @param grouping_var The variable to plot by, so in this case either
+#' `location` or `forecast_date`
+#' @param benchmark_scope The scope of the benchmarking (so in this case
+#' either `subset_forecasts` or `all_forecasts`)
+#' @param benchmark_dir The directory where the benchmark tables live
+#' @param score_to_plot Which of the scores saved in the benchmarking
+#' tables to plot, options are `crps`, `bias`, and `ae`, defualt is `crps`
+#' @param write_files Boolean indicating whether or not to save the plots
+#' to disk, default is TRUE
+#'
+#' @return a ggplot object containing a bar chart colored by package/model
+#' version and faceted by the grouping variable, with the height of the bar
+#' indicating the scores
+#' @export
+plot_benchmarks <- function(grouping_var,
+                            benchmark_scope,
+                            benchmark_dir,
+                            score_to_plot = "crps",
+                            write_files = TRUE) {
+  # Load in table
+  fp <- glue::glue("{benchmark_dir}/{benchmark_scope}_by_{grouping_var}.tsv")
+  df <- readr::read_tsv(fp)
+
+  # pivot_longer for plotting
+  df_long <- df |>
+    tidyr::pivot_longer(
+      cols = crps_hosp:ae_ww,
+      names_to = c("score_type", "model"),
+      names_pattern = "(.*)_(.*)",
+      values_to = "score"
+    )
+
+  if (grouping_var == "location") {
+    df_all <- df_long |>
+      dplyr::filter(location == "all")
+    df_long <- df_long |>
+      dplyr::filter(location != "all")
+
+    p_all <- ggplot(df_all) +
+      geom_bar(
+        aes(
+          x = model, y = score,
+          fill = wwinference_version
+        ),
+        stat = "identity",
+        position = "dodge"
+      ) +
+      facet_wrap(~score_type, scales = "free_y") +
+      theme(
+        legend.position = "bottom",
+        panel.background = element_rect(fill = "white")
+      )
+    if (isTRUE(write_files)) {
+      ggsave(
+        filename = glue::glue(
+          "{benchmark_dir}/plots/{benchmark_scope}_overall.png"
+        ),
+        plot = p_all,
+        create.dir = TRUE
+      )
+    }
+  }
+
+  p <- ggplot(df_long |>
+    dplyr::filter(score_type == {
+      score_to_plot
+    })) +
+    geom_bar(
+      aes(
+        x = model, y = score,
+        fill = wwinference_version
+      ),
+      stat = "identity",
+      position = "dodge"
+    ) +
+    facet_wrap(
+      {
+        grouping_var
+      },
+      scales = "free_y"
+    ) +
+    theme(
+      legend.position = "bottom",
+      panel.background = element_rect(fill = "white")
+    ) +
+    ylab("CRPS")
+
+  if (isTRUE(write_files)) {
+    ggsave(
+      filename = glue::glue(
+        "{benchmark_dir}/plots/{benchmark_scope}_by_{grouping_var}.png"
+      ),
+      plot = p,
+      create.dir = TRUE
+    )
+  }
+
+  return(p)
+}
