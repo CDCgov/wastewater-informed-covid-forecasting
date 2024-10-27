@@ -316,7 +316,7 @@ eval_post_process_ww <- function(config_index,
     "plot_state_rt.png"
   ))
 
-  plot_subpop_rt <- get_plot_subpop_rt(
+  plot_subpop_rt <- wwinference::get_plot_subpop_rt(
     draws$subpop_rt,
     forecast_date
   )
@@ -545,7 +545,7 @@ eval_post_process_hosp <- function(config_index,
   ))
 
   # Plots of R(t)s
-  draws <- wwinference::get_draws(hosp_fit_obj_wwinference, what = "all")
+  draws <- wwinference::get_draws(hosp_fit_obj_wwinference, what = "global_rt")
 
   plot_state_rt <- wwinference::get_plot_global_rt(
     draws$global_rt,
@@ -553,7 +553,7 @@ eval_post_process_hosp <- function(config_index,
   )
   ggsave(plot_state_rt, filename = file.path(
     output_dir, scenario,
-    forecast_date, "ww", location,
+    forecast_date, "hosp", location,
     "plot_state_rt.png"
   ))
 
