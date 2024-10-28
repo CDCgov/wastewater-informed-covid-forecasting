@@ -90,16 +90,22 @@ eval_post_process_ww <- function(config_index,
   ) +
     geom_histogram()
 
-  ggsave(p_inf, filename = file.path(
-    output_dir, scenario,
-    forecast_date, "ww", location,
-    "inf_feedback.png"
-  ))
-  ggsave(p_eta_sd, filename = file.path(
-    output_dir, scenario,
-    forecast_date, "ww", location,
-    "eta_sd.png"
-  ))
+  ggsave(
+    filename = file.path(
+      output_dir, scenario,
+      forecast_date, "ww", location,
+      "inf_feedback.png"
+    ),
+    p_inf
+  )
+  ggsave(
+    filename = file.path(
+      output_dir, scenario,
+      forecast_date, "ww", location,
+      "eta_sd.png"
+    ),
+    p_eta_sd
+  )
 
 
   # Make the data look like it did in wweval-------------------------------
