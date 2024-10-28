@@ -63,6 +63,45 @@ eval_post_process_ww <- function(config_index,
   )
   save_object("raw_flags", output_file_suffix)
 
+  # Make plots of posterior parameters----------------------------
+  inf_feedback <- ww_raw_draws |>
+    tidybayes::spread_draws(!!str2lang("infection_feedback")) |>
+    dplyr::mutate(
+      draw = .data$`.draw`,
+    ) |>
+    dplyr::select("infection_feedback", "draw")
+
+  p_inf <- ggplot(
+    inf_feedback,
+    aes(x = infection_feedback)
+  ) +
+    geom_histogram()
+
+  eta_sd <- ww_raw_draws |>
+    tidybayes::spread_draws(!!str2lang("eta_sd")) |>
+    dplyr::mutate(
+      draw = .data$`.draw`,
+    ) |>
+    dplyr::select("eta_sd", "draw")
+
+  p_eta_sd <- ggplot(
+    inf_feedback,
+    aes(x = eta_sd)
+  ) +
+    geom_histogram()
+
+  ggsave(p_inf, filename = file.path(
+    output_dir, scenario,
+    forecast_date, "ww", location,
+    "inf_feedback.png"
+  ))
+  ggsave(p_eta_sd, filename = file.path(
+    output_dir, scenario,
+    forecast_date, "ww", location,
+    "eta_sd.png"
+  ))
+
+
   # Make the data look like it did in wweval-------------------------------
   input_hosp_data_wweval <- input_hosp_data |>
     dplyr:::rename(
