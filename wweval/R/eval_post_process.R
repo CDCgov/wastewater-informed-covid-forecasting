@@ -85,7 +85,7 @@ eval_post_process_ww <- function(config_index,
     dplyr::select("eta_sd", "draw")
 
   p_eta_sd <- ggplot(
-    inf_feedback,
+    eta_sd,
     aes(x = eta_sd)
   ) +
     geom_histogram()
