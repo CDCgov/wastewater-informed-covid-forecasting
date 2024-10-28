@@ -503,6 +503,51 @@ eval_post_process_hosp <- function(config_index,
     location = location
   )
 
+  # Make plots of posterior params-------------------
+
+  inf_feedback <- hosp_raw_draws |>
+    tidybayes::spread_draws(!!str2lang("infection_feedback")) |>
+    dplyr::mutate(
+      draw = .data$`.draw`,
+    ) |>
+    dplyr::select("infection_feedback", "draw")
+
+  p_inf <- ggplot(
+    inf_feedback,
+    aes(x = infection_feedback)
+  ) +
+    geom_histogram()
+
+  eta_sd <- hosp_raw_draws |>
+    tidybayes::spread_draws(!!str2lang("eta_sd")) |>
+    dplyr::mutate(
+      draw = .data$`.draw`,
+    ) |>
+    dplyr::select("eta_sd", "draw")
+
+  p_eta_sd <- ggplot(
+    eta_sd,
+    aes(x = eta_sd)
+  ) +
+    geom_histogram()
+
+  ggsave(
+    filename = file.path(
+      output_dir, scenario,
+      forecast_date, "hosp", location,
+      "inf_feedback.png"
+    ),
+    p_inf
+  )
+  ggsave(
+    filename = file.path(
+      output_dir, scenario,
+      forecast_date, "hosp", location,
+      "eta_sd.png"
+    ),
+    p_eta_sd
+  )
+
 
   # Get evaluation data from hospital admissions and wastewater
   # Join draws with flags + data and metadata
