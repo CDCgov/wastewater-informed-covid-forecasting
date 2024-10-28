@@ -12,7 +12,7 @@ write_eval_config(
   forecast_dates =
     as.character(
       seq(
-        from = lubridate::ymd("2023-10-16"),
+        from = lubridate::ymd("2024-03-04"),
         to = lubridate::ymd("2024-03-11"),
         by = "4 weeks"
       )
@@ -29,5 +29,5 @@ write_eval_config(
   overwrite_benchmark = TRUE, # Set as TRUE if want to save outputs of
   # benchmarking in directory,
   name_of_config = "benchmark_config",
-  wwinference_version = "227-inf-feedback"
+  wwinference_version = "227-inf-feedback-long-fit"
 )
