@@ -101,6 +101,26 @@ eval_post_process_ww <- function(config_index,
     "eta_sd.png"
   ))
 
+  save_table(
+    data_to_save = eta_sd,
+    type_of_output = "eta_sd",
+    output_dir = output_dir,
+    scenario = scenario,
+    forecast_date = forecast_date,
+    model_type = "ww",
+    location = location
+  )
+  save_table(
+    data_to_save = inf_feedback,
+    type_of_output = "inf_feedback",
+    output_dir = output_dir,
+    scenario = scenario,
+    forecast_date = forecast_date,
+    model_type = "ww",
+    location = location
+  )
+
+
   # Make the data look like it did in wweval-------------------------------
   input_hosp_data_wweval <- input_hosp_data |>
     dplyr:::rename(
@@ -617,7 +637,8 @@ eval_post_process_hosp <- function(config_index,
   plot_hosp_t <- make_fig2_hosp_t(
     hosp_quantiles = full_hosp_model_quantiles,
     loc_to_plot = location,
-    date_to_plot = forecast_date
+    date_to_plot = forecast_date,
+    n_calib_days = eval_config$calibration_time
   ) +
     ggtitle(glue::glue("{location} on {forecast_date}"))
 
