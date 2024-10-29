@@ -596,6 +596,25 @@ eval_post_process_hosp <- function(config_index,
     p_eta_sd,
     create.dir = TRUE
   )
+  save_table(
+    data_to_save = eta_sd,
+    type_of_output = "eta_sd",
+    output_dir = output_dir,
+    scenario = scenario,
+    forecast_date = forecast_date,
+    model_type = "hosp",
+    location = location
+  )
+  save_table(
+    data_to_save = inf_feedback,
+    type_of_output = "inf_feedback",
+    output_dir = output_dir,
+    scenario = scenario,
+    forecast_date = forecast_date,
+    model_type = "hosp",
+    location = location
+  )
+
 
 
   # Get evaluation data from hospital admissions and wastewater
