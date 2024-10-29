@@ -6,22 +6,23 @@ benchmark_config <- yaml::read_yaml(file.path(
 ))
 
 vars <- c("eta_sd", "inf_feedback")
-eta_sd_draws <- tibble::tibble(draw, value, location, forecast_date)
-inf_feedback_draws <- tibble::tibble(draw, value, location, forecast_date)
+eta_sd_draws <- tibble::tibble()
+inf_feedback_draws <- tibble::tibble()
 
 for (i in 1:seq_along(benchmark_config$forecast_date_hosp)) {
-  location <- benchmark_config$location_hosp[i]
-  forecast_date <- benchmark_config$forecast_date_hosp[i]
-  scenario <- "no_wastewater"
+  this_location <- benchmark_config$location_hosp[i]
+  this_forecast_date <- benchmark_config$forecast_date_hosp[i]
+  this_scenario <- "no_wastewater"
   for (j in 1:seq_along(vars)) {
-    fp_var <- get_filepath(benchmark_config$output_subdir,
-      scenario = !scenario,
-      forecast_date = !forecast_date,
+    fp_var <- wweval::get_filepath(benchmark_config$output_dir,
+      scenario = this_scenario,
+      forecast_date = this_forecast_date,
       model_type = "hosp",
-      location = !location,
+      location = this_location,
       output_type = vars[j],
-      file_extension = ".tsv"
+      file_extension = "tsv"
     )
+
     these_var_draws <- readr::read_tsv(fp_var)
     var_draws <- these_var_draws |>
       dplyr::mutate(
