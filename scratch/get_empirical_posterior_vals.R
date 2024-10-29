@@ -1,0 +1,70 @@
+# Quick estimate of posterior parameters
+
+benchmark_config <- yaml::read_yaml(file.path(
+  "input", "config",
+  "eval", "benchmark_config.yaml"
+))
+
+vars <- c("eta_sd", "inf_feedback")
+eta_sd_draws <- tibble::tibble(draw, value, location, forecast_date)
+inf_feedback_draws <- tibble::tibble(draw, value, location, forecast_date)
+
+for (i in 1:seq_along(benchmark_config$forecast_date_hosp)) {
+  location <- benchmark_config$location_hosp[i]
+  forecast_date <- benchmark_config$forecast_date_hosp[i]
+  scenario <- "no_wastewater"
+  for (j in 1:seq_along(vars)) {
+    fp_var <- get_filepath(benchmark_config$output_subdir,
+      scenario = !scenario,
+      forecast_date = !forecast_date,
+      model_type = "hosp",
+      location = !location,
+      output_type = vars[j],
+      file_extension = ".tsv"
+    )
+    these_var_draws <- readr::read_tsv(fp_var)
+    var_draws <- these_var_draws |>
+      dplyr::mutate(
+        location = !location,
+        forecast_date = !forecast_date
+      )
+    if (vars[j] == "eta_sd") {
+      eta_sd_draws <- dplyr::bind_rows(eta_sd_draws, these_var_draws)
+    }
+    if (vars[j] == "inf_feedback") {
+      inf_feedback_draws <- dplyr::bind_rows(
+        inf_feedback_draws,
+        these_var_draws
+      )
+    }
+  } # end loop over vars
+} # end loop over forecast date-locations
+
+# Get empirical mean, sd, logmean, and logsd------------------------------
+## eta_sd-------
+mean_eta_sd <- mean(eta_sd_draws$value)
+sd_eta_sd <- sd(eta_sd_draws$value)
+
+mean_inf_feedback <- mean(inf_feedback_draws$value)
+sd_inf_feedback <- sd(inf_feedback_draws$value)
+message("Empirical mean of RW step size across 5 locations: ", mean_eta_sd)
+message("Empirical sd of RW step size across 5 locations: ", sd_eta_sd)
+
+## inf_feedback
+logmean_inf_feedback <- wwinference::convert_to_logmean(
+  mean_inf_feedbak,
+  sd_inf_feedback
+)
+logsd_inf_feedback <- wwinference::convert_to_logsd(
+  mean_inf_feedback,
+  sd_inf_feedback
+)
+
+message(
+  "Empirical logmean of infection feedback across 5 locations: ",
+  logmean_inf_feedback
+)
+message(
+  "Empirical logsd of infection feedback across 5 locations: ",
+  logsd_inf_feedback
+)
