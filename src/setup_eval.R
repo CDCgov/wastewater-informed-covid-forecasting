@@ -34,5 +34,5 @@ write_eval_config(
   overwrite_benchmark = TRUE, # Set as TRUE if want to save outputs of
 
   # benchmarking in directory
-  wwinference_version = "227-inf-feedback"
+  wwinference_version = "227-inf-feedback-posterior-mod-eta"
 )
