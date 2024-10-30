@@ -160,7 +160,7 @@ get_plot_ww_data_comparison <- function(draws_w_data,
       linetype = "dashed"
     ) +
     scale_y_continuous(trans = "log10") +
-    facet_wrap(~site_lab_name, scales = "free") +
+    facet_wrap(~site_lab_name, scales = "free_y") +
     geom_point(
       data = draws_w_data_subsetted |> filter(below_LOD == 1),
       aes(x = date, y = calib_data), color = "red", size = 1.1

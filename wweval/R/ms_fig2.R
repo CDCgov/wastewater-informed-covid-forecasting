@@ -142,45 +142,60 @@ make_fig2_ct <- function(ww_quantiles,
     tidyr::pivot_wider(
       id_cols = c(
         location, site_lab_name, forecast_date, period, scenario,
-        date, eval_data, calib_data
+        date, eval_data, calib_data, below_LOD, flag_as_ww_outlier
       ),
       names_from = quantile,
       values_from = log_conc
     ) |>
-    dplyr::mutate(model = "ww")
+    dplyr::mutate(
+      model = "ww",
+      observation_status =
+        dplyr::case_when(
+          flag_as_ww_outlier == 1 ~ "outlier",
+          below_LOD == 1 ~ "below LOD",
+          TRUE ~ "standard"
+        )
+    )
 
 
 
   colors <- plot_components()
+  # Set ribbon and line color for model fit, in this case is always ww model
+  model_color <- colors$model_colors$ww
+
   p <- ggplot(quantiles_wide) +
     geom_point(aes(x = date, y = log(eval_data)),
       fill = "white", size = 1, shape = 21,
       show.legend = FALSE
     ) +
     geom_point(
-      aes(x = date, y = log(calib_data)),
-      color = "black", show.legend = FALSE
+      aes(
+        x = date, y = log(calib_data),
+        color = observation_status,
+        shape = observation_status
+      ),
+      show.legend = FALSE
     ) +
     geom_line(
       aes(
-        x = date, y = `0.5`,
-        color = model
+        x = date, y = `0.5`
       ),
+      color = model_color,
       show.legend = FALSE
     ) +
     geom_ribbon(
       aes(
         x = date, ymin = `0.025`, ymax = `0.975`,
-        fill = model
       ),
+      fill = model_color,
       alpha = 0.2,
       show.legend = FALSE
     ) +
     geom_ribbon(
       aes(
-        x = date, ymin = `0.25`, ymax = `0.75`,
-        fill = model
+        x = date, ymin = `0.25`, ymax = `0.75`
       ),
+      fill = model_color,
       alpha = 0.1,
       show.legend = FALSE
     ) +
@@ -197,8 +212,9 @@ make_fig2_ct <- function(ww_quantiles,
       labels = scales::date_format("%Y-%m-%d")
     ) +
     get_plot_theme(x_axis_dates = TRUE) +
-    scale_fill_manual(values = colors$model_colors) +
-    scale_color_manual(values = colors$model_colors)
+    scale_fill_manual(values = colors$observation_status_colors) +
+    scale_color_manual(values = colors$observation_status_colors) +
+    scale_shape_manual(values = colors$observation_status_shapes)
   return(p)
 }
 

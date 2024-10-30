@@ -97,6 +97,15 @@ get_model_draws_w_data <- function(fit_obj_wwinference,
         "location" = !!location
       ) |>
       dplyr::ungroup() |>
+      # Replace values below LOD with LOD in observations
+      dplyr::mutate(
+        "eval_data" = ifelse(
+          .data$below_LOD == 1, .data$lod_sewage, .data$eval_data
+        ),
+        "calib_data" = ifelse(
+          .data$below_LOD == 1, .data$lod_sewage, .data$eval_data
+        )
+      ) |>
       dplyr::select(
         "name", "lab_site_index", "value", "draw", "date", "site", "lab",
         "location", "ww_pop", "calib_data", "below_LOD", "lod_sewage",
