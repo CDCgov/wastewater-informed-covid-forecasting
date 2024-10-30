@@ -229,6 +229,7 @@ benchmark_performance <- function(ww_scores,
 #' @param benchmark_scope The scope of the benchmarking (so in this case
 #' either `subset_forecasts` or `all_forecasts`)
 #' @param benchmark_dir The directory where the benchmark tables live
+#' @param scores_list The list of tables of recent scores
 #' @param score_to_plot Which of the scores saved in the benchmarking
 #' tables to plot, options are `crps`, `bias`, and `ae`, defualt is `crps`
 #' @param write_files Boolean indicating whether or not to save the plots
@@ -241,6 +242,7 @@ benchmark_performance <- function(ww_scores,
 plot_benchmarks <- function(grouping_var,
                             benchmark_scope,
                             benchmark_dir,
+                            scores_list,
                             score_to_plot = "crps",
                             write_files = TRUE) {
   # Load in table
