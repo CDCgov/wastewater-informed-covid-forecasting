@@ -9,11 +9,11 @@ vars <- c("eta_sd", "inf_feedback")
 eta_sd_draws <- tibble::tibble()
 inf_feedback_draws <- tibble::tibble()
 
-for (i in 1:seq_along(benchmark_config$forecast_date_hosp)) {
+for (i in seq_along(benchmark_config$forecast_date_hosp)) {
   this_location <- benchmark_config$location_hosp[i]
   this_forecast_date <- benchmark_config$forecast_date_hosp[i]
   this_scenario <- "no_wastewater"
-  for (j in 1:seq_along(vars)) {
+  for (j in seq_along(vars)) {
     fp_var <- wweval::get_filepath(benchmark_config$output_dir,
       scenario = this_scenario,
       forecast_date = this_forecast_date,
@@ -26,34 +26,34 @@ for (i in 1:seq_along(benchmark_config$forecast_date_hosp)) {
     these_var_draws <- readr::read_tsv(fp_var)
     var_draws <- these_var_draws |>
       dplyr::mutate(
-        location = !location,
-        forecast_date = !forecast_date
+        location = this_location,
+        forecast_date = this_forecast_date
       )
     if (vars[j] == "eta_sd") {
-      eta_sd_draws <- dplyr::bind_rows(eta_sd_draws, these_var_draws)
+      eta_sd_draws <- dplyr::bind_rows(eta_sd_draws, var_draws)
     }
     if (vars[j] == "inf_feedback") {
       inf_feedback_draws <- dplyr::bind_rows(
         inf_feedback_draws,
-        these_var_draws
+        var_draws
       )
     }
   } # end loop over vars
 } # end loop over forecast date-locations
 
 # Get empirical mean, sd, logmean, and logsd------------------------------
-## eta_sd-------
-mean_eta_sd <- mean(eta_sd_draws$value)
-sd_eta_sd <- sd(eta_sd_draws$value)
+## eta_sd---------------------------------------------------------------
+mean_eta_sd <- mean(eta_sd_draws$eta_sd)
+sd_eta_sd <- sd(eta_sd_draws$eta_sd)
 
-mean_inf_feedback <- mean(inf_feedback_draws$value)
-sd_inf_feedback <- sd(inf_feedback_draws$value)
 message("Empirical mean of RW step size across 5 locations: ", mean_eta_sd)
 message("Empirical sd of RW step size across 5 locations: ", sd_eta_sd)
 
-## inf_feedback
+## inf_feedback----------------------------------------------------------
+mean_inf_feedback <- mean(inf_feedback_draws$infection_feedback)
+sd_inf_feedback <- sd(inf_feedback_draws$infection_feedback)
 logmean_inf_feedback <- wwinference::convert_to_logmean(
-  mean_inf_feedbak,
+  mean_inf_feedback,
   sd_inf_feedback
 )
 logsd_inf_feedback <- wwinference::convert_to_logsd(
