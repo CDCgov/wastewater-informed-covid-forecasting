@@ -82,7 +82,7 @@ combined_targets <- list(
 # Benchmarking----------------------------------------------------------
 benchmarks <- list(
   tar_target(
-    name = write_benchmark_table_subset_run,
+    name = benchmark_table_subset_run,
     command = benchmark_performance(
       ww_scores = ww_scores,
       hosp_scores = hosp_scores,
@@ -97,7 +97,8 @@ benchmarks <- list(
     command = plot_benchmarks(
       grouping_var = "location",
       benchmark_scope = "subset_forecasts",
-      benchmark_dir = benchmark_config$benchmark_dir
+      benchmark_dir = benchmark_config$benchmark_dir,
+      scores_list = benchmark_table_subset_run
     )
   ),
   tar_target(
@@ -105,7 +106,8 @@ benchmarks <- list(
     command = plot_benchmarks(
       grouping_var = "forecast_date",
       benchmark_scope = "subset_forecasts",
-      benchmark_dir = benchmark_config$benchmark_dir
+      benchmark_dir = benchmark_config$benchmark_dir,
+      scores_list = benchmark_table_subset_run
     )
   )
 )
