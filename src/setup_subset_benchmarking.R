@@ -12,7 +12,7 @@ write_eval_config(
   forecast_dates =
     as.character(
       seq(
-        from = lubridate::ymd("2024-03-04"),
+        from = lubridate::ymd("2023-10-16"),
         to = lubridate::ymd("2024-03-11"),
         by = "4 weeks"
       )
