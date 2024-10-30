@@ -95,7 +95,7 @@ write_eval_config <- function(locations, forecast_dates,
   prop_locs_for_incl_hub <- 40 / 52
   raw_output_dir <- file.path(output_dir, "raw_output")
   ww_data_mapping <- "Monday: Monday, Wednesday: Monday"
-  calibration_time <- 365
+  calibration_time <- 90
   forecast_time <- 28
 
   iter_warmup <- 750
