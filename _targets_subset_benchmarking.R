@@ -91,6 +91,22 @@ benchmarks <- list(
       wwinference_version = benchmark_config$wwinference_version,
       overwrite_benchmark = benchmark_config$overwrite_benchmark
     )
+  ),
+  tar_target(
+    name = plot_benchmark_by_loc,
+    command = plot_benchmarks(
+      grouping_var = "location",
+      benchmark_scope = "subset_forecasts",
+      benchmark_dir = benchmark_config$benchmark_dir
+    )
+  ),
+  tar_target(
+    name = plot_benchmark_by_forecast_date,
+    command = plot_benchmarks(
+      grouping_var = "forecast_date",
+      benchmark_scope = "subset_forecasts",
+      benchmark_dir = benchmark_config$benchmark_dir
+    )
   )
 )
 
