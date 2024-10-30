@@ -8,6 +8,7 @@ plot_benchmarks(
   grouping_var,
   benchmark_scope,
   benchmark_dir,
+  scores_list,
   score_to_plot = "crps",
   write_files = TRUE
 )
@@ -20,6 +21,8 @@ plot_benchmarks(
 either \code{subset_forecasts} or \code{all_forecasts})}
 
 \item{benchmark_dir}{The directory where the benchmark tables live}
+
+\item{scores_list}{The list of tables of recent scores}
 
 \item{score_to_plot}{Which of the scores saved in the benchmarking
 tables to plot, options are \code{crps}, \code{bias}, and \code{ae}, defualt is \code{crps}}
