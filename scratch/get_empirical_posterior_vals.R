@@ -50,16 +50,9 @@ message("Empirical mean of RW step size across 5 locations: ", mean_eta_sd)
 message("Empirical sd of RW step size across 5 locations: ", sd_eta_sd)
 
 ## inf_feedback----------------------------------------------------------
-mean_inf_feedback <- mean(inf_feedback_draws$infection_feedback)
-sd_inf_feedback <- sd(inf_feedback_draws$infection_feedback)
-logmean_inf_feedback <- wwinference::convert_to_logmean(
-  mean_inf_feedback,
-  sd_inf_feedback
-)
-logsd_inf_feedback <- wwinference::convert_to_logsd(
-  mean_inf_feedback,
-  sd_inf_feedback
-)
+logmean_inf_feedback <- mean(log(inf_feedback_draws$infection_feedback))
+logsd_inf_feedback <- sd(log(inf_feedback_draws$infection_feedback))
+
 
 message(
   "Empirical logmean of infection feedback across 5 locations: ",
@@ -69,3 +62,11 @@ message(
   "Empirical logsd of infection feedback across 5 locations: ",
   logsd_inf_feedback
 )
+
+posterior_params <- list(
+  mean_eta_sd = mean_eta_sd,
+  sd_eta_sd = sd_eta_sd,
+  logmean_inf_feedback = logmean_inf_feedback,
+  logsd_inf_feedback = logsd_inf_feedback
+)
+yaml::write_yaml(posterior_params, "output/posterior_params.yaml")
