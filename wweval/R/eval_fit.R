@@ -59,7 +59,7 @@ eval_fit_ww <- function(config_index,
   last_hosp_data_date <- get_last_hosp_data_date(input_hosp_data)
   input_ww_data <- tryCatch(
     {
-      # Try to execute the risky function
+      # Try to do peprocessing
       get_input_ww_data(
         forecast_date_i = forecast_date,
         location_i = location,
@@ -103,7 +103,11 @@ eval_fit_ww <- function(config_index,
       )
     )
   } else {
-    ww_fit_obj <- list(error = "missing ww data")
+    # Format as expected from cmdstan object
+    ww_fit_obj <- list(
+      fit =
+        list(result = list(error = "missing ww data"))
+    )
   }
 
   save_object("ww_fit_obj", output_file_suffix)
