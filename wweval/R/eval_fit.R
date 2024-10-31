@@ -57,42 +57,57 @@ eval_fit_ww <- function(config_index,
 
 
   last_hosp_data_date <- get_last_hosp_data_date(input_hosp_data)
-  input_ww_data <- get_input_ww_data(
-    forecast_date_i = forecast_date,
-    location_i = location,
-    scenario_i = scenario,
-    scenario_dir = eval_config$scenario_dir,
-    ww_data_dir = eval_config$ww_data_dir,
-    calibration_time = eval_config$calibration_time,
-    last_hosp_data_date = last_hosp_data_date,
-    ww_data_mapping = eval_config$ww_data_mapping
+  input_ww_data <- tryCatch(
+    {
+      # Try to execute the risky function
+      get_input_ww_data(
+        forecast_date_i = forecast_date,
+        location_i = location,
+        scenario_i = scenario,
+        scenario_dir = eval_config$scenario_dir,
+        ww_data_dir = eval_config$ww_data_dir,
+        calibration_time = eval_config$calibration_time,
+        last_hosp_data_date = last_hosp_data_date,
+        ww_data_mapping = eval_config$ww_data_mapping
+      )
+    },
+    error = function(e) {
+      # Handle the error
+      message("Caught an error: ", e$message)
+    }
   )
+
 
   save_object("input_ww_data", output_file_suffix)
 
   ## Use wwinference to fit the model------------------------------------------
-  ww_fit_obj <- wwinference::wwinference(
-    ww_data = input_ww_data,
-    count_data = input_hosp_data,
-    forecast_date = forecast_date,
-    calibration_time = eval_config$calibration_time,
-    forecast_horizon = eval_config$forecast_time,
-    model_spec = wwinference::get_model_spec(
-      generation_interval = eval_config$generation_interval,
-      inf_to_count_delay = wwinference::default_covid_inf_to_hosp, # eval_config$inf_to_hosp,
-      infection_feedback_pmf = eval_config$infection_feedback_pmf,
-      params = params
-    ),
-    fit_opts = list(
-      seed = eval_config$seed,
-      iter_sampling = eval_config$iter_sampling,
-      adapt_delta = eval_config$adapt_delta,
-      chains = eval_config$n_chains,
-      max_treedepth = eval_config$max_treedepth
+  if (!is.null(input_ww_data)) {
+    ww_fit_obj <- wwinference::wwinference(
+      ww_data = input_ww_data,
+      count_data = input_hosp_data,
+      forecast_date = forecast_date,
+      calibration_time = eval_config$calibration_time,
+      forecast_horizon = eval_config$forecast_time,
+      model_spec = wwinference::get_model_spec(
+        generation_interval = eval_config$generation_interval,
+        inf_to_count_delay = wwinference::default_covid_inf_to_hosp, # eval_config$inf_to_hosp,
+        infection_feedback_pmf = eval_config$infection_feedback_pmf,
+        params = params
+      ),
+      fit_opts = list(
+        seed = eval_config$seed,
+        iter_sampling = eval_config$iter_sampling,
+        adapt_delta = eval_config$adapt_delta,
+        chains = eval_config$n_chains,
+        max_treedepth = eval_config$max_treedepth
+      )
     )
-  )
+  } else {
+    ww_fit_obj <- list(error = "missing ww data")
+  }
 
   save_object("ww_fit_obj", output_file_suffix)
+
 
 
   # Get the evaluation data from the specified evaluation date ----------------
@@ -106,17 +121,26 @@ eval_fit_ww <- function(config_index,
 
   save_object("eval_hosp_data", output_file_suffix)
 
-  eval_ww_data <- get_input_ww_data(
-    forecast_date_i = eval_config$eval_date,
-    location_i = location,
-    scenario_i = "status_quo",
-    scenario_dir = eval_config$scenario_dir,
-    ww_data_dir = eval_config$ww_data_dir,
-    calibration_time = 365, # Grab sufficient data for eval
-    last_hosp_data_date = eval_config$eval_date,
-    ww_data_mapping = eval_config$ww_data_mapping
-  ) |>
-    dplyr::filter(date >= min(input_ww_data$date))
+  eval_ww_data <- tryCatch(
+    {
+      # Try to execute the risky function
+      get_input_ww_data(
+        forecast_date_i = eval_config$eval_date,
+        location_i = location,
+        scenario_i = scenario,
+        scenario_dir = eval_config$scenario_dir,
+        ww_data_dir = eval_config$ww_data_dir,
+        calibration_time = 365,
+        last_hosp_data_date = eval_config$eval_date,
+        ww_data_mapping = eval_config$ww_data_mapping
+      ) |>
+        dplyr::filter(date >= min(input_ww_data$date))
+    },
+    error = function(e) {
+      # Handle the error
+      message("Caught an error: ", e$message)
+    }
+  )
 
   save_object("eval_ww_data", output_file_suffix)
 
