@@ -63,6 +63,70 @@ eval_post_process_ww <- function(config_index,
   )
   save_object("raw_flags", output_file_suffix)
 
+  # Save some plots of the posterior parameters---------------------
+  inf_feedback <- ww_raw_draws |>
+    tidybayes::spread_draws(!!str2lang("infection_feedback")) |>
+    dplyr::mutate(
+      draw = .data$`.draw`,
+    ) |>
+    dplyr::select("infection_feedback", "draw")
+
+  p_inf <- ggplot(
+    inf_feedback,
+    aes(x = infection_feedback)
+  ) +
+    geom_histogram()
+
+  eta_sd <- ww_raw_draws |>
+    tidybayes::spread_draws(!!str2lang("eta_sd")) |>
+    dplyr::mutate(
+      draw = .data$`.draw`,
+    ) |>
+    dplyr::select("eta_sd", "draw")
+
+  p_eta_sd <- ggplot(
+    eta_sd,
+    aes(x = eta_sd)
+  ) +
+    geom_histogram()
+
+  ggsave(p_inf,
+    filename = file.path(
+      output_dir, scenario,
+      forecast_date, "ww", location,
+      "inf_feedback.png"
+    ),
+    create.dir = TRUE
+  )
+  ggsave(p_eta_sd,
+    filename = file.path(
+      output_dir, scenario,
+      forecast_date, "ww", location,
+      "eta_sd.png"
+    ),
+    create.dir = TRUE
+  )
+
+  save_table(
+    data_to_save = eta_sd,
+    type_of_output = "eta_sd",
+    output_dir = output_dir,
+    scenario = scenario,
+    forecast_date = forecast_date,
+    model_type = "ww",
+    location = location
+  )
+  save_table(
+    data_to_save = inf_feedback,
+    type_of_output = "inf_feedback",
+    output_dir = output_dir,
+    scenario = scenario,
+    forecast_date = forecast_date,
+    model_type = "ww",
+    location = location
+  )
+
+
   # Make the data look like it did in wweval-------------------------------
   input_hosp_data_wweval <- input_hosp_data |>
     dplyr:::rename(
@@ -160,12 +224,14 @@ eval_post_process_ww <- function(config_index,
     rate = "weekly"
   )
 
-  ggsave(plot_growth_rates, filename = file.path(
-    output_dir, scenario,
-    forecast_date, "ww", location,
-    "plot_growth_rates.png"
-  ))
-
+  ggsave(plot_growth_rates,
+    filename = file.path(
+      output_dir, scenario,
+      forecast_date, "ww", location,
+      "plot_growth_rates.png"
+    ),
+    create.dir = TRUE
+  )
 
   hosp_draws <- {
     if (!is.null(ww_fit_obj_wwinference$error)) {
@@ -282,11 +348,14 @@ eval_post_process_ww <- function(config_index,
     }
   }
 
-  ggsave(plot_hosp_draws, filename = file.path(
-    output_dir, scenario,
-    forecast_date, "ww", location,
-    "plot_hosp_draws.png"
-  ))
+  ggsave(plot_hosp_draws,
+    filename = file.path(
+      output_dir, scenario,
+      forecast_date, "ww", location,
+      "plot_hosp_draws.png"
+    ),
+    create.dir = TRUE
+  )
 
   plot_hosp_t <- make_fig2_hosp_t(
     hosp_quantiles = full_hosp_quantiles,
@@ -296,13 +365,47 @@ eval_post_process_ww <- function(config_index,
     ggtitle(glue::glue("{location} on {forecast_date}")) +
     theme_bw()
 
-  ggsave(plot_hosp_t, filename = file.path(
-    output_dir, scenario,
-    forecast_date, "ww", location,
-    "plot_hosp_t.png"
-  ))
+  ggsave(plot_hosp_t,
+    filename = file.path(
+      output_dir, scenario,
+      forecast_date, "ww", location,
+      "plot_hosp_t.png"
+    ),
+    create.dir = TRUE
+  )
 
   save_object("plot_hosp_draws", output_file_suffix)
+
+  # Plots of R(t)s
+  draws <- wwinference::get_draws(ww_fit_obj_wwinference, what = "all")
+
+  plot_state_rt <- wwinference::get_plot_global_rt(
+    draws$global_rt,
+    forecast_date
+  )
+  ggsave(plot_state_rt,
+    filename = file.path(
+      output_dir, scenario,
+      forecast_date, "ww", location,
+      "plot_state_rt.png"
+    ),
+    create.dir = TRUE
+  )
+
+  plot_subpop_rt <- wwinference::get_plot_subpop_rt(
+    draws$subpop_rt,
+    forecast_date
+  )
+  ggsave(plot_subpop_rt,
+    filename = file.path(
+      output_dir, scenario,
+      forecast_date, "ww", location,
+      "plot_subpop_rt.png"
+    ),
+    create.dir = TRUE
+  )
+
+
 
   plot_ww_draws <- {
     if (is.null(ww_draws)) {
@@ -316,11 +419,14 @@ eval_post_process_ww <- function(config_index,
     }
   }
 
-  ggsave(plot_ww_draws, filename = file.path(
-    output_dir, scenario,
-    forecast_date, "ww",
-    location, "plot_ww_draws.png"
-  ))
+  ggsave(plot_ww_draws,
+    filename = file.path(
+      output_dir, scenario,
+      forecast_date, "ww",
+      location, "plot_ww_draws.png"
+    ),
+    create.dir = TRUE
+  )
 
   plot_ww_t <- make_fig2_ct(
     full_ww_quantiles,
@@ -332,11 +438,14 @@ eval_post_process_ww <- function(config_index,
     ggtitle(glue::glue("{location} on {forecast_date}")) +
     theme_bw()
 
-  ggsave(plot_ww_t, filename = file.path(
-    output_dir, scenario,
-    forecast_date, "ww",
-    location, "plot_ww_t.png"
-  ))
+  ggsave(plot_ww_t,
+    filename = file.path(
+      output_dir, scenario,
+      forecast_date, "ww",
+      location, "plot_ww_t.png"
+    ),
+    create.dir = TRUE
+  )
 
   save_object("plot_ww_draws", output_file_suffix)
 
@@ -441,6 +550,72 @@ eval_post_process_hosp <- function(config_index,
     location = location
   )
 
+  # Make plots of posterior params-------------------
+
+  inf_feedback <- hosp_raw_draws |>
+    tidybayes::spread_draws(!!str2lang("infection_feedback")) |>
+    dplyr::mutate(
+      draw = .data$`.draw`,
+    ) |>
+    dplyr::select("infection_feedback", "draw")
+
+  p_inf <- ggplot(
+    inf_feedback,
+    aes(x = infection_feedback)
+  ) +
+    geom_histogram()
+
+  eta_sd <- hosp_raw_draws |>
+    tidybayes::spread_draws(!!str2lang("eta_sd")) |>
+    dplyr::mutate(
+      draw = .data$`.draw`,
+    ) |>
+    dplyr::select("eta_sd", "draw")
+
+  p_eta_sd <- ggplot(
+    eta_sd,
+    aes(x = eta_sd)
+  ) +
+    geom_histogram()
+
+  ggsave(
+    filename = file.path(
+      output_dir, scenario,
+      forecast_date, "hosp", location,
+      "inf_feedback.png"
+    ),
+    p_inf,
+    create.dir = TRUE
+  )
+  ggsave(
+    filename = file.path(
+      output_dir, scenario,
+      forecast_date, "hosp", location,
+      "eta_sd.png"
+    ),
+    p_eta_sd,
+    create.dir = TRUE
+  )
+  save_table(
+    data_to_save = eta_sd,
+    type_of_output = "eta_sd",
+    output_dir = output_dir,
+    scenario = scenario,
+    forecast_date = forecast_date,
+    model_type = "hosp",
+    location = location
+  )
+  save_table(
+    data_to_save = inf_feedback,
+    type_of_output = "inf_feedback",
+    output_dir = output_dir,
+    scenario = scenario,
+    forecast_date = forecast_date,
+    model_type = "hosp",
+    location = location
+  )
+
+
 
   # Get evaluation data from hospital admissions and wastewater
   # Join draws with flags + data and metadata
@@ -504,21 +679,42 @@ eval_post_process_hosp <- function(config_index,
       forecast_date, "hosp", location,
       "plot_hosp_draws.png"
     ),
-    bg = "white"
+    bg = "white",
+    create.dir = TRUE
   )
 
   plot_hosp_t <- make_fig2_hosp_t(
     hosp_quantiles = full_hosp_model_quantiles,
     loc_to_plot = location,
-    date_to_plot = forecast_date
+    date_to_plot = forecast_date,
+    n_calib_days = eval_config$calibration_time
   ) +
     ggtitle(glue::glue("{location} on {forecast_date}"))
 
-  ggsave(plot_hosp_t, filename = file.path(
-    output_dir, scenario,
-    forecast_date, "hosp", location,
-    "plot_hosp_t.png"
-  ))
+  ggsave(plot_hosp_t,
+    filename = file.path(
+      output_dir, scenario,
+      forecast_date, "hosp", location,
+      "plot_hosp_t.png"
+    ),
+    create.dir = TRUE
+  )
+
+  # Plots of R(t)s
+  draws <- wwinference::get_draws(hosp_fit_obj_wwinference, what = "global_rt")
+
+  plot_state_rt <- wwinference::get_plot_global_rt(
+    draws$global_rt,
+    forecast_date
+  )
+  ggsave(plot_state_rt,
+    filename = file.path(
+      output_dir, scenario,
+      forecast_date, "hosp", location,
+      "plot_state_rt.png"
+    ),
+    create.dir = TRUE
+  )
 
   ## Score the hospital admissions only model-------------------------
   hosp_scores <- get_full_scores(hosp_model_hosp_draws,

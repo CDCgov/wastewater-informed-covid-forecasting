@@ -6,9 +6,10 @@
 #' @param scenatios the scenarios (which will pertain to site ids) to
 #' run the model on
 #' @param config_dir the directory where we want to save the config file
+#' @param scenario_dir the directory where the files defining scenarios
+#' (default `.tsv` format) are located
 #' @param benchmark_dir the directory where to save the benchmarked performance
 #' for this run
-#' @param ms_fig_dir the directory to save the manuscript figures in
 #' @param eval_date the data of the evaluation dataset, in ISO YYYY-MM-DD format
 #' @param overwrite_summary_table Boolean indicating whether or not to overwrite
 #' internal summary table
@@ -191,6 +192,7 @@ write_eval_config <- function(locations, forecast_dates,
     adapt_delta = adapt_delta,
     max_treedepth = max_treedepth,
     seed = seed,
+    name_of_config = name_of_config,
     # Input delay distributions
     generation_interval = generation_interval,
     infection_feedback_pmf = generation_interval,

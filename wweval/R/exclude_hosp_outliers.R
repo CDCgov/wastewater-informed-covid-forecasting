@@ -26,15 +26,14 @@ exclude_hosp_outliers <- function(raw_input_hosp_data,
 
   stopifnot("Only one location passed in" = length(loc) == 1)
 
-  exclusions <- table_of_exclusions |>
-    dplyr::filter(
-      location == loc,
-      forecast_date == forecast_date
-    )
-
-  if (nrow(exclusions) == 0) {
+  if (nrow(table_of_exclusions) == 0) {
     input_hosp_data <- raw_input_hosp_data
   } else {
+    exclusions <- table_of_exclusions |>
+      dplyr::filter(
+        location == loc,
+        forecast_date == forecast_date
+      )
     dates_to_exclude <- exclusions |>
       dplyr::pull({{ col_name_dates_to_exclude }})
     input_hosp_data <- raw_input_hosp_data |>
