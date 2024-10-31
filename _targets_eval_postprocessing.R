@@ -1455,7 +1455,7 @@ hub_comparison_plots <- list(
 # Benchmarking----------------------------------------------------------
 benchmarks <- list(
   tar_target(
-    name = write_benchmark_table_full_run,
+    name = benchmark_table_full_run,
     command = benchmark_performance(
       ww_scores = all_ww_scores,
       hosp_scores = all_hosp_scores,
@@ -1470,7 +1470,8 @@ benchmarks <- list(
     command = plot_benchmarks(
       grouping_var = "location",
       benchmark_scope = "all_forecasts",
-      benchmark_dir = benchmark_config$benchmark_dir
+      benchmark_dir = benchmark_config$benchmark_dir,
+      scores_list = benchmark_table_full_run
     )
   ),
   tar_target(
@@ -1478,7 +1479,8 @@ benchmarks <- list(
     command = plot_benchmarks(
       grouping_var = "forecast_date",
       benchmark_scope = "all_forecasts",
-      benchmark_dir = benchmark_config$benchmark_dir
+      benchmark_dir = benchmark_config$benchmark_dir,
+      scores_list = benchmark_table_full_run
     )
   )
 )
