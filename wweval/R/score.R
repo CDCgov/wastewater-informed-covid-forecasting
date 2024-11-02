@@ -31,33 +31,43 @@ get_full_scores <- function(draws,
       ungroup() |>
       # Rename for scoring utils
       rename(
-        sample = draw,
+        sample_id = draw,
         model = model_type,
-        true_value = eval_data,
-        prediction = value,
+        observed = eval_data,
+        predicted = value,
       ) |>
       select(
         location,
         forecast_date,
         date,
-        true_value,
-        prediction,
-        sample,
+        observed,
+        predicted,
+        sample_id,
         model
+      )
+
+
+    scores <- forecasted_draws |>
+      data.table::as.data.table() |>
+      scoringutils::as_forecast_sample(
+        forecast_unit = c(
+          "location", "forecast_date", "date", "model"
+        )
+      ) |>
+      scoringutils::transform_forecasts(
+        fun = scoringutils::log_shift,
+        offset = 1
+      ) |>
+      scoringutils::score(metrics = metrics) |>
+      dplyr::rename(
+        prediction = predicted,
+        true_value = observed,
+        sample = sample_id
       ) |>
       mutate(
         period = ifelse(date <= forecast_date, "nowcast", "forecast"),
         scenario = !!scenario
       )
-
-    scores <- forecasted_draws |>
-      data.table::as.data.table() |>
-      scoringutils::transform_forecasts(
-        fun = scoringutils::log_shift,
-        offset = 1
-      ) |>
-      scoringutils::check_forecasts() |>
-      scoringutils::score(metrics = metrics)
   }
 
 
@@ -94,32 +104,41 @@ get_scores_from_quantiles <- function(quantiles,
       # Rename for scoring utils
       rename(
         model = model_type,
-        true_value = eval_data,
-        prediction = value,
+        observed = eval_data,
+        predicted = value,
+        quantile_level = quantile
       ) |>
       select(
         location,
         forecast_date,
         date,
-        true_value,
-        prediction,
-        quantile,
+        observed,
+        predicted,
+        quantile_level,
         model
+      )
+
+    scores <- forecasted_quantiles |>
+      data.table::as.data.table() |>
+      scoringutils::as_forecast_quantile(
+        forecast_unit = c(
+          "location", "forecast_date", "date", "model"
+        )
+      ) |>
+      scoringutils::transform_forecasts(
+        fun = scoringutils::log_shift,
+        offset = 1
+      ) |>
+      scoringutils::score(metrics = metrics) |>
+      dplyr::rename(
+        prediction = predicted,
+        true_value = observed,
+        quantile = quantile_level
       ) |>
       mutate(
         period = ifelse(date <= forecast_date, "nowcast", "forecast"),
         scenario = !!scenario
       )
-
-
-    scores <- forecasted_quantiles |>
-      data.table::as.data.table() |>
-      scoringutils::transform_forecasts(
-        fun = scoringutils::log_shift,
-        offset = 1
-      ) |>
-      scoringutils::check_forecasts() |>
-      scoringutils::score(metrics = metrics)
   }
   return(scores)
 }
