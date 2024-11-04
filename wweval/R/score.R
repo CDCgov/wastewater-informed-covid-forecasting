@@ -9,17 +9,12 @@
 #' alongside the evaluation data
 #' @param scenario a string indicating the wastewater data scenario we're
 #' running
-#' @param metrics Vector of scoring metrics to output, passed as the
-#' `metrics` argument to [scoringutils::score()]. Default is NULL,
-#' which returns all options for samples including:
-#' `c("crps", "dss", "bias", "mad", "ae_median", "se_mean")`.
 #'
 #' @return a dataframe containing a score for each day in the nowcast
 #' and forecast period
 #' @export
 get_full_scores <- function(draws,
-                            scenario,
-                            metrics = NULL) {
+                            scenario) {
   if (is.null(draws)) {
     scores <- NULL
   } else {
@@ -58,12 +53,7 @@ get_full_scores <- function(draws,
         fun = scoringutils::log_shift,
         offset = 1
       ) |>
-      scoringutils::score(metrics = metrics) |>
-      dplyr::rename(
-        prediction = predicted,
-        true_value = observed,
-        sample = sample_id
-      ) |>
+      scoringutils::score() |>
       mutate(
         period = ifelse(date <= forecast_date, "nowcast", "forecast"),
         scenario = !!scenario
@@ -85,17 +75,12 @@ get_full_scores <- function(draws,
 #' only
 #' @param scenario a string indicating the wastewater data scenario we're
 #' running
-#' @param metrics Vector of scoring metrics to output, passed as the
-#' `metrics` argument to [scoringutils::score()]. Default is NULL which will
-#' include all scoring metrics for quantiles by default, including
-#' `c("interval_score", "coverage", "dispersion", "bias")`.
 #'
 #' @return a dataframe containing a score for each day in the nowcast
 #' and forecast period
 #' @export
 get_scores_from_quantiles <- function(quantiles,
-                                      scenario,
-                                      metrics = NULL) {
+                                      scenario) {
   if (is.null(quantiles)) {
     scores <- NULL
   } else {
@@ -129,12 +114,7 @@ get_scores_from_quantiles <- function(quantiles,
         fun = scoringutils::log_shift,
         offset = 1
       ) |>
-      scoringutils::score(metrics = metrics) |>
-      dplyr::rename(
-        prediction = predicted,
-        true_value = observed,
-        quantile = quantile_level
-      ) |>
+      scoringutils::score() |>
       mutate(
         period = ifelse(date <= forecast_date, "nowcast", "forecast"),
         scenario = !!scenario
