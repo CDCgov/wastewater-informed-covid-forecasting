@@ -78,6 +78,7 @@ Imports:
     RColorBrewer,
     zoltr,
     wwinference,
+    scoringutils (>= 1.2.2),
     fs
 Suggests:
     httr,
@@ -90,5 +91,5 @@ RoxygenNote: 7.3.2
 Remotes:
     stan-dev/cmdstanr,
     wwinference=CDCgov/ww-inference-model@227-inf-feedback-mod,
-    scoringutils=epiforecasts/scoringutils@v1.2.2
+    github::epiforecasts/scoringutils@v1.2.2
 LazyData: true
