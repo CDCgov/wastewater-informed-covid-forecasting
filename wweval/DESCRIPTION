@@ -68,7 +68,7 @@ Imports:
     purrr,
     scales,
     soql,
-    scoringutils,
+    scoringutils (== 1.2.2),
     tibble,
     zoo,
     cmdstanr (>= 0.7.1),
@@ -90,6 +90,5 @@ Config/Needs/check: rcmdcheck, testthat
 RoxygenNote: 7.3.2
 Remotes:
     stan-dev/cmdstanr,
-    wwinference=CDCgov/ww-inference-model@227-inf-feedback-mod,
-    scoringutils=epiforecasts/scoringutils@v1.2.0
+    wwinference=CDCgov/ww-inference-model@227-inf-feedback-mod
 LazyData: true
