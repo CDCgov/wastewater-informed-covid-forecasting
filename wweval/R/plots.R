@@ -1022,6 +1022,12 @@ get_plot_wis_over_time <- function(all_scores,
                                    save_files = TRUE) {
   scores <- dplyr::bind_rows(all_scores, cfa_real_time_scores)
 
+  attr(scores, "metrics") <- c(
+    "wis", "overprediction", "underprediction",
+    "dispersion", "bias", "interval_coverage_50",
+    "interval_coverage_90", "ae_median"
+  )
+
   if (!is.null(horizon_time_in_weeks)) {
     scores_by_forecast_date <- scores |>
       data.table::as.data.table() |>
@@ -1125,6 +1131,12 @@ get_plot_hub_performance <- function(all_scores,
                                      real_time_period,
                                      baseline_model = "COVIDhub-baseline",
                                      save_files = TRUE) {
+  attr(all_scores, "metrics") <- c(
+    "wis", "overprediction", "underprediction",
+    "dispersion", "bias", "interval_coverage_50",
+    "interval_coverage_90", "ae_median"
+  )
+
   scores_by_model_all_time <- all_scores |>
     data.table::as.data.table() |>
     scoringutils::summarise_scores(
@@ -1248,6 +1260,12 @@ get_heatmap_relative_wis <- function(scores,
                                      time_period,
                                      baseline_model = "COVIDhub-baseline",
                                      save_files = TRUE) {
+  attr(scores, "metrics") <- c(
+    "wis", "overprediction", "underprediction",
+    "dispersion", "bias", "interval_coverage_50",
+    "interval_coverage_90", "ae_median"
+  )
+
   summarized_scores <- scores |>
     data.table::as.data.table() |>
     scoringutils::summarise_scores(
@@ -1341,6 +1359,12 @@ get_qq_plot <- function(scores,
                         figure_file_path,
                         time_period,
                         save_files = TRUE) {
+  attr(scores, "metrics") <- c(
+    "wis", "overprediction", "underprediction",
+    "dispersion", "bias", "interval_coverage_50",
+    "interval_coverage_90", "ae_median"
+  )
+
   p <- scores |>
     data.table::as.data.table() |>
     scoringutils::summarise_scores(by = c("model", "range")) |>

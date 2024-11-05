@@ -26,6 +26,12 @@ make_fig5_average_wis <- function(all_scores,
 
   scores <- dplyr::bind_rows(subset_model_scores, cfa_real_time_scores)
 
+  attr(all_scores, "metrics") <- c(
+    "wis", "overprediction", "underprediction",
+    "dispersion", "bias", "interval_coverage_50",
+    "interval_coverage_90", "ae_median"
+  )
+
 
   if (!is.null(horizon_time_in_weeks)) {
     scores_by_forecast_date <- scores |>
@@ -119,6 +125,12 @@ make_fig5_hub_performance <- function(all_scores,
                                       baseline_model = "COVIDhub-4_week_ensemble") {
   subset_scores <- all_scores |>
     dplyr::filter(model %in% !!models_to_show)
+
+  attr(all_scores, "metrics") <- c(
+    "wis", "overprediction", "underprediction",
+    "dispersion", "bias", "interval_coverage_50",
+    "interval_coverage_90", "ae_median"
+  )
 
   if (isTRUE(summarize_across_horizon)) {
     scores_by_model_all_time <- subset_scores |>
@@ -234,6 +246,12 @@ make_fig5_heatmap_relative_wis <- function(scores,
                                            time_period,
                                            models_to_show,
                                            baseline_model = "COVIDhub-4_week_ensemble") {
+  attr(scores, "metrics") <- c(
+    "wis", "overprediction", "underprediction",
+    "dispersion", "bias", "interval_coverage_50",
+    "interval_coverage_90", "ae_median"
+  )
+
   summarized_scores <- scores |>
     data.table::as.data.table() |>
     scoringutils::summarise_scores(

@@ -89,6 +89,12 @@ make_fig4_rel_crps_over_time <- function(scores,
 make_fig4_pct_better_w_ww <- function(scores,
                                       eval_hosp_data,
                                       days_to_show_prev_data = 14) {
+  attr(scores, "metrics") <- c(
+    "bias", "dss", "crps", "overprediction",
+    "underprediction", "dispersion", "log_score",
+    "mad", "ae_median", "se_mean"
+  )
+
   pct_better_w_ww <- scores |>
     data.table::as.data.table() |>
     scoringutils::summarise_scores(by = c(
@@ -345,9 +351,10 @@ make_fig4_rel_crps_overall <- function(scores,
 #' @export
 make_qq_plot_overall <- function(scores_quantiles) {
   colors <- plot_components()
+
   p <- scores_quantiles |>
     data.table::as.data.table() |>
-    scoringutils::summarise_scores(by = c("model", "quantile")) |>
+    scoringutils::summarise_scores(by = c("model", "quantile", )) |>
     scoringutils::plot_quantile_coverage() +
     # ggtitle(glue::glue("QQ plot")) +
     get_plot_theme() +
@@ -547,6 +554,12 @@ make_sfig_crps_by_phase <- function(scores) {
 #' @export
 make_fig4_avg_crps_over_time <- function(scores,
                                          horizon_time_in_weeks = NULL) {
+  attr(scores, "metrics") <- c(
+    "bias", "dss", "crps", "overprediction",
+    "underprediction", "dispersion", "log_score",
+    "mad", "ae_median", "se_mean"
+  )
+
   if (!is.null(horizon_time_in_weeks)) {
     scores_by_forecast_date <- scores |>
       data.table::as.data.table() |>
