@@ -692,9 +692,11 @@ get_plot_scores_w_data <- function(all_scores,
 #'
 get_plot_summarized_scores <- function(all_scores,
                                        score_metric = "crps") {
-  scores <- all_scores |>
-    dplyr::select(-tar_group) |>
-    data.table::as.data.table()
+  attr(all_scores, "metrics") <- c(
+    "bias", "dss", "crps", "overprediction",
+    "underprediction", "dispersion", "log_score",
+    "mad", "ae_median", "se_mean"
+  )
 
   summarized_scores <- all_scores |>
     mutate(forecast_date = lubridate::ymd(forecast_date)) |>
