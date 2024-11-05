@@ -358,7 +358,7 @@ score_hub_submissions <- function(model_name,
         quantiles_w_truth <- quantiles |>
           dplyr::left_join(
             truth_data |> dplyr::rename(
-              true_value = value
+              observed = value
             ),
             by = c(
               "target_end_date" = "date",
@@ -366,7 +366,7 @@ score_hub_submissions <- function(model_name,
             )
           ) |>
           dplyr::rename(
-            prediction = value
+            predicted = value
           ) |>
           dplyr::mutate(
             model = this_model_name
@@ -380,7 +380,13 @@ score_hub_submissions <- function(model_name,
 
         # Pass to scoring utils, no summaries just daily, quantiled scores
         these_natural_scale_scores <- quantiles_w_truth |>
-          scoringutils::score(metrics = NULL) |>
+          scoringutils::as_forecast_quantile(
+            scoring_unit = c(
+              "model", "location", "target_end_date",
+              "forecast_date"
+            )
+          ) |>
+          scoringutils::score() |>
           dplyr::mutate(horizon_days = as.integer(
             lubridate::ymd(target_end_date) - lubridate::ymd(forecast_date)
           )) |>

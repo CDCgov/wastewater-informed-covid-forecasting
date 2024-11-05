@@ -19,6 +19,11 @@ make_fig3_single_loc_comp <- function(scores,
                                         "1 wk", "4 wks",
                                         "overall"
                                       )) {
+  attr(scores, "metrics") <- c(
+    "bias", "dss", "crps", "overprediction",
+    "underprediction", "dispersion", "log_score",
+    "mad", "ae_median", "se_mean"
+  )
   scores_by_horizon <- scores |>
     dplyr::filter(location == !!loc_to_plot) |>
     data.table::as.data.table() |>
@@ -195,6 +200,12 @@ make_fig3_crps_underlay_fig <- function(scores,
                                         horizon_to_plot,
                                         horizon_days_ahead,
                                         days_to_shift = 0) {
+  attr(scores, "metrics") <- c(
+    "bias", "dss", "crps", "overprediction",
+    "underprediction", "dispersion", "log_score",
+    "mad", "ae_median", "se_mean"
+  )
+
   scores_by_horizon <- scores |>
     dplyr::filter(location == !!loc_to_plot) |>
     data.table::as.data.table() |>

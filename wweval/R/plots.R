@@ -568,6 +568,13 @@ get_plot_scores_w_data <- function(all_scores,
     unique()
 
 
+  attr(all_scores, "metrics") <- c(
+    "bias", "dss", "crps", "overprediction",
+    "underprediction", "dispersion", "log_score",
+    "mad", "ae_median", "se_mean"
+  )
+
+
   eval_data_subsetted <- eval_data |>
     dplyr::filter(
       location == !!location,
@@ -770,6 +777,11 @@ get_plot_summarized_scores <- function(all_scores,
 #'
 get_heatmap_scores <- function(mock_submission_scores,
                                score_metric = "crps") {
+  attr(mock_submission_scores, "metrics") <- c(
+    "bias", "dss", "crps", "overprediction",
+    "underprediction", "dispersion", "log_score",
+    "mad", "ae_median", "se_mean"
+  )
   summary_across_forecast_dates <- mock_submission_scores |>
     data.table::as.data.table() |>
     scoringutils::summarize_scores(
@@ -824,6 +836,12 @@ get_box_plot <- function(all_scores,
                          figure_file_path,
                          baseline_scenario = "no_wastewater",
                          save_files = TRUE) {
+  attr(all_scores, "metrics") <- c(
+    "bias", "dss", "crps", "overprediction",
+    "underprediction", "dispersion", "log_score",
+    "mad", "ae_median", "se_mean"
+  )
+
   scores_by_date_scen_loc <- scoringutils::summarize_scores(all_scores,
     by = c(
       "scenario",
@@ -918,6 +936,12 @@ get_n_states_improved_plot <- function(all_scores,
                                        baseline_scenario = "no_wastewater",
                                        threshold_for_improvement = 1,
                                        save_files = TRUE) {
+  attr(all_scores, "metrics") <- c(
+    "bias", "dss", "crps", "overprediction",
+    "underprediction", "dispersion", "log_score",
+    "mad", "ae_median", "se_mean"
+  )
+
   scores_by_date_scen_loc <- scoringutils::summarize_scores(all_scores,
     by = c(
       "scenario",
