@@ -67,12 +67,12 @@ combine_and_summarize_ww_data <- function(forecast_dates,
       ww_metadata <- rbind(ww_metadata, this_ww_metadata)
     } else {
       warning(glue::glue(
-        "File missing for {this_scenario}",
+        "File missing ",
         "in {this_location} on {this_forecast_date}"
       ))
       # Create a tibble of the combos that are missing, to save
       this_failed_output <- tibble(
-        scenario = this_scenario,
+        scenario = "status_quo",
         location = this_location,
         forecast_date = this_forecast_date
       )
@@ -84,13 +84,13 @@ combine_and_summarize_ww_data <- function(forecast_dates,
     # Save the missing files in a new subfolder in the eval_output_subdir
     wwinference::create_dir(file.path(
       eval_output_subdir,
-      "files_missing", model_type
+      "files_missing", "ww"
     ))
 
     readr::write_csv(
       flag_failed_output,
       file.path(
-        eval_output_subdir, "files_missing", model_type,
+        eval_output_subdir, "files_missing", "ww",
         "ww_data_metadata.csv"
       )
     )

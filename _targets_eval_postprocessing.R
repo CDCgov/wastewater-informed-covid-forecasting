@@ -1470,7 +1470,7 @@ benchmarks <- list(
     command = plot_benchmarks(
       grouping_var = "location",
       benchmark_scope = "all_forecasts",
-      benchmark_dir = benchmark_config$benchmark_dir,
+      benchmark_dir = eval_config$benchmark_dir,
       scores_list = benchmark_table_full_run
     )
   ),
@@ -1479,7 +1479,7 @@ benchmarks <- list(
     command = plot_benchmarks(
       grouping_var = "forecast_date",
       benchmark_scope = "all_forecasts",
-      benchmark_dir = benchmark_config$benchmark_dir,
+      benchmark_dir = eval_config$benchmark_dir,
       scores_list = benchmark_table_full_run
     )
   )
