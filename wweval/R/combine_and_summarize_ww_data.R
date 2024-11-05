@@ -72,7 +72,7 @@ combine_and_summarize_ww_data <- function(forecast_dates,
       ))
       # Create a tibble of the combos that are missing, to save
       this_failed_output <- tibble(
-        scenario = this_scenario,
+        scenario = "status_quo",
         location = this_location,
         forecast_date = this_forecast_date
       )
