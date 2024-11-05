@@ -67,7 +67,7 @@ combine_and_summarize_ww_data <- function(forecast_dates,
       ww_metadata <- rbind(ww_metadata, this_ww_metadata)
     } else {
       warning(glue::glue(
-        "File missing for {this_scenario}",
+        "File missing for {scenario}",
         "in {this_location} on {this_forecast_date}"
       ))
       # Create a tibble of the combos that are missing, to save
