@@ -84,13 +84,13 @@ combine_and_summarize_ww_data <- function(forecast_dates,
     # Save the missing files in a new subfolder in the eval_output_subdir
     wwinference::create_dir(file.path(
       eval_output_subdir,
-      "files_missing", model_type
+      "files_missing", "ww"
     ))
 
     readr::write_csv(
       flag_failed_output,
       file.path(
-        eval_output_subdir, "files_missing", model_type,
+        eval_output_subdir, "files_missing", "ww",
         "ww_data_metadata.csv"
       )
     )
