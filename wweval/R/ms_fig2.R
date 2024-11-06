@@ -161,7 +161,7 @@ make_fig2_ct <- function(ww_quantiles,
 
   colors <- plot_components()
   # Set ribbon and line color for model fit, in this case is always ww model
-  model_color <- colors$model_colors$ww
+  model_color <- as.character(colors$model_colors["ww"])
 
   p <- ggplot(quantiles_wide) +
     geom_point(aes(x = date, y = log(eval_data)),
