@@ -80,15 +80,15 @@ write_eval_config <- function(locations, forecast_dates,
   # stan_models_dir <- system.file("stan", package = "cfaforecastrenewalww") #nolint
   stan_models_dir <- file.path("cfaforecastrenewalww", "inst", "stan")
   init_dir <- file.path("input", "init_lists")
-  output_dir <- file.path("output", "eval")
-  figure_dir <- file.path("output", "eval", "plots")
+  output_dir <- file.path("output", "eval_versioned", "eval_bm_inc_eta_sd")
+  figure_dir <- file.path("output", "eval_versioned", "eval_bm_inc_eta_sd", "plots")
   ms_fig_dir <- file.path(
-    "output", "eval",
+    "output", "eval_versioned", "eval_bm_inc_eta_sd",
     "plots", "manuscript"
   )
-  hub_subdir <- file.path("output", "eval", "hub")
+  hub_subdir <- file.path("output", "eval_versioned", "eval_bm_inc_eta_sd", "hub")
   retro_rt_path <- file.path("input", "retro_Rt", "Rt_draws.parquet")
-  score_subdir <- file.path("output", "eval", "hub")
+  score_subdir <- file.path("output", "eval_versioned", "eval_bm_inc_eta_sd", "hub")
   # Proportion of forecast dates that a model must have submitted for to be
   # included in the Hub analysis
   prop_dates_for_incl_hub <- 18 / 22
