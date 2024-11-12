@@ -151,6 +151,19 @@ eval_post_process_ww <- function(config_index,
     ) +
       geom_histogram()
 
+    sigma_rt <- ww_raw_draws |>
+      tidybayes::spread_draws(!!str2lang("sigma_rt")) |>
+      dplyr::mutate(
+        draw = .data$`.draw`,
+      ) |>
+      dplyr::select("sigma_rt", "draw")
+
+    p_sigma <- ggplot(
+      sigma_rt,
+      aes(x = sigma_rt)
+    ) +
+      geom_histogram()
+
     eta_sd <- ww_raw_draws |>
       tidybayes::spread_draws(!!str2lang("eta_sd")) |>
       dplyr::mutate(
@@ -169,6 +182,14 @@ eval_post_process_ww <- function(config_index,
         output_dir, scenario,
         forecast_date, "ww", location,
         "inf_feedback.png"
+      ),
+      create.dir = TRUE
+    )
+    ggsave(p_sigma,
+      filename = file.path(
+        output_dir, scenario,
+        forecast_date, "ww", location,
+        "sigma_rt.png"
       ),
       create.dir = TRUE
     )
