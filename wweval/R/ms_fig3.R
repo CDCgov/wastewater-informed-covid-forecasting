@@ -28,6 +28,7 @@ make_fig3_single_loc_comp <- function(scores,
     )) |>
     dplyr::filter(horizon %in% !!horizons_to_show)
   scores_overall <- scores |>
+    dplyr::filter(location == !!loc_to_plot) |>
     data.table::as.data.table() |>
     scoringutils::summarise_scores(by = c(
       "forecast_date", "location",
