@@ -128,7 +128,10 @@ make_fig2_ct <- function(ww_quantiles,
                          site_lab_names_to_show = NULL) {
   if (!is.null(site_lab_names_to_show)) {
     ww_quantiles <- ww_quantiles |>
-      dplyr::filter(lab_site_name %in% c(site_lab_names_to_show))
+      dplyr::filter(site_lab_name %in% c(site_lab_names_to_show))
+  } else {
+    ww_quantiles <- ww_quantiles |>
+      dplyr::filter(lab_site_index <= !!max_n_site_labs_to_show)
   }
 
   ww <- ww_quantiles |>
@@ -137,8 +140,9 @@ make_fig2_ct <- function(ww_quantiles,
     dplyr::filter(
       date <= forecast_date + lubridate::days(!!n_forecast_days),
       date >= forecast_date - lubridate::days(!!n_calib_days)
-    ) |>
-    dplyr::filter(lab_site_index <= !!max_n_site_labs_to_show)
+    )
+
+
 
   stopifnot(
     "This function is meant for one location" =

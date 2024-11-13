@@ -585,7 +585,12 @@ manuscript_figures <- list(
     command = make_fig2_ct(
       ww_quants_plot,
       loc_to_plot = locs_to_plot[1],
-      date_to_plot = forecast_date_to_plot
+      date_to_plot = forecast_date_to_plot,
+      site_lab_names_to_show = c(
+        "Site: 2590, Lab: 34",
+        "Site: 2487, Lab: 34",
+        "Site: 2490, Lab: 34"
+      )
     )
   ),
   tar_target(
