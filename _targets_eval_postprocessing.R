@@ -526,7 +526,7 @@ manuscript_figures <- list(
   ## Figure specifications----------------------------------------
   tar_target(
     name = locs_to_plot,
-    command = c("MA", "VA", "WA")
+    command = c("CA", "VA", "WA")
   ),
   tar_target(
     name = forecast_date_to_plot,

@@ -111,6 +111,9 @@ make_fig2_hosp_t <- function(hosp_quantiles,
 #' calibration data for, default is `90`
 #' @param max_n_site_labs_to_show An integer indicating the maximum number
 #' of site-labs to show in the figure, default is `3`
+#' @param site_lab_names_to_show a vector of character strings indicating
+#' the site lab names to be displayed in the plot. If NULL, the first
+#' `max_n_site_labs_to_show` or all are displayed. Default is `NULL`.
 #'
 #' @return A ggplot object containing a faceted horizontal plot of the
 #' calibrated and forecasted wastewater concentrations for 3 or fewer
@@ -121,7 +124,13 @@ make_fig2_ct <- function(ww_quantiles,
                          date_to_plot,
                          n_forecast_days = 28,
                          n_calib_days = 90,
-                         max_n_site_labs_to_show = 3) {
+                         max_n_site_labs_to_show = 3,
+                         site_lab_names_to_show = NULL) {
+  if (!is.null(site_lab_names_to_show)) {
+    ww_quantiles <- ww_quantiles |>
+      dplyr::filter(lab_site_name %in% c(site_lab_names_to_show))
+  }
+
   ww <- ww_quantiles |>
     dplyr::filter(location == !!loc_to_plot) |>
     dplyr::filter(forecast_date == !!date_to_plot) |>
