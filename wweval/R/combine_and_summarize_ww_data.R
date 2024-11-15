@@ -174,7 +174,7 @@ load_data_and_summarize <- function(fp_hosp, fp_ww,
       dplyr::distinct(.data$date) |>
       dplyr::summarize(
         n_days_w_samples = dplyr::n(),
-        n_days_total = as.numeric(max(.data$date) - min(.data$date)),
+        n_days_total = as.numeric(max(.data$date) - min(.data$date)) + 1,
         mean_collection_freq = .data$n_days_w_samples / .data$n_days_total
       ) |>
       dplyr::summarize(
