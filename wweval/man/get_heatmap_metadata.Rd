@@ -4,7 +4,7 @@
 \alias{get_heatmap_metadata}
 \title{Get a heatmap of the metadata of reasons for excluding forecasts from analysis}
 \usage{
-get_heatmap_metadata(metadata)
+get_heatmap_metadata(metadata, fig_file_dir)
 }
 \arguments{
 \item{metadata}{a tibble of location -forecast date metadata}
