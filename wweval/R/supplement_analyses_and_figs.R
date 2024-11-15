@@ -859,6 +859,7 @@ get_summary_metadata <- function(metadata) {
 #' Get a heatmap of the metadata of reasons for excluding forecasts from analysis
 #'
 #' @param metadata a tibble of location -forecast date metadata
+#' @param fig_file_dir string indicating where to save figs
 #'
 #' @return a ggplot object with a heatmap colored by reason for excluding
 #' @export

@@ -8,6 +8,8 @@ get_heatmap_metadata(metadata, fig_file_dir)
 }
 \arguments{
 \item{metadata}{a tibble of location -forecast date metadata}
+
+\item{fig_file_dir}{string indicating where to save figs}
 }
 \value{
 a ggplot object with a heatmap colored by reason for excluding
