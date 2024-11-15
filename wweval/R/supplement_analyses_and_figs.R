@@ -723,3 +723,96 @@ get_plot_sites_vs_performance <- function(scores,
 
   return(p_n_sites)
 }
+#' Plot a heatmap of the avg forecast performance by locations and forecast date
+#' for the Hub submissions
+#'
+#' @param scores A tibble of daily scores by forecast date, location, and model
+#' @param fig_file_dir A string indicating the directory to save the figures in
+#'
+#' @return a ggplot object
+#' @export
+get_plot_hub_perf_heatmap <- function(scores,
+                                      fig_file_dir) {
+  scores_summary <- scores |>
+    dplyr::filter(
+      model %in% c("cfa-wwrenewal(retro)", "cfa-hosponlyrenewal(retro)")
+    ) |>
+    dplyr::group_by(forecast_date, location_name, model) |>
+    dplyr::summarise(avg_wis = mean(interval_score))
+
+  p <- ggplot(scores_summary) +
+    geom_tile(aes(x = forecast_date, y = location_name, fill = avg_wis)) +
+    scale_fill_gradient2(
+      high = "red", mid = "white", low = "blue",
+      midpoint = mean(scores_summary$avg_wis),
+      guide = "colourbar", aesthetics = "fill"
+    ) +
+    facet_wrap(~model) +
+    get_plot_theme(
+      x_axis_dates = TRUE,
+      y_axis_text_size = 3
+    ) +
+    scale_x_date(
+      date_breaks = "1 week",
+      labels = scales::date_format("%Y-%m-%d")
+    ) +
+    xlab("") +
+    ylab("Location") +
+    labs(fill = "Avg WIS") +
+    ggtitle(glue::glue("Average WIS by forecast date and location"))
+
+  ggsave(p,
+    filename = file.path(
+      fig_file_dir,
+      glue::glue("sfig_heatmap_wis.png")
+    )
+  )
+  return(p)
+}
+
+#' Plot a heatmap of the avg forecast performance by locations and forecast date
+#' for the head-to-head comparison
+#'
+#' @param scores A tibble of daily scores by forecast date, location, and model
+#' @param fig_file_dir A string indicating the directory to save the figures in
+#'
+#' @return a ggplot object
+#' @export
+get_plot_comb_perf_heatmap <- function(scores,
+                                       fig_file_dir) {
+  scores_summary <- scores |>
+    dplyr::filter(
+      model %in% c("ww", "hosp")
+    ) |>
+    dplyr::group_by(forecast_date, location, model) |>
+    dplyr::summarise(avg_crps = mean(crps))
+
+  p <- ggplot(scores_summary) +
+    geom_tile(aes(x = forecast_date, y = location, fill = avg_crps)) +
+    scale_fill_gradient2(
+      high = "red", mid = "white", low = "blue",
+      midpoint = mean(scores_summary$avg_crps),
+      guide = "colourbar", aesthetics = "fill"
+    ) +
+    facet_wrap(~model) +
+    get_plot_theme(
+      x_axis_dates = TRUE,
+      y_axis_text_size = 3
+    ) +
+    scale_x_date(
+      date_breaks = "1 week",
+      labels = scales::date_format("%Y-%m-%d")
+    ) +
+    xlab("") +
+    ylab("Location") +
+    labs(fill = "Avg CRPS") +
+    ggtitle(glue::glue("Average CRPS by forecast date and location"))
+
+  ggsave(p,
+    filename = file.path(
+      fig_file_dir,
+      glue::glue("sfig_heatmap_crps.png")
+    )
+  )
+  return(p)
+}
