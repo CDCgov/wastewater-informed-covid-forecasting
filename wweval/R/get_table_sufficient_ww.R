@@ -22,6 +22,7 @@ get_table_sufficient_ww <- function(combined_ww_data_flags) {
   )
 
   table_of_loc_dates_w_ww <- combined_ww_data_flags |>
+    dplyr::filter(name != "flag_low_val") |> # try removing this  temporarily
     dplyr::group_by(location, forecast_date) |>
     dplyr::summarise(ww_sufficient = !any(value))
 
