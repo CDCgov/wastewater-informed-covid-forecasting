@@ -762,6 +762,7 @@ get_plot_hub_perf_heatmap <- function(scores,
     ggtitle(glue::glue("Average WIS by forecast date and location"))
 
   ggsave(p,
+    width = 10, height = 6,
     filename = file.path(
       fig_file_dir,
       glue::glue("sfig_heatmap_wis.png")
@@ -809,6 +810,7 @@ get_plot_comb_perf_heatmap <- function(scores,
     ggtitle(glue::glue("Average CRPS by forecast date and location"))
 
   ggsave(p,
+    width = 10, height = 6,
     filename = file.path(
       fig_file_dir,
       glue::glue("sfig_heatmap_crps.png")
