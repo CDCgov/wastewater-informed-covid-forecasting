@@ -750,7 +750,7 @@ get_plot_hub_perf_heatmap <- function(scores,
     facet_wrap(~model) +
     get_plot_theme(
       x_axis_dates = TRUE,
-      y_axis_text_size = 3
+      y_axis_text_size = 4
     ) +
     scale_x_date(
       date_breaks = "1 week",
@@ -797,7 +797,7 @@ get_plot_comb_perf_heatmap <- function(scores,
     facet_wrap(~model) +
     get_plot_theme(
       x_axis_dates = TRUE,
-      y_axis_text_size = 3
+      y_axis_text_size = 4
     ) +
     scale_x_date(
       date_breaks = "1 week",
@@ -814,5 +814,96 @@ get_plot_comb_perf_heatmap <- function(scores,
       glue::glue("sfig_heatmap_crps.png")
     )
   )
+  return(p)
+}
+
+#' Get a summary table of the number of forecasts excluded for each reason
+#'
+#' @param metadata a tibble containing metadata for each forecast date location
+#'
+#' @return a 1 row tibble with the number of forecasts for each category
+#' @export
+get_summary_metadata <- function(metadata) {
+  metadata_summarized <- metadata |>
+    dplyr::select(
+      forecast_date, location, ww_data_present,
+      ww_exclude_manual, ww_sufficient,
+      any_flags_hosp, any_flags_ww
+    )
+
+  metadata_remove_insuff_ww <- metadata_summarized |>
+    dplyr::filter(ww_data_present == 1, ww_sufficient == TRUE)
+  # There are 3 loc-forecast dates with inussifficient ww not included here,
+  # will fix this eventually but for now just put in total number.
+  n_insuff_ww <- 1144 - nrow(metadata_remove_insuff_ww)
+
+  metadata_remove_conv_issues <- metadata_remove_insuff_ww |>
+    dplyr::filter(any_flags_hosp == FALSE, any_flags_ww == FALSE)
+
+  n_conv_issues <- nrow(metadata_remove_insuff_ww) - nrow(metadata_remove_conv_issues)
+
+  metadata_man_excl <- metadata_remove_conv_issues |>
+    dplyr::filter(ww_exclude_manual == FALSE)
+
+  n_excl <- nrow(metadata_remove_conv_issues) - nrow(metadata_man_excl)
+
+  summary_table <- tibble::tibble(n_insuff_ww, n_conv_issues, n_excl,
+    n_forecasts = nrow(metadata_man_excl)
+  )
+
+  return(summary_table)
+}
+
+#' Get a heatmap of the metadata of reasons for excluding forecasts from analysis
+#'
+#' @param metadata a tibble of location -forecast date metadata
+#'
+#' @return a ggplot object with a heatmap colored by reason for excluding
+#' @export
+
+get_heatmap_metadata <- function(metadata,
+                                 fig_file_dir) {
+  metadata_summarized <- metadata |>
+    dplyr::select(
+      forecast_date, location, ww_data_present,
+      ww_exclude_manual, ww_sufficient,
+      any_flags_hosp, any_flags_ww
+    ) |>
+    dplyr::ungroup() |>
+    dplyr::mutate(
+      metadata_cat =
+        case_when(
+          ww_data_present != 1 ~ "absent or insufficient wastewater",
+          ww_sufficient != TRUE ~ "absent or insufficient wastewater",
+          any_flags_ww == TRUE ~ "model had convergence issues",
+          any_flags_hosp == TRUE ~ "model had convergence issues",
+          ww_exclude_manual == TRUE ~ "manual exclusion of ww model",
+          TRUE ~ "both models produced forecasts"
+        )
+    )
+
+  p <- ggplot(metadata_summarized) +
+    geom_tile(aes(x = forecast_date, y = location, fill = metadata_cat)) +
+    scale_fill_discrete() +
+    get_plot_theme(
+      x_axis_dates = TRUE,
+      y_axis_text_size = 4
+    ) +
+    scale_x_date(
+      date_breaks = "1 week",
+      labels = scales::date_format("%Y-%m-%d")
+    ) +
+    xlab("") +
+    ylab("Location") +
+    labs(fill = "Metadata Information") +
+    ggtitle(glue::glue("Summary of retrospective comparison analysis"))
+
+  ggsave(p,
+    filename = file.path(
+      fig_file_dir,
+      glue::glue("sfig_heatmap_metadata.png")
+    )
+  )
+
   return(p)
 }

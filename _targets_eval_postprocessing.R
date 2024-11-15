@@ -517,6 +517,19 @@ manuscript_figures <- list(
     )
   ),
   tar_target(
+    name = summary_metadata,
+    command = get_summary_metadata(
+      granular_ww_metadata_used
+    )
+  ),
+  tar_target(
+    name = sfig_heatmap_metadata_comp,
+    command = get_heatmap_metadata(
+      granular_ww_metadata_used,
+      fig_file_dir = eval_config$ms_fig_dir
+    )
+  ),
+  tar_target(
     name = list_of_summary_ww_tables,
     command = get_summary_ww_table(
       granular_ww_metadata_used,
@@ -1493,6 +1506,18 @@ benchmarks <- list(
 # Supplement ----------------------------------------------------------
 # Make some tables with summary stats to include in results
 supp_targets <- list(
+  tar_target(sfig_hub_perf_heatmap,
+    command = get_plot_hub_perf_heatmap(
+      scores = summarized_scores_oct_mar,
+      fig_file_dir = eval_config$ms_fig_dir
+    )
+  ),
+  tar_target(sfig_comb_perf_heatmap,
+    command = get_plot_comb_perf_heatmap(
+      scores = scores_filtered,
+      fig_file_dir = eval_config$ms_fig_dir
+    )
+  ),
   tar_target(
     name = sfig_bias_over_time_comparison,
     command = get_plot_bias_over_time(scores_filtered,
