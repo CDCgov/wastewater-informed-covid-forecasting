@@ -118,6 +118,15 @@ eval_fit_ww <- function(config_index,
     )
   }
 
+  # If wwinference job fails its due to data not overlapping, replace
+  # with missing data error for postprocessing to proceed without failure
+  if (is.null(ww_fit_obj)) {
+    ww_fit_obj <- list(
+      fit =
+        list(result = list(error = "missing ww data"))
+    )
+  }
+
   save_object("ww_fit_obj", output_file_suffix)
 
 
