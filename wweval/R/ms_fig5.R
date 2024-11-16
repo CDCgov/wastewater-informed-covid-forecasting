@@ -1,3 +1,52 @@
+#' Make summary table of WIS scores in Hub models overall
+#'
+#' @param scores quantile based scores from the hub
+#' @param fig_file_dir
+#'
+#' @return A table with the average scores of each model over the time period
+#' @export
+make_fig5_table_and_plot <- function(scores,
+                                     time_period,
+                                     fig_file_dir) {
+  # Overall avg wis, bias, absolute error etc
+  hub_scores_overall <- scores |>
+    dplyr::group_by(model) |>
+    dplyr::summarise(
+      avg_wis = mean(interval_score),
+      avg_bias = mean(bias),
+      avg_ae = mean(ae_median)
+    ) |>
+    dplyr::mutate(model = factor(model,
+      levels = as.character(model)[order(avg_wis)]
+    ))
+
+  colors <- plot_components()
+  p <- ggplot(hub_scores_overall) +
+    geom_bar(aes(x = model, y = avg_wis, fill = model),
+      stat = "identity", position = "dodge"
+    ) +
+    get_plot_theme(
+      x_axis_dates = TRUE,
+      y_axis_title_size = 8
+    ) +
+    theme(legend.position = "none") +
+    scale_fill_manual(values = colors$model_colors) +
+    xlab("") +
+    ylab("Average WIS") +
+    ggtitle(glue::glue("Average WIS across forecast dates and locations from {time_period} 2024")) # nolint
+
+  ggsave(p,
+    filename = file.path(
+      fig_file_dir,
+      glue::glue("sfig_bar_chart_{time_period}.png")
+    )
+  )
+
+
+  return(hub_scores_overall)
+}
+
+
 #' Get plot of WIS over time
 #'
 #' @param all_scores Scores from entire time period of interest, including

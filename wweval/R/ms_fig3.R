@@ -1,3 +1,34 @@
+#' Get a summary of a single states crps
+#'
+#' @param scores tibble of crps scores by location, forecast date, model,
+#' horizon day
+#' @param locs_to_plot the locations we want summaries for
+#'
+#' @return a table with mean crps for each model and the relative crps
+get_summary_table_fig3 <- function(scores,
+                                   locs_to_plot) {
+  scores_locs <- scores |>
+    dplyr::filter(
+      location %in% locs_to_plot
+    ) |>
+    dplyr::group_by(model, location) |>
+    dplyr::summarize(
+      mean_crps = mean(crps)
+    ) |>
+    tidyr::pivot_wider(
+      id_cols = c("location"),
+      names_from = "model",
+      names_prefix = "mean_crps_",
+      values_from = mean_crps
+    ) |>
+    dplyr::mutate(
+      rel_crps = mean_crps_ww / mean_crps_hosp
+    )
+
+  return(scores_locs)
+}
+
+
 #' Make head to head CRPS distribution comparison plot for a single location
 #'
 #' @param scores A tibble of scores by location, forecast date, date and model,

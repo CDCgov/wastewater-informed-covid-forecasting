@@ -1,3 +1,39 @@
+#' Make a summary of the with and without wastewater comparison scores
+#'
+#' @param scores a tibble of scores for each model, horizon day, forecast date
+#' and location for the subset of forecasts used in the head-to-head comparison
+#'
+#' @return a list of two tables with summary scores, one overall and one by
+#' forecast vs nowcast
+#' @export
+make_fig4_results_table <- function(scores) {
+  # Overall avg crps, bias, absolute error etc
+  scores_overall <- scores |>
+    dplyr::group_by(model) |>
+    dplyr::summarise(
+      avg_crps = mean(crps),
+      avg_bias = mean(bias),
+      avg_ae = mean(ae_median)
+    )
+
+  # By period (nowcast vs forecast)
+  scores_by_period <- scores |>
+    dplyr::group_by(model, period) |>
+    dplyr::summarise(
+      avg_crps = mean(crps),
+      avg_bias = mean(bias),
+      avg_ae = mean(ae_median)
+    )
+
+  scores_tables <- list(
+    scores_overall = scores_overall,
+    scores_by_period = scores_by_period
+  )
+
+  return(scores_tables)
+}
+
+
 #' Make a CRPS density plot for a subset of locations
 #'
 #' @param scores A tibble of scores by location, forecast date, date and model,
