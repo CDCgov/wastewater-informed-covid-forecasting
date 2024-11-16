@@ -231,6 +231,26 @@ make_fig4_admissions_overall <- function(eval_hosp_data,
   return(p)
 }
 
+#' Get the mean relative crps for a location
+#'
+#' @param scores tibble of scores by day forecast day model
+#' @param locs loc to get mean relative score for
+#'
+#' @return table of mean relative score for each location
+get_loc_rel_crps <- function(scores, locs) {
+  relative_crps <- scores |>
+    dplyr::filter(location %in% locs) |>
+    compute_relative_crps(id_cols = c(
+      "location", "forecast_date", "date"
+    )) |>
+    dplyr::group_by(location) |>
+    dplyr::summarise(mean = mean(rel_crps))
+
+  return(relative_crps)
+}
+
+
+
 #' Make figure that stratifies scores by location across forecast dates
 #'
 #' @param scores A tibble of scores by location, forecast date, date and model,
