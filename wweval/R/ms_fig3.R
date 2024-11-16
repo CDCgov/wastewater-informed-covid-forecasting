@@ -28,6 +28,30 @@ get_summary_table_fig3 <- function(scores,
   return(scores_locs)
 }
 
+#' Get an individual forecast score summary for a particular
+#' forecast date and location
+#'
+#' @param scores A tibble of all forecast date- location- model
+#' forecast perfomance scores
+#' @param loc the location of interest
+#' @param this_forecast_date the forecast date of interest
+#'
+#' @return A tibble of mean scores by models
+get_ind_forecast_score <- function(scores,
+                                   loc,
+                                   this_forecast_date) {
+  ind_score <- scores |>
+    dplyr::filter(
+      location == loc,
+      forecast_date == this_forecast_date
+    ) |>
+    dplyr::group_by(model) |>
+    dplyr::summarize(
+      mean_crps = mean(crps)
+    )
+  return(ind_score)
+}
+
 
 #' Make head to head CRPS distribution comparison plot for a single location
 #'
