@@ -747,6 +747,10 @@ get_plot_hub_perf_heatmap <- function(scores,
       midpoint = mean(scores_summary$avg_wis),
       guide = "colourbar", aesthetics = "fill"
     ) +
+    geom_text(aes(
+      x = forecast_date, y = location_name,
+      label = round(avg_wis, 2)
+    ), size = 1.5) +
     facet_wrap(~model) +
     get_plot_theme(
       x_axis_dates = TRUE,
@@ -795,6 +799,10 @@ get_plot_comb_perf_heatmap <- function(scores,
       midpoint = mean(scores_summary$avg_crps),
       guide = "colourbar", aesthetics = "fill"
     ) +
+    geom_text(aes(
+      x = forecast_date, y = location,
+      label = round(avg_crps, 2)
+    ), size = 1.5) +
     facet_wrap(~model) +
     get_plot_theme(
       x_axis_dates = TRUE,
