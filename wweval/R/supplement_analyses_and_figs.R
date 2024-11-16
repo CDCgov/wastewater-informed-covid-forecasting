@@ -786,9 +786,6 @@ get_plot_hub_perf_heatmap <- function(scores,
 get_plot_comb_perf_heatmap <- function(scores,
                                        fig_file_dir) {
   scores_summary <- scores |>
-    dplyr::filter(
-      model %in% c("ww", "hosp")
-    ) |>
     dplyr::group_by(forecast_date, location, model) |>
     dplyr::summarise(avg_crps = mean(crps))
 
@@ -822,6 +819,61 @@ get_plot_comb_perf_heatmap <- function(scores,
     filename = file.path(
       fig_file_dir,
       glue::glue("sfig_heatmap_crps.png")
+    )
+  )
+  return(p)
+}
+
+#' Plot a heatmap of the relative crps by locations and forecast date
+#' for the head-to-head comparison
+#'
+#' @param scores A tibble of daily scores by forecast date, location, and model
+#' @param fig_file_dir A string indicating the directory to save the figures in
+#'
+#' @return a ggplot object
+#' @export
+get_plot_rel_crps_heatmap <- function(scores,
+                                      fig_file_dir) {
+  scores_summary <- scores |>
+    compute_relative_crps(id_cols = c(
+      "location",
+      "forecast_date", "date"
+    )) |>
+    dplyr::group_by(location, forecast_date) |>
+    dplyr::summarize(
+      mean_rel_crps = mean(rel_crps)
+    )
+
+
+  p <- ggplot(scores_summary) +
+    geom_tile(aes(x = forecast_date, y = location, fill = mean_rel_crps)) +
+    scale_fill_gradient2(
+      high = "red", mid = "white", low = "blue",
+      midpoint = mean(scores_summary$mean_rel_crps),
+      guide = "colourbar", aesthetics = "fill"
+    ) +
+    geom_text(aes(
+      x = forecast_date, y = location,
+      label = round(mean_rel_crps, 2)
+    ), size = 1.5) +
+    get_plot_theme(
+      x_axis_dates = TRUE,
+      y_axis_text_size = 4
+    ) +
+    scale_x_date(
+      date_breaks = "1 week",
+      labels = scales::date_format("%Y-%m-%d")
+    ) +
+    xlab("") +
+    ylab("Location") +
+    labs(fill = "Relative CRPS") +
+    ggtitle(glue::glue("Mean relative CRPS by forecast date and location"))
+
+  ggsave(p,
+    width = 7, height = 6,
+    filename = file.path(
+      fig_file_dir,
+      glue::glue("sfig_heatmap_rel_crps.png")
     )
   )
   return(p)
