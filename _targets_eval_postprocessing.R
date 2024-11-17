@@ -1429,7 +1429,7 @@ hub_comparison_plots <- list(
   tar_target(
     name = models_to_plot,
     command = c(
-      "UMass-gbq",
+      "UMass-sarix",
       "CMU-TimeSeries",
       "COVIDhub-4_week_ensemble",
       "cfa-wwrenewal(real-time)",
