@@ -4,10 +4,12 @@
 \alias{get_heatmap_metadata}
 \title{Get a heatmap of the metadata of reasons for excluding forecasts from analysis}
 \usage{
-get_heatmap_metadata(metadata, fig_file_dir)
+get_heatmap_metadata(metadata, type_of_analysis, fig_file_dir)
 }
 \arguments{
 \item{metadata}{a tibble of location -forecast date metadata}
+
+\item{type_of_analysis}{either "retro_comparison" or "hub_comparison"}
 
 \item{fig_file_dir}{string indicating where to save figs}
 }

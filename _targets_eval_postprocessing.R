@@ -523,6 +523,13 @@ manuscript_figures <- list(
     )
   ),
   tar_target(
+    name = sfig_heatmap_metadata_hub,
+    command = get_heatmap_metadata_hub(
+      granular_ww_metadata_used,
+      fig_file_dir = eval_config$ms_fig_dir
+    )
+  ),
+  tar_target(
     name = list_of_summary_ww_tables,
     command = get_summary_ww_table(
       granular_ww_metadata_used,

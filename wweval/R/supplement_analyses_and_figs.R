@@ -924,7 +924,6 @@ get_summary_metadata <- function(metadata) {
 #'
 #' @return a ggplot object with a heatmap colored by reason for excluding
 #' @export
-
 get_heatmap_metadata <- function(metadata,
                                  type_of_analysis,
                                  fig_file_dir) {
@@ -987,4 +986,75 @@ get_heatmap_metadata <- function(metadata,
   )
 
   return(p)
+}
+
+#' Get a heatmap of the metadata of Hub models submitted
+#'
+#' @param metadata a tibble of location -forecast date metadata
+#' @param fig_file_dir string indicating where to save figs
+#'
+#' @return a ggplot object with a heatmap colored by reason for excluding
+#' @export
+get_heatmap_metadata_hub <- function(metadata,
+                                     fig_file_dir) {
+  metadata_summarized <- metadata |>
+    dplyr::select(
+      forecast_date, location, ww_data_present,
+      ww_exclude_manual, ww_sufficient,
+      any_flags_hosp, any_flags_ww
+    ) |>
+    dplyr::ungroup() |>
+    dplyr::mutate(
+      model_submitted =
+        dplyr::case_when(
+          ww_data_present != 1 ~ "hosp",
+          ww_sufficient != TRUE ~ "hosp",
+          any_flags_ww == TRUE ~ "hosp",
+          ww_exclude_manual == TRUE ~ "hosp",
+          TRUE ~ "ww"
+        )
+    ) |>
+    dplyr::mutate(
+      model_name = "cfa-wwrenewal(retro)"
+    )
+
+  metadata_hosp_only <- metadata_summarized |>
+    dplyr::mutate(
+      model_submitted = "hosp",
+      model_name = "cfa-hosponlyrenewal(retro)"
+    )
+  metadata_real_time <- metadata_summarized |>
+    dplyr::filter(forecast_date >= "2024-02-05") |>
+    dplyr::mutate(model_name = "cfa-wwrenewal(real_time)")
+
+  all_metadata <- dplyr::bind_rows(
+    metadata_summarized, metadata_hosp_only,
+    metadata_real_time
+  )
+  colors <- plot_components()
+  p <- ggplot(all_metadata) +
+    geom_tile(aes(x = forecast_date, y = location, fill = model_submitted)) +
+    scale_fill_discrete() +
+    facet_wrap(~model_name) +
+    get_plot_theme(
+      x_axis_dates = TRUE,
+      y_axis_text_size = 4
+    ) +
+    scale_x_date(
+      date_breaks = "1 week",
+      labels = scales::date_format("%Y-%m-%d")
+    ) +
+    theme(legend.position = "bottom") +
+    xlab("") +
+    ylab("Location") +
+    labs(fill = "Model submitted") +
+    ggtitle(glue::glue("Summary of models used in Hub analysis"))
+
+  ggsave(p,
+    height = 7, width = 12,
+    filename = file.path(
+      fig_file_dir,
+      glue::glue("sfig_heatmap_hub_metadata.png")
+    )
+  )
 }
