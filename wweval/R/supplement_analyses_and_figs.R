@@ -849,7 +849,8 @@ get_plot_rel_crps_heatmap <- function(scores,
     geom_tile(aes(x = forecast_date, y = location, fill = mean_rel_crps)) +
     scale_fill_gradient2(
       high = "red", mid = "white", low = "blue",
-      midpoint = mean(scores_summary$mean_rel_crps),
+      transform = "log2",
+      midpoint = 1,
       guide = "colourbar", aesthetics = "fill"
     ) +
     geom_text(aes(
