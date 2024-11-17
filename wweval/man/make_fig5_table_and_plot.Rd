@@ -9,6 +9,8 @@ make_fig5_table_and_plot(scores, time_period, fig_file_dir)
 \arguments{
 \item{scores}{quantile based scores from the hub}
 
+\item{time_period}{string indicating which time period to make the plot for}
+
 \item{fig_file_dir}{directory to save figure}
 }
 \value{

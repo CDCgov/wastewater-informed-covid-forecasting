@@ -1,6 +1,7 @@
 #' Make summary table of WIS scores in Hub models overall
 #'
 #' @param scores quantile based scores from the hub
+#' @param time_period string indicating which time period to make the plot for
 #' @param fig_file_dir directory to save figure
 #'
 #' @return A table with the average scores of each model over the time period
