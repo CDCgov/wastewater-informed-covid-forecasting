@@ -518,6 +518,7 @@ manuscript_figures <- list(
     name = sfig_heatmap_metadata_comp,
     command = get_heatmap_metadata(
       granular_ww_metadata_used,
+      type_of_analysis = "retro_comparison",
       fig_file_dir = eval_config$ms_fig_dir
     )
   ),

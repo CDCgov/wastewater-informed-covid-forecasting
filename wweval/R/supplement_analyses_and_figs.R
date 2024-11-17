@@ -896,9 +896,8 @@ get_summary_metadata <- function(metadata) {
 
   metadata_remove_insuff_ww <- metadata_summarized |>
     dplyr::filter(ww_data_present == 1, ww_sufficient == TRUE)
-  # There are 3 loc-forecast dates with inussifficient ww not included here,
-  # will fix this eventually but for now just put in total number.
-  n_insuff_ww <- 1144 - nrow(metadata_remove_insuff_ww)
+
+  n_insuff_ww <- nrow(metadata_summarized) - nrow(metadata_remove_insuff_ww)
 
   metadata_remove_conv_issues <- metadata_remove_insuff_ww |>
     dplyr::filter(any_flags_hosp == FALSE, any_flags_ww == FALSE)
@@ -920,12 +919,14 @@ get_summary_metadata <- function(metadata) {
 #' Get a heatmap of the metadata of reasons for excluding forecasts from analysis
 #'
 #' @param metadata a tibble of location -forecast date metadata
+#' @param type_of_analysis either "retro_comparison" or "hub_comparison"
 #' @param fig_file_dir string indicating where to save figs
 #'
 #' @return a ggplot object with a heatmap colored by reason for excluding
 #' @export
 
 get_heatmap_metadata <- function(metadata,
+                                 type_of_analysis,
                                  fig_file_dir) {
   metadata_summarized <- metadata |>
     dplyr::select(
@@ -933,20 +934,36 @@ get_heatmap_metadata <- function(metadata,
       ww_exclude_manual, ww_sufficient,
       any_flags_hosp, any_flags_ww
     ) |>
-    dplyr::ungroup() |>
-    dplyr::mutate(
-      metadata_cat =
-        case_when(
-          ww_data_present != 1 ~ "absent or insufficient wastewater",
-          ww_sufficient != TRUE ~ "absent or insufficient wastewater",
-          any_flags_ww == TRUE ~ "model had convergence issues",
-          any_flags_hosp == TRUE ~ "model had convergence issues",
-          ww_exclude_manual == TRUE ~ "manual exclusion of ww model",
-          TRUE ~ "both models produced forecasts"
-        )
-    )
+    dplyr::ungroup()
 
-  p <- ggplot(metadata_summarized) +
+  if (type_of_analysis == "retro_comparison") {
+    metadata_final <- metadata_summarized |>
+      dplyr::mutate(
+        metadata_cat =
+          case_when(
+            ww_data_present != 1 ~ "absent or insufficient wastewater",
+            ww_sufficient != TRUE ~ "absent or insufficient wastewater",
+            any_flags_ww == TRUE ~ "model had convergence issues",
+            any_flags_hosp == TRUE ~ "model had convergence issues",
+            TRUE ~ "both models produced forecasts"
+          )
+      )
+  } else {
+    metadata_final <- metadata_summarized |>
+      dplyr::mutate(
+        metadata_cat =
+          case_when(
+            ww_data_present != 1 ~ "absent or insufficient wastewater",
+            ww_sufficient != TRUE ~ "absent or insufficient wastewater",
+            any_flags_ww == TRUE ~ "model had convergence issues",
+            any_flags_hosp == TRUE ~ "model had convergence issues",
+            ww_exclude_manual == TRUE ~ "manual exclusion of ww model",
+            TRUE ~ "both models produced forecasts"
+          )
+      )
+  }
+
+  p <- ggplot(metadata_final) +
     geom_tile(aes(x = forecast_date, y = location, fill = metadata_cat)) +
     scale_fill_discrete() +
     get_plot_theme(
