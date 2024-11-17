@@ -9,7 +9,7 @@ make_fig5_table_and_plot(scores, time_period, fig_file_dir)
 \arguments{
 \item{scores}{quantile based scores from the hub}
 
-\item{fig_file_dir}{}
+\item{fig_file_dir}{directory to save figure}
 }
 \value{
 A table with the average scores of each model over the time period
