@@ -406,14 +406,6 @@ head_to_head_targets <- list(
       dplyr::left_join(table_of_loc_dates_w_ww,
         by = c("location", "forecast_date")
       ) |>
-      dplyr::anti_join(
-        ww_forecast_date_locs_to_excl |>
-          dplyr::mutate(forecast_date = lubridate::ymd(forecast_date)),
-        by = c(
-          "location",
-          "forecast_date"
-        )
-      ) |>
       dplyr::filter(ww_sufficient) |>
       dplyr::left_join(
         convergence_df,
@@ -637,6 +629,29 @@ manuscript_figures <- list(
   ),
 
   ## Fig 3-------------------------------------------------
+  tar_target(
+    name = summary_table_crps,
+    command = get_summary_table_fig3(
+      scores_filtered,
+      locs_to_plot
+    )
+  ),
+  tar_target(
+    name = ex_CA_forecast_score,
+    command = get_ind_forecast_score(
+      scores_filtered,
+      "CA",
+      "2024-02-05"
+    )
+  ),
+  tar_target(
+    name = ex_WA_forecast_score,
+    command = get_ind_forecast_score(
+      scores_filtered,
+      "WA",
+      "2023-11-06"
+    )
+  ),
   tar_target(
     ### First location --------
     name = fig3_crps_single_loc1,
@@ -916,10 +931,23 @@ manuscript_figures <- list(
 
   ## Fig 4------------------------------------------------
   tar_target(
+    name = fig4_results_tables,
+    command = make_fig4_results_table(
+      scores_filtered
+    )
+  ),
+  tar_target(
     name = fig4_rel_crps_over_time,
     command = make_fig4_rel_crps_over_time(
       scores_filtered,
       horizons_to_show = "overall"
+    )
+  ),
+  tar_target(
+    name = loc_summary,
+    command = get_loc_rel_crps(
+      scores_filtered,
+      locs = c("DC", "OH")
     )
   ),
   tar_target(
@@ -1357,6 +1385,22 @@ hub_targets <- list(
 ## Fig 5-------------------------------------------------------------------
 hub_comparison_plots <- list(
   tar_target(
+    name = fig5_summary_table,
+    command = make_fig5_table_and_plot(
+      combine_scores_oct_mar,
+      time_period = "Oct-Mar",
+      fig_file_dir = eval_config$ms_fig_dir
+    )
+  ),
+  tar_target(
+    name = fig5_summary_table_Feb_Mar,
+    command = make_fig5_table_and_plot(
+      combine_scores_feb_mar,
+      time_period = "Feb-Mar",
+      fig_file_dir = eval_config$ms_fig_dir
+    )
+  ),
+  tar_target(
     name = summarized_scores_oct_mar,
     command = combine_scores_oct_mar |>
       data.table::as.data.table() |>
@@ -1514,6 +1558,12 @@ supp_targets <- list(
   ),
   tar_target(sfig_comb_perf_heatmap,
     command = get_plot_comb_perf_heatmap(
+      scores = scores_filtered,
+      fig_file_dir = eval_config$ms_fig_dir
+    )
+  ),
+  tar_target(sfig_rel_crps_heatmap,
+    command = get_plot_rel_crps_heatmap(
       scores = scores_filtered,
       fig_file_dir = eval_config$ms_fig_dir
     )
