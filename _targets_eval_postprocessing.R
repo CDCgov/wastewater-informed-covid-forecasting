@@ -1639,6 +1639,20 @@ supp_targets <- list(
       scores = scores_filtered,
       threshold = 0.1
     )
+  ),
+  tar_target(
+    name = real_time_scores_both_models,
+    command = load_and_score_rt_outputs(
+      real_time_output_dir = eval_config$real_time_output_dir,
+      table_of_run_ids = as.data.frame(eval_config$table_of_run_ids),
+      locations = unique(eval_config$location_ww),
+      dates = as.character(seq(
+        from = lubridate::ymd("2024-02-05"),
+        to = lubridate::ymd("2024-03-11"),
+        by = "week"
+      )),
+      eval_data = eval_hosp_data
+    )
   )
 )
 

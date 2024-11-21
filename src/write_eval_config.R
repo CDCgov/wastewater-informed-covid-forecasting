@@ -133,6 +133,7 @@ write_eval_config <- function(locations, forecast_dates,
     unique()
 
   # Table of run ids for accessing real-time model fits
+  real_time_output_dir <- file.path("output", "real_time_outputs")
   path_to_table_of_run_ids <- file.path("output", "real_time_outputs", "table_of_run_ids.rds")
   table_of_run_ids <- readRDS(path_to_table_of_run_ids)
 
@@ -189,6 +190,7 @@ write_eval_config <- function(locations, forecast_dates,
     ww_data_mapping = ww_data_mapping,
     table_of_exclusions = table_of_exclusions,
     table_of_run_ids = table_of_run_ids,
+    real_time_output_dir = real_time_output_dir,
     ww_forecast_date_locs_to_excl = ww_forecast_date_locs_to_excl,
     # MCMC settings
     iter_warmup = iter_warmup,
