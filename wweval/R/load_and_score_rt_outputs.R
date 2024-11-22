@@ -58,13 +58,9 @@ load_and_score_rt_outputs <- function(real_time_output_dir,
             glue::glue("run-on-{date_run}-{run_id}-diagnostics.csv")
           )
           if (file.exists(fp)) {
-            # We only have diagnostics for ww model initially.
-            if (model_types[m] == "ww") {
-              this_flags <- readr::read_csv(fp_flags)
-              any_flags <- any(this_flags$value[1:7] == TRUE)
-            } else {
-              any_flags <- FALSE
-            }
+            # The diagnostics are not flags here,
+            any_flags <- FALSE
+
 
 
             this_draws <- arrow::read_parquet(fp) |>
@@ -99,7 +95,7 @@ load_and_score_rt_outputs <- function(real_time_output_dir,
 
           if (file.exists(file.path(dir, "draws.parquet"))) {
             this_flags <- readr::read_csv(file.path(dir, "diagnostics.csv"))
-            any_flags <- any(this_flags$value[1:7] == TRUE)
+            any_flags <- any(this_flags$value[20:23] == TRUE)
 
             this_draws <- arrow::read_parquet(file.path(dir, "draws.parquet")) |>
               dplyr::filter(
@@ -146,7 +142,8 @@ load_and_score_rt_outputs <- function(real_time_output_dir,
               true_value,
               prediction,
               sample,
-              model
+              model,
+              failed_convergence
             )
           scores <- forecasted_draws |>
             data.table::as.data.table() |>

@@ -1058,3 +1058,34 @@ get_heatmap_metadata_hub <- function(metadata,
     )
   )
 }
+
+get_plot_rel_crps_rt <- function(all_scores){
+
+  full_metadata <- all_scores |>
+    dplyr::filter(scale == "log") |>
+    dplyr::group_by(forecast_date, model, location, failed_convergence) |>
+    dplyr::summarize(mean_crps = mean(crps)) |>
+    dplyr::filter(failed_convergence == FALSE) |>
+    tidyr::pivot_wider(names_from = model,
+                       values_from = mean_crps)
+    # Find the date locations to exclude
+
+    date_locs_to_exclude <- full_metadata |>
+      dplyr::filter(is.na(mean_crps)) |>
+      dplyr::distinct(location, forecast_date)
+
+    scores_filtered <- all_scores |>
+      dplyr::anti_join(date_locs_to_exclude,
+                       by = c("location", "model")
+      )
+
+    rel_scores <- scores_filtered |>
+      dplyr::filter(scale == "log") |>
+      dplyr::select(location, forecast_date, date, model, crps)|>
+      dplyr::pivot_wider(
+        names_from = model,
+        values_from = crps)
+    |>
+
+
+}
