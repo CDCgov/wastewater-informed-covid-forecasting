@@ -39,7 +39,7 @@ load_and_score_rt_outputs <- function(real_time_output_dir,
           # Assume the old  file structure
           fp <- file.path(
             real_time_output_dir,
-            "old_output",
+            glue::glue("output_{date_to_pull}"),
             "raw",
             locations[j],
             "site-level infection dynamics",
@@ -117,38 +117,43 @@ load_and_score_rt_outputs <- function(real_time_output_dir,
         } # end ifelse for file structures
 
         # Score the draws
-        draws_w_eval <- this_draws |>
-          dplyr::left_join(
-            eval_data |>
-              dplyr::select(-pop) |>
-              dplyr::rename(true_value = daily_hosp_admits),
-            by = c("location", "date")
-          )
+        if (!is.null(this_draws)) {
+          draws_w_eval <- this_draws |>
+            dplyr::left_join(
+              eval_data |>
+                dplyr::select(-pop) |>
+                dplyr::rename(true_value = daily_hosp_admits),
+              by = c("location", "date")
+            )
 
-        # Pass to scoring utils
+          # Pass to scoring utils
 
-        forecasted_draws <- draws_w_eval |>
-          dplyr::rename(
-            sample = draw,
-            prediction = value,
-          ) |>
-          dplyr::select(
-            location,
-            forecast_date,
-            date,
-            true_value,
-            prediction,
-            sample,
-            model
-          )
-        scores <- forecasted_draws |>
-          data.table::as.data.table() |>
-          scoringutils::transform_forecasts(
-            fun = scoringutils::log_shift,
-            offset = 1
-          ) |>
-          scoringutils::check_forecasts() |>
-          scoringutils::score()
+          forecasted_draws <- draws_w_eval |>
+            dplyr::rename(
+              sample = draw,
+              prediction = value,
+            ) |>
+            dplyr::select(
+              location,
+              forecast_date,
+              date,
+              true_value,
+              prediction,
+              sample,
+              model
+            )
+          scores <- forecasted_draws |>
+            data.table::as.data.table() |>
+            scoringutils::transform_forecasts(
+              fun = scoringutils::log_shift,
+              offset = 1
+            ) |>
+            scoringutils::check_forecasts() |>
+            scoringutils::score()
+        } else {
+          scores <- c()
+        }
+
 
         all_scores <- all_scores |> dplyr::bind_rows(
           all_scores,
