@@ -152,7 +152,7 @@ load_and_score_rt_outputs <- function(real_time_output_dir,
 
         all_scores <- all_scores |> dplyr::bind_rows(
           all_scores,
-          this_scores
+          scores
         )
       } # end loop around model types
     } # end loop around locs

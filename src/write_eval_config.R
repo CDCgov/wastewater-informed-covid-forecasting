@@ -136,6 +136,7 @@ write_eval_config <- function(locations, forecast_dates,
   real_time_output_dir <- file.path("output", "real_time_outputs")
   path_to_table_of_run_ids <- file.path("output", "real_time_outputs", "table_of_run_ids.rds")
   table_of_run_ids <- readRDS(path_to_table_of_run_ids)
+  table_of_run_ids$forecast_date <- as.character(table_of_run_ids$forecast_date)
 
 
   # These come from the yaml files we saved in the forecast folders,
