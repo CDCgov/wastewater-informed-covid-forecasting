@@ -49,7 +49,7 @@ load_and_score_rt_outputs <- function(real_time_output_dir,
           )
           fp_flags <- file.path(
             real_time_output_dir,
-            "old_output",
+            glue::glue("output_{date_to_pull}"),
             "raw",
             locations[j],
             model_long,
@@ -58,8 +58,14 @@ load_and_score_rt_outputs <- function(real_time_output_dir,
             glue::glue("run-on-{date_run}-{run_id}-diagnostics.csv")
           )
           if (file.exists(fp)) {
-            this_flags <- readr::read_csv(fp_flags)
-            any_flags <- any(this_flags$value[1:7] == TRUE)
+            # We only have diagnostics for ww model initially.
+            if (model_types[m] == "ww") {
+              this_flags <- readr::read_csv(fp_flags)
+              any_flags <- any(this_flags$value[1:7] == TRUE)
+            } else {
+              any_flags <- FALSE
+            }
+
 
             this_draws <- arrow::read_parquet(fp) |>
               dplyr::filter(
@@ -149,13 +155,14 @@ load_and_score_rt_outputs <- function(real_time_output_dir,
               offset = 1
             ) |>
             scoringutils::check_forecasts() |>
-            scoringutils::score()
+            scoringutils::score() |>
+            tibble::tibble()
         } else {
           scores <- c()
         }
 
 
-        all_scores <- all_scores |> dplyr::bind_rows(
+        all_scores <- dplyr::bind_rows(
           all_scores,
           scores
         )
