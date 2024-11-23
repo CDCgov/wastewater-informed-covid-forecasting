@@ -1,7 +1,7 @@
 # Create a table of model run ids that correspond to the prod run for each
 # real-time forecast date
 
-ids <- c("731d8", "5ebc5", "bb0b4", "a6e67", "f86b2", "8150f")
+ids <- c("b84a4", "5ebc5", "bb0b4", "a6e67", "f86b2", "8150f")
 forecast_date <- seq(
   from = lubridate::ymd("2024-02-05"),
   to = lubridate::ymd("2024-03-11"),
@@ -9,7 +9,7 @@ forecast_date <- seq(
 )
 dates_run <- c(
   "2024-02-05", "2024-02-12",
-  "2024-02-18", "2024-02-05",
+  "2024-02-18", "2024-02-25",
   "2024-03-02", "2024-03-09"
 )
 

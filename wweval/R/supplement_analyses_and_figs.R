@@ -1059,33 +1059,86 @@ get_heatmap_metadata_hub <- function(metadata,
   )
 }
 
-get_plot_rel_crps_rt <- function(all_scores){
-
+#' Get the overall relative crps for the real time scores
+#'
+#' @param all_scores a tibble of the scores for both models in real-time
+#'
+#'
+#' @return A tibble summarized the relative crps across all locs
+#' and forecast dates produced in real-time
+#' @export
+get_overall_rel_crps_rt <- function(all_scores) {
   full_metadata <- all_scores |>
     dplyr::filter(scale == "log") |>
     dplyr::group_by(forecast_date, model, location, failed_convergence) |>
     dplyr::summarize(mean_crps = mean(crps)) |>
     dplyr::filter(failed_convergence == FALSE) |>
-    tidyr::pivot_wider(names_from = model,
-                       values_from = mean_crps)
-    # Find the date locations to exclude
+    tidyr::pivot_wider(
+      names_from = model,
+      values_from = mean_crps
+    )
+  # Find the date locations to exclude
 
-    date_locs_to_exclude <- full_metadata |>
-      dplyr::filter(is.na(mean_crps)) |>
-      dplyr::distinct(location, forecast_date)
+  date_locs_to_exclude <- full_metadata |>
+    dplyr::filter(is.na(ww)) |>
+    dplyr::distinct(location, forecast_date)
 
-    scores_filtered <- all_scores |>
-      dplyr::anti_join(date_locs_to_exclude,
-                       by = c("location", "model")
-      )
+  scores_filtered <- all_scores |>
+    dplyr::anti_join(date_locs_to_exclude,
+      by = c("location", "forecast_date")
+    )
 
-    rel_scores <- scores_filtered |>
-      dplyr::filter(scale == "log") |>
-      dplyr::select(location, forecast_date, date, model, crps)|>
-      dplyr::pivot_wider(
-        names_from = model,
-        values_from = crps)
-    |>
+  rel_scores <- scores_filtered |>
+    dplyr::filter(scale == "log") |>
+    dplyr::select(location, forecast_date, date, model, crps) |>
+    tidyr::pivot_wider(
+      names_from = model,
+      values_from = crps
+    ) |>
+    dplyr::mutate(
+      rel_crps = ww / hosp
+    )
 
+  avg_rel_scores <- rel_scores |>
+    dplyr::group_by(forecast_date, location) |>
+    dplyr::summarise(mean_rel_crps = mean(rel_crps))
 
+  overall_rel_crps <- rel_scores |>
+    dplyr::ungroup() |>
+    dplyr::summarise(mean_rel_crps = mean(rel_crps))
+
+  p <- ggplot(avg_rel_scores) +
+    geom_tile(aes(x = forecast_date, y = location, fill = mean_rel_crps)) +
+    scale_fill_gradient2(
+      high = "red", mid = "white", low = "blue",
+      transform = "log2",
+      midpoint = 1,
+      guide = "colourbar", aesthetics = "fill"
+    ) +
+    geom_text(aes(
+      x = forecast_date, y = location,
+      label = round(mean_rel_crps, 2)
+    ), size = 1.5) +
+    get_plot_theme(
+      x_axis_dates = TRUE,
+      y_axis_text_size = 4
+    ) +
+    scale_x_date(
+      date_breaks = "1 week",
+      labels = scales::date_format("%Y-%m-%d")
+    ) +
+    xlab("") +
+    ylab("Location") +
+    labs(fill = "Relative CRPS") +
+    ggtitle(glue::glue("Real-time mean relative CRPS by forecast date and location"))
+
+  ggsave(p,
+    width = 7, height = 6,
+    filename = file.path(
+      fig_file_dir,
+      glue::glue("sfig_real_time_heatmap_rel_crps.png")
+    )
+  )
+
+  return(overall_rel_crps)
 }
