@@ -1653,6 +1653,12 @@ supp_targets <- list(
       )),
       eval_data = eval_hosp_data
     )
+  ),
+  tar_target(
+    name = overall_rt_rel_crps,
+    command = get_overall_rel_crps_rt(
+      real_time_scores_both_models
+    )
   )
 )
 
