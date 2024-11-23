@@ -35,33 +35,21 @@ load_and_score_rt_outputs <- function(real_time_output_dir,
           "site-level infection dynamics",
           "hospital admissions only"
         )
-        if (date_to_pull %in% c("2024-02-05", "2024-02-11")) {
+        if (date_to_pull %in% c("2024-02-05", "2024-02-12")) {
           # Assume the old  file structure
           fp <- file.path(
             real_time_output_dir,
             glue::glue("output_{date_to_pull}"),
             "raw",
             locations[j],
-            "site-level infection dynamics",
+            model_long,
             "draws",
             date_to_pull,
             glue::glue("run-on-{date_run}-{run_id}-draws.parquet")
           )
-          fp_flags <- file.path(
-            real_time_output_dir,
-            glue::glue("output_{date_to_pull}"),
-            "raw",
-            locations[j],
-            model_long,
-            "diagnostics",
-            date_to_pull,
-            glue::glue("run-on-{date_run}-{run_id}-diagnostics.csv")
-          )
           if (file.exists(fp)) {
-            # The diagnostics are not flags here,
+            # The diagnostics are not flags here, just values.
             any_flags <- FALSE
-
-
 
             this_draws <- arrow::read_parquet(fp) |>
               dplyr::filter(
