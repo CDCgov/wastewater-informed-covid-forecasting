@@ -1062,12 +1062,13 @@ get_heatmap_metadata_hub <- function(metadata,
 #' Get the overall relative crps for the real time scores
 #'
 #' @param all_scores a tibble of the scores for both models in real-time
-#'
+#' @param fig_file_dir string indicating where to save figs
 #'
 #' @return A tibble summarized the relative crps across all locs
 #' and forecast dates produced in real-time
 #' @export
-get_overall_rel_crps_rt <- function(all_scores) {
+get_overall_rel_crps_rt <- function(all_scores,
+                                    fig_file_dir) {
   full_metadata <- all_scores |>
     dplyr::filter(scale == "log") |>
     dplyr::group_by(forecast_date, model, location, failed_convergence) |>
@@ -1105,7 +1106,7 @@ get_overall_rel_crps_rt <- function(all_scores) {
 
   overall_rel_crps <- rel_scores |>
     dplyr::ungroup() |>
-    dplyr::summarise(mean_rel_crps = mean(rel_crps))
+    dplyr::summarise(mean_rel_crps = mean(rel_crps, na.rm = TRUE))
 
   p <- ggplot(avg_rel_scores) +
     geom_tile(aes(x = forecast_date, y = location, fill = mean_rel_crps)) +

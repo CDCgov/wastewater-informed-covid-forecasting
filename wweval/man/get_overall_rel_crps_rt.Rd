@@ -4,10 +4,12 @@
 \alias{get_overall_rel_crps_rt}
 \title{Get the overall relative crps for the real time scores}
 \usage{
-get_overall_rel_crps_rt(all_scores)
+get_overall_rel_crps_rt(all_scores, fig_file_dir)
 }
 \arguments{
 \item{all_scores}{a tibble of the scores for both models in real-time}
+
+\item{fig_file_dir}{string indicating where to save figs}
 }
 \value{
 A tibble summarized the relative crps across all locs
