@@ -15,7 +15,7 @@
 #' forecast date, conditioned on the presence of wastewater and model
 #' convergence
 #' @export
-load_and_score_rt_outputs <- function(real_time_output_dir,
+score_real_time_outputs <- function(real_time_output_dir,
                                       table_of_run_ids,
                                       locations,
                                       dates,
