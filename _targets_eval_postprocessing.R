@@ -1655,11 +1655,21 @@ supp_targets <- list(
     )
   ),
   tar_target(
-    name = overall_rt_rel_crps,
-    command = get_overall_rel_crps_rt(
-      real_time_scores_both_models,
+    name = rel_scores,
+    command = get_rel_crps_real_time(real_time_scores_both_models)
+  ),
+  tar_target(
+    name = plot_real_time_rel_crps,
+    command = get_plot_rel_crps_real_time(
+      rel_scores,
       fig_file_dir = eval_config$ms_fig_dir
     )
+  ),
+  tar_target(
+    name = overall_rel_crps,
+    command = rel_scores |>
+      dplyr::ungroup() |>
+      dplyr::summarise(mean_rel_crps = mean(rel_crps, na.rm = TRUE))
   )
 )
 

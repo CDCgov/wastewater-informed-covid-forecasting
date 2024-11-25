@@ -16,10 +16,10 @@
 #' convergence
 #' @export
 score_real_time_outputs <- function(real_time_output_dir,
-                                      table_of_run_ids,
-                                      locations,
-                                      dates,
-                                      eval_data) {
+                                    table_of_run_ids,
+                                    locations,
+                                    dates,
+                                    eval_data) {
   model_types <- c("ww", "hosp")
   all_scores <- c()
   for (i in seq_along(dates)) {
