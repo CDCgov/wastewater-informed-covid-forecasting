@@ -1642,7 +1642,7 @@ supp_targets <- list(
   ),
   tar_target(
     name = real_time_scores_both_models,
-    command = load_and_score_rt_outputs(
+    command = score_real_time_outputs(
       real_time_output_dir = eval_config$real_time_output_dir,
       table_of_run_ids = as.data.frame(eval_config$table_of_run_ids),
       locations = unique(eval_config$location_ww),
