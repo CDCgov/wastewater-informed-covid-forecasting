@@ -1423,9 +1423,17 @@ hub_targets <- list(
       )
   ),
   tar_target(
+    name = cfa_hosp_real_time_scores,
+    command = format_scores_for_comparison(
+      real_time_scores = real_time_wis_both_models,
+      other_real_time_scores = cfa_real_time_scores
+    )
+  ),
+  tar_target(
     name = combine_scores_feb_mar,
     command = dplyr::bind_rows(
       cfa_real_time_scores,
+      cfa_hosp_real_time_scores,
       combine_scores_oct_mar |> dplyr::filter(
         forecast_date >= lubridate::ymd("2024-02-05")
       )
