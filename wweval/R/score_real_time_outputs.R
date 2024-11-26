@@ -1,6 +1,8 @@
 #' Load in and score the real-time outputs
 #'
-#'
+#' @param score_type A string indicating which score to generate, either
+#' "crps" or "wis". Note, if using crps, will score draws from nowcast and
+#' forecast. If using wis, will score only the forecasts.
 #' @param real_time_output_dir A string indicating the upper level directory
 #' where the real-time outputs live locally
 #' @param table_of_run_ids A tibble containing the forecast date, run id,
@@ -15,13 +17,17 @@
 #' forecast date, conditioned on the presence of wastewater and model
 #' convergence
 #' @export
-score_real_time_outputs <- function(real_time_output_dir,
+score_real_time_outputs <- function(score_type,
+                                    real_time_output_dir,
                                     table_of_run_ids,
                                     locations,
                                     dates,
                                     eval_data) {
   model_types <- c("ww", "hosp")
   all_scores <- c()
+
+  data_type <- ifelse(score_type == "crps", "draws", "quantiles")
+  col_name <- ifelse(score_type == "crps", "draw", "quantile")
   for (i in seq_along(dates)) {
     date_to_pull <- dates[i]
     metadata <- table_of_run_ids |> dplyr::filter(
@@ -43,15 +49,15 @@ score_real_time_outputs <- function(real_time_output_dir,
             "raw",
             locations[j],
             model_long,
-            "draws",
+            data_type,
             date_to_pull,
-            glue::glue("run-on-{date_run}-{run_id}-draws.parquet")
+            glue::glue("run-on-{date_run}-{run_id}-{data_type}.parquet")
           )
           if (file.exists(fp)) {
             # The diagnostics are not flags here, just values.
             any_flags <- FALSE
 
-            this_draws <- arrow::read_parquet(fp) |>
+            these_preds <- arrow::read_parquet(fp) |>
               dplyr::filter(
                 name == "pred_hosp",
                 period != "calibration"
@@ -61,14 +67,14 @@ score_real_time_outputs <- function(real_time_output_dir,
                 date,
                 location,
                 value,
-                draw
+                !!sym(col_name)
               ) |>
               dplyr::mutate(
                 model = model_types[m],
                 failed_convergence = any_flags
               )
           } else {
-            this_draws <- c()
+            these_preds <- c()
           }
         } else {
           # Assume the main newer file structure
@@ -81,11 +87,13 @@ score_real_time_outputs <- function(real_time_output_dir,
             model_long
           )
 
-          if (file.exists(file.path(dir, "draws.parquet"))) {
+          if (file.exists(file.path(dir, glue::glue("{data_type}.parquet")))) {
             this_flags <- readr::read_csv(file.path(dir, "diagnostics.csv"))
             any_flags <- any(this_flags$value[20:23] == TRUE)
 
-            this_draws <- arrow::read_parquet(file.path(dir, "draws.parquet")) |>
+            these_preds <- arrow::read_parquet(
+              file.path(dir, glue::glue("{data_type}.parquet"))
+            ) |>
               dplyr::filter(
                 name == "pred_hosp",
                 period != "calibration"
@@ -102,13 +110,13 @@ score_real_time_outputs <- function(real_time_output_dir,
                 failed_convergence = any_flags
               )
           } else {
-            this_draws <- c()
+            these_preds <- c()
           }
         } # end ifelse for file structures
 
         # Score the draws
-        if (!is.null(this_draws)) {
-          draws_w_eval <- this_draws |>
+        if (!is.null(these_preds)) {
+          preds_w_eval <- these_preds |>
             dplyr::left_join(
               eval_data |>
                 dplyr::select(-pop) |>
@@ -117,23 +125,42 @@ score_real_time_outputs <- function(real_time_output_dir,
             )
 
           # Pass to scoring utils
-
-          forecasted_draws <- draws_w_eval |>
-            dplyr::rename(
-              sample = draw,
-              prediction = value,
-            ) |>
-            dplyr::select(
-              location,
-              forecast_date,
-              date,
-              true_value,
-              prediction,
-              sample,
-              model,
-              failed_convergence
-            )
-          scores <- forecasted_draws |>
+          if (score_type == "crps") {
+            forecasted_preds <- preds_w_eval |>
+              dplyr::rename(
+                sample = draw,
+                prediction = value,
+              ) |>
+              dplyr::select(
+                location,
+                forecast_date,
+                date,
+                true_value,
+                prediction,
+                sample,
+                model,
+                failed_convergence
+              )
+          } else if (score_type == "wis") {
+            forecasted_preds <- preds_w_eval |>
+              dplyr::rename(
+                prediction = value,
+              ) |>
+              dplyr::select(
+                location,
+                forecast_date,
+                date,
+                true_value,
+                prediction,
+                quantile,
+                model,
+                failed_convergence
+              ) |>
+              dplyr::filter(
+                date > forecast_date
+              )
+          }
+          scores <- forecasted_preds |>
             data.table::as.data.table() |>
             scoringutils::transform_forecasts(
               fun = scoringutils::log_shift,

@@ -5,6 +5,7 @@
 \title{Load in and score the real-time outputs}
 \usage{
 score_real_time_outputs(
+  score_type,
   real_time_output_dir,
   table_of_run_ids,
   locations,
@@ -13,6 +14,10 @@ score_real_time_outputs(
 )
 }
 \arguments{
+\item{score_type}{A string indicating which score to generate, either
+"crps" or "wis". Note, if using crps, will score draws from nowcast and
+forecast. If using wis, will score only the forecasts.}
+
 \item{real_time_output_dir}{A string indicating the upper level directory
 where the real-time outputs live locally}
 
