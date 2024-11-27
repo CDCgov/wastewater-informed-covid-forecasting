@@ -1368,16 +1368,6 @@ hub_targets <- list(
       targets::tar_group(),
     iteration = "group"
   ),
-  tar_target(
-    name = plot_wis_w_forecasts,
-    command = get_plot_wis_t(
-      hosp_quantiles_filtered_grouped,
-      combine_scores_oct_mar_raw,
-      eval_output_subdir = eval_config$output_dir
-    ),
-    pattern = map(hosp_quantiles_filtered_grouped),
-    iteration = "list"
-  ),
 
   # Filter out the states that not every model has estimates for,
   # start by doing this manually, can write functions if needed as
@@ -1523,7 +1513,7 @@ hub_comparison_plots <- list(
   # This will be the average WIS across forecast dates for the real-time
   # scores
   tar_target(
-    name = fig5_plot_real_time_wis_t,
+    name = fig5_plot_wis_t_real_time,
     command = make_fig5_average_wis(
       all_scores = summarized_scores_feb_mar |>
         dplyr::filter(!model %in% c(
@@ -1554,7 +1544,7 @@ hub_comparison_plots <- list(
     )
   ),
   tar_target(
-    name = fig5_plot_all_time_wis_t,
+    name = fig5_plot_wis_t_all_time,
     command = make_fig5_average_wis(
       all_scores = summarized_scores_oct_mar,
       models_to_show = models_to_plot,
@@ -1626,8 +1616,12 @@ hub_comparison_plots <- list(
   tar_target(
     name = fig5,
     command = make_fig5(
-      fig5_plot_wis_over_time = fig5_plot_all_time_wis_t,
-      fig5_overall_performance = fig5_overall_performance,
+      fig5_plot_wis_t_real_time = fig5_plot_wis_t_real_time,
+      fig5_density_real_time = fig5_density_real_time,
+      fig5_plot_real_time_rel_wis = fig5_plot_real_time_rel_wis,
+      fig5_plot_wis_t_all_time = fig5_plot_wis_t_all_time,
+      fig5_density_all_time = fig5_density_all_time,
+      fig5_plot_all_time_rel_wis = fig5_plot_all_time_rel_wis,
       fig5_heatmap_rel_wis_all_time = fig5_heatmap_rel_wis_all_time,
       fig5_heatmap_rel_wis_feb_mar = fig5_heatmap_rel_wis_feb_mar,
       fig5_qq_plot_all_time = fig5_qq_plot_all_time,
