@@ -452,6 +452,63 @@ make_fig5_density_rank <- function(scores,
   return(p)
 }
 
+
+#' Get a plot of the relative wis from the real-time models
+#'
+#' @param rel_scores tibble containing the relative wis for each forecast
+#' date and location and horizon day
+#' @param time_period string indicating dates of analysis, either "Feb-Mar",
+#' or "Oct-Mar"
+#' @param analysis_type string indicating whether analysis is Real-time
+#  or Retrospective
+#' @param fig_file_dir string indicating the directory to save the figure
+#'
+#' @return ggplot object of a heatmap of the realtive wis
+make_fig5_heatmap_rel_wis <- function(rel_scores,
+                                      time_period,
+                                      analysis_type,
+                                      fig_file_dir) {
+  avg_rel_scores <- rel_scores |>
+    dplyr::group_by(forecast_date, location) |>
+    dplyr::summarise(mean_rel_wis = mean(rel_wis))
+
+  p <- ggplot(avg_rel_scores) +
+    geom_tile(aes(x = forecast_date, y = location, fill = mean_rel_wis)) +
+    scale_fill_gradient2(
+      high = "red", mid = "white", low = "blue",
+      transform = "log2",
+      midpoint = 1,
+      guide = "colourbar", aesthetics = "fill"
+    ) +
+    geom_text(aes(
+      x = forecast_date, y = location,
+      label = round(mean_rel_wis, 2)
+    ), size = 1.5) +
+    get_plot_theme(
+      x_axis_dates = TRUE,
+      y_axis_text_size = 4
+    ) +
+    scale_x_date(
+      date_breaks = "1 week",
+      labels = scales::date_format("%Y-%m-%d")
+    ) +
+    xlab("") +
+    ylab("Location") +
+    labs(fill = "Relative WIS") +
+    ggtitle(glue::glue("{analysis_type} mean relative WIS from {time_period}"))
+
+  ggsave(p,
+    width = 7, height = 6,
+    filename = file.path(
+      fig_file_dir,
+      glue::glue("sfig_heatmap_rel_wis_{time_period}_{analysis_type}.png")
+    )
+  )
+
+  return(p)
+}
+
+
 #' Make Fig 5
 #'
 #' @param fig5_plot_wis_over_time average wis over time across locations for

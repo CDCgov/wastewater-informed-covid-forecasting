@@ -1236,7 +1236,7 @@ real_time_rel_targets <- list(
   ),
   tar_target(
     name = overall_real_time_rel_wis,
-    command = rel_scores |>
+    command = rel_real_time_wis |>
       dplyr::ungroup() |>
       dplyr::summarise(mean_rel_wis = mean(rel_wis, na.rm = TRUE))
   )
@@ -1492,7 +1492,7 @@ hub_comparison_plots <- list(
   ## Real-time Hub comparison top row------------------------------------------
   tar_target(
     name = fig5_plot_real_time_rel_wis,
-    command = get_heatmap_rel_wis(
+    command = make_fig5_heatmap_rel_wis(
       rel_real_time_wis,
       time_period = "Feb-Mar",
       analysis_type = "Real-time",
