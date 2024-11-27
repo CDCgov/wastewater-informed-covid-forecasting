@@ -55,7 +55,8 @@ make_fig5_table_and_plot <- function(scores,
 #' summarized across quantiles only with [scoringutils::summarise_scores()]
 #' @param cfa_real_time_scores Real-time scores from Feb - Mar for the cfa ww
 #' model submitted to the hub, scored with [scoringutils::score()] and
-#' summarized across quantiles only with [scoringutils::summarise_scores()]
+#' summarized across quantiles only with [scoringutils::summarise_scores()],
+#' default is `c()`
 #' @param models_to_show A vector of charcter strings indicating which models
 #' from the COVID-19 forecast hub to include in the plot.
 #' @param horizon_time_in_weeks horizon time in weeks to summarize over, default
@@ -68,7 +69,7 @@ make_fig5_table_and_plot <- function(scores,
 #' @export
 #'
 make_fig5_average_wis <- function(all_scores,
-                                  cfa_real_time_scores,
+                                  cfa_real_time_scores = c(),
                                   models_to_show,
                                   horizon_time_in_weeks = NULL) {
   subset_model_scores <- all_scores |>
@@ -265,6 +266,60 @@ make_fig5_hub_performance <- function(all_scores,
 
   return(p)
 }
+
+make_fig5_density <- function(all_scores,
+                              analysis_type,
+                              models_to_show,
+                              baseline_model = "COVIDhub-4_week_ensemble") {
+  subset_scores <- all_scores |>
+    dplyr::filter(model %in% !!models_to_show)
+
+  baseline_scores <- subset_scores |>
+    dplyr::filter(model == {{ baseline_model }}) |>
+    dplyr::select(
+      location, forecast_date, target_end_date,
+      horizon, interval_score
+    ) |>
+    dplyr::rename(baseline_score = interval_score) |>
+    dplyr::distinct()
+
+  scores_final <- subset_scores |>
+    dplyr::left_join(baseline_scores, by = c(
+      "forecast_date", "horizon",
+      "location", "target_end_date"
+    )) |>
+    dplyr::mutate(relative_wis = interval_score / baseline_score) |>
+    dplyr::filter(model != {{ baseline_model }})
+
+
+  colors <- plot_components()
+
+  p <- ggplot(scores_final) +
+    tidybayes::stat_halfeye(
+      aes(
+        x = model, y = relative_wis + 1e-8,
+        fill = model
+      ),
+      point_interval = "mean_qi",
+      alpha = 0.5,
+      position = position_dodge(width = 0.75)
+    ) +
+    coord_trans(ylim = c(0, 2)) +
+    get_plot_theme(
+      x_axis_dates = TRUE,
+      y_axis_title_size = 8
+    ) +
+    scale_fill_manual(values = colors$model_colors) +
+    scale_color_manual(values = colors$model_colors) +
+    xlab("") +
+    theme(legend.position = "bottom") +
+    ylab(glue::glue("{analysis_type} relative WIS \n compared to {baseline_model}"))
+
+
+
+  return(p)
+}
+
 
 #' Make a heatmap of relative WIS across locations
 #'

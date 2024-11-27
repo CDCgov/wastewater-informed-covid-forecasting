@@ -1490,6 +1490,7 @@ hub_comparison_plots <- list(
     )
   ),
   ## Real-time Hub comparison top row------------------------------------------
+  # This will be the real-time relative WIS across the models submitted
   tar_target(
     name = fig5_plot_real_time_rel_wis,
     command = make_fig5_heatmap_rel_wis(
@@ -1499,6 +1500,34 @@ hub_comparison_plots <- list(
       fig_file_dir = eval_config$ms_fig_dir
     )
   ),
+  # This will be the real-time density of relative CRPS compared
+  # to covidhub baseline (will need to get the summary stats for this too)
+  tar_target(
+    name = fig5_density_real_time,
+    command = make_fig5_density(
+      all_scores = summarized_scores_feb_mar |>
+        dplyr::filter(!model %in% c(
+          "cfa-wwrenewal(retro)",
+          "cfa-hosponlyrenewal(retro)"
+        )),
+      models_to_show = models_to_plot,
+      analysis_type = "Real-time",
+    )
+  ),
+  # This will be the average WIS across forecast dates for the real-time
+  # scores
+  tar_target(
+    name = fig5_plot_real_time_wis_t,
+    command = make_fig5_average_wis(
+      all_scores = summarized_scores_feb_mar |>
+        dplyr::filter(!model %in% c(
+          "cfa-wwrenewal(retro)",
+          "cfa-hosponlyrenewal(retro)"
+        )),
+      models_to_show = models_to_plot
+    )
+  ),
+
   ## Retro Hub comparison top row-------------------------------------------
   tar_target(
     name = fig5_plot_wis_over_time,
