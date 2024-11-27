@@ -1607,7 +1607,11 @@ hub_comparison_plots <- list(
   tar_target(
     name = fig5_std_rank_feb_mar,
     command = make_fig5_density_rank(
-      scores = summarized_scores_feb_mar,
+      scores = summarized_scores_feb_mar |>
+        dplyr::filter(!model %in% c(
+          "cfa-wwrenewal(retro)",
+          "cfa-hosponlyrenewal(retro)"
+        )),
       models_to_show = models_to_plot,
       time_period = "Feb-Mar 2024"
     )
