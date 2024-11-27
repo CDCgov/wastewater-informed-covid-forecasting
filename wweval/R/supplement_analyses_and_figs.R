@@ -1059,11 +1059,11 @@ get_heatmap_metadata_hub <- function(metadata,
   )
 }
 
-#' Get the relative crps for the real time scores
+#' Get the relative wis for the real time scores
 #'
 #' @param all_scores a tibble of the scores for both models in real-time
 #'
-#' @return A tibble of the relative crps at each forecast date, location, and
+#' @return A tibble of the relative wis at each forecast date, location, and
 #' horizon day
 #' @export
 get_rel_wis_real_time <- function(all_scores) {
@@ -1110,4 +1110,53 @@ get_rel_wis_real_time <- function(all_scores) {
     )
 
   return(rel_scores)
+}
+
+#' Get the relative wis from the hub formatted
+#'
+#' @param all_scores a tibble of the scores for both models, formatted
+#' like the hub
+#'
+#' @return A tibble of the relative wis at each forecast date, location, and
+#' horizon day
+#' @export
+get_rel_wis_all_time <- function(all_scores) {
+  scores <- all_scores |>
+    data.table::as.data.table() |>
+    scoringutils::summarize_scores(
+      by =
+        c(
+          "target_end_date",
+          "model",
+          "location",
+          "forecast_date"
+        )
+    ) |>
+    dplyr::rename(
+      date = target_end_date
+    ) |>
+    dplyr::left_join(wweval::flusight_location_table,
+      by = c("location" = "location_code")
+    ) |>
+    dplyr::select(
+      short_name, forecast_date, date,
+      model, interval_score
+    ) |>
+    dplyr::rename(location = short_name) |>
+    dplyr::mutate(
+      model = dplyr::case_when(
+        model == "cfa-wwrenewal" ~ "ww",
+        model == "cfa-hosponlyrenewal" ~ "hosp"
+      )
+    ) |>
+    tidyr::pivot_wider(
+      names_from = model,
+      values_from = interval_score
+    ) |>
+    dplyr::mutate(
+      rel_wis = ww / hosp
+    ) |>
+    dplyr::select(location, forecast_date, ww, hosp, rel_wis)
+
+  return(scores)
 }

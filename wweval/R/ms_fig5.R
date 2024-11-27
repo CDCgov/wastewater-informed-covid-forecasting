@@ -71,6 +71,7 @@ make_fig5_table_and_plot <- function(scores,
 make_fig5_average_wis <- function(all_scores,
                                   cfa_real_time_scores = c(),
                                   models_to_show,
+                                  time_period,
                                   horizon_time_in_weeks = NULL) {
   subset_model_scores <- all_scores |>
     dplyr::filter(model %in% !!models_to_show)
@@ -98,7 +99,7 @@ make_fig5_average_wis <- function(all_scores,
         "forecast_date",
         "model"
       ))
-    title <- glue::glue("Average weighted interval scores by model")
+    title <- glue::glue("Average WIS by model {time_period}")
   }
 
   colors <- plot_components()
@@ -114,6 +115,7 @@ make_fig5_average_wis <- function(all_scores,
       x = forecast_date, y = interval_score,
       color = model
     )) +
+    guides(color = guide_legend(nrow = 2)) +
     xlab("") +
     ylab("Average WIS across locations") +
     get_plot_theme(
@@ -129,7 +131,9 @@ make_fig5_average_wis <- function(all_scores,
     theme(
       legend.position = "top",
       legend.justification = "left",
-      legend.direction = "horizontal"
+      legend.direction = "horizontal",
+      legend.title = element_blank(),
+      legend.text = element_text(size = 7)
     )
 
   return(p)
@@ -252,10 +256,18 @@ make_fig5_hub_performance <- function(all_scores,
       alpha = 0.5,
       position = position_dodge(width = 0.75)
     ) +
+    guides(fill = guide_legend(nrow = 2)) +
     coord_trans(ylim = c(0, 2)) +
     get_plot_theme(
       x_axis_dates = TRUE,
       y_axis_title_size = 8
+    ) +
+    theme(
+      legend.justification = "left",
+      legend.direction = "horizontal",
+      legend.position = "top",
+      legend.title = element_blank(),
+      legend.text = element_text(size = 7)
     ) +
     scale_fill_manual(values = colors$model_colors) +
     scale_color_manual(values = colors$model_colors) +
@@ -309,10 +321,17 @@ make_fig5_density <- function(all_scores,
       x_axis_dates = TRUE,
       y_axis_title_size = 8
     ) +
+    guides(fill = guide_legend(nrow = 2)) +
     scale_fill_manual(values = colors$model_colors) +
     scale_color_manual(values = colors$model_colors) +
     xlab("") +
-    theme(legend.position = "bottom") +
+    theme(
+      legend.justification = "left",
+      legend.direction = "horizontal",
+      legend.position = "none",
+      legend.title = element_blank(),
+      legend.text = element_text(size = 7)
+    ) +
     ylab(glue::glue("{analysis_type} relative WIS \n compared to {baseline_model}"))
 
 

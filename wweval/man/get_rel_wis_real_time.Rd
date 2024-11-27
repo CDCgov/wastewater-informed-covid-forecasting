@@ -2,7 +2,7 @@
 % Please edit documentation in R/supplement_analyses_and_figs.R
 \name{get_rel_wis_real_time}
 \alias{get_rel_wis_real_time}
-\title{Get the relative crps for the real time scores}
+\title{Get the relative wis for the real time scores}
 \usage{
 get_rel_wis_real_time(all_scores)
 }
@@ -10,9 +10,9 @@ get_rel_wis_real_time(all_scores)
 \item{all_scores}{a tibble of the scores for both models in real-time}
 }
 \value{
-A tibble of the relative crps at each forecast date, location, and
+A tibble of the relative wis at each forecast date, location, and
 horizon day
 }
 \description{
-Get the relative crps for the real time scores
+Get the relative wis for the real time scores
 }

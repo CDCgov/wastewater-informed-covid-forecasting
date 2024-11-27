@@ -1344,6 +1344,12 @@ hub_targets <- list(
       scores_list_hub_submission_oct_mar$log_scale_scores
     )
   ),
+  tar_target(
+    name = rel_all_time_wis,
+    command = get_rel_wis_all_time(
+      all_scores = scores_list_retro_hub_submissions$log_scale_scores
+    )
+  ),
   # Rename the model as retrospective
   tar_target(
     name = combine_scores_oct_mar_full,
@@ -1495,7 +1501,7 @@ hub_comparison_plots <- list(
     name = fig5_plot_real_time_rel_wis,
     command = make_fig5_heatmap_rel_wis(
       rel_real_time_wis,
-      time_period = "Feb-Mar",
+      time_period = "Feb-Mar 2024",
       analysis_type = "Real-time",
       fig_file_dir = eval_config$ms_fig_dir
     )
@@ -1524,17 +1530,35 @@ hub_comparison_plots <- list(
           "cfa-wwrenewal(retro)",
           "cfa-hosponlyrenewal(retro)"
         )),
-      models_to_show = models_to_plot
+      models_to_show = models_to_plot,
+      time_period = "Feb-Mar 2024"
     )
   ),
 
   ## Retro Hub comparison top row-------------------------------------------
   tar_target(
-    name = fig5_plot_wis_over_time,
+    name = fig5_plot_all_time_rel_wis,
+    command = make_fig5_heatmap_rel_wis(
+      rel_all_time_wis,
+      time_period = "Oct 2023-Mar 2024",
+      analysis_type = "Retrospective",
+      fig_file_dir = eval_config$ms_fig_dir
+    )
+  ),
+  tar_target(
+    name = fig5_density_all_time,
+    command = make_fig5_density(
+      all_scores = summarized_scores_oct_mar,
+      models_to_show = models_to_plot,
+      analysis_type = "Retrospective",
+    )
+  ),
+  tar_target(
+    name = fig5_plot_all_time_wis_t,
     command = make_fig5_average_wis(
       all_scores = summarized_scores_oct_mar,
-      cfa_real_time_scores = summarized_scores_cfa_real_time,
-      models_to_show = models_to_plot
+      models_to_show = models_to_plot,
+      time_period = "Oct 2023-Mar 2024"
     )
   ),
   tar_target(
@@ -1547,6 +1571,7 @@ hub_comparison_plots <- list(
       real_time_period = "Feb 2024-Mar 2024",
     )
   ),
+  # Lower rows Hub comparison fig------------------------------------
   tar_target(
     name = fig5_heatmap_rel_wis_all_time,
     command = make_fig5_heatmap_relative_wis(
@@ -1601,7 +1626,7 @@ hub_comparison_plots <- list(
   tar_target(
     name = fig5,
     command = make_fig5(
-      fig5_plot_wis_over_time = fig5_plot_wis_over_time,
+      fig5_plot_wis_over_time = fig5_plot_all_time_wis_t,
       fig5_overall_performance = fig5_overall_performance,
       fig5_heatmap_rel_wis_all_time = fig5_heatmap_rel_wis_all_time,
       fig5_heatmap_rel_wis_feb_mar = fig5_heatmap_rel_wis_feb_mar,

@@ -8,6 +8,7 @@ make_fig5_average_wis(
   all_scores,
   cfa_real_time_scores = c(),
   models_to_show,
+  time_period,
   horizon_time_in_weeks = NULL
 )
 }
