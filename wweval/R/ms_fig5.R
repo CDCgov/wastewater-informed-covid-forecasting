@@ -59,6 +59,7 @@ make_fig5_table_and_plot <- function(scores,
 #' default is `c()`
 #' @param models_to_show A vector of charcter strings indicating which models
 #' from the COVID-19 forecast hub to include in the plot.
+#' @param time_period String indicating the time period this plot pertains to
 #' @param horizon_time_in_weeks horizon time in weeks to summarize over, default
 #' is `NULL` which means that the scores are summarized over the nowcast period
 #' and the 4 week forecast period
@@ -115,7 +116,7 @@ make_fig5_average_wis <- function(all_scores,
       x = forecast_date, y = interval_score,
       color = model
     )) +
-    guides(color = guide_legend(nrow = 2)) +
+    # guides(color = guide_legend(nrow = 5)) +
     xlab("") +
     ylab("Average WIS across locations") +
     get_plot_theme(
@@ -129,7 +130,7 @@ make_fig5_average_wis <- function(all_scores,
     ggtitle(title) +
     scale_color_manual(values = colors$model_colors) +
     theme(
-      legend.position = "top",
+      legend.position = "left",
       legend.justification = "left",
       legend.direction = "horizontal",
       legend.title = element_blank(),
@@ -314,16 +315,21 @@ make_fig5_density <- function(all_scores,
       ),
       point_interval = "mean_qi",
       alpha = 0.5,
-      position = position_dodge(width = 0.75)
+      position = position_dodge(width = 0.75),
     ) +
     coord_trans(ylim = c(0, 2)) +
     get_plot_theme(
       x_axis_dates = TRUE,
       y_axis_title_size = 8
     ) +
-    guides(fill = guide_legend(nrow = 2)) +
-    scale_fill_manual(values = colors$model_colors) +
-    scale_color_manual(values = colors$model_colors) +
+    scale_fill_manual(
+      values = colors$model_colors,
+      guide = "none"
+    ) +
+    scale_color_manual(
+      values = colors$model_colors,
+      guide = "none"
+    ) +
     xlab("") +
     theme(
       legend.justification = "left",
@@ -437,7 +443,8 @@ make_fig5_qq_plot <- function(scores,
     scoringutils::plot_quantile_coverage() +
     ggtitle(glue::glue("QQ plot for {time_period}")) +
     get_plot_theme() +
-    scale_color_manual(values = colors$model_colors)
+    theme(legend.position = "none") +
+    scale_color_manual(values = colors$model_colors, guide = "none")
 
 
   return(p)
@@ -517,11 +524,14 @@ make_fig5_density_rank <- function(scores,
       position = ggridges::position_points_jitter(width = 0.05, height = 0),
       point_shape = "|", point_size = 3, point_alpha = 1, alpha = 0.7,
     ) +
-    scale_fill_viridis_d(name = "Quartiles") +
+    scale_fill_viridis_d(guide = "none") +
     get_plot_theme() +
-    scale_x_continuous(name = "Standardized rank", limits = c(0, 1)) +
+    scale_x_continuous(
+      name = "Standardized rank", limits = c(0, 1),
+      guide = "none"
+    ) +
     ylab("") +
-    ggtitle(glue::glue("Standardized rank {time_period}"))
+    ggtitle(glue::glue("Standardized rank \n {time_period}"))
 
   return(p)
 }
@@ -545,7 +555,7 @@ make_fig5_heatmap_rel_wis <- function(rel_scores,
   avg_rel_scores <- rel_scores |>
     dplyr::group_by(forecast_date, location) |>
     dplyr::summarise(mean_rel_wis = mean(rel_wis)) |>
-    dplyr::filter(!is.na(mea_rel_wis))
+    dplyr::filter(!is.na(mean_rel_wis))
 
   p <- ggplot(avg_rel_scores) +
     geom_tile(aes(x = forecast_date, y = location, fill = mean_rel_wis)) +
@@ -568,9 +578,9 @@ make_fig5_heatmap_rel_wis <- function(rel_scores,
       labels = scales::date_format("%Y-%m-%d")
     ) +
     xlab("") +
-    ylab("Location") +
+    ylab("") +
     labs(fill = "Relative WIS") +
-    ggtitle(glue::glue("{analysis_type} mean relative WIS from {time_period}"))
+    ggtitle(glue::glue("{analysis_type} mean relative \n WIS between renewal models \n from {time_period}")) # nolint
 
   ggsave(p,
     width = 7, height = 6,
@@ -628,10 +638,10 @@ make_fig5 <- function(fig5_plot_wis_t_real_time,
                       fig5_std_rank_all_time,
                       fig_file_dir) {
   layout <- "
-ABC
-DEF
-GHI
-JKL
+AABCCC
+DDEEFF
+GGHIII
+JJKKLL
 "
   fig5 <- fig5_plot_real_time_rel_wis + fig5_density_real_time + fig5_plot_wis_t_real_time +
     fig5_heatmap_rel_wis_feb_mar + fig5_qq_plot_feb_mar + fig5_std_rank_feb_mar +
@@ -642,20 +652,21 @@ JKL
       axes = "collect",
       guides = "collect"
     ) & theme(
-    legend.position = "top",
-    legend.justification = "left"
-  ) #+ plot_annotation(tag_levels = "A") #nolint, not working
+    legend.position = "none"
+  )
+  # legend.justification = "left" #nolint
+  # ) #+ plot_annotation(tag_levels = "A") #nolint, not working
 
   fs::dir_create(fig_file_dir)
 
   ggsave(fig5,
     filename = file.path(fig_file_dir, "fig5.png"),
-    width = 12, height = 12
+    width = 12, height = 20
   )
 
   ggsave(fig5,
     filename = file.path(fig_file_dir, "fig5.svg"),
-    width = 12, height = 12
+    width = 12, height = 20
   )
 
   return(fig5)

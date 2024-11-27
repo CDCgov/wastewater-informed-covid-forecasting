@@ -1574,7 +1574,11 @@ hub_comparison_plots <- list(
   tar_target(
     name = fig5_heatmap_rel_wis_feb_mar,
     command = make_fig5_heatmap_relative_wis(
-      scores = summarized_scores_feb_mar,
+      scores = summarized_scores_feb_mar |>
+        dplyr::filter(!model %in% c(
+          "cfa-wwrenewal(retro)",
+          "cfa-hosponlyrenewal(retro)"
+        )),
       models_to_show = models_to_plot,
       time_period = "Feb 2024-Mar 2024",
       baseline_model = "COVIDhub-4_week_ensemble"
@@ -1591,9 +1595,13 @@ hub_comparison_plots <- list(
   tar_target(
     name = fig5_qq_plot_feb_mar,
     command = make_fig5_qq_plot(
-      scores = combine_scores_feb_mar,
+      scores = combine_scores_feb_mar |>
+        dplyr::filter(!model %in% c(
+          "cfa-wwrenewal(retro)",
+          "cfa-hosponlyrenewal(retro)"
+        )),
       models_to_show = models_to_plot,
-      time_period = "Feb 2024-Mar 2024"
+      time_period = "Feb-Mar 2024"
     )
   ),
   tar_target(
@@ -1601,7 +1609,7 @@ hub_comparison_plots <- list(
     command = make_fig5_density_rank(
       scores = summarized_scores_feb_mar,
       models_to_show = models_to_plot,
-      time_period = "Feb 2024-Mar 2024"
+      time_period = "Feb-Mar 2024"
     )
   ),
   tar_target(

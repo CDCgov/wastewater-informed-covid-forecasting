@@ -25,6 +25,8 @@ default is \code{c()}}
 \item{models_to_show}{A vector of charcter strings indicating which models
 from the COVID-19 forecast hub to include in the plot.}
 
+\item{time_period}{String indicating the time period this plot pertains to}
+
 \item{horizon_time_in_weeks}{horizon time in weeks to summarize over, default
 is \code{NULL} which means that the scores are summarized over the nowcast period
 and the 4 week forecast period}
