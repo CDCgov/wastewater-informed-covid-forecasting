@@ -1231,21 +1231,14 @@ real_time_rel_targets <- list(
     )
   ),
   tar_target(
-    name = rel_scores,
-    command = get_rel_crps_real_time(real_time_crps_both_models)
+    name = rel_real_time_wis,
+    command = get_rel_wis_real_time(real_time_wis_both_models)
   ),
   tar_target(
-    name = plot_real_time_rel_crps,
-    command = get_plot_rel_crps_real_time(
-      rel_scores,
-      fig_file_dir = eval_config$ms_fig_dir
-    )
-  ),
-  tar_target(
-    name = overall_rel_crps,
+    name = overall_real_time_rel_wis,
     command = rel_scores |>
       dplyr::ungroup() |>
-      dplyr::summarise(mean_rel_crps = mean(rel_crps, na.rm = TRUE))
+      dplyr::summarise(mean_rel_wis = mean(rel_wis, na.rm = TRUE))
   )
 )
 
@@ -1491,10 +1484,22 @@ hub_comparison_plots <- list(
       "CMU-TimeSeries",
       "COVIDhub-4_week_ensemble",
       "cfa-wwrenewal(real-time)",
+      "cfa-hosponlyrenewal(real-time)",
       "cfa-wwrenewal(retro)",
       "cfa-hosponlyrenewal(retro)"
     )
   ),
+  ## Real-time Hub comparison top row------------------------------------------
+  tar_target(
+    name = fig5_plot_real_time_rel_wis,
+    command = get_heatmap_rel_wis(
+      rel_real_time_wis,
+      time_period = "Feb-Mar",
+      analysis_type = "Real-time",
+      fig_file_dir = eval_config$ms_fig_dir
+    )
+  ),
+  ## Retro Hub comparison top row-------------------------------------------
   tar_target(
     name = fig5_plot_wis_over_time,
     command = make_fig5_average_wis(

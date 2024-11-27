@@ -1066,15 +1066,21 @@ get_heatmap_metadata_hub <- function(metadata,
 #' @return A tibble of the relative crps at each forecast date, location, and
 #' horizon day
 #' @export
-get_rel_crps_real_time <- function(all_scores) {
+get_rel_wis_real_time <- function(all_scores) {
   full_metadata <- all_scores |>
     dplyr::filter(scale == "log") |>
-    dplyr::group_by(forecast_date, model, location, failed_convergence) |>
-    dplyr::summarize(mean_crps = mean(crps)) |>
+    as.data.table() |>
+    scoringutils::summarise_scores(
+      by = c("forecast_date", "model", "location", "failed_convergence")
+    ) |>
+    dplyr::select(
+      forecast_date, model, location, failed_convergence,
+      interval_score
+    ) |>
     dplyr::filter(failed_convergence == FALSE) |>
     tidyr::pivot_wider(
       names_from = model,
-      values_from = mean_crps
+      values_from = interval_score
     )
   # Find the date locations to exclude
 
@@ -1089,33 +1095,44 @@ get_rel_crps_real_time <- function(all_scores) {
 
   rel_scores <- scores_filtered |>
     dplyr::filter(scale == "log") |>
-    dplyr::select(location, forecast_date, date, model, crps) |>
+    as.data.table() |>
+    scoringutils::summarise_scores(
+      by = c("forecast_date", "model", "date", "location")
+    ) |>
+    tibble::tibble() |>
+    dplyr::select(location, forecast_date, date, model, interval_score) |>
     tidyr::pivot_wider(
       names_from = model,
-      values_from = crps
+      values_from = interval_score
     ) |>
     dplyr::mutate(
-      rel_crps = ww / hosp
+      rel_wis = ww / hosp
     )
 
   return(rel_scores)
 }
 
-#' Get a plot of the relative crps from the real-time models
+#' Get a plot of the relative wis from the real-time models
 #'
-#' @param rel_scores tibble containing the relative crps for each forecast
+#' @param rel_scores tibble containing the relative wis for each forecast
 #' date and location and horizon day
+#' @param time_period string indicating dates of analysis, either "Feb-Mar",
+#' or "Oct-Mar"
+#' @param analysis_type string indicating whether analysis is Real-time
+#  or Retrospective
 #' @param fig_file_dir string indicating the directory to save the figure
 #'
-#' @return ggplot object of a heatmap of the realtive crps
-get_plot_rel_crps_real_time <- function(rel_scores,
-                                        fig_file_dir) {
+#' @return ggplot object of a heatmap of the realtive wis
+get_heatmap_rel_wis <- function(rel_scores,
+                                time_period,
+                                analysis_type,
+                                fig_file_dir) {
   avg_rel_scores <- rel_scores |>
     dplyr::group_by(forecast_date, location) |>
-    dplyr::summarise(mean_rel_crps = mean(rel_crps))
+    dplyr::summarise(mean_rel_wis = mean(rel_wis))
 
   p <- ggplot(avg_rel_scores) +
-    geom_tile(aes(x = forecast_date, y = location, fill = mean_rel_crps)) +
+    geom_tile(aes(x = forecast_date, y = location, fill = mean_rel_wis)) +
     scale_fill_gradient2(
       high = "red", mid = "white", low = "blue",
       transform = "log2",
@@ -1124,7 +1141,7 @@ get_plot_rel_crps_real_time <- function(rel_scores,
     ) +
     geom_text(aes(
       x = forecast_date, y = location,
-      label = round(mean_rel_crps, 2)
+      label = round(mean_rel_wis, 2)
     ), size = 1.5) +
     get_plot_theme(
       x_axis_dates = TRUE,
@@ -1136,14 +1153,14 @@ get_plot_rel_crps_real_time <- function(rel_scores,
     ) +
     xlab("") +
     ylab("Location") +
-    labs(fill = "Relative CRPS") +
-    ggtitle(glue::glue("Real-time mean relative CRPS by forecast date and location"))
+    labs(fill = "Relative WIS") +
+    ggtitle(glue::glue("{analysis_type} mean relative WIS from {time_period}"))
 
   ggsave(p,
     width = 7, height = 6,
     filename = file.path(
       fig_file_dir,
-      glue::glue("sfig_real_time_heatmap_rel_crps.png")
+      glue::glue("sfig_heatmap_rel_wis_{time_period}_{analysis_type}.png")
     )
   )
 
