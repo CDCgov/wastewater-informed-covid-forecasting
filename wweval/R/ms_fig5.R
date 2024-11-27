@@ -544,7 +544,8 @@ make_fig5_heatmap_rel_wis <- function(rel_scores,
                                       fig_file_dir) {
   avg_rel_scores <- rel_scores |>
     dplyr::group_by(forecast_date, location) |>
-    dplyr::summarise(mean_rel_wis = mean(rel_wis))
+    dplyr::summarise(mean_rel_wis = mean(rel_wis)) |>
+    dplyr::filter(!is.na(mea_rel_wis))
 
   p <- ggplot(avg_rel_scores) +
     geom_tile(aes(x = forecast_date, y = location, fill = mean_rel_wis)) +
