@@ -22,8 +22,30 @@ get_summary_table_fig3 <- function(scores,
       values_from = mean_crps
     ) |>
     dplyr::mutate(
-      rel_crps = mean_crps_ww / mean_crps_hosp
+      rel_crps_means = mean_crps_ww / mean_crps_hosp
     )
+
+  raw_rel_scores <- scores |>
+    dplyr::filter(
+      location %in% locs_to_plot
+    ) |>
+    tidyr::pivot_wider(
+      id_cols = c("location", "date", "forecast_date"),
+      names_from = "model",
+      names_prefix = "crps_",
+      values_from = crps
+    ) |>
+    dplyr::mutate(rel_crps = crps_ww / crps_hosp) |>
+    dplyr::group_by(location) |>
+    dplyr::summarize(mean_rel_crps = mean(rel_crps, na.rm = TRUE))
+
+  scores_summary <- raw_rel_scores |> dplyr::left_join(scores_locs,
+    by = "location"
+  )
+
+
+
+
 
   return(scores_locs)
 }
@@ -76,19 +98,9 @@ make_fig3_single_loc_comp <- function(scores,
                                       )) {
   scores_by_horizon <- scores |>
     dplyr::filter(location == !!loc_to_plot) |>
-    data.table::as.data.table() |>
-    scoringutils::summarise_scores(by = c(
-      "forecast_date", "location",
-      "model", "horizon"
-    )) |>
     dplyr::filter(horizon %in% !!horizons_to_show)
   scores_overall <- scores |>
     dplyr::filter(location == !!loc_to_plot) |>
-    data.table::as.data.table() |>
-    scoringutils::summarise_scores(by = c(
-      "forecast_date", "location",
-      "model"
-    )) |>
     dplyr::mutate(horizon = "overall")
 
   scores_comb <- dplyr::bind_rows(scores_by_horizon, scores_overall) |>
@@ -97,28 +109,49 @@ make_fig3_single_loc_comp <- function(scores,
     ) |>
     order_horizons()
 
+  relative_crps <- scores_comb |>
+    compute_relative_crps(id_cols = c(
+      "location", "forecast_date",
+      "horizon", "date"
+    )) |>
+    dplyr::filter(!is.na(horizon)) |>
+    order_horizons()
+
+  mean_rel_crps <- relative_crps |>
+    dplyr::group_by(horizon) |>
+    dplyr::summarize(mean_rel_crps = mean(rel_crps, na.rm = TRUE))
+
   colors <- plot_components()
 
-  p <- ggplot(scores_comb) +
-    tidybayes::stat_halfeye(
+  p <- ggplot(relative_crps) +
+    tidybayes::stat_slab(
       aes(
-        x = horizon, y = crps,
-        fill = model
+        x = horizon, y = rel_crps,
+        fill = horizon
       ),
       point_interval = "mean_qi",
       alpha = 0.5,
-      position = position_dodge(width = 0.75)
+      position = position_dodge(width = 0.75),
+      show.legend = FALSE
+    ) +
+    geom_point(
+      data = mean_rel_crps,
+      aes(x = horizon, mean_rel_crps),
+      size = 3
     ) +
     xlab("") +
-    ylab("CRPS") +
+    ylab("Relative CRPS") +
     ggtitle(glue::glue(
       "{loc_to_plot}"
     )) +
     theme_bw() +
-    scale_color_manual(values = colors$model_colors) +
-    scale_fill_manual(values = colors$model_colors) +
-    get_plot_theme(y_axis_title_size = 8) +
-    scale_y_continuous(trans = "log10", limits = c(0.03, 1.5)) +
+    scale_color_manual(values = colors$horizon_colors) +
+    scale_fill_manual(values = colors$horizon_colors) +
+    get_plot_theme(
+      y_axis_title_size = 8,
+      x_axis_text_size = 6
+    ) +
+    scale_y_continuous(trans = "log10") + # , limits = c(0.25, 4.0)) +
     labs(color = "Model", fill = "Model")
 
   return(p)
