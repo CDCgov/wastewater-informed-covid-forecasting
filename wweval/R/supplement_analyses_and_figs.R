@@ -693,12 +693,35 @@ get_stats_improved_forecasts <- function(scores,
   forecasts_way_worse <- relative_crps_by_forecast |>
     dplyr::filter(pct_change_crps > 3)
   n_forecasts_3x_worse <- forecasts_way_worse |> nrow()
+
+  forecasts_way_better <- relative_crps_by_forecast |>
+    dplyr::filter(pct_change_crps < -3)
+  n_forecasts_3x_better <- forecasts_way_better |> nrow()
+
   n_forecasts_better <- relative_crps_by_forecast |>
-    dplyr::filter(pct_change_crps < threshold) |>
+    dplyr::filter(pct_change_crps < 0) |>
     nrow()
 
   n_forecasts_worse <- relative_crps_by_forecast |>
-    dplyr::filter(pct_change_crps > threshold) |>
+    dplyr::filter(pct_change_crps > 0) |>
+    nrow()
+
+  n_forecasts_better_thres <- relative_crps_by_forecast |>
+    dplyr::filter(
+      pct_change_crps < 0,
+      abs(pct_change_crps) > threshold
+    ) |>
+    nrow()
+
+  n_forecasts_worse <- relative_crps_by_forecast |>
+    dplyr::filter(pct_change_crps > 0) |>
+    nrow()
+
+  n_forecasts_worse_thres <- relative_crps_by_forecast |>
+    dplyr::filter(
+      pct_change_crps > 0,
+      abs(pct_change_crps) > threshold
+    ) |>
     nrow()
 
 
@@ -709,7 +732,10 @@ get_stats_improved_forecasts <- function(scores,
     n_states_worse,
     n_forecasts_better,
     n_forecasts_worse,
-    n_forecasts_3x_worse
+    n_forecasts_better_thres,
+    n_forecasts_worse_thres,
+    n_forecasts_3x_worse,
+    n_forecasts_3x_better
   )
 
   return(stats)
