@@ -371,6 +371,10 @@ head_to_head_targets <- list(
           "forecast_date"
         )
       ) |>
+      dplyr::filter(
+        any_flags_ww == FALSE,
+        any_flags_hosp == FALSE
+      ) |>
       dplyr::anti_join(
         ww_forecast_date_locs_to_excl |>
           dplyr::mutate(forecast_date = lubridate::ymd(forecast_date)),
@@ -414,6 +418,10 @@ head_to_head_targets <- list(
           "forecast_date"
         )
       ) |>
+      dplyr::filter(
+        any_flags_ww == FALSE,
+        any_flags_hosp == FALSE
+      ) |>
       dplyr::left_join(
         last_hosp_data_date_map,
         by = c("location", "forecast_date")
@@ -454,6 +462,10 @@ head_to_head_targets <- list(
           "location",
           "forecast_date"
         )
+      ) |>
+      dplyr::filter(
+        any_flags_ww == FALSE,
+        any_flags_hosp == FALSE
       ) |>
       dplyr::left_join(
         last_hosp_data_date_map,
@@ -505,7 +517,18 @@ manuscript_figures <- list(
       granular_ww_metadata,
       ww_forecast_date_locs_to_excl,
       convergence_df,
-      table_of_loc_dates_w_ww
+      table_of_loc_dates_w_ww,
+      include_manual_exclusions = FALSE
+    )
+  ),
+  tar_target(
+    name = granular_ww_metadata_used_hub,
+    command = get_add_ww_metadata(
+      granular_ww_metadata,
+      ww_forecast_date_locs_to_excl,
+      convergence_df,
+      table_of_loc_dates_w_ww,
+      include_manual_exclusions = TRUE
     )
   ),
   tar_target(
@@ -525,7 +548,7 @@ manuscript_figures <- list(
   tar_target(
     name = sfig_heatmap_metadata_hub,
     command = get_heatmap_metadata_hub(
-      granular_ww_metadata_used,
+      granular_ww_metadata_used_hub,
       fig_file_dir = eval_config$ms_fig_dir
     )
   ),
