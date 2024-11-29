@@ -4,19 +4,12 @@
 \alias{make_fig4_rel_crps_over_time}
 \title{Make a CRPS density plot for a subset of locations}
 \usage{
-make_fig4_rel_crps_over_time(
-  scores,
-  horizons_to_show = c("nowcast", "1 wk", "4 wks", "overall")
-)
+make_fig4_rel_crps_over_time(scores)
 }
 \arguments{
 \item{scores}{A tibble of scores by location, forecast date, date and model,
 containing the outputs of \code{scoringutils::score()} on samples plus metadata
 transformed into a tibble.}
-
-\item{horizons_to_show}{A vector of strings indicating the names of the
-\code{horizon} that we want to show on the plot, must be a subset of
-\code{nowcast}, \verb{1 wk}, \verb{2 wks},\verb{3 wks}, \verb{4 wks} and \code{overall}}
 }
 \value{
 a ggplot object that is a vertical facet of violin plots colored

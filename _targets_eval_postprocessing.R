@@ -947,15 +947,14 @@ manuscript_figures <- list(
   tar_target(
     name = fig4_rel_crps_over_time,
     command = make_fig4_rel_crps_over_time(
-      scores_filtered,
-      horizons_to_show = "overall"
+      scores_filtered
     )
   ),
   tar_target(
     name = loc_summary,
     command = get_loc_rel_crps(
       scores_filtered,
-      locs = c("DC", "OH")
+      locs = c("DC", "OH", "NH", "CO")
     )
   ),
   tar_target(
@@ -988,8 +987,7 @@ manuscript_figures <- list(
   tar_target(
     name = fig4_rel_crps_by_location,
     command = make_fig4_rel_crps_by_location(
-      scores_filtered,
-      horizons_to_show = "overall"
+      scores_filtered
     )
   ),
   tar_target(
@@ -1349,6 +1347,12 @@ hub_targets <- list(
     command = get_rel_wis_all_time(
       all_scores = scores_list_retro_hub_submissions$log_scale_scores
     )
+  ),
+  tar_target(
+    name = overall_all_time_rel_wis,
+    command = rel_all_time_wis |>
+      dplyr::ungroup() |>
+      dplyr::summarise(mean_rel_wis = mean(rel_wis, na.rm = TRUE))
   ),
   # Rename the model as retrospective
   tar_target(

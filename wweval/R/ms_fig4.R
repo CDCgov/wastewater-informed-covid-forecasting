@@ -16,6 +16,15 @@ make_fig4_results_table <- function(scores) {
       avg_ae = mean(ae_median)
     )
 
+  # Above was averaged across models, get avg of rel_crps
+  overall_all_time_rel_crps <- scores |>
+    compute_relative_crps(id_cols = c(
+      "location",
+      "forecast_date", "date", "horizon"
+    )) |>
+    dplyr::summarize(mean_rel_crps = mean(rel_crps, na.rm = TRUE))
+
+
   # By period (nowcast vs forecast)
   scores_by_period <- scores |>
     dplyr::group_by(model, period) |>
@@ -27,7 +36,8 @@ make_fig4_results_table <- function(scores) {
 
   scores_tables <- list(
     scores_overall = scores_overall,
-    scores_by_period = scores_by_period
+    scores_by_period = scores_by_period,
+    overall_all_time_rel_crps = overall_all_time_rel_crps
   )
 
   return(scores_tables)
@@ -39,59 +49,45 @@ make_fig4_results_table <- function(scores) {
 #' @param scores A tibble of scores by location, forecast date, date and model,
 #' containing the outputs of `scoringutils::score()` on samples plus metadata
 #' transformed into a tibble.
-#' @param horizons_to_show A vector of strings indicating the names of the
-#' `horizon` that we want to show on the plot, must be a subset of
-#' `nowcast`, `1 wk`, `2 wks`,`3 wks`, `4 wks` and `overall`
-#'
 #' @return a ggplot object that is a vertical facet of violin plots colored
 #' by model type and broken down my horizon
 #' @export
-make_fig4_rel_crps_over_time <- function(scores,
-                                         horizons_to_show = c(
-                                           "nowcast",
-                                           "1 wk", "4 wks",
-                                           "overall"
-                                         )) {
-  scores_by_horizon <- scores
+make_fig4_rel_crps_over_time <- function(scores) {
   scores_overall <- scores |>
     dplyr::mutate(
       horizon = "overall"
     )
 
-  scores_comb <- dplyr::bind_rows(scores_by_horizon, scores_overall) |>
-    dplyr::filter(
-      horizon %in% !!horizons_to_show
-    )
-
-  relative_crps <- scores_comb |>
+  relative_crps <- scores_overall |>
     compute_relative_crps(id_cols = c(
       "location",
       "forecast_date", "date", "horizon"
-    )) |>
-    dplyr::filter(!is.na(horizon)) |>
-    order_horizons()
+    ))
+
+
+  mean_rel_crps <- relative_crps |>
+    dplyr::group_by(forecast_date, horizon) |>
+    dplyr::summarize(mean_rel_crps = mean(rel_crps, na.rm = TRUE))
 
 
   colors <- plot_components()
   date_lims <- c(range(scores$forecast_date))
 
-  p <- ggplot(
-    relative_crps,
-    aes(
-      x = as.factor(forecast_date), y = rel_crps, color = horizon,
-      fill = horizon
-    ),
-    show.legend = FALSE
-  ) +
-    tidybayes::stat_halfeye(
+  p <- ggplot(relative_crps) +
+    tidybayes::stat_slab(
       aes(
         x = as.factor(forecast_date), y = rel_crps,
         fill = horizon
       ),
-      point_interval = "mean_qi",
       alpha = 0.5,
       position = position_dodge(width = 0.75),
       show.legend = FALSE
+    ) +
+    geom_point(
+      data = mean_rel_crps,
+      aes(x = as.factor(forecast_date), y = mean_rel_crps),
+      size = 1.5,
+      color = "black"
     ) +
     geom_hline(aes(yintercept = 1), linetype = "dashed") +
     xlab("") +
@@ -256,32 +252,18 @@ get_loc_rel_crps <- function(scores, locs) {
 #' @param scores A tibble of scores by location, forecast date, date and model,
 #' containing the outputs of `scoringutils::score()` on samples plus metadata
 #' transformed into a tibble.
-#' @param horizons_to_show A vector of strings indicating the names of the
-#' `horizon` that we want to show on the plot, must be a subset of
-#' `nowcast`, `1 wk`, `2 wks`,`3 wks`, `4 wks` and `overall`
 #'
 #' @return A ggplot object containing plots of the distribution of relative
 #' CRPS scores by location, across forecast dates, colored by location
 #' @export
-make_fig4_rel_crps_by_location <- function(scores,
-                                           horizons_to_show = c(
-                                             "nowcast",
-                                             "1 wk", "4 wks",
-                                             "overall"
-                                           )) {
-  scores_by_horizon <- scores
+make_fig4_rel_crps_by_location <- function(scores) {
   scores_overall <- scores |>
     dplyr::mutate(
       horizon = "overall"
     )
 
-  scores_comb <- dplyr::bind_rows(scores_by_horizon, scores_overall) |>
-    dplyr::filter(
-      horizon %in% !!horizons_to_show
-    )
 
-
-  relative_crps <- scores_comb |>
+  relative_crps <- scores_overall |>
     compute_relative_crps(id_cols = c(
       "location",
       "forecast_date", "date",
@@ -290,22 +272,26 @@ make_fig4_rel_crps_by_location <- function(scores,
     dplyr::filter(!is.na(horizon)) |>
     order_horizons()
 
+  mean_rel_crps <- relative_crps |>
+    group_by(horizon, location) |>
+    summarize(mean_rel_crps = mean(rel_crps, na.rm = TRUE))
+
   colors <- plot_components()
 
-  p <- ggplot(relative_crps, aes(
-    x = location, y = rel_crps, color = horizon,
-    fill = horizon,
-    show.legend = FALSE
-  )) +
-    tidybayes::stat_halfeye(
+  p <- ggplot(relative_crps) +
+    tidybayes::stat_slab(
       aes(
         x = location, y = rel_crps,
         fill = horizon
       ),
-      point_interval = "mean_qi",
       alpha = 0.5,
       position = position_dodge(width = 0.75),
       show.legend = FALSE
+    ) +
+    geom_point(
+      data = mean_rel_crps,
+      aes(x = location, y = mean_rel_crps),
+      size = 1
     ) +
     geom_hline(aes(yintercept = 1), linetype = "dashed") +
     theme_bw() +
@@ -362,17 +348,32 @@ make_fig4_rel_crps_overall <- function(scores,
 
   colors <- plot_components()
 
+  mean_rel_crps <- relative_crps |>
+    dplyr::group_by(horizon) |>
+    dplyr::summarize(mean_rel_crps = mean(rel_crps, na.rm = TRUE))
+  quartiled_rel_crps <- relative_crps |>
+    dplyr::group_by(horizon) |>
+    dplyr::summarize(
+      lb_25th = quantile(rel_crps, probs = 0.25),
+      ub_75 = quantile(rel_crps, probs = 0.75)
+    ) |>
+    tidyr::pivot_longer(!horizon)
+
 
   p <- ggplot(relative_crps) +
-    tidybayes::stat_halfeye(
+    tidybayes::stat_slab(
       aes(
         x = horizon, y = rel_crps,
         fill = horizon
       ),
-      point_interval = "mean_qi",
       alpha = 0.5,
       position = position_dodge(width = 0.75),
       show.legend = FALSE
+    ) +
+    geom_point(
+      data = mean_rel_crps,
+      aes(x = horizon, y = mean_rel_crps),
+      size = 4
     ) +
     geom_hline(aes(yintercept = 1), linetype = "dashed") +
     xlab("Horizon") +
