@@ -1766,6 +1766,13 @@ supp_targets <- list(
       scores = scores_filtered,
       threshold = 0.1
     )
+  ),
+  tar_target(
+    name = plot_rel_crps_distrib,
+    command = get_plot_rel_crps_distrib(
+      scores = scores_filtered,
+      fig_file_dir = eval_config$ms_fig_dir
+    )
   )
 )
 

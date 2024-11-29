@@ -665,9 +665,34 @@ get_stats_improved_forecasts <- function(scores,
       "location", "forecast_date"
     )) |>
     dplyr::mutate(
-      pct_change_crps = (ww - hosp) / hosp
+      pct_change_crps = (ww - hosp) / hosp,
+      rel_crps = ww / hosp
     )
 
+  relative_crps_raw <- scores |>
+    compute_relative_crps(id_cols = c(
+      "location", "forecast_date", "date"
+    )) |>
+    dplyr::mutate(
+      pct_change_crps = (ww - hosp) / hosp,
+      rel_crps = ww / hosp
+    )
+
+  ggplot(relative_crps_by_forecast) +
+    geom_histogram(aes(x = pct_change_crps))
+
+  ggplot(relative_crps_raw) +
+    geom_histogram(aes(x = pct_change_crps))
+  ggplot(relative_crps_raw) +
+    geom_histogram(aes(x = rel_crps)) +
+    scale_x_continuous(trans = "log10")
+
+
+
+
+  forecasts_way_worse <- relative_crps_by_forecast |>
+    dplyr::filter(pct_change_crps > 3)
+  n_forecasts_3x_worse <- forecasts_way_worse |> nrow()
   n_forecasts_better <- relative_crps_by_forecast |>
     dplyr::filter(pct_change_crps < threshold) |>
     nrow()
@@ -683,11 +708,49 @@ get_stats_improved_forecasts <- function(scores,
     n_states_better,
     n_states_worse,
     n_forecasts_better,
-    n_forecasts_worse
+    n_forecasts_worse,
+    n_forecasts_3x_worse
   )
 
   return(stats)
 }
+
+#' Get a density plot of the relative CRPS distribution
+#'
+#' @param scores tibble of scores by horizon day, forecast date, and location
+#' @param fig_file_dir directory to save figure in
+#'
+#' @return ggplot object of distribution of relative CRPS scores
+get_plot_rel_crps_distrib <- function(scores,
+                                      fig_file_dir) {
+  relative_crps_by_forecast <- scores |>
+    dplyr::group_by(location, model, forecast_date) |>
+    dplyr::summarize(crps = mean(crps)) |>
+    compute_relative_crps(id_cols = c(
+      "location", "forecast_date"
+    )) |>
+    dplyr::mutate(
+      pct_change_crps = (ww - hosp) / hosp,
+      rel_crps = ww / hosp
+    )
+  p <- ggplot(relative_crps_by_forecast) +
+    geom_density(aes(x = rel_crps),
+      fill = "darkblue"
+    ) +
+    geom_vline(aes(xintercept = 1), linetype = "dashed") +
+    get_plot_theme() +
+    ylab("Density") +
+    xlab("Relative CRPS by forecast date and location")
+
+  ggsave(p,
+    filename = file.path(
+      fig_file_dir,
+      glue::glue("sfig_distrib_rel_crps.png")
+    )
+  )
+  return(p)
+}
+
 
 get_plot_sites_vs_performance <- function(scores,
                                           ww_metadata,
