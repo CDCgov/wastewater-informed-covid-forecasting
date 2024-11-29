@@ -47,7 +47,7 @@ get_summary_table_fig3 <- function(scores,
 
 
 
-  return(scores_locs)
+  return(scores_summary)
 }
 
 #' Get an individual forecast score summary for a particular
