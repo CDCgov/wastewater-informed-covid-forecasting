@@ -741,11 +741,19 @@ get_plot_rel_crps_distrib <- function(scores,
     get_plot_theme() +
     ylab("Density") +
     xlab("Relative CRPS by forecast date and location")
+  p_log <- p + scale_x_continuous(trans = "log10")
 
   ggsave(p,
     filename = file.path(
       fig_file_dir,
       glue::glue("sfig_distrib_rel_crps.png")
+    )
+  )
+
+  ggsave(p_log,
+    filename = file.path(
+      fig_file_dir,
+      glue::glue("sfig_distrib_rel_crps_log.png")
     )
   )
   return(p)
