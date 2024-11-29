@@ -245,6 +245,9 @@ load_data_and_summarize <- function(fp_hosp, fp_ww,
 #' date location combination
 #' @param table_of_loc_dates_w_ww table containing wastewater metadata
 #' for every location-forecast date with wastewater
+#' @param include_manual_exclusions boolean indicating whether or not the
+#' ww metadata should include manual exclusiosn, default is FALSE bc isn't
+#' used in main retro head to head analysis.
 #'
 #' @return a tibble with a number of additional columns indicating whether
 #' or not there were any flags for manual exclusions, convergence issues,
@@ -253,26 +256,31 @@ load_data_and_summarize <- function(fp_hosp, fp_ww,
 get_add_ww_metadata <- function(granular_ww_metadata,
                                 ww_forecast_date_locs_to_excl,
                                 convergence_df,
-                                table_of_loc_dates_w_ww) {
+                                table_of_loc_dates_w_ww,
+                                include_manual_exclusions = FALSE) {
   granular_ww_metadata_used <- granular_ww_metadata |>
     dplyr::mutate(forecast_date = lubridate::ymd(.data$forecast_date)) |>
-    dplyr::left_join(
-      ww_forecast_date_locs_to_excl |>
-        mutate(
-          ww_exclude_manual = TRUE,
-          forecast_date = lubridate::ymd(.data$forecast_date)
-        ),
-      by = c("location", "forecast_date")
-    ) |>
-    dplyr::mutate(
-      ww_exclude_manual = tidyr::replace_na(.data$ww_exclude_manual, FALSE)
-    ) |>
     dplyr::left_join(convergence_df,
       by = c("location", "forecast_date")
     ) |>
     dplyr::left_join(table_of_loc_dates_w_ww,
       by = c("location", "forecast_date")
     )
+
+  if (isTRUE(include_manual_exclusions)) {
+    granular_ww_metadata_used <- granular_ww_metadata_used |>
+      dplyr::left_join(
+        ww_forecast_date_locs_to_excl |>
+          mutate(
+            ww_exclude_manual = TRUE,
+            forecast_date = lubridate::ymd(.data$forecast_date)
+          ),
+        by = c("location", "forecast_date")
+      ) |>
+      dplyr::mutate(
+        ww_exclude_manual = tidyr::replace_na(.data$ww_exclude_manual, FALSE)
+      )
+  }
 
   return(granular_ww_metadata_used)
 }

@@ -987,7 +987,7 @@ get_summary_metadata <- function(metadata) {
   metadata_summarized <- metadata |>
     dplyr::select(
       forecast_date, location, ww_data_present,
-      ww_exclude_manual, ww_sufficient,
+      ww_sufficient,
       any_flags_hosp, any_flags_ww
     )
 
@@ -1001,13 +1001,8 @@ get_summary_metadata <- function(metadata) {
 
   n_conv_issues <- nrow(metadata_remove_insuff_ww) - nrow(metadata_remove_conv_issues)
 
-  metadata_man_excl <- metadata_remove_conv_issues |>
-    dplyr::filter(ww_exclude_manual == FALSE)
-
-  n_excl <- nrow(metadata_remove_conv_issues) - nrow(metadata_man_excl)
-
-  summary_table <- tibble::tibble(n_insuff_ww, n_conv_issues, n_excl,
-    n_forecasts = nrow(metadata_man_excl)
+  summary_table <- tibble::tibble(n_insuff_ww, n_conv_issues,
+    n_forecasts = nrow(metadata_remove_conv_issues)
   )
 
   return(summary_table)
@@ -1027,7 +1022,7 @@ get_heatmap_metadata <- function(metadata,
   metadata_summarized <- metadata |>
     dplyr::select(
       forecast_date, location, ww_data_present,
-      ww_exclude_manual, ww_sufficient,
+      ww_sufficient,
       any_flags_hosp, any_flags_ww
     ) |>
     dplyr::ungroup()
