@@ -304,11 +304,14 @@ make_fig5_density <- function(all_scores,
     dplyr::mutate(relative_wis = interval_score / baseline_score) |>
     dplyr::filter(model != {{ baseline_model }})
 
+  mean_rel_wis <- scores_final |>
+    dplyr::group_by(model) |>
+    dplyr::summarize(mean_rel_wis = mean(relative_wis, na.rm = TRUE))
 
   colors <- plot_components()
 
   p <- ggplot(scores_final) +
-    tidybayes::stat_halfeye(
+    tidybayes::stat_slab(
       aes(
         x = model, y = relative_wis + 1e-8,
         fill = model
@@ -316,6 +319,11 @@ make_fig5_density <- function(all_scores,
       point_interval = "mean_qi",
       alpha = 0.5,
       position = position_dodge(width = 0.75),
+    ) +
+    geom_point(
+      data = mean_rel_wis,
+      aes(x = model, y = mean_rel_wis),
+      size = 3
     ) +
     coord_trans(ylim = c(0, 2)) +
     get_plot_theme(
