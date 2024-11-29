@@ -356,16 +356,10 @@ get_summary_ww_table <- function(ww_metadata, hosp_quantiles_filtered) {
     ) |>
     dplyr::pull("n_ww_insuff")
 
-  n_ww_excluded <- ww_metadata |>
-    dplyr::summarise(
-      n_ww_excluded = sum(.data$ww_exclude_manual, na.rm = TRUE)
-    ) |>
-    dplyr::pull(.data$n_ww_excluded)
-
   n_w_ww_expected <- ww_metadata |>
     dplyr::mutate(
       ww_expected = dplyr::case_when(
-        ww_data_present == 1 & !(.data$ww_exclude_manual) &
+        ww_data_present == 1 &
           !(.data$any_flags_hosp) & !(.data$any_flags_ww) &
           isTRUE(.data$ww_sufficient) ~ TRUE,
         TRUE ~ FALSE
@@ -387,7 +381,6 @@ get_summary_ww_table <- function(ww_metadata, hosp_quantiles_filtered) {
     n_combos_w_hosp_conv_flags,
     n_combos_w_ww_conv_flags,
     n_insuff_ww,
-    n_ww_excluded,
     n_no_ww_expected,
     n_no_ww_actual,
     n_w_ww_expected,
