@@ -127,7 +127,6 @@ make_fig5_average_wis <- function(all_scores,
       date_breaks = "2 weeks",
       labels = scales::date_format("%Y-%m-%d")
     ) +
-    ggtitle(title) +
     scale_color_manual(values = colors$model_colors) +
     theme(
       legend.position = "top",
@@ -292,25 +291,28 @@ make_fig5_density <- function(all_scores,
       location, forecast_date, target_end_date,
       horizon, interval_score
     ) |>
-    dplyr::rename(baseline_score = interval_score) |>
-    dplyr::distinct()
+    dplyr::group_by(location, forecast_date) |>
+    dplyr::summarize(mean_baseline_score = mean(interval_score))
 
   scores_final <- subset_scores |>
+    dplyr::group_by(
+      forecast_date, location, model
+    ) |>
+    dplyr::summarize(mean_wis = mean(interval_score)) |>
     dplyr::left_join(baseline_scores, by = c(
-      "forecast_date", "horizon",
-      "location", "target_end_date"
+      "forecast_date", "location"
     )) |>
-    dplyr::mutate(relative_wis = interval_score / baseline_score) |>
-    dplyr::filter(model != {{ baseline_model }})
+    dplyr::mutate(relative_wis = mean_wis / mean_baseline_score) |>
+    dplyr::filter(
+      model != {{ baseline_model }},
+      !is.na(relative_wis)
+    )
 
-  mean_rel_wis <- scores_final |>
-    dplyr::group_by(model) |>
-    dplyr::summarize(mean_rel_wis = mean(relative_wis, na.rm = TRUE))
 
   colors <- plot_components()
 
   p <- ggplot(scores_final) +
-    tidybayes::stat_slab(
+    tidybayes::stat_histinterval(
       aes(
         x = model, y = relative_wis + 1e-8,
         fill = model
@@ -319,12 +321,7 @@ make_fig5_density <- function(all_scores,
       alpha = 0.5,
       position = position_dodge(width = 0.75),
     ) +
-    geom_point(
-      data = mean_rel_wis,
-      aes(x = model, y = mean_rel_wis),
-      size = 3
-    ) +
-    coord_trans(ylim = c(0, 2)) +
+    scale_y_continuous(trans = "log10") +
     get_plot_theme(
       x_axis_dates = TRUE,
       y_axis_title_size = 8
@@ -448,7 +445,6 @@ make_fig5_qq_plot <- function(scores,
     data.table::as.data.table() |>
     scoringutils::summarise_scores(by = c("model", "quantile")) |>
     scoringutils::plot_quantile_coverage() +
-    ggtitle(glue::glue("QQ plot")) +
     get_plot_theme() +
     theme(legend.position = "none") +
     scale_color_manual(values = colors$model_colors, guide = "none")
@@ -536,8 +532,7 @@ make_fig5_density_rank <- function(scores,
     scale_x_continuous(
       name = "Standardized rank", limits = c(0, 1)
     ) +
-    ylab("") +
-    ggtitle(glue::glue("Standardized rank"))
+    ylab("")
 
   return(p)
 }
@@ -644,12 +639,10 @@ make_fig5 <- function(fig5_plot_wis_t_real_time,
                       fig5_std_rank_all_time,
                       fig_file_dir) {
   layout <- "
-AABCCC
-DDEEFF
-GGHIII
-JJKKLL
+AABBBB
+CCDDEE
 "
-  fig5 <- fig5_plot_real_time_rel_wis + fig5_density_real_time + fig5_plot_wis_t_real_time +
+  fig5_rt <- fig5_density_real_time + fig5_plot_wis_t_real_time +
     fig5_heatmap_rel_wis_feb_mar + fig5_qq_plot_feb_mar + fig5_std_rank_feb_mar +
     fig5_plot_all_time_rel_wis + fig5_density_all_time + fig5_plot_wis_t_all_time +
     fig5_heatmap_rel_wis_all_time + fig5_qq_plot_all_time + fig5_std_rank_all_time +
@@ -665,18 +658,18 @@ JJKKLL
 
   fs::dir_create(fig_file_dir)
 
-  ggsave(fig5,
-    filename = file.path(fig_file_dir, "fig5.png"),
-    width = 12, height = 20
+  ggsave(fig5_rt,
+    filename = file.path(fig_file_dir, "fig5_rt.png"),
+    width = 12, height = 10
   )
 
-  ggsave(fig5,
+  ggsave(fig5_rt,
     filename = file.path(fig_file_dir, "fig5.svg"),
     width = 12, height = 20
   )
 
 
-  fig5_at <- fig5_plot_all_time_rel_wis + fig5_density_all_time + fig5_plot_wis_t_all_time +
+  fig5_at <- fig5_density_all_time + fig5_plot_wis_t_all_time +
     fig5_heatmap_rel_wis_all_time + fig5_qq_plot_all_time + fig5_std_rank_all_time +
     patchwork::plot_layout(
       design = layout,
@@ -699,5 +692,5 @@ JJKKLL
     filename = file.path(fig_file_dir, "fig5_at.svg"),
     width = 12, height = 10
   )
-  return(fig5)
+  return(fig5_rt)
 }

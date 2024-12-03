@@ -664,7 +664,8 @@ manuscript_figures <- list(
     name = summary_table_crps,
     command = get_summary_table_fig3(
       scores_filtered,
-      locs_to_plot
+      locs_to_plot,
+      fig_file_dir = eval_config$ms_fig_dir
     )
   ),
   tar_target(
@@ -1436,7 +1437,8 @@ hub_targets <- list(
         model = ifelse(
           model == "cfa-wwrenewal", "cfa-wwrenewal(real-time)", model
         )
-      )
+      ) |>
+      dplyr::filter(location != "US")
   ),
   tar_target(
     name = cfa_hosp_real_time_scores,
