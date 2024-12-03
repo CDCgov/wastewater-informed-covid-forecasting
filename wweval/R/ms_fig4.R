@@ -74,10 +74,11 @@ make_fig4_rel_crps_over_time <- function(scores) {
   date_lims <- c(range(scores$forecast_date))
 
   p <- ggplot(relative_crps) +
-    tidybayes::stat_slab(
+    tidybayes::stat_halfeye(
       aes(
         x = as.factor(forecast_date), y = rel_crps,
-        fill = horizon
+        fill = horizon,
+        point_interval = "mean_qi"
       ),
       alpha = 0.5,
       position = position_dodge(width = 0.75),
@@ -86,13 +87,15 @@ make_fig4_rel_crps_over_time <- function(scores) {
     geom_point(
       data = mean_rel_crps,
       aes(x = as.factor(forecast_date), y = mean_rel_crps),
-      size = 1.5,
-      color = "black"
+      size = 1,
+      shape = 17,
+      color = "blue"
     ) +
     geom_hline(aes(yintercept = 1), linetype = "dashed") +
     xlab("") +
     ylab("Relative CRPS") +
-    scale_y_continuous(trans = "log10", limits = c(0.5, 2)) +
+    scale_y_continuous(trans = "log10") +
+    coord_cartesian(ylim = c(0.5, 2)) +
     get_plot_theme(
       x_axis_dates = TRUE,
       y_axis_title_size = 8
@@ -279,10 +282,11 @@ make_fig4_rel_crps_by_location <- function(scores) {
   colors <- plot_components()
 
   p <- ggplot(relative_crps) +
-    tidybayes::stat_slab(
+    tidybayes::stat_halfeye(
       aes(
         x = location, y = rel_crps,
-        fill = horizon
+        fill = horizon,
+        point_interval = "mean_qi"
       ),
       alpha = 0.5,
       position = position_dodge(width = 0.75),
@@ -291,7 +295,9 @@ make_fig4_rel_crps_by_location <- function(scores) {
     geom_point(
       data = mean_rel_crps,
       aes(x = location, y = mean_rel_crps),
-      size = 1
+      size = 1,
+      shape = 17,
+      color = "blue"
     ) +
     geom_hline(aes(yintercept = 1), linetype = "dashed") +
     theme_bw() +
@@ -301,7 +307,8 @@ make_fig4_rel_crps_by_location <- function(scores) {
     ) + # bc we want them smaller and turned
     xlab("") +
     ylab("Relative CRPS") +
-    scale_y_continuous(trans = "log10", limits = c(0.5, 2)) +
+    scale_y_continuous(trans = "log10") +
+    coord_cartesian(ylim = c(0.5, 2)) +
     scale_fill_manual(values = colors$horizon_colors) +
     scale_color_manual(values = colors$horizon_colors)
 
@@ -361,10 +368,11 @@ make_fig4_rel_crps_overall <- function(scores,
 
 
   p <- ggplot(relative_crps) +
-    tidybayes::stat_slab(
+    tidybayes::stat_halfeye(
       aes(
         x = horizon, y = rel_crps,
-        fill = horizon
+        fill = horizon,
+        point_interval = "mean_qi"
       ),
       alpha = 0.5,
       position = position_dodge(width = 0.75),
@@ -373,12 +381,15 @@ make_fig4_rel_crps_overall <- function(scores,
     geom_point(
       data = mean_rel_crps,
       aes(x = horizon, y = mean_rel_crps),
-      size = 4
+      size = 1,
+      shape = 17,
+      color = "blue"
     ) +
     geom_hline(aes(yintercept = 1), linetype = "dashed") +
     xlab("Horizon") +
     ylab("Relative CRPS") +
-    scale_y_continuous(trans = "log10", limits = c(0.5, 2)) +
+    scale_y_continuous(trans = "log10") +
+    coord_cartesian(ylim = c(0.5, 2)) +
     get_plot_theme(
       y_axis_title_size = 8,
       x_axis_title_size = 8
