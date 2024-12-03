@@ -116,7 +116,7 @@ make_fig5_average_wis <- function(all_scores,
       x = forecast_date, y = interval_score,
       color = model
     )) +
-    # guides(color = guide_legend(nrow = 5)) +
+    guides(color = guide_legend(nrow = 2)) +
     xlab("") +
     ylab("Average WIS across locations") +
     get_plot_theme(
@@ -130,8 +130,7 @@ make_fig5_average_wis <- function(all_scores,
     ggtitle(title) +
     scale_color_manual(values = colors$model_colors) +
     theme(
-      legend.position = "left",
-      legend.justification = "left",
+      legend.position = "top",
       legend.direction = "horizontal",
       legend.title = element_blank(),
       legend.text = element_text(size = 7)
@@ -346,7 +345,7 @@ make_fig5_density <- function(all_scores,
       legend.title = element_blank(),
       legend.text = element_text(size = 7)
     ) +
-    ylab(glue::glue("{analysis_type} relative WIS \n compared to {baseline_model}"))
+    ylab(glue::glue("Relative WIS compared to \n {baseline_model}"))
 
 
 
@@ -420,7 +419,7 @@ make_fig5_heatmap_relative_wis <- function(scores,
     xlab("") +
     ylab("") +
     labs(fill = "Relative WIS") +
-    ggtitle(glue::glue("Relative WIS compared to \n {baseline_model} \n from {time_period}"))
+    ggtitle(glue::glue("Relative WIS compared to \n {baseline_model}"))
 
 
   return(p)
@@ -449,7 +448,7 @@ make_fig5_qq_plot <- function(scores,
     data.table::as.data.table() |>
     scoringutils::summarise_scores(by = c("model", "quantile")) |>
     scoringutils::plot_quantile_coverage() +
-    ggtitle(glue::glue("QQ plot for {time_period}")) +
+    ggtitle(glue::glue("QQ plot")) +
     get_plot_theme() +
     theme(legend.position = "none") +
     scale_color_manual(values = colors$model_colors, guide = "none")
@@ -535,11 +534,10 @@ make_fig5_density_rank <- function(scores,
     scale_fill_viridis_d(guide = "none") +
     get_plot_theme() +
     scale_x_continuous(
-      name = "Standardized rank", limits = c(0, 1),
-      guide = "none"
+      name = "Standardized rank", limits = c(0, 1)
     ) +
     ylab("") +
-    ggtitle(glue::glue("Standardized rank \n {time_period}"))
+    ggtitle(glue::glue("Standardized rank"))
 
   return(p)
 }
@@ -588,7 +586,7 @@ make_fig5_heatmap_rel_wis <- function(rel_scores,
     xlab("") +
     ylab("") +
     labs(fill = "Relative WIS") +
-    ggtitle(glue::glue("{analysis_type} mean relative \n WIS between renewal models \n from {time_period}")) # nolint
+    ggtitle(glue::glue(" Relative WIS of wastewater \n informed model compared to \n hospital admissions-only model")) # nolint
 
   ggsave(p,
     width = 7, height = 6,
@@ -677,5 +675,29 @@ JJKKLL
     width = 12, height = 20
   )
 
+
+  fig5_at <- fig5_plot_all_time_rel_wis + fig5_density_all_time + fig5_plot_wis_t_all_time +
+    fig5_heatmap_rel_wis_all_time + fig5_qq_plot_all_time + fig5_std_rank_all_time +
+    patchwork::plot_layout(
+      design = layout,
+      axes = "collect",
+      guides = "collect"
+    ) & theme(
+    legend.position = "none"
+  )
+  # legend.justification = "left" #nolint
+  # ) #+ plot_annotation(tag_levels = "A") #nolint, not working
+
+  fs::dir_create(fig_file_dir)
+
+  ggsave(fig5_at,
+    filename = file.path(fig_file_dir, "fig5_at.png"),
+    width = 12, height = 10
+  )
+
+  ggsave(fig5_at,
+    filename = file.path(fig_file_dir, "fig5_at.svg"),
+    width = 12, height = 10
+  )
   return(fig5)
 }
