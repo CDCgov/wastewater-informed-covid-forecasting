@@ -3,18 +3,21 @@
 #' @param scores tibble of crps scores by location, forecast date, model,
 #' horizon day
 #' @param locs_to_plot the locations we want summaries for
+#' @param fig_file_dir string indicating directory to save fig in
 #'
 #' @return a table with mean crps for each model and the relative crps
 get_summary_table_fig3 <- function(scores,
-                                   locs_to_plot) {
-  scores_locs <- scores |>
+                                   locs_to_plot,
+                                   fig_file_dir) {
+  scores_locs_long <- scores |>
     dplyr::filter(
       location %in% locs_to_plot
     ) |>
     dplyr::group_by(model, location) |>
     dplyr::summarize(
       mean_crps = mean(crps)
-    ) |>
+    )
+  scores_locs <- scores_locs_long |>
     tidyr::pivot_wider(
       id_cols = c("location"),
       names_from = "model",
@@ -24,6 +27,27 @@ get_summary_table_fig3 <- function(scores,
     dplyr::mutate(
       rel_crps_means = mean_crps_ww / mean_crps_hosp
     )
+
+  colors <- plot_components()
+  p <- ggplot(scores_locs_long) +
+    geom_bar(aes(x = model, y = mean_crps, fill = model),
+      stat = "identity",
+      position = "dodge"
+    ) +
+    scale_fill_manual(values = colors$model_colors) +
+    facet_wrap(~location) +
+    get_plot_theme(
+      x_axis_dates = TRUE,
+      y_axis_title_size = 8,
+      y_axis_text_size = 6
+    ) +
+    xlab("") +
+    ylab("Mean CRPS")
+
+  ggsave(p,
+    filename = file.path(fig_file_dir, "sfig_bar_chart_mean_crps_3_locs.png"),
+    width = 7, height = 4
+  )
 
   raw_rel_scores <- scores |>
     dplyr::filter(
@@ -110,21 +134,28 @@ make_fig3_single_loc_comp <- function(scores,
     order_horizons()
 
   relative_crps <- scores_comb |>
-    compute_relative_crps(id_cols = c(
-      "location", "forecast_date",
-      "horizon", "date"
-    )) |>
+    dplyr::group_by(horizon, forecast_date, location, model) |>
+    dplyr::summarize(mean_crps = mean(crps)) |>
+    tidyr::pivot_wider(
+      names_from = model,
+      values_from = mean_crps,
+      id_cols = c("horizon", "forecast_date", "location")
+    ) |>
+    dplyr::mutate(
+      rel_crps = ww / hosp
+    ) |>
     dplyr::filter(!is.na(horizon)) |>
     order_horizons()
 
-  mean_rel_crps <- relative_crps |>
+
+  rel_mean_crps <- relative_crps |>
     dplyr::group_by(horizon) |>
-    dplyr::summarize(mean_rel_crps = mean(rel_crps, na.rm = TRUE))
+    dplyr::summarize(rel_mean_crps = mean(ww) / mean(hosp), na.rm = TRUE)
 
   colors <- plot_components()
 
   p <- ggplot(relative_crps) +
-    tidybayes::stat_slab(
+    tidybayes::stat_dotsinterval(
       aes(
         x = horizon, y = rel_crps,
         fill = horizon
@@ -133,11 +164,6 @@ make_fig3_single_loc_comp <- function(scores,
       alpha = 0.5,
       position = position_dodge(width = 0.75),
       show.legend = FALSE
-    ) +
-    geom_point(
-      data = mean_rel_crps,
-      aes(x = horizon, mean_rel_crps),
-      size = 3
     ) +
     xlab("") +
     ylab("Relative CRPS") +
@@ -149,7 +175,10 @@ make_fig3_single_loc_comp <- function(scores,
       x_axis_text_size = 6
     ) +
     scale_y_continuous(trans = "log10") + # , limits = c(0.25, 4.0)) +
-    labs(color = "Model", fill = "Model")
+    labs(color = "Model")
+
+  # Also make a bar chart of the two average crps scores
+
 
   return(p)
 }
@@ -280,13 +309,16 @@ make_fig3_crps_underlay_fig <- function(scores,
                                         horizon_to_plot,
                                         horizon_days_ahead,
                                         days_to_shift = 0) {
-  scores_by_horizon <- scores |>
+  scores_filtered <- scores |>
     dplyr::filter(location == !!loc_to_plot) |>
     data.table::as.data.table() |>
     scoringutils::summarise_scores(by = c(
       "forecast_date", "location",
       "model", "horizon"
-    )) |>
+    ))
+  max_crps <- max(scores_filtered$crps)
+
+  scores_by_horizon <- scores_filtered |>
     dplyr::filter(horizon == !!horizon_to_plot) |>
     dplyr::mutate(
       forecast_date_shifted = lubridate::ymd(forecast_date) +
@@ -299,7 +331,6 @@ make_fig3_crps_underlay_fig <- function(scores,
     max(scores$forecast_date) +
       lubridate::days(horizon_days_ahead + 5)
   )
-  max_crps <- max(scores_by_horizon$crps)
 
   p <- ggplot(scores_by_horizon) +
     geom_bar(aes(x = forecast_date_shifted, y = crps, fill = model),
@@ -314,6 +345,7 @@ make_fig3_crps_underlay_fig <- function(scores,
       labels = scales::date_format("%Y-%m-%d"),
       limits = date_lims
     ) +
+    coord_cartesian(ylim = c(0, max_crps + 0.05)) +
     get_plot_theme(
       x_axis_dates = TRUE,
       y_axis_title_size = 8,
