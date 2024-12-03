@@ -593,8 +593,8 @@ make_plot_coverage_range <- function(scores_quantiles,
         fig_file_dir,
         glue::glue("sfig_coverage_range_retro_all_time.png")
       ),
-      height = 10,
-      width = 4
+      height = 4,
+      width = 10
     )
   }
   return(p)
