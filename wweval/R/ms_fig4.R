@@ -59,37 +59,31 @@ make_fig4_rel_crps_over_time <- function(scores) {
     )
 
   relative_crps <- scores_overall |>
-    compute_relative_crps(id_cols = c(
-      "location",
-      "forecast_date", "date", "horizon"
-    ))
-
-
-  mean_rel_crps <- relative_crps |>
-    dplyr::group_by(forecast_date, horizon) |>
-    dplyr::summarize(mean_rel_crps = mean(rel_crps, na.rm = TRUE))
+    dplyr::group_by(forecast_date, location, model, horizon) |>
+    dplyr::summarize(mean_crps = mean(crps)) |>
+    tidyr::pivot_wider(
+      names_from = model,
+      values_from = mean_crps,
+      id_cols = c("horizon", "forecast_date", "location")
+    ) |>
+    dplyr::mutate(
+      rel_crps = ww / hosp
+    )
 
 
   colors <- plot_components()
   date_lims <- c(range(scores$forecast_date))
 
   p <- ggplot(relative_crps) +
-    tidybayes::stat_halfeye(
+    tidybayes::stat_dotsinterval(
       aes(
         x = as.factor(forecast_date), y = rel_crps,
-        fill = horizon,
-        point_interval = "mean_qi"
+        fill = horizon
       ),
+      point_interval = "mean_qi",
       alpha = 0.5,
       position = position_dodge(width = 0.75),
       show.legend = FALSE
-    ) +
-    geom_point(
-      data = mean_rel_crps,
-      aes(x = as.factor(forecast_date), y = mean_rel_crps),
-      size = 1,
-      shape = 17,
-      color = "blue"
     ) +
     geom_hline(aes(yintercept = 1), linetype = "dashed") +
     xlab("") +
@@ -248,6 +242,91 @@ get_loc_rel_crps <- function(scores, locs) {
   return(relative_crps)
 }
 
+#' Plot a heatmap of the relative crps by locations and forecast date
+#' for the head-to-head comparison
+#'
+#' @param scores A tibble of daily scores by forecast date, location, and model
+#' @param fig_file_dir A string indicating the directory to save the figures in
+#'
+#' @return a ggplot object
+#' @export
+get_plot_rel_crps_heatmap <- function(scores,
+                                      fig_file_dir) {
+  scores_summary <- scores |>
+    compute_relative_crps(id_cols = c(
+      "location",
+      "forecast_date", "date"
+    )) |>
+    dplyr::group_by(location, forecast_date) |>
+    dplyr::summarize(
+      mean_rel_crps = mean(rel_crps)
+    )
+
+
+  p <- ggplot(scores_summary) +
+    geom_tile(aes(x = forecast_date, y = location, fill = mean_rel_crps)) +
+    scale_fill_gradient2(
+      high = "red", mid = "white", low = "blue",
+      transform = "log2",
+      midpoint = 1,
+      guide = "colourbar", aesthetics = "fill"
+    ) +
+    geom_text(aes(
+      x = forecast_date, y = location,
+      label = round(mean_rel_crps, 2)
+    ), size = 1.5) +
+    get_plot_theme(
+      x_axis_dates = TRUE,
+      y_axis_text_size = 4
+    ) +
+    scale_x_date(
+      date_breaks = "1 week",
+      labels = scales::date_format("%Y-%m-%d")
+    ) +
+    xlab("") +
+    ylab("Location") +
+    labs(fill = "Relative CRPS") +
+    ggtitle(glue::glue("Relative CRPS by forecast date and location"))
+
+  return(p)
+}
+
+#' Get a density plot of the relative CRPS distribution
+#'
+#' @param scores tibble of scores by horizon day, forecast date, and location
+#' @param fig_file_dir directory to save figure in
+#'
+#' @return ggplot object of distribution of relative CRPS scores
+get_plot_rel_crps_distrib <- function(scores,
+                                      fig_file_dir) {
+  relative_crps_by_forecast <- scores |>
+    dplyr::group_by(location, model, forecast_date) |>
+    dplyr::summarize(crps = mean(crps)) |>
+    compute_relative_crps(id_cols = c(
+      "location", "forecast_date"
+    )) |>
+    dplyr::mutate(
+      pct_change_crps = (ww - hosp) / hosp,
+      rel_crps = ww / hosp
+    )
+  p_log <- ggplot(relative_crps_by_forecast) +
+    tidybayes::stat_dotsinterval(
+      aes(
+        y = rel_crps
+      ),
+      alpha = 0.5,
+      position = position_dodge(width = 0.75),
+      show.legend = FALSE,
+      fill = "darkblue"
+    ) +
+    get_plot_theme() +
+    ylab("Relative CRPS") +
+    xlab("Count") +
+    scale_x_continuous(trans = "log10")
+
+  return(p_log)
+}
+
 
 
 #' Make figure that stratifies scores by location across forecast dates
@@ -267,37 +346,30 @@ make_fig4_rel_crps_by_location <- function(scores) {
 
 
   relative_crps <- scores_overall |>
-    compute_relative_crps(id_cols = c(
-      "location",
-      "forecast_date", "date",
-      "horizon"
-    )) |>
-    dplyr::filter(!is.na(horizon)) |>
-    order_horizons()
-
-  mean_rel_crps <- relative_crps |>
-    group_by(horizon, location) |>
-    summarize(mean_rel_crps = mean(rel_crps, na.rm = TRUE))
+    dplyr::group_by(forecast_date, location, model, horizon) |>
+    dplyr::summarize(mean_crps = mean(crps)) |>
+    tidyr::pivot_wider(
+      names_from = model,
+      values_from = mean_crps,
+      id_cols = c("horizon", "forecast_date", "location")
+    ) |>
+    dplyr::mutate(
+      rel_crps = ww / hosp
+    ) |>
+    order_locations()
 
   colors <- plot_components()
 
   p <- ggplot(relative_crps) +
-    tidybayes::stat_halfeye(
+    tidybayes::stat_dotsinterval(
       aes(
         x = location, y = rel_crps,
-        fill = horizon,
-        point_interval = "mean_qi"
+        fill = horizon
       ),
+      point_interval = "mean_qi",
       alpha = 0.5,
       position = position_dodge(width = 0.75),
       show.legend = FALSE
-    ) +
-    geom_point(
-      data = mean_rel_crps,
-      aes(x = location, y = mean_rel_crps),
-      size = 1,
-      shape = 17,
-      color = "blue"
     ) +
     geom_hline(aes(yintercept = 1), linetype = "dashed") +
     theme_bw() +
@@ -408,16 +480,22 @@ make_fig4_rel_crps_overall <- function(scores,
 #' @param scores_quantiles A tibble of scores by location, forecast date,
 #' date and model, containing the outputs of `scoringutils::score()` on
 #' quantiles plus metadata transformed into a tibble.
+#' @param fig_file_fir string indicating directory to save figure,
+#' default is NULL
+#' @param write_files boolean indicating whether to save the file, default is
+#' `FALSE`
 #'
 #' @return a ggplot object with the overall QQ plot colored by model.
 #' @export
-make_qq_plot_overall <- function(scores_quantiles) {
+make_qq_plot_overall <- function(scores_quantiles,
+                                 fig_file_dir = NULL,
+                                 write_files = FALSE) {
   colors <- plot_components()
   p <- scores_quantiles |>
     data.table::as.data.table() |>
     scoringutils::summarise_scores(by = c("model", "quantile")) |>
     scoringutils::plot_quantile_coverage() +
-    # ggtitle(glue::glue("QQ plot")) +
+    ggtitle(glue::glue("QQ plot all-time")) +
     get_plot_theme() +
     labs(
       ylab = "Percent of data below quantile",
@@ -425,6 +503,15 @@ make_qq_plot_overall <- function(scores_quantiles) {
     ) +
     theme(legend.position = "none") +
     scale_color_manual(values = colors$model_colors)
+  if (isTRUE(write_files)) {
+    ggsave(p,
+      filename = file.path(
+        fig_file_dir,
+        glue::glue("sfig_qq_plot_retro_all_time.png")
+      )
+    )
+  }
+
 
   return(p)
 }
@@ -437,10 +524,16 @@ make_qq_plot_overall <- function(scores_quantiles) {
 #'
 #' @param ranges A numeric vector of credible interval ranges to plot,
 #' spanning from 0 to 100.
+#' @param fig_file_dir string indicating directory to save figure in,
+#' default is `NULL`
+#' @param write_files boolean indicating whether to save file, default is FALSE
 #'
 #' @return A ggplot2 object
 #'
-make_plot_coverage_range <- function(scores_quantiles, ranges) {
+make_plot_coverage_range <- function(scores_quantiles,
+                                     ranges,
+                                     fig_file_dir = NULL,
+                                     write_files = FALSE) {
   scores_by_horizon <- scores_quantiles |>
     dplyr::mutate(
       horizon_weeks = dplyr::case_when(
@@ -490,6 +583,16 @@ make_plot_coverage_range <- function(scores_quantiles, ranges) {
     ) +
     scale_color_manual(values = colors$model_colors)
 
+  if (isTRUE(write_files)) {
+    ggsave(p,
+      filename = file.path(
+        fig_file_dir,
+        glue::glue("sfig_coverage_range_retro_all_time.png")
+      ),
+      height = 10,
+      width = 4
+    )
+  }
   return(p)
 }
 
@@ -674,7 +777,9 @@ make_fig4_avg_crps_over_time <- function(scores,
 
 #' Make Figure 4
 #'
-#' @param fig4_rel_crps_overall density plot comparing overall distribution
+#' @param fig4_rel_crps_heatmap heatmap of relative crps by forecast date
+#' and location
+#' @param fig4_rel_crps_hist histogram comparing overall distribution
 #' of crps scores across forecast_date, date, location, and model
 #' @param fig4_avg_crps avg crps across locations by forecast date
 #' @param fig4_natl_admissions national admissions by day
@@ -683,35 +788,32 @@ make_fig4_avg_crps_over_time <- function(scores,
 #' @param fig4_rel_crps_by_location avg crps across forecast dates by state
 #' @param fig4_qq_plot_overall overall qq plot
 #' @param fig4_plot_coverage_range interval coverage plots at 3 intervals
+#' @param time_period string to save fig as, either "real_time" or "all_time"
 #' @param fig_file_dir Path to save figures
 #'
 #' @return ggplot object with all the elements combined
 #' @export
-make_fig4 <- function(fig4_rel_crps_overall,
+make_fig4 <- function(fig4_rel_crps_heatmap,
+                      fig4_rel_crps_hist,
                       fig4_avg_crps,
                       fig4_natl_admissions,
                       fig4_rel_crps_over_time,
                       fig4_rel_crps_by_location,
-                      fig4_qq_plot_overall,
-                      fig4_plot_coverage_range,
+                      time_period,
                       fig_file_dir) {
   layout <- "
-AAAA
-BBBB
-CCCC
-DDDD
-EEEE
-FGGG
-FGGG
+AACCC
+AADDD
+BBEEE
+BBFFF
 "
 
-  fig4 <- fig4_rel_crps_overall +
+  fig4 <- fig4_rel_crps_heatmap +
+    fig4_rel_crps_hist +
     fig4_natl_admissions +
     fig4_avg_crps +
     fig4_rel_crps_over_time +
     fig4_rel_crps_by_location +
-    fig4_plot_coverage_range +
-    fig4_qq_plot_overall +
     patchwork::plot_layout(
       design = layout,
       axes = "collect"
@@ -724,13 +826,19 @@ FGGG
   fs::dir_create(fig_file_dir)
 
   ggsave(fig4,
-    filename = file.path(fig_file_dir, "fig4.png"),
-    width = 8, height = 11
+    filename = file.path(
+      fig_file_dir,
+      glue::glue("fig4_{time_period}.png")
+    ),
+    width = 10, height = 8
   )
 
   ggsave(fig4,
-    filename = file.path(fig_file_dir, "fig4.svg"),
-    width = 8, height = 11
+    filename = file.path(
+      fig_file_dir,
+      glue::glue("fig4_{time_period}.svg")
+    ),
+    width = 10, height = 8
   )
 
   return(fig4)

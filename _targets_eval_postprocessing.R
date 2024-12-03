@@ -981,6 +981,20 @@ manuscript_figures <- list(
       locs = c("DC", "OH", "NH", "CO")
     )
   ),
+  ## Fig 4: retro all-time--------------------------------------------------
+  tar_target(fig4_rel_crps_heatmap,
+    command = get_plot_rel_crps_heatmap(
+      scores = scores_filtered,
+      fig_file_dir = eval_config$ms_fig_dir
+    )
+  ),
+  tar_target(
+    name = fig4_rel_crps_hist,
+    command = get_plot_rel_crps_distrib(
+      scores = scores_filtered,
+      fig_file_dir = eval_config$ms_fig_dir
+    )
+  ),
   tar_target(
     name = fig4_natl_admissions,
     command = make_fig4_admissions_overall(
@@ -1023,27 +1037,31 @@ manuscript_figures <- list(
   tar_target(
     name = fig4_qq_plot_overall,
     command = make_qq_plot_overall(
-      scores_quantiles_filtered
+      scores_quantiles_filtered,
+      fig_file_dir = eval_config$ms_fig_dir,
+      write_files = TRUE
     )
   ),
   tar_target(
     name = fig4_plot_coverage_range,
     command = make_plot_coverage_range(
       scores_quantiles_filtered,
-      ranges = c(30, 60, 90)
+      ranges = c(30, 60, 90),
+      fig_file_dir = eval_config$ms_fig_dir,
+      write_files = TRUE
     )
   ),
   ### Fig 4 combined---------------------------------------------------
   tar_target(
     name = fig4,
     command = make_fig4(
-      fig4_rel_crps_overall = fig4_rel_crps_overall,
+      fig4_rel_crps_heatmap = fig4_rel_crps_heatmap,
+      fig4_rel_crps_hist = fig4_rel_crps_hist,
       fig4_avg_crps = fig4_avg_crps,
       fig4_natl_admissions = fig4_natl_admissions,
       fig4_rel_crps_over_time = fig4_rel_crps_over_time,
       fig4_rel_crps_by_location = fig4_rel_crps_by_location,
-      fig4_qq_plot_overall = fig4_qq_plot_overall,
-      fig4_plot_coverage_range = fig4_plot_coverage_range,
+      time_period = "all_time",
       fig_file_dir = eval_config$ms_fig_dir
     )
   )
@@ -1722,12 +1740,6 @@ supp_targets <- list(
       fig_file_dir = eval_config$ms_fig_dir
     )
   ),
-  tar_target(sfig_rel_crps_heatmap,
-    command = get_plot_rel_crps_heatmap(
-      scores = scores_filtered,
-      fig_file_dir = eval_config$ms_fig_dir
-    )
-  ),
   tar_target(
     name = sfig_bias_over_time_comparison,
     command = get_plot_bias_over_time(scores_filtered,
@@ -1790,13 +1802,6 @@ supp_targets <- list(
     command = get_stats_improved_forecasts(
       scores = scores_filtered,
       threshold = 0.1
-    )
-  ),
-  tar_target(
-    name = plot_rel_crps_distrib,
-    command = get_plot_rel_crps_distrib(
-      scores = scores_filtered,
-      fig_file_dir = eval_config$ms_fig_dir
     )
   )
 )

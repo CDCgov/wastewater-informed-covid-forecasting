@@ -4,12 +4,22 @@
 \alias{make_qq_plot_overall}
 \title{Make a qq plot}
 \usage{
-make_qq_plot_overall(scores_quantiles)
+make_qq_plot_overall(
+  scores_quantiles,
+  fig_file_dir = NULL,
+  write_files = FALSE
+)
 }
 \arguments{
 \item{scores_quantiles}{A tibble of scores by location, forecast date,
 date and model, containing the outputs of \code{scoringutils::score()} on
 quantiles plus metadata transformed into a tibble.}
+
+\item{write_files}{boolean indicating whether to save the file, default is
+\code{FALSE}}
+
+\item{fig_file_fir}{string indicating directory to save figure,
+default is NULL}
 }
 \value{
 a ggplot object with the overall QQ plot colored by model.

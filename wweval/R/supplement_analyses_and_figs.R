@@ -741,49 +741,6 @@ get_stats_improved_forecasts <- function(scores,
   return(stats)
 }
 
-#' Get a density plot of the relative CRPS distribution
-#'
-#' @param scores tibble of scores by horizon day, forecast date, and location
-#' @param fig_file_dir directory to save figure in
-#'
-#' @return ggplot object of distribution of relative CRPS scores
-get_plot_rel_crps_distrib <- function(scores,
-                                      fig_file_dir) {
-  relative_crps_by_forecast <- scores |>
-    dplyr::group_by(location, model, forecast_date) |>
-    dplyr::summarize(crps = mean(crps)) |>
-    compute_relative_crps(id_cols = c(
-      "location", "forecast_date"
-    )) |>
-    dplyr::mutate(
-      pct_change_crps = (ww - hosp) / hosp,
-      rel_crps = ww / hosp
-    )
-  p <- ggplot(relative_crps_by_forecast) +
-    geom_density(aes(x = rel_crps),
-      fill = "darkblue"
-    ) +
-    geom_vline(aes(xintercept = 1), linetype = "dashed") +
-    get_plot_theme() +
-    ylab("Density") +
-    xlab("Relative CRPS by forecast date and location")
-  p_log <- p + scale_x_continuous(trans = "log10")
-
-  ggsave(p,
-    filename = file.path(
-      fig_file_dir,
-      glue::glue("sfig_distrib_rel_crps.png")
-    )
-  )
-
-  ggsave(p_log,
-    filename = file.path(
-      fig_file_dir,
-      glue::glue("sfig_distrib_rel_crps_log.png")
-    )
-  )
-  return(p)
-}
 
 
 get_plot_sites_vs_performance <- function(scores,
@@ -921,61 +878,6 @@ get_plot_comb_perf_heatmap <- function(scores,
   return(p)
 }
 
-#' Plot a heatmap of the relative crps by locations and forecast date
-#' for the head-to-head comparison
-#'
-#' @param scores A tibble of daily scores by forecast date, location, and model
-#' @param fig_file_dir A string indicating the directory to save the figures in
-#'
-#' @return a ggplot object
-#' @export
-get_plot_rel_crps_heatmap <- function(scores,
-                                      fig_file_dir) {
-  scores_summary <- scores |>
-    compute_relative_crps(id_cols = c(
-      "location",
-      "forecast_date", "date"
-    )) |>
-    dplyr::group_by(location, forecast_date) |>
-    dplyr::summarize(
-      mean_rel_crps = mean(rel_crps)
-    )
-
-
-  p <- ggplot(scores_summary) +
-    geom_tile(aes(x = forecast_date, y = location, fill = mean_rel_crps)) +
-    scale_fill_gradient2(
-      high = "red", mid = "white", low = "blue",
-      transform = "log2",
-      midpoint = 1,
-      guide = "colourbar", aesthetics = "fill"
-    ) +
-    geom_text(aes(
-      x = forecast_date, y = location,
-      label = round(mean_rel_crps, 2)
-    ), size = 1.5) +
-    get_plot_theme(
-      x_axis_dates = TRUE,
-      y_axis_text_size = 4
-    ) +
-    scale_x_date(
-      date_breaks = "1 week",
-      labels = scales::date_format("%Y-%m-%d")
-    ) +
-    xlab("") +
-    ylab("Location") +
-    labs(fill = "Relative CRPS") +
-    ggtitle(glue::glue("Mean relative CRPS by forecast date and location"))
-
-  ggsave(p,
-    width = 7, height = 6,
-    filename = file.path(
-      fig_file_dir,
-      glue::glue("sfig_heatmap_rel_crps.png")
-    )
-  )
-  return(p)
-}
 
 #' Get a summary table of the number of forecasts excluded for each reason
 #'

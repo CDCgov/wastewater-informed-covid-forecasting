@@ -153,3 +153,37 @@ order_phases <- function(df) {
     )
   return(df_w_order)
 }
+
+#' Get the order of the locations for plotting
+#'
+#' @param df a dataframe containing the column name `phase` which will
+#' contain character strings indicating the phase of the epidemic
+#' (increasing, decreasing, peak, or nadir) of  the score/quantile/sample.
+#'
+#' @return a dataframe containing the same columns as `df` but with the
+#' addition of `fig_order` and reordered in terms of `fig_order` for plotting.
+#' @export
+order_locations <- function(df) {
+  loc_order <- df |>
+    dplyr::group_by(location) |>
+    dplyr::summarize(geom_mean_crps = exp(mean(log(rel_crps)))) |>
+    dplyr::arrange(geom_mean_crps, "desc") |>
+    dplyr::pull(location)
+
+  if (!"location" %in% colnames(df)) {
+    cli::cli_abort(
+      message =
+        c(
+          "Column named `location` is missing from the dataframe"
+        )
+    )
+  }
+
+
+
+  df_w_order <- df |>
+    dplyr::mutate(
+      location = factor(location, ordered = TRUE, levels = loc_order)
+    )
+  return(df_w_order)
+}

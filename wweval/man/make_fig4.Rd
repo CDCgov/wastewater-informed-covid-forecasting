@@ -5,18 +5,21 @@
 \title{Make Figure 4}
 \usage{
 make_fig4(
-  fig4_rel_crps_overall,
+  fig4_rel_crps_heatmap,
+  fig4_rel_crps_hist,
   fig4_avg_crps,
   fig4_natl_admissions,
   fig4_rel_crps_over_time,
   fig4_rel_crps_by_location,
-  fig4_qq_plot_overall,
-  fig4_plot_coverage_range,
+  time_period,
   fig_file_dir
 )
 }
 \arguments{
-\item{fig4_rel_crps_overall}{density plot comparing overall distribution
+\item{fig4_rel_crps_heatmap}{heatmap of relative crps by forecast date
+and location}
+
+\item{fig4_rel_crps_hist}{histogram comparing overall distribution
 of crps scores across forecast_date, date, location, and model}
 
 \item{fig4_avg_crps}{avg crps across locations by forecast date}
@@ -28,11 +31,13 @@ date}
 
 \item{fig4_rel_crps_by_location}{avg crps across forecast dates by state}
 
+\item{time_period}{string to save fig as, either "real_time" or "all_time"}
+
+\item{fig_file_dir}{Path to save figures}
+
 \item{fig4_qq_plot_overall}{overall qq plot}
 
 \item{fig4_plot_coverage_range}{interval coverage plots at 3 intervals}
-
-\item{fig_file_dir}{Path to save figures}
 }
 \value{
 ggplot object with all the elements combined

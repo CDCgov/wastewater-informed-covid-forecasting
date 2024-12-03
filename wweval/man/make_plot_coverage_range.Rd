@@ -4,7 +4,12 @@
 \alias{make_plot_coverage_range}
 \title{Plot coverage at specified ranges}
 \usage{
-make_plot_coverage_range(scores_quantiles, ranges)
+make_plot_coverage_range(
+  scores_quantiles,
+  ranges,
+  fig_file_dir = NULL,
+  write_files = FALSE
+)
 }
 \arguments{
 \item{scores_quantiles}{A tibble of scores by location, forecast date,
@@ -13,6 +18,11 @@ quantiles plus metadata transformed into a tibble.}
 
 \item{ranges}{A numeric vector of credible interval ranges to plot,
 spanning from 0 to 100.}
+
+\item{fig_file_dir}{string indicating directory to save figure in,
+default is \code{NULL}}
+
+\item{write_files}{boolean indicating whether to save file, default is FALSE}
 }
 \value{
 A ggplot2 object
