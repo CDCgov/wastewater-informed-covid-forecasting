@@ -4,12 +4,15 @@
 \alias{order_locations}
 \title{Get the order of the locations for plotting}
 \usage{
-order_locations(df)
+order_locations(df, score_name)
 }
 \arguments{
 \item{df}{a dataframe containing the column name \code{phase} which will
 contain character strings indicating the phase of the epidemic
 (increasing, decreasing, peak, or nadir) of  the score/quantile/sample.}
+
+\item{score_name}{string indicating the name of the score either \code{rel_crps}
+or \code{rel_wis}}
 }
 \value{
 a dataframe containing the same columns as \code{df} but with the

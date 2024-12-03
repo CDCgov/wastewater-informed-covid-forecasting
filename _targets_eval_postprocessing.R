@@ -981,7 +981,7 @@ manuscript_figures <- list(
       locs = c("DC", "OH", "NH", "CO")
     )
   ),
-  ## Fig 4: retro all-time--------------------------------------------------
+  ## Fig 4: retro relative--------------------------------------------------
   tar_target(fig4_rel_crps_heatmap,
     command = get_plot_rel_crps_heatmap(
       scores = scores_filtered,
@@ -1053,7 +1053,7 @@ manuscript_figures <- list(
       write_files = TRUE
     )
   ),
-  ### Fig 4 combined---------------------------------------------------
+  ### Fig 4 retro relative combined---------------------------------------------
   tar_target(
     name = fig4,
     command = make_fig4(
@@ -1535,16 +1535,6 @@ hub_comparison_plots <- list(
     )
   ),
   ## Real-time Hub comparison top row------------------------------------------
-  # This will be the real-time relative WIS across the models submitted
-  tar_target(
-    name = fig5_plot_real_time_rel_wis,
-    command = make_fig5_heatmap_rel_wis(
-      rel_real_time_wis,
-      time_period = "Feb-Mar 2024",
-      analysis_type = "Real-time",
-      fig_file_dir = eval_config$ms_fig_dir
-    )
-  ),
   # This will be the real-time density of relative CRPS compared
   # to covidhub baseline (will need to get the summary stats for this too)
   tar_target(
@@ -1573,17 +1563,80 @@ hub_comparison_plots <- list(
       time_period = "Feb-Mar 2024"
     )
   ),
-
-  ## Retro Hub comparison top row-------------------------------------------
+  ## Fig 4 real-time relative combined-----------------------------------------
   tar_target(
-    name = fig5_plot_all_time_rel_wis,
-    command = make_fig5_heatmap_rel_wis(
-      rel_all_time_wis,
-      time_period = "Oct 2023-Mar 2024",
-      analysis_type = "Retrospective",
+    name = wis_scores_rt,
+    command = real_time_wis_both_models |>
+      dplyr::anti_join(as.data.frame(
+        eval_config$ww_forecast_date_locs_to_excl
+      ) |>
+        dplyr::mutate(forecast_date = lubridate::ymd(forecast_date)))
+  ),
+  tar_target(
+    name = rel_real_time_wis_submitted,
+    command = rel_real_time_wis |>
+      dplyr::anti_join(as.data.frame(
+        eval_config$ww_forecast_date_locs_to_excl
+      ) |>
+        dplyr::mutate(forecast_date = lubridate::ymd(forecast_date)))
+  ),
+  tar_target(
+    name = fig4_rel_wis_heatmap,
+    command = make_fig4_heatmap_rel_wis(
+      rel_scores = rel_real_time_wis_submitted,
+      time_period = "Feb-Mar 2024",
+      analysis_type = "Real-time"
+    )
+  ),
+  tar_target(
+    name = fig4_rel_wis_hist,
+    command = get_plot_rel_wis_distrib(
+      wis_scores = wis_scores_rt
+    )
+  ),
+  tar_target(
+    name = fig4_natl_admissions_rt,
+    command = make_fig4_admissions_overall(
+      eval_hosp_data,
+      first_forecast_date = lubridate::ymd("2024-02-05") - lubridate::days(7),
+      last_forecast_date = max(eval_config$forecast_date_ww)
+    )
+  ),
+  tar_target(
+    name = fig4_avg_wis,
+    command = make_fig4_avg_wis_over_time(
+      wis_scores_rt
+    )
+  ),
+  tar_target(
+    name = fig4_rel_wis_over_time,
+    command = make_fig4_rel_wis_over_time(
+      wis_scores_rt
+    )
+  ),
+  tar_target(
+    name = fig4_rel_wis_by_location,
+    command = make_fig4_rel_wis_by_location(
+      wis_scores_rt
+    )
+  ),
+  ### Fig 4 real-time relative combined---------------------------------------------
+  tar_target(
+    name = fig4_rt,
+    command = make_fig4(
+      fig4_rel_crps_heatmap = fig4_rel_wis_heatmap,
+      fig4_rel_crps_hist = fig4_rel_wis_hist,
+      fig4_avg_crps = fig4_avg_wis,
+      fig4_natl_admissions = fig4_natl_admissions_rt,
+      fig4_rel_crps_over_time = fig4_rel_wis_over_time,
+      fig4_rel_crps_by_location = fig4_rel_wis_by_location,
+      time_period = "real_time",
       fig_file_dir = eval_config$ms_fig_dir
     )
   ),
+
+
+  ## Retro Hub comparison top row-------------------------------------------
   tar_target(
     name = fig5_density_all_time,
     command = make_fig5_density(
@@ -1679,10 +1732,8 @@ hub_comparison_plots <- list(
     command = make_fig5(
       fig5_plot_wis_t_real_time = fig5_plot_wis_t_real_time,
       fig5_density_real_time = fig5_density_real_time,
-      fig5_plot_real_time_rel_wis = fig5_plot_real_time_rel_wis,
       fig5_plot_wis_t_all_time = fig5_plot_wis_t_all_time,
       fig5_density_all_time = fig5_density_all_time,
-      fig5_plot_all_time_rel_wis = fig5_plot_all_time_rel_wis,
       fig5_heatmap_rel_wis_all_time = fig5_heatmap_rel_wis_all_time,
       fig5_heatmap_rel_wis_feb_mar = fig5_heatmap_rel_wis_feb_mar,
       fig5_qq_plot_all_time = fig5_qq_plot_all_time,

@@ -159,14 +159,16 @@ order_phases <- function(df) {
 #' @param df a dataframe containing the column name `phase` which will
 #' contain character strings indicating the phase of the epidemic
 #' (increasing, decreasing, peak, or nadir) of  the score/quantile/sample.
+#' @param score_name string indicating the name of the score either `rel_crps`
+#' or `rel_wis`
 #'
 #' @return a dataframe containing the same columns as `df` but with the
 #' addition of `fig_order` and reordered in terms of `fig_order` for plotting.
 #' @export
-order_locations <- function(df) {
+order_locations <- function(df, score_name) {
   loc_order <- df |>
     dplyr::group_by(location) |>
-    dplyr::summarize(geom_mean_crps = exp(mean(log(rel_crps)))) |>
+    dplyr::summarize(geom_mean_crps = exp(mean(log(!!sym(score_name))))) |>
     dplyr::arrange(geom_mean_crps, "desc") |>
     dplyr::pull(location)
 

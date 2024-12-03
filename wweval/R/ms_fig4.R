@@ -302,13 +302,18 @@ get_plot_rel_crps_distrib <- function(scores,
   relative_crps_by_forecast <- scores |>
     dplyr::group_by(location, model, forecast_date) |>
     dplyr::summarize(crps = mean(crps)) |>
-    compute_relative_crps(id_cols = c(
-      "location", "forecast_date"
-    )) |>
+    tidyr::pivot_wider(
+      names_from = model,
+      values_from = crps,
+      id_cols = c(
+        "location", "forecast_date"
+      )
+    ) |>
     dplyr::mutate(
       pct_change_crps = (ww - hosp) / hosp,
       rel_crps = ww / hosp
     )
+
   p_log <- ggplot(relative_crps_by_forecast) +
     tidybayes::stat_dotsinterval(
       aes(
@@ -321,8 +326,8 @@ get_plot_rel_crps_distrib <- function(scores,
     ) +
     get_plot_theme() +
     ylab("Relative CRPS") +
-    xlab("Count") +
-    scale_x_continuous(trans = "log10")
+    xlab("Density") +
+    scale_y_continuous(trans = "log10")
 
   return(p_log)
 }
@@ -356,7 +361,7 @@ make_fig4_rel_crps_by_location <- function(scores) {
     dplyr::mutate(
       rel_crps = ww / hosp
     ) |>
-    order_locations()
+    order_locations(score_name = "rel_crps")
 
   colors <- plot_components()
 
@@ -778,6 +783,306 @@ make_fig4_avg_crps_over_time <- function(scores,
 
   return(p)
 }
+
+
+#' Get a density plot of the relative WIS distribution
+#'
+#' @param scores tibble of scores by horizon day, forecast date, and location
+#'
+#' @return ggplot object of distribution of relative CRPS scores
+get_plot_rel_wis_distrib <- function(wis_scores) {
+  relative_wis_by_forecast <- wis_scores |>
+    data.table::as.data.table() |>
+    scoringutils::summarise_scores(by = c(
+      "location",
+      "model",
+      "forecast_date"
+    )) |>
+    tidyr::pivot_wider(
+      names_from = model,
+      values_from = interval_score,
+      id_cols = c(
+        "location", "forecast_date"
+      )
+    ) |>
+    dplyr::mutate(
+      pct_change_crps = (ww - hosp) / hosp,
+      rel_wis = ww / hosp
+    )
+  p_log <- ggplot(relative_wis_by_forecast) +
+    tidybayes::stat_dotsinterval(
+      aes(
+        y = rel_wis
+      ),
+      alpha = 0.5,
+      position = position_dodge(width = 0.75),
+      show.legend = FALSE,
+      fill = "darkblue"
+    ) +
+    get_plot_theme() +
+    ylab("Relative WIS") +
+    xlab("Density") +
+    scale_y_continuous(trans = "log10")
+
+  return(p_log)
+}
+
+#' Get a plot of the relative wis from the real-time models
+#'
+#' @param rel_scores tibble containing the relative wis for each forecast
+#' date and location and horizon day
+#' @param time_period string indicating dates of analysis, either "Feb-Mar",
+#' or "Oct-Mar"
+#' @param analysis_type string indicating whether analysis is Real-time
+#  or Retrospective
+#' @param fig_file_dir string indicating the directory to save the figure
+#'
+#' @return ggplot object of a heatmap of the realtive wis
+make_fig4_heatmap_rel_wis <- function(rel_scores,
+                                      time_period,
+                                      analysis_type,
+                                      fig_file_dir) {
+  avg_rel_scores <- rel_scores |>
+    dplyr::group_by(forecast_date, location) |>
+    dplyr::summarise(mean_rel_wis = mean(rel_wis)) |>
+    dplyr::filter(!is.na(mean_rel_wis))
+
+  p <- ggplot(avg_rel_scores) +
+    geom_tile(aes(x = forecast_date, y = location, fill = mean_rel_wis)) +
+    scale_fill_gradient2(
+      high = "red", mid = "white", low = "blue",
+      transform = "log2",
+      midpoint = 1,
+      guide = "colourbar", aesthetics = "fill"
+    ) +
+    geom_text(aes(
+      x = forecast_date, y = location,
+      label = round(mean_rel_wis, 2)
+    ), size = 1.5) +
+    get_plot_theme(
+      x_axis_dates = TRUE,
+      y_axis_text_size = 4
+    ) +
+    scale_x_date(
+      date_breaks = "1 week",
+      labels = scales::date_format("%Y-%m-%d")
+    ) +
+    xlab("") +
+    ylab("") +
+    labs(fill = "Relative WIS") +
+    ggtitle(glue::glue(" Relative WIS by forecast date and location")) # nolint
+
+
+  return(p)
+}
+
+#' Plot average WIS over time for model comparison
+#'
+#' @param scores A tibble of scores by location, forecast date, date and model,
+#' containing the outputs of `scoringutils::score()` on samples plus metadata
+#' transformed into a tibble.
+#' @param horizon_time_in_weeks horizon time in weeks to summarize over, default
+#' is `NULL` which means that the scores are summarized over the nowcast period
+#' and the 4 week forecast period
+#'
+#' @return a ggplot object plotting the magnitude of the avg wiss across
+#' locations at each forecast date
+#' @export
+make_fig4_avg_wis_over_time <- function(wis_scores,
+                                        horizon_time_in_weeks = NULL) {
+  wis_scores_renamed <- wis_scores |>
+    dplyr::mutate(
+      model = case_when(
+        model == "ww" ~ "cfa-wwrenewal(real-time)",
+        model == "hosp" ~ "cfa-hosponlyrenewal(real-time)"
+      )
+    )
+
+  if (!is.null(horizon_time_in_weeks)) {
+    scores_by_forecast_date <- wis_scores_renamed |>
+      data.table::as.data.table() |>
+      scoringutils::summarise_scores(by = c(
+        "forecast_date",
+        "model", "horizon"
+      )) |>
+      dplyr::filter(horizon_weeks == {
+        horizon_time_in_weeks
+      })
+  } else {
+    scores_by_forecast_date <- wis_scores_renamed |>
+      data.table::as.data.table() |>
+      scoringutils::summarise_scores(by = c(
+        "forecast_date",
+        "model"
+      ))
+  }
+
+  date_lims <- c(
+    min(wis_scores$forecast_date),
+    max(wis_scores$forecast_date)
+  )
+  colors <- plot_components()
+  p <- ggplot(scores_by_forecast_date) +
+    geom_line(
+      aes(
+        x = forecast_date, y = interval_score,
+        color = model
+      ),
+      size = 1
+    ) +
+    geom_point(aes(
+      x = forecast_date, y = interval_score,
+      color = model
+    )) +
+    labs(
+      col = "Model",
+      xlab = ""
+    ) +
+    get_plot_theme(
+      x_axis_dates = TRUE,
+      y_axis_title_size = 8
+    ) +
+    theme(axis.title.x = element_blank()) +
+    scale_x_date(
+      date_breaks = "1 week",
+      date_labels = "%Y-%m-%d",
+      limits = date_lims
+    ) +
+    ylab("WIS") +
+    scale_color_manual(values = colors$model_colors)
+
+  return(p)
+}
+
+#' Make a CRPS density plot for a subset of locations
+#'
+#' @param scores A tibble of scores by location, forecast date, date and model,
+#' containing the outputs of `scoringutils::score()` on samples plus metadata
+#' transformed into a tibble.
+#' @return a ggplot object that is a vertical facet of violin plots colored
+#' by model type and broken down my horizon
+#' @export
+make_fig4_rel_wis_over_time <- function(wis_scores) {
+  scores_overall <- wis_scores |>
+    dplyr::mutate(
+      horizon = "overall"
+    )
+
+  relative_wis <- scores_overall |>
+    data.table::as.data.table() |>
+    scoringutils::summarise_scores(by = c(
+      "forecast_date",
+      "location",
+      "model",
+      "horizon"
+    )) |>
+    tidyr::pivot_wider(
+      names_from = model,
+      values_from = interval_score,
+      id_cols = c("horizon", "forecast_date", "location")
+    ) |>
+    dplyr::mutate(
+      rel_wis = ww / hosp
+    ) |>
+    dplyr::filter(!is.na(rel_wis)) |>
+    order_locations(score_name = "rel_wis")
+
+
+  colors <- plot_components()
+  date_lims <- c(range(wis_scores$forecast_date))
+
+  p <- ggplot(relative_wis) +
+    tidybayes::stat_dotsinterval(
+      aes(
+        x = as.factor(forecast_date), y = rel_wis,
+        fill = horizon
+      ),
+      point_interval = "mean_qi",
+      alpha = 0.5,
+      position = position_dodge(width = 0.75),
+      show.legend = FALSE
+    ) +
+    geom_hline(aes(yintercept = 1), linetype = "dashed") +
+    xlab("") +
+    ylab("Relative WIS") +
+    scale_y_continuous(trans = "log10") +
+    coord_cartesian(ylim = c(0.5, 2)) +
+    get_plot_theme(
+      x_axis_dates = TRUE,
+      y_axis_title_size = 8
+    ) +
+    scale_fill_manual(values = colors$horizon_colors) +
+    scale_color_manual(values = colors$horizon_colors)
+
+  return(p)
+}
+
+#' Make figure that stratifies scores by location across forecast dates
+#'
+#' @param scores A tibble of scores by location, forecast date, date and model,
+#' containing the outputs of `scoringutils::score()` on samples plus metadata
+#' transformed into a tibble.
+#'
+#' @return A ggplot object containing plots of the distribution of relative
+#' WIS scores by location, across forecast dates, colored by location
+#' @export
+make_fig4_rel_wis_by_location <- function(wis_scores) {
+  scores_overall <- wis_scores |>
+    dplyr::mutate(
+      horizon = "overall"
+    )
+
+  relative_wis <- scores_overall |>
+    data.table::as.data.table() |>
+    scoringutils::summarise_scores(by = c(
+      "forecast_date",
+      "location",
+      "model",
+      "horizon"
+    )) |>
+    tidyr::pivot_wider(
+      names_from = model,
+      values_from = interval_score,
+      id_cols = c("horizon", "forecast_date", "location")
+    ) |>
+    dplyr::mutate(
+      rel_wis = ww / hosp
+    ) |>
+    dplyr::filter(!is.na(rel_wis)) |>
+    order_locations(score_name = "rel_wis")
+
+  colors <- plot_components()
+
+  p <- ggplot(relative_wis) +
+    tidybayes::stat_dotsinterval(
+      aes(
+        x = location, y = rel_wis,
+        fill = horizon
+      ),
+      point_interval = "mean_qi",
+      alpha = 0.5,
+      position = position_dodge(width = 0.75),
+      show.legend = FALSE
+    ) +
+    geom_hline(aes(yintercept = 1), linetype = "dashed") +
+    theme_bw() +
+    get_plot_theme(
+      y_axis_title_size = 8,
+      x_axis_dates = TRUE
+    ) + # bc we want them smaller and turned
+    xlab("") +
+    ylab("Relative WIS") +
+    scale_y_continuous(trans = "log10") +
+    coord_cartesian(ylim = c(0.5, 2)) +
+    scale_fill_manual(values = colors$horizon_colors) +
+    scale_color_manual(values = colors$horizon_colors)
+
+
+  return(p)
+}
+
+
+
 
 #' Make Figure 4
 #'
