@@ -318,10 +318,6 @@ make_fig3_crps_underlay_fig <- function(scores,
       x_axis_dates = TRUE,
       y_axis_title_size = 8,
       y_axis_text_size = 6
-    ) +
-    scale_y_continuous(
-      # don't expand y scale at the lower end
-      limits = c(0, max_crps + 0.05)
     )
 
 
