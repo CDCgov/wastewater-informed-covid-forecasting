@@ -6,7 +6,9 @@
 \usage{
 make_fig4_rel_crps_overall(
   scores,
-  horizons_to_show = c("nowcast", "1 wk", "4 wks", "overall")
+  horizons_to_show = c("nowcast", "1 wk", "4 wks", "overall"),
+  fig_file_dir = NULL,
+  write_files = FALSE
 )
 }
 \arguments{
@@ -17,6 +19,11 @@ transformed into a tibble.}
 \item{horizons_to_show}{A vector of strings indicating the names of the
 \code{horizon} that we want to show on the plot, must be a subset of
 \code{nowcast}, \verb{1 wk}, \verb{2 wks},\verb{3 wks}, \verb{4 wks} and \code{overall}}
+
+\item{fig_file_dir}{string indicating directory to save fig, default is NULL}
+
+\item{write_files}{boolean indicating whether or not to save file, default
+is FALSE}
 }
 \value{
 A ggplot object containing plots of the distribution of relative

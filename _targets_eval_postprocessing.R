@@ -1031,7 +1031,9 @@ manuscript_figures <- list(
   tar_target(
     name = fig4_rel_crps_overall,
     command = make_fig4_rel_crps_overall(
-      scores_filtered
+      scores_filtered,
+      fig_file_dir = eval_config$ms_fig_dir,
+      write_files = TRUE
     )
   ),
   tar_target(

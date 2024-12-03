@@ -396,6 +396,9 @@ make_fig4_rel_crps_by_location <- function(scores) {
 #' @param horizons_to_show A vector of strings indicating the names of the
 #' `horizon` that we want to show on the plot, must be a subset of
 #' `nowcast`, `1 wk`, `2 wks`,`3 wks`, `4 wks` and `overall`
+#' @param fig_file_dir string indicating directory to save fig, default is NULL
+#' @param write_files boolean indicating whether or not to save file, default
+#' is FALSE
 #'
 #' @return A ggplot object containing plots of the distribution of relative
 #' CRPS scores across location and forecast dates
@@ -405,7 +408,9 @@ make_fig4_rel_crps_overall <- function(scores,
                                          "nowcast",
                                          "1 wk", "4 wks",
                                          "overall"
-                                       )) {
+                                       ),
+                                       fig_file_dir = NULL,
+                                       write_files = FALSE) {
   scores_by_horizon <- scores
   scores_overall <- scores |>
     dplyr::mutate(
@@ -418,44 +423,32 @@ make_fig4_rel_crps_overall <- function(scores,
     )
 
   relative_crps <- scores_comb |>
-    compute_relative_crps(id_cols = c(
-      "location", "forecast_date",
-      "horizon", "date"
-    )) |>
-    dplyr::filter(!is.na(horizon)) |>
+    dplyr::group_by(forecast_date, location, model, horizon) |>
+    dplyr::summarize(mean_crps = mean(crps)) |>
+    tidyr::pivot_wider(
+      names_from = model,
+      values_from = mean_crps,
+      id_cols = c("horizon", "forecast_date", "location")
+    ) |>
+    dplyr::mutate(
+      rel_crps = ww / hosp
+    ) |>
     order_horizons()
 
   colors <- plot_components()
 
-  mean_rel_crps <- relative_crps |>
-    dplyr::group_by(horizon) |>
-    dplyr::summarize(mean_rel_crps = mean(rel_crps, na.rm = TRUE))
-  quartiled_rel_crps <- relative_crps |>
-    dplyr::group_by(horizon) |>
-    dplyr::summarize(
-      lb_25th = quantile(rel_crps, probs = 0.25),
-      ub_75 = quantile(rel_crps, probs = 0.75)
-    ) |>
-    tidyr::pivot_longer(!horizon)
 
 
   p <- ggplot(relative_crps) +
-    tidybayes::stat_halfeye(
+    tidybayes::stat_dotsinterval(
       aes(
         x = horizon, y = rel_crps,
-        fill = horizon,
-        point_interval = "mean_qi"
+        fill = horizon, color = horizon
       ),
+      point_interval = "mean_qi",
       alpha = 0.5,
       position = position_dodge(width = 0.75),
       show.legend = FALSE
-    ) +
-    geom_point(
-      data = mean_rel_crps,
-      aes(x = horizon, y = mean_rel_crps),
-      size = 1,
-      shape = 17,
-      color = "blue"
     ) +
     geom_hline(aes(yintercept = 1), linetype = "dashed") +
     xlab("Horizon") +
@@ -468,6 +461,17 @@ make_fig4_rel_crps_overall <- function(scores,
     ) +
     scale_fill_manual(values = colors$horizon_colors) +
     scale_color_manual(values = colors$horizon_colors)
+
+  if (isTRUE(write_files)) {
+    ggsave(p,
+      filename = file.path(
+        fig_file_dir,
+        glue::glue("sfig_hist_overall_rel_crps_all_time.png")
+      ),
+      height = 4,
+      width = 6
+    )
+  }
 
   return(p)
 }
@@ -571,7 +575,7 @@ make_plot_coverage_range <- function(scores_quantiles,
     geom_line() +
     geom_point() +
     geom_hline(aes(yintercept = range), linetype = "dashed") +
-    facet_wrap(~named_facet, scales = "free_y", ncol = 1) +
+    facet_wrap(~named_facet, scales = "free_y") +
     labs(
       y = "Proportion of data within interval",
       x = "Forecast horizon",
