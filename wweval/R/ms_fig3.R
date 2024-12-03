@@ -141,9 +141,6 @@ make_fig3_single_loc_comp <- function(scores,
     ) +
     xlab("") +
     ylab("Relative CRPS") +
-    ggtitle(glue::glue(
-      "{loc_to_plot}"
-    )) +
     theme_bw() +
     scale_color_manual(values = colors$horizon_colors) +
     scale_fill_manual(values = colors$horizon_colors) +
@@ -200,17 +197,17 @@ make_fig3_forecast_comp_fig <- function(hosp_quantiles,
     )
   colors <- plot_components()
 
-
+  max_obs <- max(hosp_quants_horizons$eval_data)
 
   date_lims <- c(
-    min(hosp_quantiles$forecast_date) + lubridate::days(horizon_days_ahead - 7),
-    max(hosp_quantiles$forecast_date) + lubridate::days(horizon_days_ahead + 3)
+    min(hosp_quantiles$forecast_date) + lubridate::days(horizon_days_ahead - 9),
+    max(hosp_quantiles$forecast_date) + lubridate::days(horizon_days_ahead + 5)
   )
   p <- ggplot(hosp) +
     geom_point(
       data = hosp_quants_horizons,
       aes(x = date, y = eval_data),
-      fill = "black", size = 0.5, shape = 21,
+      fill = "black", size = 0.3, shape = 21,
       show.legend = FALSE
     ) +
     geom_ribbon(
@@ -242,9 +239,6 @@ make_fig3_forecast_comp_fig <- function(hosp_quantiles,
     ) +
     xlab("") +
     ylab("Daily hospital \n admissions") +
-    ggtitle(glue::glue(
-      "{horizon_to_plot}"
-    )) +
     scale_color_manual(values = colors$model_colors) +
     scale_fill_manual(values = colors$model_colors) +
     scale_x_date(
@@ -254,9 +248,11 @@ make_fig3_forecast_comp_fig <- function(hosp_quantiles,
     ) +
     get_plot_theme(
       x_axis_dates = TRUE,
-      y_axis_title_size = 6
+      y_axis_title_size = 6,
+      y_axis_text_size = 6
     ) +
-    guides(fill = "none", color = "none")
+    guides(fill = "none", color = "none") +
+    ylim(0, 2 * max_obs)
 
   return(p)
 }
@@ -299,10 +295,11 @@ make_fig3_crps_underlay_fig <- function(scores,
 
   colors <- plot_components()
   date_lims <- c(
-    min(scores$forecast_date) + lubridate::days(horizon_days_ahead - 7),
+    min(scores$forecast_date) + lubridate::days(horizon_days_ahead - 9),
     max(scores$forecast_date) +
-      lubridate::days(horizon_days_ahead + 3)
+      lubridate::days(horizon_days_ahead + 5)
   )
+  max_crps <- max(scores_by_horizon$crps)
 
   p <- ggplot(scores_by_horizon) +
     geom_bar(aes(x = forecast_date_shifted, y = crps, fill = model),
@@ -319,11 +316,12 @@ make_fig3_crps_underlay_fig <- function(scores,
     ) +
     get_plot_theme(
       x_axis_dates = TRUE,
-      y_axis_title_size = 8
+      y_axis_title_size = 8,
+      y_axis_text_size = 6
     ) +
     scale_y_continuous(
       # don't expand y scale at the lower end
-      expand = expansion(mult = c(0, 0.05))
+      limits = c(0, max_crps + 0.05)
     )
 
 

@@ -725,7 +725,7 @@ manuscript_figures <- list(
       loc_to_plot = locs_to_plot[1],
       horizon_to_plot = "nowcast",
       horizon_days_ahead = -10,
-      days_to_shift = -10
+      days_to_shift = -8
     )
   ),
   tar_target(
@@ -735,7 +735,7 @@ manuscript_figures <- list(
       loc_to_plot = locs_to_plot[1],
       horizon_to_plot = "1 wk",
       horizon_days_ahead = 7,
-      days_to_shift = 0
+      days_to_shift = 2
     )
   ),
   tar_target(
@@ -745,7 +745,7 @@ manuscript_figures <- list(
       loc_to_plot = locs_to_plot[1],
       horizon_to_plot = "4 wks",
       horizon_days_ahead = 28,
-      days_to_shift = 21
+      days_to_shift = 24
     )
   ),
   # This is supplementary but useful alongside
@@ -807,7 +807,7 @@ manuscript_figures <- list(
       scores_filtered,
       loc_to_plot = locs_to_plot[2],
       horizon_to_plot = "nowcast",
-      days_to_shift = -10,
+      days_to_shift = -8,
       horizon_days_ahead = -10
     )
   ),
@@ -817,7 +817,7 @@ manuscript_figures <- list(
       scores_filtered,
       loc_to_plot = locs_to_plot[2],
       horizon_to_plot = "1 wk",
-      days_to_shift = 0,
+      days_to_shift = 2,
       horizon_days_ahead = 7
     )
   ),
@@ -827,7 +827,7 @@ manuscript_figures <- list(
       scores_filtered,
       loc_to_plot = locs_to_plot[2],
       horizon_to_plot = "4 wks",
-      days_to_shift = 21,
+      days_to_shift = 24,
       horizon_days_ahead = 28
     )
   ),
@@ -888,7 +888,7 @@ manuscript_figures <- list(
       scores_filtered,
       loc_to_plot = locs_to_plot[3],
       horizon_to_plot = "nowcast",
-      days_to_shift = -10,
+      days_to_shift = -8,
       horizon_days_ahead = -10
     )
   ),
@@ -898,7 +898,7 @@ manuscript_figures <- list(
       scores_filtered,
       loc_to_plot = locs_to_plot[3],
       horizon_to_plot = "1 wk",
-      days_to_shift = 0,
+      days_to_shift = 2,
       horizon_days_ahead = 7
     )
   ),
@@ -908,7 +908,7 @@ manuscript_figures <- list(
       scores_filtered,
       loc_to_plot = locs_to_plot[3],
       horizon_to_plot = "4 wks",
-      days_to_shift = 21,
+      days_to_shift = 24,
       horizon_days_ahead = 28
     )
   ),
