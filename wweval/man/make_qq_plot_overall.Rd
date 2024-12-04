@@ -15,11 +15,11 @@ make_qq_plot_overall(
 date and model, containing the outputs of \code{scoringutils::score()} on
 quantiles plus metadata transformed into a tibble.}
 
+\item{fig_file_dir}{string indicating directory to save figure,
+default is NULL}
+
 \item{write_files}{boolean indicating whether to save the file, default is
 \code{FALSE}}
-
-\item{fig_file_fir}{string indicating directory to save figure,
-default is NULL}
 }
 \value{
 a ggplot object with the overall QQ plot colored by model.

@@ -489,7 +489,7 @@ make_fig4_rel_crps_overall <- function(scores,
 #' @param scores_quantiles A tibble of scores by location, forecast date,
 #' date and model, containing the outputs of `scoringutils::score()` on
 #' quantiles plus metadata transformed into a tibble.
-#' @param fig_file_fir string indicating directory to save figure,
+#' @param fig_file_dir string indicating directory to save figure,
 #' default is NULL
 #' @param write_files boolean indicating whether to save the file, default is
 #' `FALSE`
