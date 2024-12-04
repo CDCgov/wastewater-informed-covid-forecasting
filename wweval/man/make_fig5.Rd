@@ -49,12 +49,6 @@ for the real-time period (Feb-Mar)}
 for all time}
 
 \item{fig_file_dir}{Path to save figures}
-
-\item{fig5_plot_real_time_rel_wis}{heatmap of the relative wis between
-the two models}
-
-\item{fig5_plot_all_time_rel_wis}{heatmap of the relative wis between
-the two models}
 }
 \value{
 a ggplot object containing all the figures combined

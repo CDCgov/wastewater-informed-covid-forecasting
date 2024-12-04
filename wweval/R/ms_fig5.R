@@ -545,14 +545,10 @@ make_fig5_density_rank <- function(scores,
 #' each model in real-time (feb-mar)
 #' @param fig5_density_real_time density plot of relative performance
 #' across location, forecast_date, day, and model
-#' @param fig5_plot_real_time_rel_wis heatmap of the relative wis between
-#' the two models
 #' @param fig5_plot_wis_t_all_time average wis over time across locations for
 #' each model in real-time (feb-mar)
 #' @param fig5_density_all_time density plot of relative performance
 #' across location, forecast_date, day, and model
-#' @param fig5_plot_all_time_rel_wis heatmap of the relative wis between
-#' the two models
 #' @param fig5_heatmap_rel_wis_all_time heatmap comparing WIS across
 #' forecast dates for each location for all time
 #' @param fig5_heatmap_rel_wis_feb_mar heatmap comparing WIS across
