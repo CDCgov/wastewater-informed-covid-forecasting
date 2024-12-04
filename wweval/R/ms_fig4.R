@@ -1095,8 +1095,6 @@ make_fig4_rel_wis_by_location <- function(wis_scores) {
 #' @param fig4_rel_crps_over_time relative crps across locations by forecast
 #' date
 #' @param fig4_rel_crps_by_location avg crps across forecast dates by state
-#' @param fig4_qq_plot_overall overall qq plot
-#' @param fig4_plot_coverage_range interval coverage plots at 3 intervals
 #' @param time_period string to save fig as, either "real_time" or "all_time"
 #' @param fig_file_dir Path to save figures
 #'

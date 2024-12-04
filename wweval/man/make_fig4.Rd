@@ -34,10 +34,6 @@ date}
 \item{time_period}{string to save fig as, either "real_time" or "all_time"}
 
 \item{fig_file_dir}{Path to save figures}
-
-\item{fig4_qq_plot_overall}{overall qq plot}
-
-\item{fig4_plot_coverage_range}{interval coverage plots at 3 intervals}
 }
 \value{
 ggplot object with all the elements combined
