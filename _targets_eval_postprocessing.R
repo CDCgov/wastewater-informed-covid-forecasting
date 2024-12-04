@@ -375,14 +375,6 @@ head_to_head_targets <- list(
         any_flags_ww == FALSE,
         any_flags_hosp == FALSE
       ) |>
-      dplyr::anti_join(
-        ww_forecast_date_locs_to_excl |>
-          dplyr::mutate(forecast_date = lubridate::ymd(forecast_date)),
-        by = c(
-          "location",
-          "forecast_date"
-        )
-      ) |>
       dplyr::left_join(
         last_hosp_data_date_map,
         by = c("location", "forecast_date")
@@ -446,14 +438,6 @@ head_to_head_targets <- list(
       dplyr::filter(scale == "log") |>
       dplyr::left_join(table_of_loc_dates_w_ww,
         by = c("location", "forecast_date")
-      ) |>
-      dplyr::anti_join(
-        ww_forecast_date_locs_to_excl |>
-          dplyr::mutate(forecast_date = lubridate::ymd(forecast_date)),
-        by = c(
-          "location",
-          "forecast_date"
-        )
       ) |>
       dplyr::filter(ww_sufficient) |>
       dplyr::left_join(
@@ -1258,7 +1242,7 @@ real_time_rel_targets <- list(
     )
   ),
   tar_target(
-    name = real_time_wis_both_models,
+    name = real_time_wis_hosp_only,
     command = score_real_time_outputs(
       score_type = "wis",
       real_time_output_dir = eval_config$real_time_output_dir,
@@ -1269,7 +1253,15 @@ real_time_rel_targets <- list(
         to = lubridate::ymd("2024-03-11"),
         by = "week"
       )),
-      eval_data = eval_hosp_data
+      eval_data = eval_hosp_data,
+      hosp_only = TRUE
+    )
+  ),
+  tar_target(
+    name = real_time_wis_both_models,
+    command = combine_hub_and_local_wis(
+      cfa_real_time_scores,
+      real_time_wis_hosp_only
     )
   ),
   tar_target(
@@ -1281,6 +1273,18 @@ real_time_rel_targets <- list(
     command = rel_real_time_wis |>
       dplyr::ungroup() |>
       dplyr::summarise(mean_rel_wis = mean(rel_wis, na.rm = TRUE))
+  ),
+  tar_target(
+    name = rel_mean_wis_real_time,
+    command = real_time_wis_both_models |>
+      data.table::as.data.table() |>
+      scoringutils::summarise_scores(by = c("model")) |>
+      dplyr::select(model, interval_score) |>
+      tidyr::pivot_wider(
+        names_from = model,
+        values_from = interval_score
+      ) |>
+      dplyr::mutate(rel_wis = ww / hosp)
   )
 )
 
@@ -1563,27 +1567,17 @@ hub_comparison_plots <- list(
       time_period = "Feb-Mar 2024"
     )
   ),
-  ## Fig 4 real-time relative combined-----------------------------------------
+  ## Real-time relative-----------------------------------------
   tar_target(
-    name = wis_scores_rt,
+    name = wis_scores_rt_summarized,
     command = real_time_wis_both_models |>
-      dplyr::anti_join(as.data.frame(
-        eval_config$ww_forecast_date_locs_to_excl
-      ) |>
-        dplyr::mutate(forecast_date = lubridate::ymd(forecast_date)))
-  ),
-  tar_target(
-    name = rel_real_time_wis_submitted,
-    command = rel_real_time_wis |>
-      dplyr::anti_join(as.data.frame(
-        eval_config$ww_forecast_date_locs_to_excl
-      ) |>
-        dplyr::mutate(forecast_date = lubridate::ymd(forecast_date)))
+      data.table::as.data.table() |>
+      scoringutils::summarise_scores()
   ),
   tar_target(
     name = fig4_rel_wis_heatmap,
     command = make_fig4_heatmap_rel_wis(
-      rel_scores = rel_real_time_wis_submitted,
+      rel_scores = rel_real_time_wis,
       time_period = "Feb-Mar 2024",
       analysis_type = "Real-time"
     )
@@ -1591,7 +1585,7 @@ hub_comparison_plots <- list(
   tar_target(
     name = fig4_rel_wis_hist,
     command = get_plot_rel_wis_distrib(
-      wis_scores = wis_scores_rt
+      wis_scores = wis_scores_rt_summarized
     )
   ),
   tar_target(
@@ -1605,19 +1599,19 @@ hub_comparison_plots <- list(
   tar_target(
     name = fig4_avg_wis,
     command = make_fig4_avg_wis_over_time(
-      wis_scores_rt
+      wis_scores_rt_summarized
     )
   ),
   tar_target(
     name = fig4_rel_wis_over_time,
     command = make_fig4_rel_wis_over_time(
-      wis_scores_rt
+      wis_scores_rt_summarized
     )
   ),
   tar_target(
     name = fig4_rel_wis_by_location,
     command = make_fig4_rel_wis_by_location(
-      wis_scores_rt
+      wis_scores_rt_summarized
     )
   ),
   ### Fig 4 real-time relative combined---------------------------------------------

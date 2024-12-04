@@ -587,7 +587,7 @@ CCDDEE
       axes = "collect",
       guides = "collect"
     ) & theme(
-    legend.position = "none"
+    legend.position = "bottom"
   )
   # legend.justification = "left" #nolint
   # ) #+ plot_annotation(tag_levels = "A") #nolint, not working
@@ -612,7 +612,7 @@ CCDDEE
       axes = "collect",
       guides = "collect"
     ) & theme(
-    legend.position = "none"
+    legend.position = "bottom"
   )
   # legend.justification = "left" #nolint
   # ) #+ plot_annotation(tag_levels = "A") #nolint, not working

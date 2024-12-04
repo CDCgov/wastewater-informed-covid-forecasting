@@ -12,6 +12,8 @@
 #' @param dates A vector of forecast dates to pull
 #' @param eval_data a tibble of hospital admissions evaluation data to be used
 #' for scoring.
+#' @param hosp_only boolean indicating if we should only pull the hospital
+#' admissions model
 #'
 #' @return A large tibble containing crps scores for every location and
 #' forecast date, conditioned on the presence of wastewater and model
@@ -22,8 +24,13 @@ score_real_time_outputs <- function(score_type,
                                     table_of_run_ids,
                                     locations,
                                     dates,
-                                    eval_data) {
-  model_types <- c("ww", "hosp")
+                                    eval_data,
+                                    hosp_only = FALSE) {
+  if (isTRUE(hosp_only)) {
+    model_types <- c("hosp")
+  } else {
+    model_types <- c("ww", "hosp")
+  }
   all_scores <- c()
 
   data_type <- ifelse(score_type == "crps", "draws", "quantiles")
@@ -168,7 +175,8 @@ score_real_time_outputs <- function(score_type,
             ) |>
             scoringutils::check_forecasts() |>
             scoringutils::score() |>
-            tibble::tibble()
+            tibble::tibble() |>
+            dplyr::filter(scale == "log")
         } else {
           scores <- c()
         }
@@ -234,4 +242,49 @@ format_scores_for_comparison <- function(real_time_scores,
     )
 
   return(formatted_scores)
+}
+
+#' Combine thehosp only real-time scores and cfa real
+#' time scores from github
+#'
+#' @param cfa_real_time_scores Hub formatted scores for
+#' only the ww model, `cfa-wwrenewal(real-time)`
+#' @param real_time_wis_hosp_only hosp only
+#' wis scores calculated from local data
+#'
+#' @return
+#' @export
+#'
+#' @examples
+combine_hub_and_local_wis <- function(
+    cfa_real_time_scores,
+    real_time_wis_hosp_only) {
+  real_time_wis_ho <- real_time_wis_hosp_only |>
+    dplyr::select(-failed_convergence)
+
+  loc_map_table <- cfa_real_time_scores |>
+    dplyr::distinct(location) |>
+    dplyr::left_join(wweval::flusight_location_table,
+      by = c("location" = "location_code")
+    )
+
+  rt_reformatted <- cfa_real_time_scores |>
+    dplyr::rename(location_code = location) |>
+    dplyr::left_join(loc_map_table,
+      by = c("location_code" = "location")
+    ) |>
+    dplyr::rename(
+      location = short_name,
+      date = target_end_date,
+    ) |>
+    dplyr::mutate(
+      model = "ww"
+    ) |>
+    dplyr::select(colnames(real_time_wis_ho))
+
+  real_time_wis_both_models <- dplyr::bind_rows(
+    rt_reformatted,
+    real_time_wis_ho
+  )
+  return(real_time_wis_both_models)
 }

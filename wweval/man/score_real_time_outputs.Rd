@@ -10,7 +10,8 @@ score_real_time_outputs(
   table_of_run_ids,
   locations,
   dates,
-  eval_data
+  eval_data,
+  hosp_only = FALSE
 )
 }
 \arguments{
@@ -31,6 +32,9 @@ pull, this should be all jurisdictions}
 
 \item{eval_data}{a tibble of hospital admissions evaluation data to be used
 for scoring.}
+
+\item{hosp_only}{boolean indicating if we should only pull the hospital
+admissions model}
 }
 \value{
 A large tibble containing crps scores for every location and

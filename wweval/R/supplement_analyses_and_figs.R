@@ -1065,13 +1065,12 @@ get_rel_wis_real_time <- function(all_scores) {
     dplyr::filter(scale == "log") |>
     as.data.table() |>
     scoringutils::summarise_scores(
-      by = c("forecast_date", "model", "location", "failed_convergence")
+      by = c("forecast_date", "model", "location")
     ) |>
     dplyr::select(
-      forecast_date, model, location, failed_convergence,
+      forecast_date, model, location,
       interval_score
     ) |>
-    dplyr::filter(failed_convergence == FALSE) |>
     tidyr::pivot_wider(
       names_from = model,
       values_from = interval_score

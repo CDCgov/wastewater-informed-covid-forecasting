@@ -328,7 +328,8 @@ get_plot_rel_crps_distrib <- function(scores,
     get_plot_theme() +
     ylab("Relative CRPS") +
     xlab("Density") +
-    scale_y_continuous(trans = "log10")
+    scale_y_continuous(trans = "log10") +
+    coord_cartesian(ylim = c(1 / 3.5, 3.5))
 
   return(p_log)
 }
@@ -824,7 +825,8 @@ get_plot_rel_wis_distrib <- function(wis_scores) {
     get_plot_theme() +
     ylab("Relative WIS") +
     xlab("Density") +
-    scale_y_continuous(trans = "log10")
+    scale_y_continuous(trans = "log10") +
+    coord_cartesian(ylim = c(1 / 3.5, 3.5))
 
   return(p_log)
 }

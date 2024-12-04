@@ -175,7 +175,8 @@ make_fig3_single_loc_comp <- function(scores,
       x_axis_text_size = 6
     ) +
     scale_y_continuous(trans = "log10") + # , limits = c(0.25, 4.0)) +
-    labs(color = "Model")
+    labs(color = "Model") +
+    coord_cartesian(ylim = c(1 / 6, 6))
 
   # Also make a bar chart of the two average crps scores
 
@@ -345,7 +346,7 @@ make_fig3_crps_underlay_fig <- function(scores,
       labels = scales::date_format("%Y-%m-%d"),
       limits = date_lims
     ) +
-    coord_cartesian(ylim = c(0, max_crps + 0.05)) +
+    coord_cartesian(ylim = c(0, 1)) +
     get_plot_theme(
       x_axis_dates = TRUE,
       y_axis_title_size = 8,
