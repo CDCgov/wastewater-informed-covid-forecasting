@@ -342,7 +342,8 @@ head_to_head_targets <- list(
   ),
   tar_target(
     name = ww_forecast_date_locs_to_excl,
-    command = as.data.frame(eval_config$ww_forecast_date_locs_to_excl)
+    command = as.data.frame(eval_config$ww_forecast_date_locs_to_excl) |>
+      dplyr::mutate(forecast_date = lubridate::ymd(forecast_date))
   ),
 
   # Get the full set of quantiles, filtered down to only states and
@@ -1258,11 +1259,21 @@ real_time_rel_targets <- list(
     )
   ),
   tar_target(
-    name = real_time_wis_both_models,
+    name = real_time_wis_both_models_raw,
     command = combine_hub_and_local_wis(
       cfa_real_time_scores,
       real_time_wis_hosp_only
     )
+  ),
+  # For the real-time comparison, we exclude the forecasts that are the
+  # same
+  tar_target(
+    name = real_time_wis_both_models,
+    command = real_time_wis_both_models_raw |>
+      dplyr::anti_join(ww_forecast_date_locs_to_excl) |>
+      # Could eventually replace this with what is on the Hub
+      dplyr::left_join(table_of_loc_dates_w_ww) |>
+      dplyr::filter(ww_sufficient)
   ),
   tar_target(
     name = rel_real_time_wis,
@@ -1280,6 +1291,19 @@ real_time_rel_targets <- list(
       data.table::as.data.table() |>
       scoringutils::summarise_scores(by = c("model")) |>
       dplyr::select(model, interval_score) |>
+      tidyr::pivot_wider(
+        names_from = model,
+        values_from = interval_score
+      ) |>
+      dplyr::mutate(rel_wis = ww / hosp)
+  ),
+  tar_target(
+    name = rel_mean_wis_rt_locs,
+    command = real_time_wis_both_models |>
+      dplyr::filter(location %in% c("TX", "FL", "IL", "MI")) |>
+      data.table::as.data.table() |>
+      scoringutils::summarise_scores(by = c("model", "location")) |>
+      dplyr::select(model, interval_score, location) |>
       tidyr::pivot_wider(
         names_from = model,
         values_from = interval_score
@@ -1467,7 +1491,7 @@ hub_targets <- list(
   tar_target(
     name = cfa_hosp_real_time_scores,
     command = format_scores_for_comparison(
-      real_time_scores = real_time_wis_both_models,
+      real_time_scores = real_time_wis_both_models_raw,
       other_real_time_scores = cfa_real_time_scores
     )
   ),
