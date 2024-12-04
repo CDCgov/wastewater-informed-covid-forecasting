@@ -7,7 +7,7 @@
 get_plot_rel_wis_distrib(wis_scores)
 }
 \arguments{
-\item{scores}{tibble of scores by horizon day, forecast date, and location}
+\item{wis_scores}{tibble of scores by horizon day, forecast date, and location}
 }
 \value{
 ggplot object of distribution of relative CRPS scores

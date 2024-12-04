@@ -787,7 +787,7 @@ make_fig4_avg_crps_over_time <- function(scores,
 
 #' Get a density plot of the relative WIS distribution
 #'
-#' @param scores tibble of scores by horizon day, forecast date, and location
+#' @param wis_scores tibble of scores by horizon day, forecast date, and location
 #'
 #' @return ggplot object of distribution of relative CRPS scores
 get_plot_rel_wis_distrib <- function(wis_scores) {
@@ -878,7 +878,7 @@ make_fig4_heatmap_rel_wis <- function(rel_scores,
 
 #' Plot average WIS over time for model comparison
 #'
-#' @param scores A tibble of scores by location, forecast date, date and model,
+#' @param wis_scores A tibble of scores by location, forecast date, date and model,
 #' containing the outputs of `scoringutils::score()` on samples plus metadata
 #' transformed into a tibble.
 #' @param horizon_time_in_weeks horizon time in weeks to summarize over, default
@@ -956,7 +956,7 @@ make_fig4_avg_wis_over_time <- function(wis_scores,
 
 #' Make a CRPS density plot for a subset of locations
 #'
-#' @param scores A tibble of scores by location, forecast date, date and model,
+#' @param wis_scores A tibble of scores by location, forecast date, date and model,
 #' containing the outputs of `scoringutils::score()` on samples plus metadata
 #' transformed into a tibble.
 #' @return a ggplot object that is a vertical facet of violin plots colored
@@ -1019,7 +1019,7 @@ make_fig4_rel_wis_over_time <- function(wis_scores) {
 
 #' Make figure that stratifies scores by location across forecast dates
 #'
-#' @param scores A tibble of scores by location, forecast date, date and model,
+#' @param wis_scores A tibble of scores by location, forecast date, date and model,
 #' containing the outputs of `scoringutils::score()` on samples plus metadata
 #' transformed into a tibble.
 #'

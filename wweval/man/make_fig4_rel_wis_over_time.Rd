@@ -7,7 +7,7 @@
 make_fig4_rel_wis_over_time(wis_scores)
 }
 \arguments{
-\item{scores}{A tibble of scores by location, forecast date, date and model,
+\item{wis_scores}{A tibble of scores by location, forecast date, date and model,
 containing the outputs of \code{scoringutils::score()} on samples plus metadata
 transformed into a tibble.}
 }

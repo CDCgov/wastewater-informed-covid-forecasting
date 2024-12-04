@@ -7,13 +7,13 @@
 make_fig4_avg_wis_over_time(wis_scores, horizon_time_in_weeks = NULL)
 }
 \arguments{
+\item{wis_scores}{A tibble of scores by location, forecast date, date and model,
+containing the outputs of \code{scoringutils::score()} on samples plus metadata
+transformed into a tibble.}
+
 \item{horizon_time_in_weeks}{horizon time in weeks to summarize over, default
 is \code{NULL} which means that the scores are summarized over the nowcast period
 and the 4 week forecast period}
-
-\item{scores}{A tibble of scores by location, forecast date, date and model,
-containing the outputs of \code{scoringutils::score()} on samples plus metadata
-transformed into a tibble.}
 }
 \value{
 a ggplot object plotting the magnitude of the avg wiss across
