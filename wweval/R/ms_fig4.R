@@ -324,6 +324,7 @@ get_plot_rel_crps_distrib <- function(scores,
       show.legend = FALSE,
       fill = "darkblue"
     ) +
+    geom_hline(aes(yintercept = 1), linetype = "dashed") +
     get_plot_theme() +
     ylab("Relative CRPS") +
     xlab("Density") +
@@ -819,6 +820,7 @@ get_plot_rel_wis_distrib <- function(wis_scores) {
       show.legend = FALSE,
       fill = "darkblue"
     ) +
+    geom_hline(aes(yintercept = 1), linetype = "dashed") +
     get_plot_theme() +
     ylab("Relative WIS") +
     xlab("Density") +
