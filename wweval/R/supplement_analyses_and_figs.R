@@ -985,46 +985,74 @@ get_heatmap_metadata <- function(metadata,
 #' Get a heatmap of the metadata of Hub models submitted
 #'
 #' @param metadata a tibble of location -forecast date metadata
+#' @param analysis_type string indicating whether this is the
+#' real-time or retro analysis, which dictates how metadata is gathered
 #' @param fig_file_dir string indicating where to save figs
 #'
 #' @return a ggplot object with a heatmap colored by reason for excluding
 #' @export
 get_heatmap_metadata_hub <- function(metadata,
+                                     analysis_type,
                                      fig_file_dir) {
-  metadata_summarized <- metadata |>
-    dplyr::select(
-      forecast_date, location, ww_data_present,
-      ww_exclude_manual, ww_sufficient,
-      any_flags_hosp, any_flags_ww
-    ) |>
-    dplyr::ungroup() |>
-    dplyr::mutate(
-      model_submitted =
-        dplyr::case_when(
-          ww_data_present != 1 ~ "hosp",
-          ww_sufficient != TRUE ~ "hosp",
-          any_flags_ww == TRUE ~ "hosp",
-          ww_exclude_manual == TRUE ~ "hosp",
-          TRUE ~ "ww"
-        )
-    ) |>
-    dplyr::mutate(
-      model_name = "cfa-wwrenewal(retro)"
-    )
+  if (analysis_type == "retro") {
+    metadata_summarized <- metadata |>
+      dplyr::select(
+        forecast_date, location, ww_data_present,
+        ww_sufficient,
+        any_flags_hosp, any_flags_ww
+      ) |>
+      dplyr::ungroup() |>
+      dplyr::mutate(
+        model_submitted =
+          dplyr::case_when(
+            ww_data_present != 1 ~ "hosp",
+            ww_sufficient != TRUE ~ "hosp",
+            any_flags_ww == TRUE ~ "hosp",
+            TRUE ~ "ww"
+          )
+      ) |>
+      dplyr::mutate(
+        model_name = "cfa-wwrenewal(retro)"
+      )
 
-  metadata_hosp_only <- metadata_summarized |>
-    dplyr::mutate(
-      model_submitted = "hosp",
-      model_name = "cfa-hosponlyrenewal(retro)"
-    )
-  metadata_real_time <- metadata_summarized |>
-    dplyr::filter(forecast_date >= "2024-02-05") |>
-    dplyr::mutate(model_name = "cfa-wwrenewal(real_time)")
+    metadata_hosp_only <- metadata_summarized |>
+      dplyr::mutate(
+        model_submitted = "hosp",
+        model_name = "cfa-hosponlyrenewal(retro)"
+      )
 
-  all_metadata <- dplyr::bind_rows(
-    metadata_summarized, metadata_hosp_only,
-    metadata_real_time
-  )
+    all_metadata <- dplyr::bind_rows(
+      metadata_summarized, metadata_hosp_only
+    )
+  } else if (analysis_type == "real_time") {
+    # Then we need to get this info on metadata from our github!
+    dates <- seq(
+      from = lubridate::ymd("2024-02-05"),
+      to = lubridate::ymd("2024-03-11"),
+      by = "week"
+    )
+    df_replacements <- get_date_locs_hosp_used(dates) |>
+      dplyr::mutate(
+        model_submitted = "hosp"
+      )
+    locs <- unique(metadata$location)
+    metadata_grid <- expand.grid(location = locs, forecast_date = dates)
+    metadata_ww <- metadata_grid |>
+      dplyr::left_join(
+        df_replacements
+      ) |>
+      dplyr::mutate(
+        model_submitted = ifelse(is.na(model_submitted), "ww", "hosp"),
+        model_name = "cfa-wwrenewal(real-time)"
+      )
+    metadata_hosp <- metadata_grid |>
+      dplyr::mutate(
+        model_submitted = "hosp",
+        model_name = "cfa-hosponlyrenewal(real-time)"
+      )
+    all_metadata <- dplyr::bind_rows(metadata_ww, metadata_hosp)
+  }
+
   colors <- plot_components()
   p <- ggplot(all_metadata) +
     geom_tile(aes(x = forecast_date, y = location, fill = model_submitted)) +
@@ -1048,7 +1076,7 @@ get_heatmap_metadata_hub <- function(metadata,
     height = 7, width = 12,
     filename = file.path(
       fig_file_dir,
-      glue::glue("sfig_heatmap_hub_metadata.png")
+      glue::glue("sfig_heatmap_hub_metadata_{analysis_type}.png")
     )
   )
 }

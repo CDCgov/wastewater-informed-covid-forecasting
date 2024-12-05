@@ -510,7 +510,6 @@ make_qq_plot_overall <- function(scores_quantiles,
     data.table::as.data.table() |>
     scoringutils::summarise_scores(by = c("model", "quantile")) |>
     scoringutils::plot_quantile_coverage() +
-    ggtitle(glue::glue("QQ plot all-time")) +
     get_plot_theme() +
     labs(
       ylab = "Percent of data below quantile",

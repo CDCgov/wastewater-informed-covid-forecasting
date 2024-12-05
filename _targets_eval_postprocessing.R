@@ -507,16 +507,6 @@ manuscript_figures <- list(
     )
   ),
   tar_target(
-    name = granular_ww_metadata_used_hub,
-    command = get_add_ww_metadata(
-      granular_ww_metadata,
-      ww_forecast_date_locs_to_excl,
-      convergence_df,
-      table_of_loc_dates_w_ww,
-      include_manual_exclusions = TRUE
-    )
-  ),
-  tar_target(
     name = summary_metadata,
     command = get_summary_metadata(
       granular_ww_metadata_used
@@ -531,10 +521,19 @@ manuscript_figures <- list(
     )
   ),
   tar_target(
-    name = sfig_heatmap_metadata_hub,
+    name = sfig_heatmap_metadata_hub_retro,
     command = get_heatmap_metadata_hub(
-      granular_ww_metadata_used_hub,
-      fig_file_dir = eval_config$ms_fig_dir
+      granular_ww_metadata_used,
+      fig_file_dir = eval_config$ms_fig_dir,
+      analysis_type = "retro"
+    )
+  ),
+  tar_target(
+    name = sfig_heatmap_metadata_hub_rt,
+    command = get_heatmap_metadata_hub(
+      granular_ww_metadata_used,
+      fig_file_dir = eval_config$ms_fig_dir,
+      analysis_type = "real_time"
     )
   ),
   tar_target(

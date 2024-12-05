@@ -4,10 +4,13 @@
 \alias{get_heatmap_metadata_hub}
 \title{Get a heatmap of the metadata of Hub models submitted}
 \usage{
-get_heatmap_metadata_hub(metadata, fig_file_dir)
+get_heatmap_metadata_hub(metadata, analysis_type, fig_file_dir)
 }
 \arguments{
 \item{metadata}{a tibble of location -forecast date metadata}
+
+\item{analysis_type}{string indicating whether this is the
+real-time or retro analysis, which dictates how metadata is gathered}
 
 \item{fig_file_dir}{string indicating where to save figs}
 }
