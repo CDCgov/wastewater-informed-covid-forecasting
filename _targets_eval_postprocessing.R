@@ -963,7 +963,7 @@ manuscript_figures <- list(
     name = loc_summary,
     command = get_loc_rel_crps(
       scores_filtered,
-      locs = c("DC", "OH", "NH", "CO")
+      locs = c("DC", "OH", "NH", "CO", "IL", "IN")
     )
   ),
   ## Fig 4: retro relative--------------------------------------------------

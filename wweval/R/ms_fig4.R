@@ -233,11 +233,13 @@ make_fig4_admissions_overall <- function(eval_hosp_data,
 get_loc_rel_crps <- function(scores, locs) {
   relative_crps <- scores |>
     dplyr::filter(location %in% locs) |>
-    compute_relative_crps(id_cols = c(
-      "location", "forecast_date", "date"
-    )) |>
-    dplyr::group_by(location) |>
-    dplyr::summarise(mean = mean(rel_crps))
+    dplyr::group_by(location, model) |>
+    dplyr::summarise(mean_crps = mean(crps)) |>
+    tidyr::pivot_wider(
+      names_from = model,
+      values_from = mean_crps
+    ) |>
+    dplyr::mutate(rel_mean_crps = ww / hosp)
 
   return(relative_crps)
 }

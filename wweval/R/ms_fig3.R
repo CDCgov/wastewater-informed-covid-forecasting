@@ -170,6 +170,7 @@ make_fig3_single_loc_comp <- function(scores,
     theme_bw() +
     scale_color_manual(values = colors$horizon_colors) +
     scale_fill_manual(values = colors$horizon_colors) +
+    geom_hline(aes(yintercept = 1), linetype = "dashed") +
     get_plot_theme(
       y_axis_title_size = 8,
       x_axis_text_size = 6
