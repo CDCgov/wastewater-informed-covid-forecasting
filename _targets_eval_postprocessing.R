@@ -1025,6 +1025,7 @@ manuscript_figures <- list(
     name = fig4_qq_plot_overall,
     command = make_qq_plot_overall(
       scores_quantiles_filtered,
+      time_period = "retro_all_time",
       fig_file_dir = eval_config$ms_fig_dir,
       write_files = TRUE
     )
@@ -1034,6 +1035,7 @@ manuscript_figures <- list(
     command = make_plot_coverage_range(
       scores_quantiles_filtered,
       ranges = c(30, 60, 90),
+      time_period = "retro_all_time",
       fig_file_dir = eval_config$ms_fig_dir,
       write_files = TRUE
     )
@@ -1636,6 +1638,34 @@ hub_comparison_plots <- list(
     name = fig4_rel_wis_by_location,
     command = make_fig4_rel_wis_by_location(
       wis_scores_rt_summarized
+    )
+  ),
+  tar_target(
+    name = fig4_qq_plot_rt,
+    command = make_qq_plot_overall(
+      real_time_wis_both_models,
+      time_period = "real_time",
+      fig_file_dir = eval_config$ms_fig_dir,
+      write_files = TRUE
+    )
+  ),
+  tar_target(
+    name = fig4_plot_coverage_range_rt,
+    command = make_plot_coverage_range(
+      scores_quantiles = real_time_wis_both_models |>
+        dplyr::mutate(
+          horizon_days = as.integer(date - forecast_date),
+          horizon = case_when(
+            horizon_days <= 7 ~ "1 wk",
+            horizon_days <= 14 & horizon_days > 7 ~ "2 wks",
+            horizon_days <= 21 & horizon_days > 14 ~ "3 wks",
+            horizon_days <= 28 & horizon_days > 21 ~ "4 wks"
+          )
+        ),
+      ranges = c(30, 60, 90),
+      time_period = "real_time",
+      fig_file_dir = eval_config$ms_fig_dir,
+      write_files = TRUE
     )
   ),
   ### Fig 4 real-time relative combined---------------------------------------------

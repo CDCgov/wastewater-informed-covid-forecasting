@@ -7,6 +7,7 @@
 make_plot_coverage_range(
   scores_quantiles,
   ranges,
+  time_period,
   fig_file_dir = NULL,
   write_files = FALSE
 )
@@ -18,6 +19,8 @@ quantiles plus metadata transformed into a tibble.}
 
 \item{ranges}{A numeric vector of credible interval ranges to plot,
 spanning from 0 to 100.}
+
+\item{time_period}{string indicating time period of fig to save}
 
 \item{fig_file_dir}{string indicating directory to save figure in,
 default is \code{NULL}}

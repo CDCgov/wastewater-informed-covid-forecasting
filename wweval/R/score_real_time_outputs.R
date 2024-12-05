@@ -252,10 +252,9 @@ format_scores_for_comparison <- function(real_time_scores,
 #' @param real_time_wis_hosp_only hosp only
 #' wis scores calculated from local data
 #'
-#' @return
+#' @return a df formatted the same way as the real_time_wis_hosp_only scores,
+#' but for both models
 #' @export
-#'
-#' @examples
 combine_hub_and_local_wis <- function(
     cfa_real_time_scores,
     real_time_wis_hosp_only) {

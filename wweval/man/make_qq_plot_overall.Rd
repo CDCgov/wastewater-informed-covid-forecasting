@@ -6,6 +6,7 @@
 \usage{
 make_qq_plot_overall(
   scores_quantiles,
+  time_period,
   fig_file_dir = NULL,
   write_files = FALSE
 )
@@ -14,6 +15,8 @@ make_qq_plot_overall(
 \item{scores_quantiles}{A tibble of scores by location, forecast date,
 date and model, containing the outputs of \code{scoringutils::score()} on
 quantiles plus metadata transformed into a tibble.}
+
+\item{time_period}{string indicating time period of fig to save}
 
 \item{fig_file_dir}{string indicating directory to save figure,
 default is NULL}

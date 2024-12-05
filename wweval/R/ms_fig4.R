@@ -493,6 +493,7 @@ make_fig4_rel_crps_overall <- function(scores,
 #' @param scores_quantiles A tibble of scores by location, forecast date,
 #' date and model, containing the outputs of `scoringutils::score()` on
 #' quantiles plus metadata transformed into a tibble.
+#' @param time_period string indicating time period of fig to save
 #' @param fig_file_dir string indicating directory to save figure,
 #' default is NULL
 #' @param write_files boolean indicating whether to save the file, default is
@@ -501,6 +502,7 @@ make_fig4_rel_crps_overall <- function(scores,
 #' @return a ggplot object with the overall QQ plot colored by model.
 #' @export
 make_qq_plot_overall <- function(scores_quantiles,
+                                 time_period,
                                  fig_file_dir = NULL,
                                  write_files = FALSE) {
   colors <- plot_components()
@@ -514,13 +516,13 @@ make_qq_plot_overall <- function(scores_quantiles,
       ylab = "Percent of data below quantile",
       col = "Model"
     ) +
-    theme(legend.position = "none") +
+    theme(legend.position = "right") +
     scale_color_manual(values = colors$model_colors)
   if (isTRUE(write_files)) {
     ggsave(p,
       filename = file.path(
         fig_file_dir,
-        glue::glue("sfig_qq_plot_retro_all_time.png")
+        glue::glue("sfig_qq_plot_{time_period}.png")
       )
     )
   }
@@ -537,6 +539,7 @@ make_qq_plot_overall <- function(scores_quantiles,
 #'
 #' @param ranges A numeric vector of credible interval ranges to plot,
 #' spanning from 0 to 100.
+#' @param time_period string indicating time period of fig to save
 #' @param fig_file_dir string indicating directory to save figure in,
 #' default is `NULL`
 #' @param write_files boolean indicating whether to save file, default is FALSE
@@ -545,6 +548,7 @@ make_qq_plot_overall <- function(scores_quantiles,
 #'
 make_plot_coverage_range <- function(scores_quantiles,
                                      ranges,
+                                     time_period,
                                      fig_file_dir = NULL,
                                      write_files = FALSE) {
   scores_by_horizon <- scores_quantiles |>
@@ -600,7 +604,7 @@ make_plot_coverage_range <- function(scores_quantiles,
     ggsave(p,
       filename = file.path(
         fig_file_dir,
-        glue::glue("sfig_coverage_range_retro_all_time.png")
+        glue::glue("sfig_coverage_range_{time_period}.png")
       ),
       height = 4,
       width = 10

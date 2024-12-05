@@ -14,6 +14,10 @@ only the ww model, \code{cfa-wwrenewal(real-time)}}
 \item{real_time_wis_hosp_only}{hosp only
 wis scores calculated from local data}
 }
+\value{
+a df formatted the same way as the real_time_wis_hosp_only scores,
+but for both models
+}
 \description{
 Combine thehosp only real-time scores and cfa real
 time scores from github
