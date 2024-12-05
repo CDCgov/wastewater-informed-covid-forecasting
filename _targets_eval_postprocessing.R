@@ -1528,7 +1528,11 @@ hub_comparison_plots <- list(
   tar_target(
     name = fig5_summary_table_Feb_Mar,
     command = make_fig5_table_and_plot(
-      combine_scores_feb_mar,
+      combine_scores_feb_mar |>
+        dplyr::filter(!model %in% c(
+          "cfa-hosponlyrenewal(retro)",
+          "cfa-wwrenewal(retro)"
+        )),
       time_period = "Feb-Mar",
       fig_file_dir = eval_config$ms_fig_dir
     )
