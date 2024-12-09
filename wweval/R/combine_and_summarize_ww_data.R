@@ -300,11 +300,14 @@ get_add_ww_metadata <- function(granular_ww_metadata,
 #' quantiled forecasts for the wastewater and hospital admissions only models
 #' after it has been filtered for convergence, wastewater data quality,
 #' manual exclusions, and dates that don't have any wastewater present
+#' @param output_dir string indicating where to save the ww metadata tables
 #'
 #' @return a list containing a summary overall table, a summary by forecast
 #' date and a summary by state
 #' @export
-get_summary_ww_table <- function(ww_metadata, hosp_quantiles_filtered) {
+get_summary_ww_table <- function(ww_metadata,
+                                 hosp_quantiles_filtered,
+                                 output_dir) {
   # First, get the true number of forecast-date locations with wastewater
   # in the current analysis
   n_w_ww_actual <- hosp_quantiles_filtered |>
@@ -401,6 +404,10 @@ get_summary_ww_table <- function(ww_metadata, hosp_quantiles_filtered) {
       avg_avg_sampling_freq = mean(.data$avg_sampling_freq, na.rm = TRUE),
       n_states_w_duplicate_obs = sum(.data$n_duplicate_obs > 0, na.rm = TRUE)
     )
+  saveRDS(forecast_date_summary_table, file = file.path(
+    output_dir,
+    "forecast_date_summary_table.rds"
+  ))
 
   # Summarize across forecast dates by state
   state_summary_table <-
@@ -413,6 +420,10 @@ get_summary_ww_table <- function(ww_metadata, hosp_quantiles_filtered) {
       avg_avg_sampling_frequency = mean(.data$avg_sampling_freq, na.rm = TRUE),
       n_forecast_dates_w_duplicate_obs = sum(.data$n_duplicate_obs > 0, na.rm = TRUE)
     )
+  saveRDS(state_summary_table, file = file.path(
+    output_dir,
+    "state_summary_table.rds"
+  ))
 
 
   ww_metadata_list <- list(

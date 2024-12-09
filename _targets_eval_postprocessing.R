@@ -540,7 +540,8 @@ manuscript_figures <- list(
     name = list_of_summary_ww_tables,
     command = get_summary_ww_table(
       granular_ww_metadata_used,
-      hosp_quantiles_filtered
+      hosp_quantiles_filtered,
+      output_dir = eval_config$output_dir
     )
   ),
   ## Figure specifications----------------------------------------
