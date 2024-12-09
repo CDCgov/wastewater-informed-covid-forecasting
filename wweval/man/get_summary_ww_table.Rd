@@ -4,7 +4,7 @@
 \alias{get_summary_ww_table}
 \title{Get wastewater data summary tables}
 \usage{
-get_summary_ww_table(ww_metadata, hosp_quantiles_filtered)
+get_summary_ww_table(ww_metadata, hosp_quantiles_filtered, output_dir)
 }
 \arguments{
 \item{ww_metadata}{a tibble containing one row for every forecast date
@@ -15,6 +15,8 @@ about the wastewater data. This is the output of "get_add_ww_metadata".}
 quantiled forecasts for the wastewater and hospital admissions only models
 after it has been filtered for convergence, wastewater data quality,
 manual exclusions, and dates that don't have any wastewater present}
+
+\item{output_dir}{string indicating where to save the ww metadata tables}
 }
 \value{
 a list containing a summary overall table, a summary by forecast
