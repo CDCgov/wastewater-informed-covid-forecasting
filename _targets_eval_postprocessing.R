@@ -467,7 +467,7 @@ head_to_head_targets <- list(
   )
 )
 
-# Manuscript figures------------------------------------------------
+# Manuscript analyses ------------------------------------------------
 # Note that these are just the components of the figures, not the full
 # ggarranged, properly formatted figures, and currently require
 # specification for the figure components that are examples.
@@ -576,7 +576,7 @@ manuscript_figures <- list(
       model_type = "ww"
     )
   ),
-  ## Fig 2-----------------------------------------------------
+  ## Fig: Example of forecasts of 3 locs, 1 forecast date-------------------
   tar_target(
     name = fig2_hosp_t_1,
     command = make_fig2_hosp_t(
@@ -630,7 +630,7 @@ manuscript_figures <- list(
       date_to_plot = forecast_date_to_plot
     )
   ),
-  ## Fig 2 combined--------------------------------------------
+  ### Fig combined--------------------------------------------
   tar_target(
     name = fig2,
     command = make_fig2(
@@ -644,7 +644,7 @@ manuscript_figures <- list(
     )
   ),
 
-  ## Fig 3-------------------------------------------------
+  ## Fig: Example 3 locs, all forecast dates------------------------------
   tar_target(
     name = summary_table_crps,
     command = get_summary_table_fig3(
@@ -915,7 +915,7 @@ manuscript_figures <- list(
     )
   ),
 
-  ### Fig3 combined---------------------------------------
+  ### Fig combined---------------------------------------
   tar_target(
     name = fig3,
     command = make_fig3(
@@ -946,7 +946,7 @@ manuscript_figures <- list(
 
 
 
-  ## Fig 4------------------------------------------------
+  ## Fig: Retrospective relative performance---------------------------------
   tar_target(
     name = fig4_results_tables,
     command = make_fig4_results_table(
@@ -966,7 +966,6 @@ manuscript_figures <- list(
       locs = c("DC", "OH", "NH", "CO", "IL", "IN")
     )
   ),
-  ## Fig 4: retro relative--------------------------------------------------
   tar_target(fig4_rel_crps_heatmap,
     command = get_plot_rel_crps_heatmap(
       scores = scores_filtered,
@@ -1040,7 +1039,7 @@ manuscript_figures <- list(
       write_files = TRUE
     )
   ),
-  ### Fig 4 retro relative combined---------------------------------------------
+  ### Fig combined---------------------------------------------
   tar_target(
     name = fig4,
     command = make_fig4(
@@ -1515,8 +1514,7 @@ hub_targets <- list(
     )
   )
 )
-## Hub comparison plots ------------------------------------------------------
-## Fig 5-------------------------------------------------------------------
+## Hub comparison  ------------------------------------------------------
 hub_comparison_plots <- list(
   tar_target(
     name = fig5_summary_table,
@@ -1568,7 +1566,7 @@ hub_comparison_plots <- list(
       "cfa-hosponlyrenewal(retro)"
     )
   ),
-  ## Real-time Hub comparison top row------------------------------------------
+  ## Fig: Real-time Hub comparison ------------------------------------------
   # This will be the real-time density of relative CRPS compared
   # to covidhub baseline (will need to get the summary stats for this too)
   tar_target(
@@ -1597,7 +1595,7 @@ hub_comparison_plots <- list(
       time_period = "Feb-Mar 2024"
     )
   ),
-  ## Real-time relative-----------------------------------------
+  ## Fig:Real-time relative-----------------------------------------
   tar_target(
     name = wis_scores_rt_summarized,
     command = real_time_wis_both_models |>
@@ -1672,7 +1670,7 @@ hub_comparison_plots <- list(
       write_files = TRUE
     )
   ),
-  ### Fig 4 real-time relative combined---------------------------------------------
+  ### Fig combined---------------------------------------------
   tar_target(
     name = fig4_rt,
     command = make_fig4(
@@ -1688,7 +1686,7 @@ hub_comparison_plots <- list(
   ),
 
 
-  ## Retro Hub comparison top row-------------------------------------------
+  ## Fig: Retrospective Hub comparison-------------------------------------------
   tar_target(
     name = fig5_density_all_time,
     command = make_fig5_density(
@@ -1715,7 +1713,6 @@ hub_comparison_plots <- list(
       real_time_period = "Feb 2024-Mar 2024",
     )
   ),
-  # Lower rows Hub comparison fig------------------------------------
   tar_target(
     name = fig5_heatmap_rel_wis_all_time,
     command = make_fig5_heatmap_relative_wis(
@@ -1778,7 +1775,7 @@ hub_comparison_plots <- list(
       time_period = "Oct 2023-Mar 2024"
     )
   ),
-  ### Fig 5 combined---------------------------------------------------
+  ### Fig Real-time and retro Hub combined---------------------------------------------------
   tar_target(
     name = fig5,
     command = make_fig5(
