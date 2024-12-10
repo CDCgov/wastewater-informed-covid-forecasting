@@ -5,8 +5,10 @@
 \title{Make Fig 5}
 \usage{
 make_fig5(
-  fig5_plot_wis_over_time,
-  fig5_overall_performance,
+  fig5_plot_wis_t_real_time,
+  fig5_density_real_time,
+  fig5_plot_wis_t_all_time,
+  fig5_density_all_time,
   fig5_heatmap_rel_wis_all_time,
   fig5_heatmap_rel_wis_feb_mar,
   fig5_qq_plot_all_time,
@@ -17,11 +19,17 @@ make_fig5(
 )
 }
 \arguments{
-\item{fig5_plot_wis_over_time}{average wis over time across locations for
-each model}
+\item{fig5_plot_wis_t_real_time}{average wis over time across locations for
+each model in real-time (feb-mar)}
 
-\item{fig5_overall_performance}{density plot of overall performance across
-location, forecast date, day, and model, stratified by time period}
+\item{fig5_density_real_time}{density plot of relative performance
+across location, forecast_date, day, and model}
+
+\item{fig5_plot_wis_t_all_time}{average wis over time across locations for
+each model in real-time (feb-mar)}
+
+\item{fig5_density_all_time}{density plot of relative performance
+across location, forecast_date, day, and model}
 
 \item{fig5_heatmap_rel_wis_all_time}{heatmap comparing WIS across
 forecast dates for each location for all time}

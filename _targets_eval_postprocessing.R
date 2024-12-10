@@ -342,7 +342,8 @@ head_to_head_targets <- list(
   ),
   tar_target(
     name = ww_forecast_date_locs_to_excl,
-    command = as.data.frame(eval_config$ww_forecast_date_locs_to_excl)
+    command = as.data.frame(eval_config$ww_forecast_date_locs_to_excl) |>
+      dplyr::mutate(forecast_date = lubridate::ymd(forecast_date))
   ),
 
   # Get the full set of quantiles, filtered down to only states and
@@ -371,13 +372,9 @@ head_to_head_targets <- list(
           "forecast_date"
         )
       ) |>
-      dplyr::anti_join(
-        ww_forecast_date_locs_to_excl |>
-          dplyr::mutate(forecast_date = lubridate::ymd(forecast_date)),
-        by = c(
-          "location",
-          "forecast_date"
-        )
+      dplyr::filter(
+        any_flags_ww == FALSE,
+        any_flags_hosp == FALSE
       ) |>
       dplyr::left_join(
         last_hosp_data_date_map,
@@ -414,6 +411,10 @@ head_to_head_targets <- list(
           "forecast_date"
         )
       ) |>
+      dplyr::filter(
+        any_flags_ww == FALSE,
+        any_flags_hosp == FALSE
+      ) |>
       dplyr::left_join(
         last_hosp_data_date_map,
         by = c("location", "forecast_date")
@@ -439,14 +440,6 @@ head_to_head_targets <- list(
       dplyr::left_join(table_of_loc_dates_w_ww,
         by = c("location", "forecast_date")
       ) |>
-      dplyr::anti_join(
-        ww_forecast_date_locs_to_excl |>
-          dplyr::mutate(forecast_date = lubridate::ymd(forecast_date)),
-        by = c(
-          "location",
-          "forecast_date"
-        )
-      ) |>
       dplyr::filter(ww_sufficient) |>
       dplyr::left_join(
         convergence_df,
@@ -454,6 +447,10 @@ head_to_head_targets <- list(
           "location",
           "forecast_date"
         )
+      ) |>
+      dplyr::filter(
+        any_flags_ww == FALSE,
+        any_flags_hosp == FALSE
       ) |>
       dplyr::left_join(
         last_hosp_data_date_map,
@@ -505,7 +502,8 @@ manuscript_figures <- list(
       granular_ww_metadata,
       ww_forecast_date_locs_to_excl,
       convergence_df,
-      table_of_loc_dates_w_ww
+      table_of_loc_dates_w_ww,
+      include_manual_exclusions = FALSE
     )
   ),
   tar_target(
@@ -523,17 +521,27 @@ manuscript_figures <- list(
     )
   ),
   tar_target(
-    name = sfig_heatmap_metadata_hub,
+    name = sfig_heatmap_metadata_hub_retro,
     command = get_heatmap_metadata_hub(
       granular_ww_metadata_used,
-      fig_file_dir = eval_config$ms_fig_dir
+      fig_file_dir = eval_config$ms_fig_dir,
+      analysis_type = "retro"
+    )
+  ),
+  tar_target(
+    name = sfig_heatmap_metadata_hub_rt,
+    command = get_heatmap_metadata_hub(
+      granular_ww_metadata_used,
+      fig_file_dir = eval_config$ms_fig_dir,
+      analysis_type = "real_time"
     )
   ),
   tar_target(
     name = list_of_summary_ww_tables,
     command = get_summary_ww_table(
       granular_ww_metadata_used,
-      hosp_quantiles_filtered
+      hosp_quantiles_filtered,
+      output_dir = eval_config$output_dir
     )
   ),
   ## Figure specifications----------------------------------------
@@ -641,7 +649,8 @@ manuscript_figures <- list(
     name = summary_table_crps,
     command = get_summary_table_fig3(
       scores_filtered,
-      locs_to_plot
+      locs_to_plot,
+      fig_file_dir = eval_config$ms_fig_dir
     )
   ),
   tar_target(
@@ -702,7 +711,7 @@ manuscript_figures <- list(
       loc_to_plot = locs_to_plot[1],
       horizon_to_plot = "nowcast",
       horizon_days_ahead = -10,
-      days_to_shift = -10
+      days_to_shift = -8
     )
   ),
   tar_target(
@@ -712,7 +721,7 @@ manuscript_figures <- list(
       loc_to_plot = locs_to_plot[1],
       horizon_to_plot = "1 wk",
       horizon_days_ahead = 7,
-      days_to_shift = 0
+      days_to_shift = 2
     )
   ),
   tar_target(
@@ -722,7 +731,7 @@ manuscript_figures <- list(
       loc_to_plot = locs_to_plot[1],
       horizon_to_plot = "4 wks",
       horizon_days_ahead = 28,
-      days_to_shift = 21
+      days_to_shift = 24
     )
   ),
   # This is supplementary but useful alongside
@@ -784,7 +793,7 @@ manuscript_figures <- list(
       scores_filtered,
       loc_to_plot = locs_to_plot[2],
       horizon_to_plot = "nowcast",
-      days_to_shift = -10,
+      days_to_shift = -8,
       horizon_days_ahead = -10
     )
   ),
@@ -794,7 +803,7 @@ manuscript_figures <- list(
       scores_filtered,
       loc_to_plot = locs_to_plot[2],
       horizon_to_plot = "1 wk",
-      days_to_shift = 0,
+      days_to_shift = 2,
       horizon_days_ahead = 7
     )
   ),
@@ -804,7 +813,7 @@ manuscript_figures <- list(
       scores_filtered,
       loc_to_plot = locs_to_plot[2],
       horizon_to_plot = "4 wks",
-      days_to_shift = 21,
+      days_to_shift = 24,
       horizon_days_ahead = 28
     )
   ),
@@ -865,7 +874,7 @@ manuscript_figures <- list(
       scores_filtered,
       loc_to_plot = locs_to_plot[3],
       horizon_to_plot = "nowcast",
-      days_to_shift = -10,
+      days_to_shift = -8,
       horizon_days_ahead = -10
     )
   ),
@@ -875,7 +884,7 @@ manuscript_figures <- list(
       scores_filtered,
       loc_to_plot = locs_to_plot[3],
       horizon_to_plot = "1 wk",
-      days_to_shift = 0,
+      days_to_shift = 2,
       horizon_days_ahead = 7
     )
   ),
@@ -885,7 +894,7 @@ manuscript_figures <- list(
       scores_filtered,
       loc_to_plot = locs_to_plot[3],
       horizon_to_plot = "4 wks",
-      days_to_shift = 21,
+      days_to_shift = 24,
       horizon_days_ahead = 28
     )
   ),
@@ -947,15 +956,28 @@ manuscript_figures <- list(
   tar_target(
     name = fig4_rel_crps_over_time,
     command = make_fig4_rel_crps_over_time(
-      scores_filtered,
-      horizons_to_show = "overall"
+      scores_filtered
     )
   ),
   tar_target(
     name = loc_summary,
     command = get_loc_rel_crps(
       scores_filtered,
-      locs = c("DC", "OH")
+      locs = c("DC", "OH", "NH", "CO", "IL", "IN")
+    )
+  ),
+  ## Fig 4: retro relative--------------------------------------------------
+  tar_target(fig4_rel_crps_heatmap,
+    command = get_plot_rel_crps_heatmap(
+      scores = scores_filtered,
+      fig_file_dir = eval_config$ms_fig_dir
+    )
+  ),
+  tar_target(
+    name = fig4_rel_crps_hist,
+    command = get_plot_rel_crps_distrib(
+      scores = scores_filtered,
+      fig_file_dir = eval_config$ms_fig_dir
     )
   ),
   tar_target(
@@ -988,40 +1010,47 @@ manuscript_figures <- list(
   tar_target(
     name = fig4_rel_crps_by_location,
     command = make_fig4_rel_crps_by_location(
-      scores_filtered,
-      horizons_to_show = "overall"
+      scores_filtered
     )
   ),
   tar_target(
     name = fig4_rel_crps_overall,
     command = make_fig4_rel_crps_overall(
-      scores_filtered
+      scores_filtered,
+      fig_file_dir = eval_config$ms_fig_dir,
+      write_files = TRUE
     )
   ),
   tar_target(
     name = fig4_qq_plot_overall,
     command = make_qq_plot_overall(
-      scores_quantiles_filtered
+      scores_quantiles_filtered,
+      time_period = "retro_all_time",
+      fig_file_dir = eval_config$ms_fig_dir,
+      write_files = TRUE
     )
   ),
   tar_target(
     name = fig4_plot_coverage_range,
     command = make_plot_coverage_range(
       scores_quantiles_filtered,
-      ranges = c(30, 60, 90)
+      ranges = c(30, 60, 90),
+      time_period = "retro_all_time",
+      fig_file_dir = eval_config$ms_fig_dir,
+      write_files = TRUE
     )
   ),
-  ### Fig 4 combined---------------------------------------------------
+  ### Fig 4 retro relative combined---------------------------------------------
   tar_target(
     name = fig4,
     command = make_fig4(
-      fig4_rel_crps_overall = fig4_rel_crps_overall,
+      fig4_rel_crps_heatmap = fig4_rel_crps_heatmap,
+      fig4_rel_crps_hist = fig4_rel_crps_hist,
       fig4_avg_crps = fig4_avg_crps,
       fig4_natl_admissions = fig4_natl_admissions,
       fig4_rel_crps_over_time = fig4_rel_crps_over_time,
       fig4_rel_crps_by_location = fig4_rel_crps_by_location,
-      fig4_qq_plot_overall = fig4_qq_plot_overall,
-      fig4_plot_coverage_range = fig4_plot_coverage_range,
+      time_period = "all_time",
       fig_file_dir = eval_config$ms_fig_dir
     )
   )
@@ -1198,6 +1227,92 @@ scenario_targets <- list(
   )
 )
 
+# Real-time relative targets--------------------------------------
+real_time_rel_targets <- list(
+  tar_target(
+    name = real_time_crps_both_models,
+    command = score_real_time_outputs(
+      score_type = "crps",
+      real_time_output_dir = eval_config$real_time_output_dir,
+      table_of_run_ids = as.data.frame(eval_config$table_of_run_ids),
+      locations = unique(eval_config$location_ww),
+      dates = as.character(seq(
+        from = lubridate::ymd("2024-02-05"),
+        to = lubridate::ymd("2024-03-11"),
+        by = "week"
+      )),
+      eval_data = eval_hosp_data
+    )
+  ),
+  tar_target(
+    name = real_time_wis_hosp_only,
+    command = score_real_time_outputs(
+      score_type = "wis",
+      real_time_output_dir = eval_config$real_time_output_dir,
+      table_of_run_ids = as.data.frame(eval_config$table_of_run_ids),
+      locations = unique(eval_config$location_ww),
+      dates = as.character(seq(
+        from = lubridate::ymd("2024-02-05"),
+        to = lubridate::ymd("2024-03-11"),
+        by = "week"
+      )),
+      eval_data = eval_hosp_data,
+      hosp_only = TRUE
+    )
+  ),
+  tar_target(
+    name = real_time_wis_both_models_raw,
+    command = combine_hub_and_local_wis(
+      cfa_real_time_scores,
+      real_time_wis_hosp_only
+    )
+  ),
+  # For the real-time comparison, we exclude the forecasts that are the
+  # same
+  tar_target(
+    name = real_time_wis_both_models,
+    command = real_time_wis_both_models_raw |>
+      dplyr::anti_join(ww_forecast_date_locs_to_excl) |>
+      # Could eventually replace this with what is on the Hub
+      dplyr::left_join(table_of_loc_dates_w_ww) |>
+      dplyr::filter(ww_sufficient)
+  ),
+  tar_target(
+    name = rel_real_time_wis,
+    command = get_rel_wis_real_time(real_time_wis_both_models)
+  ),
+  tar_target(
+    name = overall_real_time_rel_wis,
+    command = rel_real_time_wis |>
+      dplyr::ungroup() |>
+      dplyr::summarise(mean_rel_wis = mean(rel_wis, na.rm = TRUE))
+  ),
+  tar_target(
+    name = rel_mean_wis_real_time,
+    command = real_time_wis_both_models |>
+      data.table::as.data.table() |>
+      scoringutils::summarise_scores(by = c("model")) |>
+      dplyr::select(model, interval_score) |>
+      tidyr::pivot_wider(
+        names_from = model,
+        values_from = interval_score
+      ) |>
+      dplyr::mutate(rel_wis = ww / hosp)
+  ),
+  tar_target(
+    name = rel_mean_wis_rt_locs,
+    command = real_time_wis_both_models |>
+      dplyr::filter(location %in% c("TX", "FL", "IL", "MI")) |>
+      data.table::as.data.table() |>
+      scoringutils::summarise_scores(by = c("model", "location")) |>
+      dplyr::select(model, interval_score, location) |>
+      tidyr::pivot_wider(
+        names_from = model,
+        values_from = interval_score
+      ) |>
+      dplyr::mutate(rel_wis = ww / hosp)
+  )
+)
 
 # Hub targets-------------------------------------------------------
 hub_targets <- list(
@@ -1301,6 +1416,18 @@ hub_targets <- list(
       scores_list_hub_submission_oct_mar$log_scale_scores
     )
   ),
+  tar_target(
+    name = rel_all_time_wis,
+    command = get_rel_wis_all_time(
+      all_scores = scores_list_retro_hub_submissions$log_scale_scores
+    )
+  ),
+  tar_target(
+    name = overall_all_time_rel_wis,
+    command = rel_all_time_wis |>
+      dplyr::ungroup() |>
+      dplyr::summarise(mean_rel_wis = mean(rel_wis, na.rm = TRUE))
+  ),
   # Rename the model as retrospective
   tar_target(
     name = combine_scores_oct_mar_full,
@@ -1318,16 +1445,6 @@ hub_targets <- list(
       group_by(forecast_date, location) |>
       targets::tar_group(),
     iteration = "group"
-  ),
-  tar_target(
-    name = plot_wis_w_forecasts,
-    command = get_plot_wis_t(
-      hosp_quantiles_filtered_grouped,
-      combine_scores_oct_mar_raw,
-      eval_output_subdir = eval_config$output_dir
-    ),
-    pattern = map(hosp_quantiles_filtered_grouped),
-    iteration = "list"
   ),
 
   # Filter out the states that not every model has estimates for,
@@ -1370,12 +1487,21 @@ hub_targets <- list(
         model = ifelse(
           model == "cfa-wwrenewal", "cfa-wwrenewal(real-time)", model
         )
-      )
+      ) |>
+      dplyr::filter(location != "US")
+  ),
+  tar_target(
+    name = cfa_hosp_real_time_scores,
+    command = format_scores_for_comparison(
+      real_time_scores = real_time_wis_both_models_raw,
+      other_real_time_scores = cfa_real_time_scores
+    )
   ),
   tar_target(
     name = combine_scores_feb_mar,
     command = dplyr::bind_rows(
       cfa_real_time_scores,
+      cfa_hosp_real_time_scores,
       combine_scores_oct_mar |> dplyr::filter(
         forecast_date >= lubridate::ymd("2024-02-05")
       )
@@ -1403,7 +1529,11 @@ hub_comparison_plots <- list(
   tar_target(
     name = fig5_summary_table_Feb_Mar,
     command = make_fig5_table_and_plot(
-      combine_scores_feb_mar,
+      combine_scores_feb_mar |>
+        dplyr::filter(!model %in% c(
+          "cfa-hosponlyrenewal(retro)",
+          "cfa-wwrenewal(retro)"
+        )),
       time_period = "Feb-Mar",
       fig_file_dir = eval_config$ms_fig_dir
     )
@@ -1433,16 +1563,146 @@ hub_comparison_plots <- list(
       "CMU-TimeSeries",
       "COVIDhub-4_week_ensemble",
       "cfa-wwrenewal(real-time)",
+      "cfa-hosponlyrenewal(real-time)",
       "cfa-wwrenewal(retro)",
       "cfa-hosponlyrenewal(retro)"
     )
   ),
+  ## Real-time Hub comparison top row------------------------------------------
+  # This will be the real-time density of relative CRPS compared
+  # to covidhub baseline (will need to get the summary stats for this too)
   tar_target(
-    name = fig5_plot_wis_over_time,
+    name = fig5_density_real_time,
+    command = make_fig5_density(
+      all_scores = summarized_scores_feb_mar |>
+        dplyr::filter(!model %in% c(
+          "cfa-wwrenewal(retro)",
+          "cfa-hosponlyrenewal(retro)"
+        )),
+      models_to_show = models_to_plot,
+      analysis_type = "Real-time",
+    )
+  ),
+  # This will be the average WIS across forecast dates for the real-time
+  # scores
+  tar_target(
+    name = fig5_plot_wis_t_real_time,
+    command = make_fig5_average_wis(
+      all_scores = summarized_scores_feb_mar |>
+        dplyr::filter(!model %in% c(
+          "cfa-wwrenewal(retro)",
+          "cfa-hosponlyrenewal(retro)"
+        )),
+      models_to_show = models_to_plot,
+      time_period = "Feb-Mar 2024"
+    )
+  ),
+  ## Real-time relative-----------------------------------------
+  tar_target(
+    name = wis_scores_rt_summarized,
+    command = real_time_wis_both_models |>
+      data.table::as.data.table() |>
+      scoringutils::summarise_scores()
+  ),
+  tar_target(
+    name = fig4_rel_wis_heatmap,
+    command = make_fig4_heatmap_rel_wis(
+      rel_scores = rel_real_time_wis,
+      time_period = "Feb-Mar 2024",
+      analysis_type = "Real-time"
+    )
+  ),
+  tar_target(
+    name = fig4_rel_wis_hist,
+    command = get_plot_rel_wis_distrib(
+      wis_scores = wis_scores_rt_summarized
+    )
+  ),
+  tar_target(
+    name = fig4_natl_admissions_rt,
+    command = make_fig4_admissions_overall(
+      eval_hosp_data,
+      first_forecast_date = lubridate::ymd("2024-02-05") - lubridate::days(7),
+      last_forecast_date = max(eval_config$forecast_date_ww)
+    )
+  ),
+  tar_target(
+    name = fig4_avg_wis,
+    command = make_fig4_avg_wis_over_time(
+      wis_scores_rt_summarized
+    )
+  ),
+  tar_target(
+    name = fig4_rel_wis_over_time,
+    command = make_fig4_rel_wis_over_time(
+      wis_scores_rt_summarized
+    )
+  ),
+  tar_target(
+    name = fig4_rel_wis_by_location,
+    command = make_fig4_rel_wis_by_location(
+      wis_scores_rt_summarized
+    )
+  ),
+  tar_target(
+    name = fig4_qq_plot_rt,
+    command = make_qq_plot_overall(
+      real_time_wis_both_models,
+      time_period = "real_time",
+      fig_file_dir = eval_config$ms_fig_dir,
+      write_files = TRUE
+    )
+  ),
+  tar_target(
+    name = fig4_plot_coverage_range_rt,
+    command = make_plot_coverage_range(
+      scores_quantiles = real_time_wis_both_models |>
+        dplyr::mutate(
+          horizon_days = as.integer(date - forecast_date),
+          horizon = case_when(
+            horizon_days <= 7 ~ "1 wk",
+            horizon_days <= 14 & horizon_days > 7 ~ "2 wks",
+            horizon_days <= 21 & horizon_days > 14 ~ "3 wks",
+            horizon_days <= 28 & horizon_days > 21 ~ "4 wks"
+          )
+        ),
+      ranges = c(30, 60, 90),
+      time_period = "real_time",
+      fig_file_dir = eval_config$ms_fig_dir,
+      write_files = TRUE
+    )
+  ),
+  ### Fig 4 real-time relative combined---------------------------------------------
+  tar_target(
+    name = fig4_rt,
+    command = make_fig4(
+      fig4_rel_crps_heatmap = fig4_rel_wis_heatmap,
+      fig4_rel_crps_hist = fig4_rel_wis_hist,
+      fig4_avg_crps = fig4_avg_wis,
+      fig4_natl_admissions = fig4_natl_admissions_rt,
+      fig4_rel_crps_over_time = fig4_rel_wis_over_time,
+      fig4_rel_crps_by_location = fig4_rel_wis_by_location,
+      time_period = "real_time",
+      fig_file_dir = eval_config$ms_fig_dir
+    )
+  ),
+
+
+  ## Retro Hub comparison top row-------------------------------------------
+  tar_target(
+    name = fig5_density_all_time,
+    command = make_fig5_density(
+      all_scores = summarized_scores_oct_mar,
+      models_to_show = models_to_plot,
+      analysis_type = "Retrospective",
+    )
+  ),
+  tar_target(
+    name = fig5_plot_wis_t_all_time,
     command = make_fig5_average_wis(
       all_scores = summarized_scores_oct_mar,
-      cfa_real_time_scores = summarized_scores_cfa_real_time,
-      models_to_show = models_to_plot
+      models_to_show = models_to_plot,
+      time_period = "Oct 2023-Mar 2024"
     )
   ),
   tar_target(
@@ -1455,6 +1715,7 @@ hub_comparison_plots <- list(
       real_time_period = "Feb 2024-Mar 2024",
     )
   ),
+  # Lower rows Hub comparison fig------------------------------------
   tar_target(
     name = fig5_heatmap_rel_wis_all_time,
     command = make_fig5_heatmap_relative_wis(
@@ -1467,7 +1728,11 @@ hub_comparison_plots <- list(
   tar_target(
     name = fig5_heatmap_rel_wis_feb_mar,
     command = make_fig5_heatmap_relative_wis(
-      scores = summarized_scores_feb_mar,
+      scores = summarized_scores_feb_mar |>
+        dplyr::filter(!model %in% c(
+          "cfa-wwrenewal(retro)",
+          "cfa-hosponlyrenewal(retro)"
+        )),
       models_to_show = models_to_plot,
       time_period = "Feb 2024-Mar 2024",
       baseline_model = "COVIDhub-4_week_ensemble"
@@ -1484,17 +1749,25 @@ hub_comparison_plots <- list(
   tar_target(
     name = fig5_qq_plot_feb_mar,
     command = make_fig5_qq_plot(
-      scores = combine_scores_feb_mar,
+      scores = combine_scores_feb_mar |>
+        dplyr::filter(!model %in% c(
+          "cfa-wwrenewal(retro)",
+          "cfa-hosponlyrenewal(retro)"
+        )),
       models_to_show = models_to_plot,
-      time_period = "Feb 2024-Mar 2024"
+      time_period = "Feb-Mar 2024"
     )
   ),
   tar_target(
     name = fig5_std_rank_feb_mar,
     command = make_fig5_density_rank(
-      scores = summarized_scores_feb_mar,
+      scores = summarized_scores_feb_mar |>
+        dplyr::filter(!model %in% c(
+          "cfa-wwrenewal(retro)",
+          "cfa-hosponlyrenewal(retro)"
+        )),
       models_to_show = models_to_plot,
-      time_period = "Feb 2024-Mar 2024"
+      time_period = "Feb-Mar 2024"
     )
   ),
   tar_target(
@@ -1509,8 +1782,10 @@ hub_comparison_plots <- list(
   tar_target(
     name = fig5,
     command = make_fig5(
-      fig5_plot_wis_over_time = fig5_plot_wis_over_time,
-      fig5_overall_performance = fig5_overall_performance,
+      fig5_plot_wis_t_real_time = fig5_plot_wis_t_real_time,
+      fig5_density_real_time = fig5_density_real_time,
+      fig5_plot_wis_t_all_time = fig5_plot_wis_t_all_time,
+      fig5_density_all_time = fig5_density_all_time,
       fig5_heatmap_rel_wis_all_time = fig5_heatmap_rel_wis_all_time,
       fig5_heatmap_rel_wis_feb_mar = fig5_heatmap_rel_wis_feb_mar,
       fig5_qq_plot_all_time = fig5_qq_plot_all_time,
@@ -1566,12 +1841,6 @@ supp_targets <- list(
   ),
   tar_target(sfig_comb_perf_heatmap,
     command = get_plot_comb_perf_heatmap(
-      scores = scores_filtered,
-      fig_file_dir = eval_config$ms_fig_dir
-    )
-  ),
-  tar_target(sfig_rel_crps_heatmap,
-    command = get_plot_rel_crps_heatmap(
       scores = scores_filtered,
       fig_file_dir = eval_config$ms_fig_dir
     )
@@ -1641,35 +1910,35 @@ supp_targets <- list(
     )
   ),
   tar_target(
-    name = real_time_scores_both_models,
-    command = score_real_time_outputs(
-      real_time_output_dir = eval_config$real_time_output_dir,
-      table_of_run_ids = as.data.frame(eval_config$table_of_run_ids),
-      locations = unique(eval_config$location_ww),
-      dates = as.character(seq(
-        from = lubridate::ymd("2024-02-05"),
-        to = lubridate::ymd("2024-03-11"),
-        by = "week"
-      )),
-      eval_data = eval_hosp_data
+    name = ww_quants_plot_supp,
+    command = combine_outputs(
+      output_type = "ww_quantiles",
+      scenarios = "status_quo",
+      forecast_dates = c("2024-02-12"),
+      locations = c("OH", "IL"),
+      eval_output_subdir = eval_config$output_dir,
+      model_type = "ww"
     )
   ),
   tar_target(
-    name = rel_scores,
-    command = get_rel_crps_real_time(real_time_scores_both_models)
-  ),
-  tar_target(
-    name = plot_real_time_rel_crps,
-    command = get_plot_rel_crps_real_time(
-      rel_scores,
-      fig_file_dir = eval_config$ms_fig_dir
+    name = ww_plot_supp_OH,
+    command = make_fig2_ct_supp(
+      ww_quants_plot_supp,
+      loc_to_plot = "OH",
+      max_n_site_labs_to_show = 12,
+      date_to_plot = "2024-02-12",
+      ms_fig_dir = eval_config$ms_fig_dir
     )
   ),
   tar_target(
-    name = overall_rel_crps,
-    command = rel_scores |>
-      dplyr::ungroup() |>
-      dplyr::summarise(mean_rel_crps = mean(rel_crps, na.rm = TRUE))
+    name = ww_plot_supp_IL,
+    command = make_fig2_ct_supp(
+      ww_quants_plot_supp,
+      loc_to_plot = "IL",
+      max_n_site_labs_to_show = 12,
+      date_to_plot = "2024-02-12",
+      ms_fig_dir = eval_config$ms_fig_dir
+    )
   )
 )
 
@@ -1685,5 +1954,6 @@ list(
   hub_targets,
   hub_comparison_plots,
   supp_targets,
-  benchmarks
+  benchmarks,
+  real_time_rel_targets
 )

@@ -8,7 +8,8 @@ get_add_ww_metadata(
   granular_ww_metadata,
   ww_forecast_date_locs_to_excl,
   convergence_df,
-  table_of_loc_dates_w_ww
+  table_of_loc_dates_w_ww,
+  include_manual_exclusions = FALSE
 )
 }
 \arguments{
@@ -25,6 +26,10 @@ date location combination}
 
 \item{table_of_loc_dates_w_ww}{table containing wastewater metadata
 for every location-forecast date with wastewater}
+
+\item{include_manual_exclusions}{boolean indicating whether or not the
+ww metadata should include manual exclusiosn, default is FALSE bc isn't
+used in main retro head to head analysis.}
 }
 \value{
 a tibble with a number of additional columns indicating whether

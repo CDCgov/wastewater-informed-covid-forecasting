@@ -665,15 +665,63 @@ get_stats_improved_forecasts <- function(scores,
       "location", "forecast_date"
     )) |>
     dplyr::mutate(
-      pct_change_crps = (ww - hosp) / hosp
+      pct_change_crps = (ww - hosp) / hosp,
+      rel_crps = ww / hosp
     )
 
+  relative_crps_raw <- scores |>
+    compute_relative_crps(id_cols = c(
+      "location", "forecast_date", "date"
+    )) |>
+    dplyr::mutate(
+      pct_change_crps = (ww - hosp) / hosp,
+      rel_crps = ww / hosp
+    )
+
+  ggplot(relative_crps_by_forecast) +
+    geom_histogram(aes(x = pct_change_crps))
+
+  ggplot(relative_crps_raw) +
+    geom_histogram(aes(x = pct_change_crps))
+  ggplot(relative_crps_raw) +
+    geom_histogram(aes(x = rel_crps)) +
+    scale_x_continuous(trans = "log10")
+
+
+
+
+  forecasts_way_worse <- relative_crps_by_forecast |>
+    dplyr::filter(pct_change_crps > 3)
+  n_forecasts_3x_worse <- forecasts_way_worse |> nrow()
+
+  forecasts_way_better <- relative_crps_by_forecast |>
+    dplyr::filter(pct_change_crps < -3)
+  n_forecasts_3x_better <- forecasts_way_better |> nrow()
+
   n_forecasts_better <- relative_crps_by_forecast |>
-    dplyr::filter(pct_change_crps < threshold) |>
+    dplyr::filter(pct_change_crps < 0) |>
     nrow()
 
   n_forecasts_worse <- relative_crps_by_forecast |>
-    dplyr::filter(pct_change_crps > threshold) |>
+    dplyr::filter(pct_change_crps > 0) |>
+    nrow()
+
+  n_forecasts_better_thres <- relative_crps_by_forecast |>
+    dplyr::filter(
+      pct_change_crps < 0,
+      abs(pct_change_crps) > threshold
+    ) |>
+    nrow()
+
+  n_forecasts_worse <- relative_crps_by_forecast |>
+    dplyr::filter(pct_change_crps > 0) |>
+    nrow()
+
+  n_forecasts_worse_thres <- relative_crps_by_forecast |>
+    dplyr::filter(
+      pct_change_crps > 0,
+      abs(pct_change_crps) > threshold
+    ) |>
     nrow()
 
 
@@ -683,11 +731,17 @@ get_stats_improved_forecasts <- function(scores,
     n_states_better,
     n_states_worse,
     n_forecasts_better,
-    n_forecasts_worse
+    n_forecasts_worse,
+    n_forecasts_better_thres,
+    n_forecasts_worse_thres,
+    n_forecasts_3x_worse,
+    n_forecasts_3x_better
   )
 
   return(stats)
 }
+
+
 
 get_plot_sites_vs_performance <- function(scores,
                                           ww_metadata,
@@ -824,61 +878,6 @@ get_plot_comb_perf_heatmap <- function(scores,
   return(p)
 }
 
-#' Plot a heatmap of the relative crps by locations and forecast date
-#' for the head-to-head comparison
-#'
-#' @param scores A tibble of daily scores by forecast date, location, and model
-#' @param fig_file_dir A string indicating the directory to save the figures in
-#'
-#' @return a ggplot object
-#' @export
-get_plot_rel_crps_heatmap <- function(scores,
-                                      fig_file_dir) {
-  scores_summary <- scores |>
-    compute_relative_crps(id_cols = c(
-      "location",
-      "forecast_date", "date"
-    )) |>
-    dplyr::group_by(location, forecast_date) |>
-    dplyr::summarize(
-      mean_rel_crps = mean(rel_crps)
-    )
-
-
-  p <- ggplot(scores_summary) +
-    geom_tile(aes(x = forecast_date, y = location, fill = mean_rel_crps)) +
-    scale_fill_gradient2(
-      high = "red", mid = "white", low = "blue",
-      transform = "log2",
-      midpoint = 1,
-      guide = "colourbar", aesthetics = "fill"
-    ) +
-    geom_text(aes(
-      x = forecast_date, y = location,
-      label = round(mean_rel_crps, 2)
-    ), size = 1.5) +
-    get_plot_theme(
-      x_axis_dates = TRUE,
-      y_axis_text_size = 4
-    ) +
-    scale_x_date(
-      date_breaks = "1 week",
-      labels = scales::date_format("%Y-%m-%d")
-    ) +
-    xlab("") +
-    ylab("Location") +
-    labs(fill = "Relative CRPS") +
-    ggtitle(glue::glue("Mean relative CRPS by forecast date and location"))
-
-  ggsave(p,
-    width = 7, height = 6,
-    filename = file.path(
-      fig_file_dir,
-      glue::glue("sfig_heatmap_rel_crps.png")
-    )
-  )
-  return(p)
-}
 
 #' Get a summary table of the number of forecasts excluded for each reason
 #'
@@ -890,7 +889,7 @@ get_summary_metadata <- function(metadata) {
   metadata_summarized <- metadata |>
     dplyr::select(
       forecast_date, location, ww_data_present,
-      ww_exclude_manual, ww_sufficient,
+      ww_sufficient,
       any_flags_hosp, any_flags_ww
     )
 
@@ -904,13 +903,8 @@ get_summary_metadata <- function(metadata) {
 
   n_conv_issues <- nrow(metadata_remove_insuff_ww) - nrow(metadata_remove_conv_issues)
 
-  metadata_man_excl <- metadata_remove_conv_issues |>
-    dplyr::filter(ww_exclude_manual == FALSE)
-
-  n_excl <- nrow(metadata_remove_conv_issues) - nrow(metadata_man_excl)
-
-  summary_table <- tibble::tibble(n_insuff_ww, n_conv_issues, n_excl,
-    n_forecasts = nrow(metadata_man_excl)
+  summary_table <- tibble::tibble(n_insuff_ww, n_conv_issues,
+    n_forecasts = nrow(metadata_remove_conv_issues)
   )
 
   return(summary_table)
@@ -930,7 +924,7 @@ get_heatmap_metadata <- function(metadata,
   metadata_summarized <- metadata |>
     dplyr::select(
       forecast_date, location, ww_data_present,
-      ww_exclude_manual, ww_sufficient,
+      ww_sufficient,
       any_flags_hosp, any_flags_ww
     ) |>
     dplyr::ungroup()
@@ -991,46 +985,74 @@ get_heatmap_metadata <- function(metadata,
 #' Get a heatmap of the metadata of Hub models submitted
 #'
 #' @param metadata a tibble of location -forecast date metadata
+#' @param analysis_type string indicating whether this is the
+#' real-time or retro analysis, which dictates how metadata is gathered
 #' @param fig_file_dir string indicating where to save figs
 #'
 #' @return a ggplot object with a heatmap colored by reason for excluding
 #' @export
 get_heatmap_metadata_hub <- function(metadata,
+                                     analysis_type,
                                      fig_file_dir) {
-  metadata_summarized <- metadata |>
-    dplyr::select(
-      forecast_date, location, ww_data_present,
-      ww_exclude_manual, ww_sufficient,
-      any_flags_hosp, any_flags_ww
-    ) |>
-    dplyr::ungroup() |>
-    dplyr::mutate(
-      model_submitted =
-        dplyr::case_when(
-          ww_data_present != 1 ~ "hosp",
-          ww_sufficient != TRUE ~ "hosp",
-          any_flags_ww == TRUE ~ "hosp",
-          ww_exclude_manual == TRUE ~ "hosp",
-          TRUE ~ "ww"
-        )
-    ) |>
-    dplyr::mutate(
-      model_name = "cfa-wwrenewal(retro)"
-    )
+  if (analysis_type == "retro") {
+    metadata_summarized <- metadata |>
+      dplyr::select(
+        forecast_date, location, ww_data_present,
+        ww_sufficient,
+        any_flags_hosp, any_flags_ww
+      ) |>
+      dplyr::ungroup() |>
+      dplyr::mutate(
+        model_submitted =
+          dplyr::case_when(
+            ww_data_present != 1 ~ "hosp",
+            ww_sufficient != TRUE ~ "hosp",
+            any_flags_ww == TRUE ~ "hosp",
+            TRUE ~ "ww"
+          )
+      ) |>
+      dplyr::mutate(
+        model_name = "cfa-wwrenewal(retro)"
+      )
 
-  metadata_hosp_only <- metadata_summarized |>
-    dplyr::mutate(
-      model_submitted = "hosp",
-      model_name = "cfa-hosponlyrenewal(retro)"
-    )
-  metadata_real_time <- metadata_summarized |>
-    dplyr::filter(forecast_date >= "2024-02-05") |>
-    dplyr::mutate(model_name = "cfa-wwrenewal(real_time)")
+    metadata_hosp_only <- metadata_summarized |>
+      dplyr::mutate(
+        model_submitted = "hosp",
+        model_name = "cfa-hosponlyrenewal(retro)"
+      )
 
-  all_metadata <- dplyr::bind_rows(
-    metadata_summarized, metadata_hosp_only,
-    metadata_real_time
-  )
+    all_metadata <- dplyr::bind_rows(
+      metadata_summarized, metadata_hosp_only
+    )
+  } else if (analysis_type == "real_time") {
+    # Then we need to get this info on metadata from our github!
+    dates <- seq(
+      from = lubridate::ymd("2024-02-05"),
+      to = lubridate::ymd("2024-03-11"),
+      by = "week"
+    )
+    df_replacements <- get_date_locs_hosp_used(dates) |>
+      dplyr::mutate(
+        model_submitted = "hosp"
+      )
+    locs <- unique(metadata$location)
+    metadata_grid <- expand.grid(location = locs, forecast_date = dates)
+    metadata_ww <- metadata_grid |>
+      dplyr::left_join(
+        df_replacements
+      ) |>
+      dplyr::mutate(
+        model_submitted = ifelse(is.na(model_submitted), "ww", "hosp"),
+        model_name = "cfa-wwrenewal(real-time)"
+      )
+    metadata_hosp <- metadata_grid |>
+      dplyr::mutate(
+        model_submitted = "hosp",
+        model_name = "cfa-hosponlyrenewal(real-time)"
+      )
+    all_metadata <- dplyr::bind_rows(metadata_ww, metadata_hosp)
+  }
+
   colors <- plot_components()
   p <- ggplot(all_metadata) +
     geom_tile(aes(x = forecast_date, y = location, fill = model_submitted)) +
@@ -1054,27 +1076,32 @@ get_heatmap_metadata_hub <- function(metadata,
     height = 7, width = 12,
     filename = file.path(
       fig_file_dir,
-      glue::glue("sfig_heatmap_hub_metadata.png")
+      glue::glue("sfig_heatmap_hub_metadata_{analysis_type}.png")
     )
   )
 }
 
-#' Get the relative crps for the real time scores
+#' Get the relative wis for the real time scores
 #'
 #' @param all_scores a tibble of the scores for both models in real-time
 #'
-#' @return A tibble of the relative crps at each forecast date, location, and
+#' @return A tibble of the relative wis at each forecast date, location, and
 #' horizon day
 #' @export
-get_rel_crps_real_time <- function(all_scores) {
+get_rel_wis_real_time <- function(all_scores) {
   full_metadata <- all_scores |>
     dplyr::filter(scale == "log") |>
-    dplyr::group_by(forecast_date, model, location, failed_convergence) |>
-    dplyr::summarize(mean_crps = mean(crps)) |>
-    dplyr::filter(failed_convergence == FALSE) |>
+    as.data.table() |>
+    scoringutils::summarise_scores(
+      by = c("forecast_date", "model", "location")
+    ) |>
+    dplyr::select(
+      forecast_date, model, location,
+      interval_score
+    ) |>
     tidyr::pivot_wider(
       names_from = model,
-      values_from = mean_crps
+      values_from = interval_score
     )
   # Find the date locations to exclude
 
@@ -1089,63 +1116,68 @@ get_rel_crps_real_time <- function(all_scores) {
 
   rel_scores <- scores_filtered |>
     dplyr::filter(scale == "log") |>
-    dplyr::select(location, forecast_date, date, model, crps) |>
+    as.data.table() |>
+    scoringutils::summarise_scores(
+      by = c("forecast_date", "model", "date", "location")
+    ) |>
+    tibble::tibble() |>
+    dplyr::select(location, forecast_date, date, model, interval_score) |>
     tidyr::pivot_wider(
       names_from = model,
-      values_from = crps
+      values_from = interval_score
     ) |>
     dplyr::mutate(
-      rel_crps = ww / hosp
+      rel_wis = ww / hosp
     )
 
   return(rel_scores)
 }
 
-#' Get a plot of the relative crps from the real-time models
+#' Get the relative wis from the hub formatted
 #'
-#' @param rel_scores tibble containing the relative crps for each forecast
-#' date and location and horizon day
-#' @param fig_file_dir string indicating the directory to save the figure
+#' @param all_scores a tibble of the scores for both models, formatted
+#' like the hub
 #'
-#' @return ggplot object of a heatmap of the realtive crps
-get_plot_rel_crps_real_time <- function(rel_scores,
-                                        fig_file_dir) {
-  avg_rel_scores <- rel_scores |>
-    dplyr::group_by(forecast_date, location) |>
-    dplyr::summarise(mean_rel_crps = mean(rel_crps))
+#' @return A tibble of the relative wis at each forecast date, location, and
+#' horizon day
+#' @export
+get_rel_wis_all_time <- function(all_scores) {
+  scores <- all_scores |>
+    data.table::as.data.table() |>
+    scoringutils::summarize_scores(
+      by =
+        c(
+          "target_end_date",
+          "model",
+          "location",
+          "forecast_date"
+        )
+    ) |>
+    dplyr::rename(
+      date = target_end_date
+    ) |>
+    dplyr::left_join(wweval::flusight_location_table,
+      by = c("location" = "location_code")
+    ) |>
+    dplyr::select(
+      short_name, forecast_date, date,
+      model, interval_score
+    ) |>
+    dplyr::rename(location = short_name) |>
+    dplyr::mutate(
+      model = dplyr::case_when(
+        model == "cfa-wwrenewal" ~ "ww",
+        model == "cfa-hosponlyrenewal" ~ "hosp"
+      )
+    ) |>
+    tidyr::pivot_wider(
+      names_from = model,
+      values_from = interval_score
+    ) |>
+    dplyr::mutate(
+      rel_wis = ww / hosp
+    ) |>
+    dplyr::select(location, forecast_date, ww, hosp, rel_wis)
 
-  p <- ggplot(avg_rel_scores) +
-    geom_tile(aes(x = forecast_date, y = location, fill = mean_rel_crps)) +
-    scale_fill_gradient2(
-      high = "red", mid = "white", low = "blue",
-      transform = "log2",
-      midpoint = 1,
-      guide = "colourbar", aesthetics = "fill"
-    ) +
-    geom_text(aes(
-      x = forecast_date, y = location,
-      label = round(mean_rel_crps, 2)
-    ), size = 1.5) +
-    get_plot_theme(
-      x_axis_dates = TRUE,
-      y_axis_text_size = 4
-    ) +
-    scale_x_date(
-      date_breaks = "1 week",
-      labels = scales::date_format("%Y-%m-%d")
-    ) +
-    xlab("") +
-    ylab("Location") +
-    labs(fill = "Relative CRPS") +
-    ggtitle(glue::glue("Real-time mean relative CRPS by forecast date and location"))
-
-  ggsave(p,
-    width = 7, height = 6,
-    filename = file.path(
-      fig_file_dir,
-      glue::glue("sfig_real_time_heatmap_rel_crps.png")
-    )
-  )
-
-  return(p)
+  return(scores)
 }

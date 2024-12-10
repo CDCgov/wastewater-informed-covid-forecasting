@@ -3,18 +3,21 @@
 #' @param scores tibble of crps scores by location, forecast date, model,
 #' horizon day
 #' @param locs_to_plot the locations we want summaries for
+#' @param fig_file_dir string indicating directory to save fig in
 #'
 #' @return a table with mean crps for each model and the relative crps
 get_summary_table_fig3 <- function(scores,
-                                   locs_to_plot) {
-  scores_locs <- scores |>
+                                   locs_to_plot,
+                                   fig_file_dir) {
+  scores_locs_long <- scores |>
     dplyr::filter(
       location %in% locs_to_plot
     ) |>
     dplyr::group_by(model, location) |>
     dplyr::summarize(
       mean_crps = mean(crps)
-    ) |>
+    )
+  scores_locs <- scores_locs_long |>
     tidyr::pivot_wider(
       id_cols = c("location"),
       names_from = "model",
@@ -22,10 +25,53 @@ get_summary_table_fig3 <- function(scores,
       values_from = mean_crps
     ) |>
     dplyr::mutate(
-      rel_crps = mean_crps_ww / mean_crps_hosp
+      rel_crps_means = mean_crps_ww / mean_crps_hosp
     )
 
-  return(scores_locs)
+  colors <- plot_components()
+  p <- ggplot(scores_locs_long) +
+    geom_bar(aes(x = model, y = mean_crps, fill = model),
+      stat = "identity",
+      position = "dodge"
+    ) +
+    scale_fill_manual(values = colors$model_colors) +
+    facet_wrap(~location) +
+    get_plot_theme(
+      x_axis_dates = TRUE,
+      y_axis_title_size = 8,
+      y_axis_text_size = 6
+    ) +
+    xlab("") +
+    ylab("Mean CRPS")
+
+  ggsave(p,
+    filename = file.path(fig_file_dir, "sfig_bar_chart_mean_crps_3_locs.png"),
+    width = 7, height = 4
+  )
+
+  raw_rel_scores <- scores |>
+    dplyr::filter(
+      location %in% locs_to_plot
+    ) |>
+    tidyr::pivot_wider(
+      id_cols = c("location", "date", "forecast_date"),
+      names_from = "model",
+      names_prefix = "crps_",
+      values_from = crps
+    ) |>
+    dplyr::mutate(rel_crps = crps_ww / crps_hosp) |>
+    dplyr::group_by(location) |>
+    dplyr::summarize(mean_rel_crps = mean(rel_crps, na.rm = TRUE))
+
+  scores_summary <- raw_rel_scores |> dplyr::left_join(scores_locs,
+    by = "location"
+  )
+
+
+
+
+
+  return(scores_summary)
 }
 
 #' Get an individual forecast score summary for a particular
@@ -76,19 +122,9 @@ make_fig3_single_loc_comp <- function(scores,
                                       )) {
   scores_by_horizon <- scores |>
     dplyr::filter(location == !!loc_to_plot) |>
-    data.table::as.data.table() |>
-    scoringutils::summarise_scores(by = c(
-      "forecast_date", "location",
-      "model", "horizon"
-    )) |>
     dplyr::filter(horizon %in% !!horizons_to_show)
   scores_overall <- scores |>
     dplyr::filter(location == !!loc_to_plot) |>
-    data.table::as.data.table() |>
-    scoringutils::summarise_scores(by = c(
-      "forecast_date", "location",
-      "model"
-    )) |>
     dplyr::mutate(horizon = "overall")
 
   scores_comb <- dplyr::bind_rows(scores_by_horizon, scores_overall) |>
@@ -97,29 +133,54 @@ make_fig3_single_loc_comp <- function(scores,
     ) |>
     order_horizons()
 
+  relative_crps <- scores_comb |>
+    dplyr::group_by(horizon, forecast_date, location, model) |>
+    dplyr::summarize(mean_crps = mean(crps)) |>
+    tidyr::pivot_wider(
+      names_from = model,
+      values_from = mean_crps,
+      id_cols = c("horizon", "forecast_date", "location")
+    ) |>
+    dplyr::mutate(
+      rel_crps = ww / hosp
+    ) |>
+    dplyr::filter(!is.na(horizon)) |>
+    order_horizons()
+
+
+  rel_mean_crps <- relative_crps |>
+    dplyr::group_by(horizon) |>
+    dplyr::summarize(rel_mean_crps = mean(ww) / mean(hosp), na.rm = TRUE)
+
   colors <- plot_components()
 
-  p <- ggplot(scores_comb) +
-    tidybayes::stat_halfeye(
+  p <- ggplot(relative_crps) +
+    tidybayes::stat_dotsinterval(
       aes(
-        x = horizon, y = crps,
-        fill = model
+        x = horizon, y = rel_crps,
+        fill = horizon
       ),
       point_interval = "mean_qi",
       alpha = 0.5,
-      position = position_dodge(width = 0.75)
+      position = position_dodge(width = 0.75),
+      show.legend = FALSE
     ) +
     xlab("") +
-    ylab("CRPS") +
-    ggtitle(glue::glue(
-      "{loc_to_plot}"
-    )) +
+    ylab("Relative CRPS") +
     theme_bw() +
-    scale_color_manual(values = colors$model_colors) +
-    scale_fill_manual(values = colors$model_colors) +
-    get_plot_theme(y_axis_title_size = 8) +
-    scale_y_continuous(trans = "log10", limits = c(0.03, 1.5)) +
-    labs(color = "Model", fill = "Model")
+    scale_color_manual(values = colors$horizon_colors) +
+    scale_fill_manual(values = colors$horizon_colors) +
+    geom_hline(aes(yintercept = 1), linetype = "dashed") +
+    get_plot_theme(
+      y_axis_title_size = 8,
+      x_axis_text_size = 6
+    ) +
+    scale_y_continuous(trans = "log10") + # , limits = c(0.25, 4.0)) +
+    labs(color = "Model") +
+    coord_cartesian(ylim = c(1 / 6, 6))
+
+  # Also make a bar chart of the two average crps scores
+
 
   return(p)
 }
@@ -167,17 +228,17 @@ make_fig3_forecast_comp_fig <- function(hosp_quantiles,
     )
   colors <- plot_components()
 
-
+  max_obs <- max(hosp_quants_horizons$eval_data)
 
   date_lims <- c(
-    min(hosp_quantiles$forecast_date) + lubridate::days(horizon_days_ahead - 7),
-    max(hosp_quantiles$forecast_date) + lubridate::days(horizon_days_ahead + 3)
+    min(hosp_quantiles$forecast_date) + lubridate::days(horizon_days_ahead - 9),
+    max(hosp_quantiles$forecast_date) + lubridate::days(horizon_days_ahead + 5)
   )
   p <- ggplot(hosp) +
     geom_point(
       data = hosp_quants_horizons,
       aes(x = date, y = eval_data),
-      fill = "black", size = 0.5, shape = 21,
+      fill = "black", size = 0.3, shape = 21,
       show.legend = FALSE
     ) +
     geom_ribbon(
@@ -209,9 +270,6 @@ make_fig3_forecast_comp_fig <- function(hosp_quantiles,
     ) +
     xlab("") +
     ylab("Daily hospital \n admissions") +
-    ggtitle(glue::glue(
-      "{horizon_to_plot}"
-    )) +
     scale_color_manual(values = colors$model_colors) +
     scale_fill_manual(values = colors$model_colors) +
     scale_x_date(
@@ -221,9 +279,11 @@ make_fig3_forecast_comp_fig <- function(hosp_quantiles,
     ) +
     get_plot_theme(
       x_axis_dates = TRUE,
-      y_axis_title_size = 6
+      y_axis_title_size = 6,
+      y_axis_text_size = 6
     ) +
-    guides(fill = "none", color = "none")
+    guides(fill = "none", color = "none") +
+    ylim(0, 2 * max_obs)
 
   return(p)
 }
@@ -251,13 +311,16 @@ make_fig3_crps_underlay_fig <- function(scores,
                                         horizon_to_plot,
                                         horizon_days_ahead,
                                         days_to_shift = 0) {
-  scores_by_horizon <- scores |>
+  scores_filtered <- scores |>
     dplyr::filter(location == !!loc_to_plot) |>
     data.table::as.data.table() |>
     scoringutils::summarise_scores(by = c(
       "forecast_date", "location",
       "model", "horizon"
-    )) |>
+    ))
+  max_crps <- max(scores_filtered$crps)
+
+  scores_by_horizon <- scores_filtered |>
     dplyr::filter(horizon == !!horizon_to_plot) |>
     dplyr::mutate(
       forecast_date_shifted = lubridate::ymd(forecast_date) +
@@ -266,9 +329,9 @@ make_fig3_crps_underlay_fig <- function(scores,
 
   colors <- plot_components()
   date_lims <- c(
-    min(scores$forecast_date) + lubridate::days(horizon_days_ahead - 7),
+    min(scores$forecast_date) + lubridate::days(horizon_days_ahead - 9),
     max(scores$forecast_date) +
-      lubridate::days(horizon_days_ahead + 3)
+      lubridate::days(horizon_days_ahead + 5)
   )
 
   p <- ggplot(scores_by_horizon) +
@@ -284,13 +347,11 @@ make_fig3_crps_underlay_fig <- function(scores,
       labels = scales::date_format("%Y-%m-%d"),
       limits = date_lims
     ) +
+    coord_cartesian(ylim = c(0, 1)) +
     get_plot_theme(
       x_axis_dates = TRUE,
-      y_axis_title_size = 8
-    ) +
-    scale_y_continuous(
-      # don't expand y scale at the lower end
-      expand = expansion(mult = c(0, 0.05))
+      y_axis_title_size = 8,
+      y_axis_text_size = 6
     )
 
 

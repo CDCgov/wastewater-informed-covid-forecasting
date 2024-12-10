@@ -102,6 +102,7 @@ plot_components <- function() {
     "hosp" = pal_model[2],
     "cfa-wwrenewal(retro)" = pal_model[1],
     "cfa-wwrenewal(real-time)" = pal_model[5],
+    "cfa-hosponlyrenewal(real-time)" = "orange3",
     "cfa-hosponlyrenewal(retro)" = pal_model[2],
     "COVIDhub-4_week_ensemble" = pastel_model[3],
     "COVIDhub-trained_ensemble" = pal_horizons[1],
