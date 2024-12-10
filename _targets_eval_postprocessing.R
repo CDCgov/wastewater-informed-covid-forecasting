@@ -1908,6 +1908,37 @@ supp_targets <- list(
       scores = scores_filtered,
       threshold = 0.1
     )
+  ),
+  tar_target(
+    name = ww_quants_plot_supp,
+    command = combine_outputs(
+      output_type = "ww_quantiles",
+      scenarios = "status_quo",
+      forecast_dates = c("2024-02-12"),
+      locations = c("OH", "IL"),
+      eval_output_subdir = eval_config$output_dir,
+      model_type = "ww"
+    )
+  ),
+  tar_target(
+    name = ww_plot_supp_OH,
+    command = make_fig2_ct_supp(
+      ww_quants_plot_supp,
+      loc_to_plot = "OH",
+      max_n_site_labs_to_show = 12,
+      date_to_plot = "2024-02-12",
+      ms_fig_dir = eval_config$ms_fig_dir
+    )
+  ),
+  tar_target(
+    name = ww_plot_supp_IL,
+    command = make_fig2_ct_supp(
+      ww_quants_plot_supp,
+      loc_to_plot = "IL",
+      max_n_site_labs_to_show = 12,
+      date_to_plot = "2024-02-12",
+      ms_fig_dir = eval_config$ms_fig_dir
+    )
   )
 )
 
