@@ -690,11 +690,11 @@ get_stats_improved_forecasts <- function(scores,
 
   forecasts_way_worse <- relative_crps_by_forecast |>
     dplyr::filter(rel_crps > 4)
-  n_forecasts_3x_worse <- forecasts_way_worse |> nrow()
+  n_forecasts_4x_worse <- forecasts_way_worse |> nrow()
 
   forecasts_way_better <- relative_crps_by_forecast |>
     dplyr::filter(rel_crps < 1 / 4)
-  n_forecasts_3x_better <- forecasts_way_better |> nrow()
+  n_forecasts_4x_better <- forecasts_way_better |> nrow()
 
   n_forecasts_better <- relative_crps_by_forecast |>
     dplyr::filter(rel_crps < 1) |>
@@ -726,8 +726,8 @@ get_stats_improved_forecasts <- function(scores,
     n_forecasts_worse,
     n_forecasts_better_thres,
     n_forecasts_worse_thres,
-    n_forecasts_3x_worse,
-    n_forecasts_3x_better
+    n_forecasts_4x_worse,
+    n_forecasts_4x_better
   )
 
   return(stats)
