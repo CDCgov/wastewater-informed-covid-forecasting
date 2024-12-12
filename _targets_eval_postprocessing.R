@@ -1581,6 +1581,13 @@ hub_comparison_plots <- list(
       scoringutils::summarise_scores()
   ),
   tar_target(
+    name = bias_summary,
+    command = wis_scores_rt_summarized |>
+      dplyr::filter(scale == "log") |>
+      dplyr::group_by(model) |>
+      dplyr::summarize(avg_bias = mean(bias))
+  ),
+  tar_target(
     name = fig4_rel_wis_heatmap,
     command = make_fig4_heatmap_rel_wis(
       wis_scores = wis_scores_rt_summarized,
