@@ -229,7 +229,7 @@ make_fig4_admissions_overall <- function(eval_hosp_data,
 #' @param scores tibble of scores by day forecast day model
 #' @param locs loc to get relative mean score for
 #'
-#' @return table of mean relative score for each location
+#' @return table of relative mean score for each location
 get_loc_rel_crps <- function(scores, locs) {
   relative_crps <- scores |>
     dplyr::filter(location %in% locs) |>
