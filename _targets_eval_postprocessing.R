@@ -1277,16 +1277,6 @@ real_time_rel_targets <- list(
       dplyr::filter(ww_sufficient)
   ),
   tar_target(
-    name = rel_real_time_wis,
-    command = get_rel_wis_real_time(real_time_wis_both_models)
-  ),
-  tar_target(
-    name = overall_real_time_rel_wis,
-    command = rel_real_time_wis |>
-      dplyr::ungroup() |>
-      dplyr::summarise(mean_rel_wis = mean(rel_wis, na.rm = TRUE))
-  ),
-  tar_target(
     name = rel_mean_wis_real_time,
     command = real_time_wis_both_models |>
       data.table::as.data.table() |>
@@ -1414,18 +1404,6 @@ hub_targets <- list(
       scores_list_retro_hub_submissions$log_scale_scores,
       scores_list_hub_submission_oct_mar$log_scale_scores
     )
-  ),
-  tar_target(
-    name = rel_all_time_wis,
-    command = get_rel_wis_all_time(
-      all_scores = scores_list_retro_hub_submissions$log_scale_scores
-    )
-  ),
-  tar_target(
-    name = overall_all_time_rel_wis,
-    command = rel_all_time_wis |>
-      dplyr::ungroup() |>
-      dplyr::summarise(mean_rel_wis = mean(rel_wis, na.rm = TRUE))
   ),
   # Rename the model as retrospective
   tar_target(
@@ -1605,7 +1583,7 @@ hub_comparison_plots <- list(
   tar_target(
     name = fig4_rel_wis_heatmap,
     command = make_fig4_heatmap_rel_wis(
-      rel_scores = rel_real_time_wis,
+      wis_scores = wis_scores_rt_summarized,
       time_period = "Feb-Mar 2024",
       analysis_type = "Real-time"
     )

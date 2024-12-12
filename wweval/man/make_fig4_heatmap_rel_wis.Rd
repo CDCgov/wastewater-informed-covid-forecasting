@@ -4,11 +4,11 @@
 \alias{make_fig4_heatmap_rel_wis}
 \title{Get a plot of the relative wis from the real-time models}
 \usage{
-make_fig4_heatmap_rel_wis(rel_scores, time_period, analysis_type, fig_file_dir)
+make_fig4_heatmap_rel_wis(wis_scores, time_period, analysis_type, fig_file_dir)
 }
 \arguments{
-\item{rel_scores}{tibble containing the relative wis for each forecast
-date and location and horizon day}
+\item{wis_scores}{tibble containing the wis for each forecast
+date and location and horizon day and model}
 
 \item{time_period}{string indicating dates of analysis, either "Feb-Mar",
 or "Oct-Mar"}

@@ -28,7 +28,7 @@ date location combination}
 for every location-forecast date with wastewater}
 
 \item{include_manual_exclusions}{boolean indicating whether or not the
-ww metadata should include manual exclusiosn, default is FALSE bc isn't
+ww metadata should include manual exclusions, default is FALSE bc isn't
 used in main retro head to head analysis.}
 }
 \value{

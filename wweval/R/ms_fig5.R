@@ -314,7 +314,7 @@ make_fig5_density <- function(all_scores,
   p <- ggplot(scores_final) +
     tidybayes::stat_histinterval(
       aes(
-        x = model, y = relative_wis + 1e-8,
+        x = model, y = relative_wis,
         fill = model
       ),
       point_interval = "mean_qi",

@@ -2,7 +2,7 @@
 % Please edit documentation in R/score_real_time_outputs.R
 \name{combine_hub_and_local_wis}
 \alias{combine_hub_and_local_wis}
-\title{Combine thehosp only real-time scores and cfa real
+\title{Combine the hosp only real-time scores and cfa real-
 time scores from github}
 \usage{
 combine_hub_and_local_wis(cfa_real_time_scores, real_time_wis_hosp_only)
@@ -19,6 +19,6 @@ a df formatted the same way as the real_time_wis_hosp_only scores,
 but for both models
 }
 \description{
-Combine thehosp only real-time scores and cfa real
+Combine the hosp only real-time scores and cfa real-
 time scores from github
 }

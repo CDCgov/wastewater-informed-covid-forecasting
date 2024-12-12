@@ -16,14 +16,6 @@ make_fig4_results_table <- function(scores) {
       avg_ae = mean(ae_median)
     )
 
-  # Above was averaged across models, get avg of rel_crps
-  overall_all_time_rel_crps <- scores |>
-    compute_relative_crps(id_cols = c(
-      "location",
-      "forecast_date", "date", "horizon"
-    )) |>
-    dplyr::summarize(mean_rel_crps = mean(rel_crps, na.rm = TRUE))
-
 
   # By period (nowcast vs forecast)
   scores_by_period <- scores |>
@@ -36,8 +28,7 @@ make_fig4_results_table <- function(scores) {
 
   scores_tables <- list(
     scores_overall = scores_overall,
-    scores_by_period = scores_by_period,
-    overall_all_time_rel_crps = overall_all_time_rel_crps
+    scores_by_period = scores_by_period
   )
 
   return(scores_tables)
@@ -255,13 +246,15 @@ get_loc_rel_crps <- function(scores, locs) {
 get_plot_rel_crps_heatmap <- function(scores,
                                       fig_file_dir) {
   scores_summary <- scores |>
-    compute_relative_crps(id_cols = c(
-      "location",
-      "forecast_date", "date"
-    )) |>
-    dplyr::group_by(location, forecast_date) |>
-    dplyr::summarize(
-      mean_rel_crps = mean(rel_crps)
+    dplyr::group_by(forecast_date, location, model) |>
+    dplyr::summarize(mean_crps = mean(crps)) |>
+    tidyr::pivot_wider(
+      names_from = model,
+      values_from = mean_crps,
+      id_cols = c("forecast_date", "location")
+    ) |>
+    dplyr::mutate(
+      mean_rel_crps = ww / hosp
     )
 
 
@@ -312,7 +305,6 @@ get_plot_rel_crps_distrib <- function(scores,
       )
     ) |>
     dplyr::mutate(
-      pct_change_crps = (ww - hosp) / hosp,
       rel_crps = ww / hosp
     )
 
@@ -329,7 +321,7 @@ get_plot_rel_crps_distrib <- function(scores,
     geom_hline(aes(yintercept = 1), linetype = "dashed") +
     get_plot_theme() +
     ylab("Relative CRPS") +
-    xlab("Density") +
+    xlab("Count") +
     scale_y_continuous(trans = "log10") +
     coord_cartesian(ylim = c(1 / 3.5, 3.5))
 
@@ -813,7 +805,6 @@ get_plot_rel_wis_distrib <- function(wis_scores) {
       )
     ) |>
     dplyr::mutate(
-      pct_change_crps = (ww - hosp) / hosp,
       rel_wis = ww / hosp
     )
   p_log <- ggplot(relative_wis_by_forecast) +
@@ -829,7 +820,7 @@ get_plot_rel_wis_distrib <- function(wis_scores) {
     geom_hline(aes(yintercept = 1), linetype = "dashed") +
     get_plot_theme() +
     ylab("Relative WIS") +
-    xlab("Density") +
+    xlab("Count") +
     scale_y_continuous(trans = "log10") +
     coord_cartesian(ylim = c(1 / 3.5, 3.5))
 
@@ -838,8 +829,8 @@ get_plot_rel_wis_distrib <- function(wis_scores) {
 
 #' Get a plot of the relative wis from the real-time models
 #'
-#' @param rel_scores tibble containing the relative wis for each forecast
-#' date and location and horizon day
+#' @param wis_scores tibble containing the wis for each forecast
+#' date and location and horizon day and model
 #' @param time_period string indicating dates of analysis, either "Feb-Mar",
 #' or "Oct-Mar"
 #' @param analysis_type string indicating whether analysis is Real-time
@@ -847,15 +838,21 @@ get_plot_rel_wis_distrib <- function(wis_scores) {
 #' @param fig_file_dir string indicating the directory to save the figure
 #'
 #' @return ggplot object of a heatmap of the realtive wis
-make_fig4_heatmap_rel_wis <- function(rel_scores,
+make_fig4_heatmap_rel_wis <- function(wis_scores,
                                       time_period,
                                       analysis_type,
                                       fig_file_dir) {
-  avg_rel_scores <- rel_scores |>
-    dplyr::group_by(forecast_date, location) |>
-    dplyr::summarise(mean_rel_wis = mean(rel_wis)) |>
-    dplyr::filter(!is.na(mean_rel_wis))
-
+  avg_rel_scores <- wis_scores |>
+    dplyr::group_by(forecast_date, location, model) |>
+    dplyr::summarize(mean_wis = mean(interval_score)) |>
+    tidyr::pivot_wider(
+      names_from = model,
+      values_from = mean_wis,
+      id_cols = c("forecast_date", "location")
+    ) |>
+    dplyr::mutate(
+      mean_rel_wis = ww / hosp
+    )
   p <- ggplot(avg_rel_scores) +
     geom_tile(aes(x = forecast_date, y = location, fill = mean_rel_wis)) +
     scale_fill_gradient2(

@@ -49,29 +49,10 @@ get_summary_table_fig3 <- function(scores,
     width = 7, height = 4
   )
 
-  raw_rel_scores <- scores |>
-    dplyr::filter(
-      location %in% locs_to_plot
-    ) |>
-    tidyr::pivot_wider(
-      id_cols = c("location", "date", "forecast_date"),
-      names_from = "model",
-      names_prefix = "crps_",
-      values_from = crps
-    ) |>
-    dplyr::mutate(rel_crps = crps_ww / crps_hosp) |>
-    dplyr::group_by(location) |>
-    dplyr::summarize(mean_rel_crps = mean(rel_crps, na.rm = TRUE))
-
-  scores_summary <- raw_rel_scores |> dplyr::left_join(scores_locs,
-    by = "location"
-  )
 
 
 
-
-
-  return(scores_summary)
+  return(scores_locs)
 }
 
 #' Get an individual forecast score summary for a particular

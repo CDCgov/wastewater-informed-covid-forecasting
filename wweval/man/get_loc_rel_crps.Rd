@@ -2,7 +2,7 @@
 % Please edit documentation in R/ms_fig4.R
 \name{get_loc_rel_crps}
 \alias{get_loc_rel_crps}
-\title{Get the mean relative crps for a location}
+\title{Get the relative mean crps for a location}
 \usage{
 get_loc_rel_crps(scores, locs)
 }
@@ -15,5 +15,5 @@ get_loc_rel_crps(scores, locs)
 table of mean relative score for each location
 }
 \description{
-Get the mean relative crps for a location
+Get the relative mean crps for a location
 }

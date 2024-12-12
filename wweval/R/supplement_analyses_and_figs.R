@@ -665,8 +665,7 @@ get_stats_improved_forecasts <- function(scores,
       "location", "forecast_date"
     )) |>
     dplyr::mutate(
-      pct_change_crps = (ww - hosp) / hosp,
-      rel_crps = ww / hosp
+      pct_change_crps = (ww - hosp) / hosp
     )
 
   relative_crps_raw <- scores |>
@@ -674,8 +673,7 @@ get_stats_improved_forecasts <- function(scores,
       "location", "forecast_date", "date"
     )) |>
     dplyr::mutate(
-      pct_change_crps = (ww - hosp) / hosp,
-      rel_crps = ww / hosp
+      pct_change_crps = (ww - hosp) / hosp
     )
 
   ggplot(relative_crps_by_forecast) +
