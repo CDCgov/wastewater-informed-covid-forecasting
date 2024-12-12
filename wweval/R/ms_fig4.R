@@ -254,12 +254,12 @@ get_plot_rel_crps_heatmap <- function(scores,
       id_cols = c("forecast_date", "location")
     ) |>
     dplyr::mutate(
-      mean_rel_crps = ww / hosp
+      rel_mean_crps = ww / hosp
     )
 
 
   p <- ggplot(scores_summary) +
-    geom_tile(aes(x = forecast_date, y = location, fill = mean_rel_crps)) +
+    geom_tile(aes(x = forecast_date, y = location, fill = rel_mean_crps)) +
     scale_fill_gradient2(
       high = "red", mid = "white", low = "blue",
       transform = "log2",
@@ -268,7 +268,7 @@ get_plot_rel_crps_heatmap <- function(scores,
     ) +
     geom_text(aes(
       x = forecast_date, y = location,
-      label = round(mean_rel_crps, 2)
+      label = round(rel_mean_crps, 2)
     ), size = 1.5) +
     get_plot_theme(
       x_axis_dates = TRUE,
