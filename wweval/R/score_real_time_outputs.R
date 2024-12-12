@@ -244,7 +244,7 @@ format_scores_for_comparison <- function(real_time_scores,
   return(formatted_scores)
 }
 
-#' Combine thehosp only real-time scores and cfa real
+#' Combine the hosp only real-time scores and cfa real-
 #' time scores from github
 #'
 #' @param cfa_real_time_scores Hub formatted scores for
