@@ -851,10 +851,10 @@ make_fig4_heatmap_rel_wis <- function(wis_scores,
       id_cols = c("forecast_date", "location")
     ) |>
     dplyr::mutate(
-      mean_rel_wis = ww / hosp
+      rel_mean_wis = ww / hosp
     )
   p <- ggplot(avg_rel_scores) +
-    geom_tile(aes(x = forecast_date, y = location, fill = mean_rel_wis)) +
+    geom_tile(aes(x = forecast_date, y = location, fill = rel_mean_wis)) +
     scale_fill_gradient2(
       high = "red", mid = "white", low = "blue",
       transform = "log2",
@@ -863,7 +863,7 @@ make_fig4_heatmap_rel_wis <- function(wis_scores,
     ) +
     geom_text(aes(
       x = forecast_date, y = location,
-      label = round(mean_rel_wis, 2)
+      label = round(rel_mean_wis, 2)
     ), size = 1.5) +
     get_plot_theme(
       x_axis_dates = TRUE,
