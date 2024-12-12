@@ -69,12 +69,18 @@ get_model_draws_w_data <- function(fit_obj_wwinference,
     draws_w_data <- new_ww_draws |>
       dplyr::left_join(
         eval_data |>
+          dplyr::rename(
+            "below_lod_eval" = "below_lod",
+            "log_lod_eval" = "log_lod"
+          ) |>
           dplyr::select(
             "date",
             "log_genome_copies_per_ml",
             "lab",
             "site",
-            "exclude"
+            "exclude",
+            "below_lod_eval",
+            "log_lod_eval"
           ) |>
           unique(),
         by = c("date", "lab", "site")
@@ -91,6 +97,7 @@ get_model_draws_w_data <- function(fit_obj_wwinference,
         "calib_data" = exp(.data$observed_value),
         "eval_data" = exp(.data$log_genome_copies_per_ml),
         "lod_sewage" = exp(.data$log_lod),
+        "lod_sewage_eval" = exp(.data$log_lod_eval),
         "forecast_date" = lubridate::ymd(!!forecast_date),
         "model_type" = !!model_type,
         "scenario" = !!scenario,
@@ -100,7 +107,7 @@ get_model_draws_w_data <- function(fit_obj_wwinference,
       # Replace values below LOD with LOD in observations
       dplyr::mutate(
         "eval_data" = ifelse(
-          .data$below_LOD == 1, .data$lod_sewage, .data$eval_data
+          .data$below_lod_eval == 1, .data$lod_sewage_eval, .data$eval_data
         ),
         "calib_data" = ifelse(
           .data$below_LOD == 1, .data$lod_sewage, .data$eval_data
@@ -109,6 +116,7 @@ get_model_draws_w_data <- function(fit_obj_wwinference,
       dplyr::select(
         "name", "lab_site_index", "value", "draw", "date", "site", "lab",
         "location", "ww_pop", "calib_data", "below_LOD", "lod_sewage",
+        "below_lod_eval",
         "flag_as_ww_outlier", "eval_data", "forecast_date", "model_type",
         "scenario", "site_lab_name"
       )

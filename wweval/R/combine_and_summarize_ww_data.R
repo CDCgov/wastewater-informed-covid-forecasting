@@ -67,12 +67,12 @@ combine_and_summarize_ww_data <- function(forecast_dates,
       ww_metadata <- rbind(ww_metadata, this_ww_metadata)
     } else {
       warning(glue::glue(
-        "File missing for {this_scenario}",
+        "File missing ",
         "in {this_location} on {this_forecast_date}"
       ))
       # Create a tibble of the combos that are missing, to save
       this_failed_output <- tibble(
-        scenario = this_scenario,
+        scenario = "status_quo",
         location = this_location,
         forecast_date = this_forecast_date
       )
@@ -84,13 +84,13 @@ combine_and_summarize_ww_data <- function(forecast_dates,
     # Save the missing files in a new subfolder in the eval_output_subdir
     wwinference::create_dir(file.path(
       eval_output_subdir,
-      "files_missing", model_type
+      "files_missing", "ww"
     ))
 
     readr::write_csv(
       flag_failed_output,
       file.path(
-        eval_output_subdir, "files_missing", model_type,
+        eval_output_subdir, "files_missing", "ww",
         "ww_data_metadata.csv"
       )
     )
@@ -174,7 +174,7 @@ load_data_and_summarize <- function(fp_hosp, fp_ww,
       dplyr::distinct(.data$date) |>
       dplyr::summarize(
         n_days_w_samples = dplyr::n(),
-        n_days_total = as.numeric(max(.data$date) - min(.data$date)),
+        n_days_total = as.numeric(max(.data$date) - min(.data$date)) + 1,
         mean_collection_freq = .data$n_days_w_samples / .data$n_days_total
       ) |>
       dplyr::summarize(
@@ -245,6 +245,9 @@ load_data_and_summarize <- function(fp_hosp, fp_ww,
 #' date location combination
 #' @param table_of_loc_dates_w_ww table containing wastewater metadata
 #' for every location-forecast date with wastewater
+#' @param include_manual_exclusions boolean indicating whether or not the
+#' ww metadata should include manual exclusions, default is FALSE bc isn't
+#' used in main retro head to head analysis.
 #'
 #' @return a tibble with a number of additional columns indicating whether
 #' or not there were any flags for manual exclusions, convergence issues,
@@ -253,26 +256,31 @@ load_data_and_summarize <- function(fp_hosp, fp_ww,
 get_add_ww_metadata <- function(granular_ww_metadata,
                                 ww_forecast_date_locs_to_excl,
                                 convergence_df,
-                                table_of_loc_dates_w_ww) {
+                                table_of_loc_dates_w_ww,
+                                include_manual_exclusions = FALSE) {
   granular_ww_metadata_used <- granular_ww_metadata |>
     dplyr::mutate(forecast_date = lubridate::ymd(.data$forecast_date)) |>
-    dplyr::left_join(
-      ww_forecast_date_locs_to_excl |>
-        mutate(
-          ww_exclude_manual = TRUE,
-          forecast_date = lubridate::ymd(.data$forecast_date)
-        ),
-      by = c("location", "forecast_date")
-    ) |>
-    dplyr::mutate(
-      ww_exclude_manual = tidyr::replace_na(.data$ww_exclude_manual, FALSE)
-    ) |>
     dplyr::left_join(convergence_df,
       by = c("location", "forecast_date")
     ) |>
     dplyr::left_join(table_of_loc_dates_w_ww,
       by = c("location", "forecast_date")
     )
+
+  if (isTRUE(include_manual_exclusions)) {
+    granular_ww_metadata_used <- granular_ww_metadata_used |>
+      dplyr::left_join(
+        ww_forecast_date_locs_to_excl |>
+          mutate(
+            ww_exclude_manual = TRUE,
+            forecast_date = lubridate::ymd(.data$forecast_date)
+          ),
+        by = c("location", "forecast_date")
+      ) |>
+      dplyr::mutate(
+        ww_exclude_manual = tidyr::replace_na(.data$ww_exclude_manual, FALSE)
+      )
+  }
 
   return(granular_ww_metadata_used)
 }
@@ -292,11 +300,14 @@ get_add_ww_metadata <- function(granular_ww_metadata,
 #' quantiled forecasts for the wastewater and hospital admissions only models
 #' after it has been filtered for convergence, wastewater data quality,
 #' manual exclusions, and dates that don't have any wastewater present
+#' @param output_dir string indicating where to save the ww metadata tables
 #'
 #' @return a list containing a summary overall table, a summary by forecast
 #' date and a summary by state
 #' @export
-get_summary_ww_table <- function(ww_metadata, hosp_quantiles_filtered) {
+get_summary_ww_table <- function(ww_metadata,
+                                 hosp_quantiles_filtered,
+                                 output_dir) {
   # First, get the true number of forecast-date locations with wastewater
   # in the current analysis
   n_w_ww_actual <- hosp_quantiles_filtered |>
@@ -348,16 +359,10 @@ get_summary_ww_table <- function(ww_metadata, hosp_quantiles_filtered) {
     ) |>
     dplyr::pull("n_ww_insuff")
 
-  n_ww_excluded <- ww_metadata |>
-    dplyr::summarise(
-      n_ww_excluded = sum(.data$ww_exclude_manual, na.rm = TRUE)
-    ) |>
-    dplyr::pull(.data$n_ww_excluded)
-
   n_w_ww_expected <- ww_metadata |>
     dplyr::mutate(
       ww_expected = dplyr::case_when(
-        ww_data_present == 1 & !(.data$ww_exclude_manual) &
+        ww_data_present == 1 &
           !(.data$any_flags_hosp) & !(.data$any_flags_ww) &
           isTRUE(.data$ww_sufficient) ~ TRUE,
         TRUE ~ FALSE
@@ -379,7 +384,6 @@ get_summary_ww_table <- function(ww_metadata, hosp_quantiles_filtered) {
     n_combos_w_hosp_conv_flags,
     n_combos_w_ww_conv_flags,
     n_insuff_ww,
-    n_ww_excluded,
     n_no_ww_expected,
     n_no_ww_actual,
     n_w_ww_expected,
@@ -400,6 +404,10 @@ get_summary_ww_table <- function(ww_metadata, hosp_quantiles_filtered) {
       avg_avg_sampling_freq = mean(.data$avg_sampling_freq, na.rm = TRUE),
       n_states_w_duplicate_obs = sum(.data$n_duplicate_obs > 0, na.rm = TRUE)
     )
+  saveRDS(forecast_date_summary_table, file = file.path(
+    output_dir,
+    "forecast_date_summary_table.rds"
+  ))
 
   # Summarize across forecast dates by state
   state_summary_table <-
@@ -412,6 +420,10 @@ get_summary_ww_table <- function(ww_metadata, hosp_quantiles_filtered) {
       avg_avg_sampling_frequency = mean(.data$avg_sampling_freq, na.rm = TRUE),
       n_forecast_dates_w_duplicate_obs = sum(.data$n_duplicate_obs > 0, na.rm = TRUE)
     )
+  saveRDS(state_summary_table, file = file.path(
+    output_dir,
+    "state_summary_table.rds"
+  ))
 
 
   ww_metadata_list <- list(

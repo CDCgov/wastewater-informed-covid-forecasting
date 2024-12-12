@@ -44,12 +44,7 @@ get_full_scores <- function(draws,
         prediction,
         sample,
         model
-      ) |>
-      mutate(
-        period = ifelse(date <= forecast_date, "nowcast", "forecast"),
-        scenario = !!scenario
       )
-
     scores <- forecasted_draws |>
       data.table::as.data.table() |>
       scoringutils::transform_forecasts(
@@ -57,7 +52,11 @@ get_full_scores <- function(draws,
         offset = 1
       ) |>
       scoringutils::check_forecasts() |>
-      scoringutils::score(metrics = metrics)
+      scoringutils::score(metrics = metrics) |>
+      mutate(
+        period = ifelse(date <= forecast_date, "nowcast", "forecast"),
+        scenario = !!scenario
+      )
   }
 
 
@@ -105,10 +104,6 @@ get_scores_from_quantiles <- function(quantiles,
         prediction,
         quantile,
         model
-      ) |>
-      mutate(
-        period = ifelse(date <= forecast_date, "nowcast", "forecast"),
-        scenario = !!scenario
       )
 
 
@@ -119,7 +114,11 @@ get_scores_from_quantiles <- function(quantiles,
         offset = 1
       ) |>
       scoringutils::check_forecasts() |>
-      scoringutils::score(metrics = metrics)
+      scoringutils::score(metrics = metrics) |>
+      mutate(
+        period = ifelse(date <= forecast_date, "nowcast", "forecast"),
+        scenario = !!scenario
+      )
   }
   return(scores)
 }

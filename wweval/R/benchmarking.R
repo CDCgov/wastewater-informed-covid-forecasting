@@ -274,6 +274,7 @@ plot_benchmarks <- function(grouping_var,
         position = "dodge"
       ) +
       facet_wrap(~score_type, scales = "free_y") +
+      guides(fill = guide_legend(nrow = 2, byrow = TRUE)) +
       theme(
         legend.position = "bottom",
         panel.background = element_rect(fill = "white")

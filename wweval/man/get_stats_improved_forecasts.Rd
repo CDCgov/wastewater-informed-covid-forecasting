@@ -9,8 +9,8 @@ get_stats_improved_forecasts(scores, threshold)
 \arguments{
 \item{scores}{tibble of scores for every location, forecast date, and horizon}
 
-\item{threshold}{numeric between 0 and 1 indicating the threshold to call
-something better or worse}
+\item{threshold}{numeric indicating fold change for considering a forecast
+improved or worse relative to baseline, e.g. 1.1}
 }
 \value{
 table of the number of states with improvements, number of overall

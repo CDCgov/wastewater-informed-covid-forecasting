@@ -80,15 +80,15 @@ write_eval_config <- function(locations, forecast_dates,
   # stan_models_dir <- system.file("stan", package = "cfaforecastrenewalww") #nolint
   stan_models_dir <- file.path("cfaforecastrenewalww", "inst", "stan")
   init_dir <- file.path("input", "init_lists")
-  output_dir <- file.path("output", "eval")
-  figure_dir <- file.path("output", "eval", "plots")
+  output_dir <- file.path("output", "eval_latest")
+  figure_dir <- file.path("output", "eval_latest", "plots")
   ms_fig_dir <- file.path(
-    "output", "eval",
+    "output", "eval_latest",
     "plots", "manuscript"
   )
-  hub_subdir <- file.path("output", "eval", "hub")
+  hub_subdir <- file.path("output", "eval_latest", "hub")
   retro_rt_path <- file.path("input", "retro_Rt", "Rt_draws.parquet")
-  score_subdir <- file.path("output", "eval", "hub")
+  score_subdir <- file.path("output", "eval_latest", "hub")
   # Proportion of forecast dates that a model must have submitted for to be
   # included in the Hub analysis
   prop_dates_for_incl_hub <- 18 / 22
@@ -131,6 +131,13 @@ write_eval_config <- function(locations, forecast_dates,
     dplyr::pull(forecast_date) |>
     as.vector() |>
     unique()
+
+  # Table of run ids for accessing real-time model fits
+  real_time_output_dir <- file.path("output", "real_time_outputs")
+  path_to_table_of_run_ids <- file.path("output", "real_time_outputs", "table_of_run_ids.rds")
+  table_of_run_ids <- readRDS(path_to_table_of_run_ids)
+  table_of_run_ids$forecast_date <- as.character(table_of_run_ids$forecast_date)
+
 
   # These come from the yaml files we saved in the forecast folders,
   # documentation which location-forecast dates we chose to use the hospital
@@ -183,6 +190,8 @@ write_eval_config <- function(locations, forecast_dates,
     forecast_time = forecast_time,
     ww_data_mapping = ww_data_mapping,
     table_of_exclusions = table_of_exclusions,
+    table_of_run_ids = table_of_run_ids,
+    real_time_output_dir = real_time_output_dir,
     ww_forecast_date_locs_to_excl = ww_forecast_date_locs_to_excl,
     # MCMC settings
     iter_warmup = iter_warmup,

@@ -10,7 +10,8 @@ make_fig2_ct(
   date_to_plot,
   n_forecast_days = 28,
   n_calib_days = 90,
-  max_n_site_labs_to_show = 3
+  max_n_site_labs_to_show = 3,
+  site_lab_names_to_show = NULL
 )
 }
 \arguments{
@@ -32,6 +33,10 @@ calibration data for, default is \code{90}}
 
 \item{max_n_site_labs_to_show}{An integer indicating the maximum number
 of site-labs to show in the figure, default is \code{3}}
+
+\item{site_lab_names_to_show}{a vector of character strings indicating
+the site lab names to be displayed in the plot. If NULL, the first
+\code{max_n_site_labs_to_show} or all are displayed. Default is \code{NULL}.}
 }
 \value{
 A ggplot object containing a faceted horizontal plot of the

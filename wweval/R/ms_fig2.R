@@ -111,6 +111,9 @@ make_fig2_hosp_t <- function(hosp_quantiles,
 #' calibration data for, default is `90`
 #' @param max_n_site_labs_to_show An integer indicating the maximum number
 #' of site-labs to show in the figure, default is `3`
+#' @param site_lab_names_to_show a vector of character strings indicating
+#' the site lab names to be displayed in the plot. If NULL, the first
+#' `max_n_site_labs_to_show` or all are displayed. Default is `NULL`.
 #'
 #' @return A ggplot object containing a faceted horizontal plot of the
 #' calibrated and forecasted wastewater concentrations for 3 or fewer
@@ -121,15 +124,25 @@ make_fig2_ct <- function(ww_quantiles,
                          date_to_plot,
                          n_forecast_days = 28,
                          n_calib_days = 90,
-                         max_n_site_labs_to_show = 3) {
+                         max_n_site_labs_to_show = 3,
+                         site_lab_names_to_show = NULL) {
+  if (!is.null(site_lab_names_to_show)) {
+    ww_quantiles <- ww_quantiles |>
+      dplyr::filter(site_lab_name %in% c(site_lab_names_to_show))
+  } else {
+    ww_quantiles <- ww_quantiles |>
+      dplyr::filter(lab_site_index <= !!max_n_site_labs_to_show)
+  }
+
   ww <- ww_quantiles |>
     dplyr::filter(location == !!loc_to_plot) |>
     dplyr::filter(forecast_date == !!date_to_plot) |>
     dplyr::filter(
       date <= forecast_date + lubridate::days(!!n_forecast_days),
       date >= forecast_date - lubridate::days(!!n_calib_days)
-    ) |>
-    dplyr::filter(lab_site_index <= !!max_n_site_labs_to_show)
+    )
+
+
 
   stopifnot(
     "This function is meant for one location" =
@@ -161,7 +174,7 @@ make_fig2_ct <- function(ww_quantiles,
 
   colors <- plot_components()
   # Set ribbon and line color for model fit, in this case is always ww model
-  model_color <- colors$model_colors$ww
+  model_color <- as.character(colors$model_colors["ww"])
 
   p <- ggplot(quantiles_wide) +
     geom_point(aes(x = date, y = log(eval_data)),
@@ -215,6 +228,154 @@ make_fig2_ct <- function(ww_quantiles,
     scale_fill_manual(values = colors$observation_status_colors) +
     scale_color_manual(values = colors$observation_status_colors) +
     scale_shape_manual(values = colors$observation_status_shapes)
+  return(p)
+}
+#' Make concentration fit and forecast figure for supplement
+#'
+#' @param ww_quantiles  A tibble containing the calibrated wastewater
+#' concentrations, the evaluation wastewater concentration data, and the
+#' quantiles of the calibrated and forecasted wastewater concentrations
+#' @param loc_to_plot A character string indicating the state abbreviation
+#' for which state to plot, can only be one state
+#' @param date_to_plot A character string indicating what forecast date to plot,
+#' in IS08601 format YYYY-MM-DD
+#' @param ms_fig_dir A string indicating where to save the figure
+#' @param n_forecast_days An integer indicating the number of days to show the
+#' forecast for, default is `28`
+#' @param n_calib_days An integer indicating the number of days to show the
+#' calibration data for, default is `90`
+#' @param max_n_site_labs_to_show An integer indicating the maximum number
+#' of site-labs to show in the figure, default is `3`
+#' @param site_lab_names_to_show a vector of character strings indicating
+#' the site lab names to be displayed in the plot. If NULL, the first
+#' `max_n_site_labs_to_show` or all are displayed. Default is `NULL`.
+#'
+#' @return A ggplot object containing a faceted horizontal plot of the
+#' calibrated and forecasted wastewater concentrations for 3 or fewer
+#' site-lab combinations for a single state
+#' @export
+make_fig2_ct_supp <- function(ww_quantiles,
+                              loc_to_plot,
+                              date_to_plot,
+                              ms_fig_dir,
+                              n_forecast_days = 28,
+                              n_calib_days = 90,
+                              max_n_site_labs_to_show = 3,
+                              site_lab_names_to_show = NULL) {
+  if (!is.null(site_lab_names_to_show)) {
+    ww_quantiles <- ww_quantiles |>
+      dplyr::filter(site_lab_name %in% c(site_lab_names_to_show))
+  } else {
+    ww_quantiles <- ww_quantiles |>
+      dplyr::filter(lab_site_index <= !!max_n_site_labs_to_show)
+  }
+
+  ww <- ww_quantiles |>
+    dplyr::filter(location == !!loc_to_plot) |>
+    dplyr::filter(forecast_date == !!date_to_plot) |>
+    dplyr::filter(
+      date <= forecast_date + lubridate::days(!!n_forecast_days),
+      date >= forecast_date - lubridate::days(!!n_calib_days)
+    )
+
+
+
+  stopifnot(
+    "This function is meant for one location" =
+      length(unique(ww$location)) <= 1
+  )
+
+  quantiles_wide <- ww |>
+    dplyr::mutate(log_conc = log(value)) |>
+    dplyr::filter(quantile %in% c(0.025, 0.25, 0.5, 0.75, 0.975)) |>
+    tidyr::pivot_wider(
+      id_cols = c(
+        location, site_lab_name, forecast_date, period, scenario,
+        date, eval_data, calib_data, below_LOD, flag_as_ww_outlier
+      ),
+      names_from = quantile,
+      values_from = log_conc
+    ) |>
+    dplyr::mutate(
+      model = "ww",
+      observation_status =
+        dplyr::case_when(
+          flag_as_ww_outlier == 1 ~ "outlier",
+          below_LOD == 1 ~ "below LOD",
+          TRUE ~ "standard"
+        )
+    )
+
+
+
+  colors <- plot_components()
+  # Set ribbon and line color for model fit, in this case is always ww model
+  model_color <- as.character(colors$model_colors["ww"])
+
+  p <- ggplot(quantiles_wide) +
+    geom_point(aes(x = date, y = log(eval_data)),
+      fill = "white", size = 1, shape = 21,
+      show.legend = FALSE
+    ) +
+    geom_point(
+      aes(
+        x = date, y = log(calib_data),
+        color = observation_status,
+        shape = observation_status
+      ),
+      show.legend = FALSE
+    ) +
+    geom_line(
+      aes(
+        x = date, y = `0.5`
+      ),
+      color = model_color,
+      show.legend = FALSE
+    ) +
+    geom_ribbon(
+      aes(
+        x = date, ymin = `0.025`, ymax = `0.975`,
+      ),
+      fill = model_color,
+      alpha = 0.2,
+      show.legend = FALSE
+    ) +
+    geom_ribbon(
+      aes(
+        x = date, ymin = `0.25`, ymax = `0.75`
+      ),
+      fill = model_color,
+      alpha = 0.1,
+      show.legend = FALSE
+    ) +
+    geom_vline(aes(xintercept = lubridate::ymd(forecast_date)),
+      linetype = "dashed"
+    ) +
+    facet_wrap(~site_lab_name,
+      scales = "free_y"
+    ) +
+    xlab("") +
+    ylab("Log(genome copies per mL)") +
+    scale_x_date(
+      date_breaks = "2 weeks",
+      labels = scales::date_format("%Y-%m-%d")
+    ) +
+    get_plot_theme(
+      x_axis_dates = TRUE,
+      x_axis_text_size = 6
+    ) +
+    scale_fill_manual(values = colors$observation_status_colors) +
+    scale_color_manual(values = colors$observation_status_colors) +
+    scale_shape_manual(values = colors$observation_status_shapes)
+
+  ggsave(p,
+    height = 5,
+    width = 7,
+    filename = file.path(
+      ms_fig_dir,
+      glue::glue("sfig_ww_conc_ex_{loc_to_plot}.png")
+    )
+  )
   return(p)
 }
 
