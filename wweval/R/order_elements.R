@@ -168,8 +168,8 @@ order_phases <- function(df) {
 order_locations <- function(df, score_name) {
   loc_order <- df |>
     dplyr::group_by(location) |>
-    dplyr::summarize(geom_mean_crps = exp(mean(log(!!sym(score_name))))) |>
-    dplyr::arrange(geom_mean_crps, "desc") |>
+    dplyr::summarize(geom_mean_rel_score = exp(mean(log(.data[[score_name]])))) |>
+    dplyr::arrange(geom_mean_rel_score, "desc") |>
     dplyr::pull(location)
 
   if (!"location" %in% colnames(df)) {
