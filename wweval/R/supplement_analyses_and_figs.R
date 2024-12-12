@@ -1120,7 +1120,6 @@ get_rel_wis_real_time <- function(all_scores) {
     scoringutils::summarise_scores(
       by = c("forecast_date", "model", "date", "location")
     ) |>
-    tibble::tibble() |>
     dplyr::select(location, forecast_date, date, model, interval_score) |>
     tidyr::pivot_wider(
       names_from = model,
