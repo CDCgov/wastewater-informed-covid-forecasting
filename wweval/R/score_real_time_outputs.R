@@ -74,7 +74,7 @@ score_real_time_outputs <- function(score_type,
                 date,
                 location,
                 value,
-                !!sym(col_name)
+                !!col_name
               ) |>
               dplyr::mutate(
                 model = model_types[m],
