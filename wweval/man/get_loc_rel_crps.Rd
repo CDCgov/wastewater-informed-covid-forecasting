@@ -9,10 +9,10 @@ get_loc_rel_crps(scores, locs)
 \arguments{
 \item{scores}{tibble of scores by day forecast day model}
 
-\item{locs}{loc to get mean relative score for}
+\item{locs}{loc to get relative mean score for}
 }
 \value{
-table of mean relative score for each location
+table of relative mean score for each location
 }
 \description{
 Get the relative mean crps for a location
