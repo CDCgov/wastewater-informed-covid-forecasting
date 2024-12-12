@@ -227,7 +227,7 @@ make_fig4_admissions_overall <- function(eval_hosp_data,
 #' Get the relative mean crps for a location
 #'
 #' @param scores tibble of scores by day forecast day model
-#' @param locs loc to get mean relative score for
+#' @param locs loc to get relative mean score for
 #'
 #' @return table of mean relative score for each location
 get_loc_rel_crps <- function(scores, locs) {
