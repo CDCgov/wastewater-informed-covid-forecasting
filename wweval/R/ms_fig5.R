@@ -537,6 +537,43 @@ make_fig5_density_rank <- function(scores,
   return(p)
 }
 
+#' Summarize standardize rank with medians and 25th,75th percentiles
+#'
+#' @param scores A tibble of the individual day and location's scores
+#'
+#' @return A table with median, 25th, and 75th percentiles of standard
+#' ranking for each model
+#' @export
+summarize_std_rank <- function(scores) {
+  summarized_scores <- scores |>
+    data.table::as.data.table() |>
+    scoringutils::summarise_scores(
+      by = c("model", "location", "forecast_date")
+    )
+
+  scores_ranked <- summarized_scores |>
+    tibble() |>
+    dplyr::group_by(forecast_date, location) |>
+    dplyr::mutate(
+      rank = dplyr::dense_rank(dplyr::desc(interval_score)),
+      std_rank = rank / max(rank)
+    ) |>
+    dplyr::mutate(model = stats::reorder(model, rank,
+      FUN = function(x) {
+        quantile(x, probs = 0.25, na.rm = TRUE)
+      }
+    ))
+
+  summarize_std_rank <- scores_ranked |>
+    dplyr::group_by(model) |>
+    dplyr::summarise(
+      median_rank = quantile(std_rank, 0.5),
+      quartile_25th = quantile(std_rank, 0.25),
+      quartile_75th = quantile(std_rank, 0.75)
+    )
+  return(summarize_std_rank)
+}
+
 
 
 #' Make Fig 5

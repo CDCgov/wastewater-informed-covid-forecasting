@@ -1753,12 +1753,24 @@ hub_comparison_plots <- list(
     )
   ),
   tar_target(
+    name = std_rank_summary_table_rt,
+    command = summarize_std_rank(summarized_scores_feb_mar |>
+      dplyr::filter(!model %in% c(
+        "cfa-wwrenewal(retro)",
+        "cfa-hosponlyrenewal(retro)"
+      )))
+  ),
+  tar_target(
     name = fig5_std_rank_all_time,
     command = make_fig5_density_rank(
       scores = summarized_scores_oct_mar,
       models_to_show = models_to_plot,
       time_period = "Oct 2023-Mar 2024"
     )
+  ),
+  tar_target(
+    name = std_rank_summary_table_at,
+    command = summarize_std_rank(summarized_scores_oct_mar)
   ),
   ### Fig Real-time and retro Hub combined---------------------------------------------------
   tar_target(
