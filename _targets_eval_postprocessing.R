@@ -1900,7 +1900,7 @@ supp_targets <- list(
     name = comp_stats,
     command = get_stats_improved_forecasts(
       scores = scores_filtered,
-      threshold = 0.1
+      threshold = 1.1
     )
   ),
   tar_target(

@@ -631,8 +631,8 @@ get_avg_scores_model_horizon <- function(scores,
 #' Get stats on number of improved forecasts
 #'
 #' @param scores tibble of scores for every location, forecast date, and horizon
-#' @param threshold numeric between 0 and 1 indicating the threshold to call
-#' something better or worse
+#' @param threshold numeric indicating fold change for considering a forecast
+#' improved or worse relative to baseline, e.g. 1.1
 #'
 #' @return table of the number of states with improvements, number of overall
 #' forecasts with improvements, number that got worse, etc.
@@ -706,13 +706,13 @@ get_stats_improved_forecasts <- function(scores,
 
   n_forecasts_better_thres <- relative_crps_by_forecast |>
     dplyr::filter(
-      rel_crps < 1 / (1 + threshold)
+      rel_crps < 1 / threshold
     ) |>
     nrow()
 
   n_forecasts_worse_thres <- relative_crps_by_forecast |>
     dplyr::filter(
-      rel_crps > 1 + threshold
+      rel_crps > threshold
     ) |>
     nrow()
 
