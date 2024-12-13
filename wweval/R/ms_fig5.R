@@ -47,6 +47,48 @@ make_fig5_table_and_plot <- function(scores,
   return(hub_scores_overall)
 }
 
+#' Make plot of WIS scores in Hub models overall
+#'
+#' @param scores quantile based scores from the hub
+#' @param time_period string indicating which time period to make the plot for
+#' @param fig_file_dir directory to save figure
+#'
+#' @return A plot ordered by average wis over the time period
+#' @export
+make_fig5_bar_chart <- function(scores,
+                                time_period) {
+  # Overall avg wis, bias, absolute error etc
+  hub_scores_overall <- scores |>
+    dplyr::group_by(model) |>
+    dplyr::summarise(
+      avg_wis = mean(interval_score),
+      avg_bias = mean(bias),
+      avg_ae = mean(ae_median)
+    ) |>
+    dplyr::mutate(model = factor(model,
+      levels = as.character(model)[order(avg_wis)]
+    ))
+
+  colors <- plot_components()
+  p <- ggplot(hub_scores_overall) +
+    geom_bar(aes(x = model, y = avg_wis, fill = model),
+      stat = "identity", position = "dodge"
+    ) +
+    get_plot_theme(
+      x_axis_dates = TRUE,
+      y_axis_title_size = 8
+    ) +
+    theme(legend.position = "none") +
+    scale_fill_manual(values = colors$model_colors) +
+    xlab("") +
+    ylab("Average WIS")
+
+
+  return(p)
+}
+
+
+
 
 #' Get plot of WIS over time
 #'

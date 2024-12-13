@@ -1539,7 +1539,7 @@ hub_comparison_plots <- list(
       "CMU-TimeSeries",
       "COVIDhub-4_week_ensemble",
       "cfa-wwrenewal(real-time)",
-      "cfa-hosponlyrenewal(real-time)",
+      "cfa-hosponlyrenewal(real-time)*",
       "cfa-wwrenewal(retro)",
       "cfa-hosponlyrenewal(retro)"
     )
@@ -1741,6 +1741,24 @@ hub_comparison_plots <- list(
     )
   ),
   tar_target(
+    name = fig5_all_time_bar_chart,
+    make_fig5_bar_chart(
+      combine_scores_oct_mar,
+      time_period = "Oct-Mar"
+    )
+  ),
+  tar_target(
+    name = fig5_real_time_bar_chart,
+    make_fig5_bar_chart(
+      combine_scores_feb_mar |>
+        dplyr::filter(!model %in% c(
+          "cfa-wwrenewal(retro)",
+          "cfa-hosponlyrenewal(retro)"
+        )),
+      time_period = "Oct-Mar"
+    )
+  ),
+  tar_target(
     name = fig5_std_rank_feb_mar,
     command = make_fig5_density_rank(
       scores = summarized_scores_feb_mar |>
@@ -1784,8 +1802,8 @@ hub_comparison_plots <- list(
       fig5_heatmap_rel_wis_feb_mar = fig5_heatmap_rel_wis_feb_mar,
       fig5_qq_plot_all_time = fig5_qq_plot_all_time,
       fig5_qq_plot_feb_mar = fig5_qq_plot_feb_mar,
-      fig5_std_rank_feb_mar = fig5_std_rank_feb_mar,
-      fig5_std_rank_all_time = fig5_std_rank_all_time,
+      fig5_std_rank_feb_mar = fig5_real_time_bar_chart,
+      fig5_std_rank_all_time = fig5_all_time_bar_chart,
       fig_file_dir = eval_config$ms_fig_dir
     )
   )
