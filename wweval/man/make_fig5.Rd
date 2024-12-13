@@ -47,12 +47,6 @@ real-time period (Feb-Mar)}
 \item{fig5_all_time_bar_chart}{bar chart in order of average WIS}
 
 \item{fig_file_dir}{Path to save figures}
-
-\item{fig5_std_rank_feb_mar}{comparison of standardized rank across models
-for the real-time period (Feb-Mar)}
-
-\item{fig5_std_rank_all_time}{comparison of standardized rank across models
-for all time}
 }
 \value{
 a ggplot object containing all the figures combined

@@ -648,10 +648,6 @@ summarize_std_rank <- function(scores) {
 #' @param fig5_qq_plot_all_time qq plot comparing model coverage for all time
 #' @param fig5_qq_plot_feb_mar qq plot comparing model coverage for the
 #' real-time period (Feb-Mar)
-#' @param fig5_std_rank_feb_mar comparison of standardized rank across models
-#' for the real-time period (Feb-Mar)
-#' @param fig5_std_rank_all_time comparison of standardized rank across models
-#' for all time
 #' @param fig_file_dir Path to save figures
 #'
 #' @return a ggplot object containing all the figures combined
