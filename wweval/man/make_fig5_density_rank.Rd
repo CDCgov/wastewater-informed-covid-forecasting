@@ -4,7 +4,13 @@
 \alias{make_fig5_density_rank}
 \title{Make a figure of the distribution of standardized WIS rank}
 \usage{
-make_fig5_density_rank(scores, models_to_show, time_period)
+make_fig5_density_rank(
+  scores,
+  models_to_show,
+  time_period,
+  tp_fp,
+  fig_file_dir
+)
 }
 \arguments{
 \item{scores}{df of granular (daily) score across models, locations, forecast
@@ -14,6 +20,10 @@ dates and horizons}
 from the COVID-19 forecast hub to include in the plot.}
 
 \item{time_period}{time period that scores are summarized over}
+
+\item{tp_fp}{string indicating short name for time period to save figure}
+
+\item{fig_file_dir}{directory to save figure}
 }
 \value{
 A ggplot object containing geomridges plots colored by density,

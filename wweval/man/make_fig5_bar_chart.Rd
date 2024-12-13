@@ -10,8 +10,6 @@ make_fig5_bar_chart(scores, time_period)
 \item{scores}{quantile based scores from the hub}
 
 \item{time_period}{string indicating which time period to make the plot for}
-
-\item{fig_file_dir}{directory to save figure}
 }
 \value{
 A plot ordered by average wis over the time period
