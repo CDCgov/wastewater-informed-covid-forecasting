@@ -47,6 +47,48 @@ make_fig5_table_and_plot <- function(scores,
   return(hub_scores_overall)
 }
 
+#' Make plot of WIS scores in Hub models overall
+#'
+#' @param scores quantile based scores from the hub
+#' @param time_period string indicating which time period to make the plot for
+#'
+#' @return A plot ordered by average wis over the time period
+#' @export
+make_fig5_bar_chart <- function(scores,
+                                time_period) {
+  # Overall avg wis, bias, absolute error etc
+  hub_scores_overall <- scores |>
+    dplyr::group_by(model) |>
+    dplyr::summarise(
+      avg_wis = mean(interval_score),
+      avg_bias = mean(bias),
+      avg_ae = mean(ae_median)
+    ) |>
+    dplyr::mutate(model = factor(model,
+      levels = as.character(model)[order(avg_wis)]
+    ))
+
+  colors <- plot_components()
+  p <- ggplot(hub_scores_overall) +
+    geom_bar(aes(x = model, y = avg_wis, fill = model),
+      stat = "identity", position = "dodge",
+      show.legend = FALSE
+    ) +
+    get_plot_theme(
+      x_axis_dates = TRUE,
+      y_axis_title_size = 8
+    ) +
+    theme(legend.position = "none") +
+    scale_fill_manual(values = colors$model_colors) +
+    xlab("") +
+    ylab("Average WIS")
+
+
+  return(p)
+}
+
+
+
 
 #' Get plot of WIS over time
 #'
@@ -465,13 +507,17 @@ make_fig5_qq_plot <- function(scores,
 #' @param models_to_show A vector of charcter strings indicating which models
 #' from the COVID-19 forecast hub to include in the plot.
 #' @param time_period time period that scores are summarized over
+#' @param tp_fp string indicating short name for time period to save figure
+#' @param fig_file_dir directory to save figure
 #'
 #' @return A ggplot object containing geomridges plots colored by density,
 #' indicating the standardized rank for each location-date combo
 #' @export
 make_fig5_density_rank <- function(scores,
                                    models_to_show,
-                                   time_period) {
+                                   time_period,
+                                   tp_fp,
+                                   fig_file_dir) {
   summarized_scores <- scores |>
     data.table::as.data.table() |>
     scoringutils::summarise_scores(
@@ -534,6 +580,13 @@ make_fig5_density_rank <- function(scores,
     ) +
     ylab("")
 
+  ggsave(p,
+    filename = file.path(
+      fig_file_dir,
+      glue::glue("sfig_density_rank_{time_period}.png")
+    )
+  )
+
   return(p)
 }
 
@@ -586,6 +639,8 @@ summarize_std_rank <- function(scores) {
 #' each model in real-time (feb-mar)
 #' @param fig5_density_all_time density plot of relative performance
 #' across location, forecast_date, day, and model
+#' @param fig5_all_time_bar_chart bar chart in order of average WIS
+#' @param fig5_real_time_bar_chart bar chart in order of average WIS
 #' @param fig5_heatmap_rel_wis_all_time heatmap comparing WIS across
 #' forecast dates for each location for all time
 #' @param fig5_heatmap_rel_wis_feb_mar heatmap comparing WIS across
@@ -593,10 +648,6 @@ summarize_std_rank <- function(scores) {
 #' @param fig5_qq_plot_all_time qq plot comparing model coverage for all time
 #' @param fig5_qq_plot_feb_mar qq plot comparing model coverage for the
 #' real-time period (Feb-Mar)
-#' @param fig5_std_rank_feb_mar comparison of standardized rank across models
-#' for the real-time period (Feb-Mar)
-#' @param fig5_std_rank_all_time comparison of standardized rank across models
-#' for all time
 #' @param fig_file_dir Path to save figures
 #'
 #' @return a ggplot object containing all the figures combined
@@ -610,15 +661,15 @@ make_fig5 <- function(fig5_plot_wis_t_real_time,
                       fig5_heatmap_rel_wis_feb_mar,
                       fig5_qq_plot_all_time,
                       fig5_qq_plot_feb_mar,
-                      fig5_std_rank_feb_mar,
-                      fig5_std_rank_all_time,
+                      fig5_real_time_bar_chart,
+                      fig5_all_time_bar_chart,
                       fig_file_dir) {
   layout <- "
 AABBBB
 CCDDEE
 "
   fig5_rt <- fig5_density_real_time + fig5_plot_wis_t_real_time +
-    fig5_heatmap_rel_wis_feb_mar + fig5_qq_plot_feb_mar + fig5_std_rank_feb_mar +
+    fig5_heatmap_rel_wis_feb_mar + fig5_qq_plot_feb_mar + fig5_real_time_bar_chart +
     patchwork::plot_layout(
       design = layout,
       axes = "collect",
@@ -643,7 +694,7 @@ CCDDEE
 
 
   fig5_at <- fig5_density_all_time + fig5_plot_wis_t_all_time +
-    fig5_heatmap_rel_wis_all_time + fig5_qq_plot_all_time + fig5_std_rank_all_time +
+    fig5_heatmap_rel_wis_all_time + fig5_qq_plot_all_time + fig5_all_time_bar_chart +
     patchwork::plot_layout(
       design = layout,
       axes = "collect",

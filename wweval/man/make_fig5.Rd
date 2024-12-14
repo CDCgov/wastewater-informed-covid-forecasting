@@ -13,8 +13,8 @@ make_fig5(
   fig5_heatmap_rel_wis_feb_mar,
   fig5_qq_plot_all_time,
   fig5_qq_plot_feb_mar,
-  fig5_std_rank_feb_mar,
-  fig5_std_rank_all_time,
+  fig5_real_time_bar_chart,
+  fig5_all_time_bar_chart,
   fig_file_dir
 )
 }
@@ -42,11 +42,9 @@ forecast dates for each location for the real-time period (Feb-Mar)}
 \item{fig5_qq_plot_feb_mar}{qq plot comparing model coverage for the
 real-time period (Feb-Mar)}
 
-\item{fig5_std_rank_feb_mar}{comparison of standardized rank across models
-for the real-time period (Feb-Mar)}
+\item{fig5_real_time_bar_chart}{bar chart in order of average WIS}
 
-\item{fig5_std_rank_all_time}{comparison of standardized rank across models
-for all time}
+\item{fig5_all_time_bar_chart}{bar chart in order of average WIS}
 
 \item{fig_file_dir}{Path to save figures}
 }
