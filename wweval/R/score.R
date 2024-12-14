@@ -294,6 +294,7 @@ query_and_select_models <- function(prop_dates_for_incl_hub,
 
   models <- forecasts_present_per_model |>
     dplyr::filter(prop_present > !!prop_dates_for_incl_hub) |>
+    dplyr::filter(model != "COVIDhub_CDC-ensemble") |>
     dplyr::pull(model)
 
   return(models)
