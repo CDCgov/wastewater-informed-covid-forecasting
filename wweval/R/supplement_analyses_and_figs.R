@@ -788,8 +788,7 @@ get_plot_hub_perf_heatmap <- function(scores,
 
   p <- ggplot(scores_summary) +
     geom_tile(aes(x = forecast_date, y = location_name, fill = avg_wis)) +
-    scale_fill_gradient2(
-      high = "red", mid = "white", low = "blue",
+    scale_fill_gradient(
       midpoint = mean(scores_summary$avg_wis),
       guide = "colourbar", aesthetics = "fill"
     ) +
@@ -837,8 +836,7 @@ get_plot_comb_perf_heatmap <- function(scores,
 
   p <- ggplot(scores_summary) +
     geom_tile(aes(x = forecast_date, y = location, fill = avg_crps)) +
-    scale_fill_gradient2(
-      high = "red", mid = "white", low = "blue",
+    scale_fill_gradient(
       midpoint = mean(scores_summary$avg_crps),
       guide = "colourbar", aesthetics = "fill"
     ) +
