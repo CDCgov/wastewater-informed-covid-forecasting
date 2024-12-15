@@ -105,6 +105,7 @@ make_fig5_bar_chart <- function(scores,
 #' @param horizon_time_in_weeks horizon time in weeks to summarize over, default
 #' is `NULL` which means that the scores are summarized over the nowcast period
 #' and the 4 week forecast period
+#' @param fig_file_dir string indicating where to save fig, default is NULL
 #'
 #' @return a ggplot object of WIS scores over time colored by model, for the
 #' real-time cfa model from Feb - Mar and the retrospective CFA model over
@@ -115,7 +116,8 @@ make_fig5_average_wis <- function(all_scores,
                                   cfa_real_time_scores = c(),
                                   models_to_show,
                                   time_period,
-                                  horizon_time_in_weeks = NULL) {
+                                  horizon_time_in_weeks = NULL,
+                                  fig_file_dir = NULL) {
   subset_model_scores <- all_scores |>
     dplyr::filter(model %in% !!models_to_show)
 
@@ -176,6 +178,17 @@ make_fig5_average_wis <- function(all_scores,
       legend.title = element_blank(),
       legend.text = element_text(size = 7)
     )
+
+  if (!is.null(fig_file_dir)) {
+    p <- p + guides(color = guide_legend(nrow = 3))
+    ggsave(p,
+      height = 6, width = 11,
+      filename = file.path(
+        fig_file_dir,
+        glue::glue("sfig_wis_over_time_all_models.png")
+      )
+    )
+  }
 
   return(p)
 }
