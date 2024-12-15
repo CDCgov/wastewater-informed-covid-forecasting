@@ -900,7 +900,7 @@ make_fig4_avg_wis_over_time <- function(wis_scores,
     dplyr::mutate(
       model = case_when(
         model == "ww" ~ "cfa-wwrenewal(real-time)",
-        model == "hosp" ~ "cfa-hosponlyrenewal(real-time)"
+        model == "hosp" ~ "cfa-hosponlyrenewal(real-time)*"
       )
     )
 

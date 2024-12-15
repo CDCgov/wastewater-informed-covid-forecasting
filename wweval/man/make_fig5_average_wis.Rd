@@ -9,7 +9,8 @@ make_fig5_average_wis(
   cfa_real_time_scores = c(),
   models_to_show,
   time_period,
-  horizon_time_in_weeks = NULL
+  horizon_time_in_weeks = NULL,
+  fig_file_dir = NULL
 )
 }
 \arguments{
@@ -30,6 +31,8 @@ from the COVID-19 forecast hub to include in the plot.}
 \item{horizon_time_in_weeks}{horizon time in weeks to summarize over, default
 is \code{NULL} which means that the scores are summarized over the nowcast period
 and the 4 week forecast period}
+
+\item{fig_file_dir}{string indicating where to save fig, default is NULL}
 }
 \value{
 a ggplot object of WIS scores over time colored by model, for the

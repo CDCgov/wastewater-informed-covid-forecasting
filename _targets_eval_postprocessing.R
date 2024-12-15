@@ -1689,6 +1689,15 @@ hub_comparison_plots <- list(
     )
   ),
   tar_target(
+    name = sfig5_plot_wis_t_all_time,
+    command = make_fig5_average_wis(
+      all_scores = summarized_scores_oct_mar,
+      models_to_show = unique(combine_scores_oct_mar$model),
+      time_period = "Oct 2023-Mar 2024",
+      fig_file_dir = eval_config$ms_fig_dir
+    )
+  ),
+  tar_target(
     name = fig5_overall_performance,
     command = make_fig5_hub_performance(
       all_scores = summarized_scores_oct_mar,
