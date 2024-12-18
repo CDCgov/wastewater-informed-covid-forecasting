@@ -689,12 +689,12 @@ get_stats_improved_forecasts <- function(scores,
 
 
   forecasts_way_worse <- relative_crps_by_forecast |>
-    dplyr::filter(rel_crps > 4)
-  n_forecasts_4x_worse <- forecasts_way_worse |> nrow()
+    dplyr::filter(rel_crps > 3)
+  n_forecasts_3x_worse <- forecasts_way_worse |> nrow()
 
   forecasts_way_better <- relative_crps_by_forecast |>
-    dplyr::filter(rel_crps < 1 / 4)
-  n_forecasts_4x_better <- forecasts_way_better |> nrow()
+    dplyr::filter(rel_crps < 1 / 3)
+  n_forecasts_3x_better <- forecasts_way_better |> nrow()
 
   n_forecasts_better <- relative_crps_by_forecast |>
     dplyr::filter(rel_crps < 1) |>
@@ -726,12 +726,97 @@ get_stats_improved_forecasts <- function(scores,
     n_forecasts_worse,
     n_forecasts_better_thres,
     n_forecasts_worse_thres,
-    n_forecasts_4x_worse,
-    n_forecasts_4x_better
+    n_forecasts_3x_worse,
+    n_forecasts_3x_better
   )
 
   return(stats)
 }
+
+#' Get stats on number of improved forecasts in real time from wis
+#'
+#' @param scores tibble of scores for every location, forecast date, and horizon
+#' @param threshold numeric indicating fold change for considering a forecast
+#' improved or worse relative to baseline, e.g. 1.1
+#'
+#' @return table of the number of states with improvements, number of overall
+#' forecasts with improvements, number that got worse, etc.
+#' @export
+get_stats_imp_forecasts_wis <- function(scores,
+                                        threshold) {
+  relative_wis_by_loc <- scores |>
+    dplyr::group_by(location, model) |>
+    dplyr::summarize(mean_wis = mean(interval_score)) |>
+    tidyr::pivot_wider(
+      names_from = model,
+      values_from = mean_wis,
+      id_cols = c("location")
+    ) |>
+    dplyr::mutate(
+      rel_wis = ww / hosp
+    )
+
+
+  relative_wis_by_forecast <- scores |>
+    dplyr::group_by(location, model, forecast_date) |>
+    dplyr::summarize(mean_wis = mean(interval_score)) |>
+    tidyr::pivot_wider(
+      names_from = model,
+      values_from = mean_wis,
+      id_cols = c("location", "forecast_date")
+    ) |>
+    dplyr::mutate(
+      rel_wis = ww / hosp,
+      pct_change_crps = (ww - hosp) / hosp
+    )
+
+
+
+
+  forecasts_way_worse <- relative_wis_by_forecast |>
+    dplyr::filter(rel_wis > 3)
+  n_forecasts_3x_worse <- forecasts_way_worse |> nrow()
+
+  forecasts_way_better <- relative_wis_by_forecast |>
+    dplyr::filter(rel_wis < 1 / 3)
+  n_forecasts_3x_better <- forecasts_way_better |> nrow()
+
+  n_forecasts_better <- relative_wis_by_forecast |>
+    dplyr::filter(rel_wis < 1) |>
+    nrow()
+
+  n_forecasts_worse <- relative_wis_by_forecast |>
+    dplyr::filter(rel_wis > 1) |>
+    nrow()
+
+  n_forecasts_better_thres <- relative_wis_by_forecast |>
+    dplyr::filter(
+      rel_wis < 1 / threshold
+    ) |>
+    nrow()
+
+  n_forecasts_worse_thres <- relative_wis_by_forecast |>
+    dplyr::filter(
+      rel_wis > threshold
+    ) |>
+    nrow()
+
+
+
+
+  stats <- tibble::tibble(
+    n_forecasts_better,
+    n_forecasts_worse,
+    n_forecasts_better_thres,
+    n_forecasts_worse_thres,
+    n_forecasts_3x_worse,
+    n_forecasts_3x_better
+  )
+
+  return(stats)
+}
+
+
 
 
 

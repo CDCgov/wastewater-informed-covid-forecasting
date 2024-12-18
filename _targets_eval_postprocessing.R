@@ -1935,6 +1935,13 @@ supp_targets <- list(
     )
   ),
   tar_target(
+    name = comp_stats_rt,
+    command = get_stats_imp_forecasts_wis(
+      scores = wis_scores_rt_summarized,
+      threshold = 1.1
+    )
+  ),
+  tar_target(
     name = ww_quants_plot_supp,
     command = combine_outputs(
       output_type = "ww_quantiles",
