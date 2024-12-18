@@ -264,7 +264,8 @@ get_plot_rel_crps_heatmap <- function(scores,
       high = "red", mid = "white", low = "blue",
       transform = "log2",
       midpoint = 1,
-      guide = "colourbar", aesthetics = "fill"
+      guide = "colourbar", aesthetics = "fill",
+      labels = scales::number_format(accuracy = 0.01)
     ) +
     geom_text(aes(
       x = forecast_date, y = location,
@@ -274,6 +275,7 @@ get_plot_rel_crps_heatmap <- function(scores,
       x_axis_dates = TRUE,
       y_axis_text_size = 4
     ) +
+    theme(legend.text = element_text(size = 6)) +
     scale_x_date(
       date_breaks = "1 week",
       labels = scales::date_format("%Y-%m-%d")
