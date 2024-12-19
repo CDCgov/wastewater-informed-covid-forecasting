@@ -744,8 +744,6 @@ get_stats_improved_forecasts <- function(scores,
 #' @export
 get_stats_imp_forecasts_wis <- function(scores,
                                         threshold) {
-
-
   relative_wis_by_forecast <- scores |>
     dplyr::group_by(location, model, forecast_date) |>
     dplyr::summarize(mean_wis = mean(interval_score)) |>
