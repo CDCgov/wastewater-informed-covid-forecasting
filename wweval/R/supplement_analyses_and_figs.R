@@ -787,9 +787,6 @@ get_stats_imp_forecasts_wis <- function(scores,
     ) |>
     nrow()
 
-
-
-
   stats <- tibble::tibble(
     n_forecasts_better,
     n_forecasts_worse,
