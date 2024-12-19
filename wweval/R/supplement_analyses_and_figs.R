@@ -759,9 +759,6 @@ get_stats_imp_forecasts_wis <- function(scores,
       pct_change_crps = (ww - hosp) / hosp
     )
 
-
-
-
   forecasts_way_worse <- relative_wis_by_forecast |>
     dplyr::filter(rel_wis > 3)
   n_forecasts_3x_worse <- forecasts_way_worse |> nrow()
