@@ -1,11 +1,9 @@
-# Overview
-This repo leverages a semi-mechanistic renewal approach to jointly fit COVID-19 hospital admissions data in the US and viral concentrations in wastewater to forecast hospital admissions.
-This codebase was used to produce forecasts for the 2023-2024 season, both in real-time and retrospectively.
-We are currently developing an R package called [wwinference](https://github.com/CDCgov/ww-inference-model) that uses the model developed here and wraps it in a user-friendly interface.
-We plan on using this package to produce regular forecasts and evaluate retrospective forecast performance.
-To try out running this model on your own data, we encourage you to check out that R package and codebase.
+# Bayesian generative modeling for heterogeneous wastewater data applied to COVID-19 forecasting
+This repository contains the code to generate the results of evaluating retrospectively the forecast performance of a wastewater-informed forecasting model, both compared to a model without wastewater data and compared to other models submitted to the  [COVID-19 Forecast Hub](https://github.com/reichlab/covid19-forecast-hub/tree/master) over the 2023-24 epidemic season. 
+The model is run using the [`wwinference` R package](https://github.com/CDCgov/ww-inference-model), please see that GitHub repository for a mathematical description of the model. 
 
-See our [Model Definition page](model_definition.md) for a mathematical description of the generative model, and the [example vignette](cfaforecastrenewalww/vignettes/toy_data_vignette.Rmd) to run the inference and forecasting on the simulated data provided. In brief, our model builds upon [EpiNow2](https://github.com/epiforecasts/EpiNow2/tree/main), a widely used [R](https://www.r-project.org/) and [Stan](https://mc-stan.org/) package for Bayesian epidemiological inference. We modify EpiNow2 to add model for the observed viral RNA concentration in wastewater.
+This codebase was previously used for real-time submissioned to the COVID-19 Forecast Hub, spanning the dates from February 5th, 2024 to April 29th, 2024.
+The model used to generate those submissions has since been ported over to the [`wwinference` R package](https://github.com/CDCgov/ww-inference-model) and has been modified from its original structure. 
 
 This README is organized into the following sections:
 - Our [workflow](#our-workflow-for-covid-19-forecast-hub-submissions) for producing weekly forecasts
