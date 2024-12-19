@@ -756,7 +756,6 @@ get_stats_imp_forecasts_wis <- function(scores,
     ) |>
     dplyr::mutate(
       rel_wis = ww / hosp,
-      pct_change_crps = (ww - hosp) / hosp
     )
 
   forecasts_way_worse <- relative_wis_by_forecast |>
