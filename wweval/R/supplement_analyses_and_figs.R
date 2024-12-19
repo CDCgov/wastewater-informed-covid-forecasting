@@ -744,17 +744,6 @@ get_stats_improved_forecasts <- function(scores,
 #' @export
 get_stats_imp_forecasts_wis <- function(scores,
                                         threshold) {
-  relative_wis_by_loc <- scores |>
-    dplyr::group_by(location, model) |>
-    dplyr::summarize(mean_wis = mean(interval_score)) |>
-    tidyr::pivot_wider(
-      names_from = model,
-      values_from = mean_wis,
-      id_cols = c("location")
-    ) |>
-    dplyr::mutate(
-      rel_wis = ww / hosp
-    )
 
 
   relative_wis_by_forecast <- scores |>
