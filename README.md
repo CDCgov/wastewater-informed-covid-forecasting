@@ -39,8 +39,8 @@ The [`_targets_eval_postprocessing.R`](_targets_eval_postprocessing.R) file prov
 ### A note on reproducibility
 Unfortunately, the retrospective forecasts are not fully reproducible because they rely on NWSS data, which is not publicly available.
 
-Additionally, because we originally used this single code base for our modeling and production-level pipelining, and have since moved to a separate modeling package (`wwinference`), we can no longer easily reproduce the model outputs that would have been generated in real-time, as the versions of the model at that time are not in tagged version histories of `wwinference`. 
-The real-time code we used is available in our [commit history](https://github.com/CDCgov/wastewater-informed-covid-forecasting/tree/3b5a215a85578058a37b5a6e4eda2948ad14c692). 
+Additionally, because we originally used this single code base for our modeling and production-level pipelining, and have since moved to a separate modeling package (`wwinference`), we can no longer easily reproduce the model outputs that would have been generated in real-time, as the versions of the model at that time are not in tagged version histories of `wwinference`.
+The real-time code we used is available in our [commit history](https://github.com/CDCgov/wastewater-informed-covid-forecasting/tree/3b5a215a85578058a37b5a6e4eda2948ad14c692).
 
 ## Deprecated real-time workflow for Covid-19 Forecast Hub submissions
 *This process was used to produce the real-time forecasts from February 5th through April 29th, 2024. It is no longer being run in production, but we have maintained the text as a record of our process*
