@@ -26,7 +26,7 @@ This README is organized into the following sections:
 |[`docs`](docs)| Record of the evaluation plan, note this has not been updated to reflect the current state of the evaluation workflow |
 |[`scratch`](scratch)| Various scratch files used throughout the project |
 |[`_targets.R`](_targets.R)| Now deprecated real-time [targets](https://books.ropensci.org/targets/) pipeline |
-|[`model_diagnostics`](model_diagnostics)| R markdown presenting summaries of the model diagnostics for use in the ream-time production setting |
+|[`model_diagnostics`](model_diagnostics)| R markdown presenting summaries of the model diagnostics for use in the real-time production setting |
 
 ## Evaluation pipeline
 Retrospective forecasts with and without wastewater data were generated and evaluated for all 22 forecast dates from October 16, 2023 to March 11, 2024, using the `wwinference` package run in Azure batch.
