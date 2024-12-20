@@ -1,9 +1,9 @@
 # Bayesian generative modeling for heterogeneous wastewater data applied to COVID-19 forecasting
-This repository contains the code to generate the results of evaluating retrospectively the forecast performance of a wastewater-informed forecasting model, both compared to a model without wastewater data and compared to other models submitted to the  [COVID-19 Forecast Hub](https://github.com/reichlab/covid19-forecast-hub/tree/master) over the 2023-24 epidemic season. 
-The model is run using the [`wwinference` R package](https://github.com/CDCgov/ww-inference-model), please see that GitHub repository for a [mathematical description](https://github.com/CDCgov/ww-inference-model/blob/main/model_definition.md) of the model and details on how to install the package and run the model. 
+This repository contains the code to generate the results of evaluating retrospectively the forecast performance of a wastewater-informed forecasting model, both compared to a model without wastewater data and compared to other models submitted to the  [COVID-19 Forecast Hub](https://github.com/reichlab/covid19-forecast-hub/tree/master) over the 2023-24 epidemic season.
+The model is run using the [`wwinference` R package](https://github.com/CDCgov/ww-inference-model), please see that GitHub repository for a [mathematical description](https://github.com/CDCgov/ww-inference-model/blob/main/model_definition.md) of the model and details on how to install the package and run the model.
 
 This codebase was previously used for real-time submissioned to the COVID-19 Forecast Hub, spanning the dates from February 5th, 2024 to April 29th, 2024.
-The model used to generate those submissions has since been ported over to the [`wwinference` R package](https://github.com/CDCgov/ww-inference-model) and has been modified from its original structure. 
+The model used to generate those submissions has since been ported over to the [`wwinference` R package](https://github.com/CDCgov/ww-inference-model) and has been modified from its original structure.
 
 This README is organized into the following sections:
 - [Project structure](#project-structure) describing the contents of this repository
@@ -29,17 +29,17 @@ This README is organized into the following sections:
 |[`model_diagnostics`](model_diagnostics)| R markdown presenting summaries of the model diagnostics for use in the ream-time production setting |
 
 ## Evaluation pipeline
-Retrospective forecasts with and without wastewater data were generated and evaluated for all 22 forecast dates from October 16, 2023 to March 11, 2024, using the `wwinference` package run in Azure batch. 
-The azure batch pipeline was broken into a `fit` and `post_process` job. 
+Retrospective forecasts with and without wastewater data were generated and evaluated for all 22 forecast dates from October 16, 2023 to March 11, 2024, using the `wwinference` package run in Azure batch.
+The azure batch pipeline was broken into a `fit` and `post_process` job.
 The outputs from the `post_process` job were copied onto a local machine to facilitate downstream analysis.
 This included the scores (generated from [`scoringutils` 1.2.2](https://github.com/epiforecasts/scoringutils/releases/tag/v1.2.2)) from the 2,000 posterior draws of hospital admissions forecasts, the quantiled hospital admissions and wastewater concentraitons from the calibration, nowcast, and forecast period and the input hospital admissions and wastewater data used to generate them.
 
-The [`_targets_eval_postprocessing.R`](_targets_eval_postprocessing.R) file provides the pipeline to produce the results for the real-time and retrospective evaluation with and without wastewater and compared to other Hub models. 
+The [`_targets_eval_postprocessing.R`](_targets_eval_postprocessing.R) file provides the pipeline to produce the results for the real-time and retrospective evaluation with and without wastewater and compared to other Hub models.
 
 ### A note on reproducibility
 Unfortunately, the retrospective forecasts are not fully reproducible because they rely on NWSS data, which is not publicly available.
 
-Additionally, because we originally used this single code base for our modeling and production-level pipelining, and have since moved to a separate modeling package (`wwinference`), we can no longer easily reproduce the model outputs that would have been generated in real-time, as the versions of the model at that time are not in tagged version histories of `wwinference`. 
+Additionally, because we originally used this single code base for our modeling and production-level pipelining, and have since moved to a separate modeling package (`wwinference`), we can no longer easily reproduce the model outputs that would have been generated in real-time, as the versions of the model at that time are not in tagged version histories of `wwinference`.
 
 ## Deprecated real-time workflow for Covid-19 Forecast Hub submissions
 *This process was used to produce the real-time forecasts from February 5th through April 29th, 2024. It is no longer being run in production, but we have maintained the text as a record of our process*
@@ -55,7 +55,7 @@ We produce forecasts of COVID-19 hospital admissions for the 50 states, Puerto R
 Individual archived forecasts and their corresponding `metadata.yaml` files can be found in datestamped subdirectories of the [`output/forecasts`](output/forecasts) directory, e.g. [`output/forecasts/2024-02-05`](output/forecasts/2024-02-05).
 
 ## Model input data
-We store all data and configuration for the model in the [`input`](input) folder. 
+We store all data and configuration for the model in the [`input`](input) folder.
 This repository does not contain the input h
 
 ### Hospital admissions data data
