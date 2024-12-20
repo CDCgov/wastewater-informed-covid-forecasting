@@ -1,6 +1,6 @@
 # Bayesian generative modeling for heterogeneous wastewater data applied to COVID-19 forecasting
 This repository contains the code to generate the results of evaluating retrospectively the forecast performance of a wastewater-informed forecasting model, both compared to a model without wastewater data and compared to other models submitted to the  [COVID-19 Forecast Hub](https://github.com/reichlab/covid19-forecast-hub/tree/master) over the 2023-24 epidemic season.
-The model is run using the [`wwinference` R package](https://github.com/CDCgov/ww-inference-model), please see that GitHub repository for a [mathematical description](https://github.com/CDCgov/ww-inference-model/blob/main/model_definition.md) of the model and details on how to install the package and run the model.
+The model is run using the [`wwinference` R package](https://cdcgov.github.io/ww-inference-model). Please see that package's [GitHub repository](https://github.com/cdcgov/ww-inference-model/) for a [mathematical description](https://github.com/CDCgov/ww-inference-model/blob/main/model_definition.md) of the model and details on how to install the package and run the model.
 
 This codebase was previously used for real-time submissioned to the COVID-19 Forecast Hub, spanning the dates from February 5th, 2024 to April 29th, 2024.
 The model used to generate those submissions has since been ported over to the [`wwinference` R package](https://github.com/CDCgov/ww-inference-model) and has been modified from its original structure.
