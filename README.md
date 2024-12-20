@@ -1,21 +1,48 @@
 # Bayesian generative modeling for heterogeneous wastewater data applied to COVID-19 forecasting
 This repository contains the code to generate the results of evaluating retrospectively the forecast performance of a wastewater-informed forecasting model, both compared to a model without wastewater data and compared to other models submitted to the  [COVID-19 Forecast Hub](https://github.com/reichlab/covid19-forecast-hub/tree/master) over the 2023-24 epidemic season. 
-The model is run using the [`wwinference` R package](https://github.com/CDCgov/ww-inference-model), please see that GitHub repository for a mathematical description of the model. 
+The model is run using the [`wwinference` R package](https://github.com/CDCgov/ww-inference-model), please see that GitHub repository for a [mathematical description](https://github.com/CDCgov/ww-inference-model/blob/main/model_definition.md) of the model and details on how to install the package and run the model. 
 
 This codebase was previously used for real-time submissioned to the COVID-19 Forecast Hub, spanning the dates from February 5th, 2024 to April 29th, 2024.
 The model used to generate those submissions has since been ported over to the [`wwinference` R package](https://github.com/CDCgov/ww-inference-model) and has been modified from its original structure. 
 
 This README is organized into the following sections:
-- Our [workflow](#our-workflow-for-covid-19-forecast-hub-submissions) for producing weekly forecasts
+- [Project structure](#project-structure) describing the contents of this repository
+- A description of our [evaluation pipeline](#evaluation-pipeline), used to evaluate the real-time and retrospective forecasts both with and without wastewater and compared to other Hub models
+- Our [workflow](#deprecated-real-time-workflow-for-covid-19-forecast-hub-submissions) for producing weekly forecasts
 - Details on [model input data](#model-input-data)
-- A description of our [forecasting pipeline](#forecasting-pipeline)
-- A guide to [installing and running our code](#installing-and-running-code)
-- Details on [contributing to this project](#contributing-to-this-project)
 - [Standard CDCGov open source repository information, notices, and disclaimers](#standard-cdcgov-open-source-repository-information-notices-and-disclaimers)
 
-# Our workflow for Covid-19 Forecast Hub submissions
-### Update on Covid-19 Forecast Hub Submissions
-As of May 2024, the  [COVID-19 Forecast Hub](https://github.com/reichlab/covid19-forecast-hub/tree/master) has paused submission of forecasts. We plan to resume submitting wastewater-informed forecasts to the Hub when it reopens submissions.
+## Project structure
+| Folder or file | Purpose |
+|---|---|
+|[`pipeline`](pipeline)| R scripts used to fit and post-process each model run in the Azure batch workflow
+|[`_targets_eval_postprocessing.R`](_targets_eval_postprocessing.R) | The [targets](https://books.ropensci.org/targets/) pipeline used to generate the figures and results in this work, from the post-processed outputs that are generated from running the fitting and postprocessing [`pipeline`](pipeline/) on Azure Batch |
+|[`wweval`](wweval) | Code used for the evaluation pipeline, including pre and post-processing and figure generation |
+|[`input`](input)| Raw input data used to fit the model, including a parameter file and delay pmfs used by the model |
+|[`output/forecasts`](output/forecasts)| Records of the real-time forecasts and associated metadata submitted to the [COVID-19 Forecast Hub](https://github.com/reichlab/covid19-forecast-hub/tree/master) from February 5th through April 29th, 2024 |
+|[`output/benchmarking`](output/benchmarking)| Metrics of performance from different versions of the model, used to assess model changes |
+|[`src`](src)| Code used to generate the configuration files used in the Azure batch pipeline and the post-processing pipeline |
+|[`.github`](.github) | GitHub actions used to set up the CI for the `wweval` functions
+|[`docs`](docs)| Record of the evaluation plan, note this has not been updated to reflect the current state of the evaluation workflow |
+|[`scratch`](scratch)| Various scratch files used throughout the project |
+|[`_targets.R`](_targets.R)| Now deprecated real-time [targets](https://books.ropensci.org/targets/) pipeline |
+|[`model_diagnostics`](model_diagnostics)| R markdown presenting summaries of the model diagnostics for use in the ream-time production setting |
+
+## Evaluation pipeline
+Retrospective forecasts with and without wastewater data were generated and evaluated for all 22 forecast dates from October 16, 2023 to March 11, 2024, using the `wwinference` package run in Azure batch. 
+The azure batch pipeline was broken into a `fit` and `post_process` job. 
+The outputs from the `post_process` job were copied onto a local machine to facilitate downstream analysis.
+This included the scores (generated from [`scoringutils` 1.2.2](https://github.com/epiforecasts/scoringutils/releases/tag/v1.2.2)) from the 2,000 posterior draws of hospital admissions forecasts, the quantiled hospital admissions and wastewater concentraitons from the calibration, nowcast, and forecast period and the input hospital admissions and wastewater data used to generate them.
+
+The [`_targets_eval_postprocessing.R`](_targets_eval_postprocessing.R) file provides the pipeline to produce the results for the real-time and retrospective evaluation with and without wastewater and compared to other Hub models. 
+
+### A note on reproducibility
+Unfortunately, the retrospective forecasts are not fully reproducible because they rely on NWSS data, which is not publicly available.
+
+Additionally, because we originally used this single code base for our modeling and production-level pipelining, and have since moved to a separate modeling package (`wwinference`), we can no longer easily reproduce the model outputs that would have been generated in real-time, as the versions of the model at that time are not in tagged version histories of `wwinference`. 
+
+## Deprecated real-time workflow for Covid-19 Forecast Hub submissions
+*This process was used to produce the real-time forecasts from February 5th through April 29th, 2024. It is no longer being run in production, but we have maintained the text as a record of our process*
 
 To produce our submissions to the Covid-19 Forecast Hub, we run a [forecasting pipeline](#forecasting-pipeline) every Saturday evening at 9:10 pm EST. In addition to pulling the latest data and using it to fit our inference models, the pipeline generates summary figures, produces a diagnostic report of Markov Chain Monte Carlo convergence diagnostics, and performs data quality checks on the wastewater data. We examine these outputs manually to check for data or model convergence issues.
 
@@ -27,217 +54,24 @@ We produce forecasts of COVID-19 hospital admissions for the 50 states, Puerto R
 
 Individual archived forecasts and their corresponding `metadata.yaml` files can be found in datestamped subdirectories of the [`output/forecasts`](output/forecasts) directory, e.g. [`output/forecasts/2024-02-05`](output/forecasts/2024-02-05).
 
-# Model input data
-We store all data and configuration for the model in the [`input`](input) folder.
+## Model input data
+We store all data and configuration for the model in the [`input`](input) folder. 
+This repository does not contain the input h
 
-## Hospitalization data
-For real-time production, we pull hospitalization data from the [NHSN HealthData.gov public dataset](https://healthdata.gov/Hospital/COVID-19-Reported-Patient-Impact-and-Hospital-Capa/g62h-syeh) and then is stored locally once it is ingested. For retrospective evaluation on time-stamped data sets, we use the [`covidcast`](https://cmu-delphi.github.io/delphi-epidata/api/covidcast.html) R package.
+### Hospital admissions data data
+For real-time production, we pulled hospital admissions data from the [NHSN HealthData.gov public dataset](https://healthdata.gov/Hospital/COVID-19-Reported-Patient-Impact-and-Hospital-Capa/g62h-syeh) and stored a snapshot of that data (a "vintaged dataset") locally each week.
+Vintaged data is not stored in this repository, but the pipeline expects this data to live in: `input_data/hosp_data/monday_wednesday_datasets`
 
-## Wastewater data
-We use the [NWSS API on the DCIPHER platform](https://www.cdc.gov/nwss/reporting.html) (non-public data, requires permission from NWSS to access) to obtain wastewater data at the facility level.
+### Wastewater data
+We used the [NWSS API on the DCIPHER platform](https://www.cdc.gov/nwss/reporting.html) (non-public data, requires permission from NWSS to access) to obtain wastewater data at the facility level each week, storing a vintaged dataset each week.
+Vintaged data is not stored in this repository, but the pipeline expects this data to live in: `input_data/ww_data/monday_datasets`
 
-## Data access and API keys
-To interact with `covidcast`, HealthData.gov, or DCIPHER/NWSS, we use API keys. `covidcast` and HealthData.gov are public; anyone can request an API key. One must complete a data use agreement to access raw wastewater data from NWSS; see the [NWSS website](https://www.cdc.gov/nwss/about-data.html) for details.
-
-Our data pipeline expects users to store these API keys in a local `secrets.yaml` file. See instructions below for setting up your `secrets.yaml` file in a format the pipeline can parse.
-
-## Data file structure
-The data (both inputs and outputs) are currently loaded in either from within the [`input`](input) folder as shown below or directly from the APIs (described above). This folder also contains a file with state-level population data ([`locations.csv`](input/locations.csv)) used by the pipeline.
-
-Model outputs are written to individual folders after each model is run, and the file path to access those model outputs are returned as an output to the targets pipeline, to be used for downstream analysis and plotting. Alongside each pipeline run is a model metadata `.txt` file formatted for the COVID-19 Forecast Hub submission, which can be found in the folder `forecasts`.
-
-```
-+--input
-    +-- ww_data
-        +-- nwss_data
-            +-- {date_of_data_pull}.csv
-    +-- hosp_data
-        +-- vintage_datasets
-            +-- {date_of_data_pull}.csv
-    +-- config
-        +--{test/prod}
-            +-- config-{model_type}-{run_id}.yaml
-    +--saved_pmfs
-        +-- generation_interval.csv
-        +-- inf_to_hosp.csv
-    +--train_data
-        +-- {forecast_date}
-		+-- {model_type}
-                    +-- train_data.csv
-    +--locations.csv
-+-- output
- +-- forecasts
-            +-- {forecast_date}
-		+-- {forecast_date}.tsv
-		+-- metadata.yaml
-		+-- wastewater_metdata_table.tsv
-+-- {forecast_date}
-	+-- run-on-{date_of_run}-{run_id}
-    		+-- raw
-			+-- {individual_state}
-				+-- {model_type}
-                    			+-- draws.parquet
-					+-- quantiles.parquet
-					+-- parameters.parquet
-					+-- future_hosp_draws.parquet
-					+-- diagnostics.csv
-					+-- stan_objects
-						+-- {model_name}-{timestamp}-{chain}.csv
-    		+-- figures
-                	+--{individual state}
-                    		+-- individual plots of generated quantities + data for all models
-    		+-- cleaned
-			+-- external
-				+--cfa-wwrenewal
-					+-- {forecast_date}-cfa-wwrenewal.csv
-					+-- pdf of hub submissions
-				+--cfa-wwrenewal_hosp_only
-					+-- {forecast_date}-cfa-wwrenewal_hosp_only.csv
-					+-- pdf of what we would have submitted to hub had we submitted all hosp_only model
-				+--cfa-wwrenewal_all_ww
-					+-- {forecast_date}-cfa-wwrenewal_all_ww.csv
-					+-- pdf of what we would have submitted to hub had we submitted wastewater model in all cases
-            		+-- internal
-                		+-- diagnostic_report.html
-				+-- pdfs of combined quantiles forecasts, hospital admissions forecasts for mult models, wastewater estimates, R(t), etc.
-			+-- {submitted/test}_forecasts
-				+-- {forecast_date}-cfa-wwrenewal.csv
-			+-- all_wastewater_submission
-				+-- test_forecasts
-					+--cfa_wwrenewal_all_ww
-						+{forecast_date}_cfa-wwrenewal_all_ww.csv
-			+-- hospital_admissions_only_submission
-				+-- test_forecasts
-					+--cfa_wwrenewal_hosp_only
-						+{forecast_date}_cfa-wwrenewal_hosp_only.csv
-  		 +-- pipeline_run_metadata
-        		+-- {test/prod}
-                   		 +-- {run_id}.yaml
-```
-
-# Forecasting pipeline
-We use a pipeline to pull data, process it, fit models, and generate forecasts formatted for submission to the [COVID-19 Forecast Hub](https://covid19forecasthub.org/). The [`_targets.R`](_targets.R) script in the project root directory defines the pipeline via the [`targets` R package](https://books.ropensci.org/targets/).
-
-The pipeline does the following, in order:
-1. Pulls the latest wastewater and hospital admissions data from NWSS and NHSN, respectively
-2. Formats the data properly for ingestion by our Stan models.
-3. Fits Bayesian renewal models to those data (links below point to the relevant `.stan` source files):
-    - A [model without wastewater](cfaforecastrenewalww/inst/stan/renewal_ww_hosp.stan) (based only on hospital admissions).
-	- A [national model using aggregated wastewater](cfaforecastrenewalww/inst/stan/renewal_ww_hosp.stan) concentration data.
-    - A [model incorporating site-level wastewater concentration data](cfaforecastrenewalww/inst/stan/renewal_ww_hosp_site_level_inf_dynamics.stan).
-4. Post-processes model output to produce forecasts and summary figures, including a table formatted for submission to the Covid-19 Forecast Hub.
-
-See our [model definition page](model_definition.md) for further details on the modeling methods and data pre-processing.
-
-# Installing and running code
-
-## Install R
-To run our code, you will need a working installation of [R](https://www.r-project.org/) (version `4.3.0` or later). You can find instructions for installing R on the official [R project website](https://www.r-project.org/).
-
-## Install `cmdstanr` and `CmdStan`
-We do inference from our models using [`CmdStan`](https://mc-stan.org/users/interfaces/cmdstan) (version `2.35.0` or later) via its R interface [`cmdstanr`](https://mc-stan.org/cmdstanr/) (version `0.8.0` or later).
-
-Open an R session and run the following command to install `cmdstanr` per that package's [official installation guide](https://mc-stan.org/cmdstanr/#installation).
-
-```R
-install.packages("cmdstanr", repos = c("https://mc-stan.org/r-packages/", getOption("repos")))
-```
-
-If using `renv` to manage your R packages and environment, use the following command to install `cmdstanr`.
-
-```R
-renv::install("stan-dev/cmdstanr")
-```
-
-`cmdstanr` provides tools for installing `CmdStan` itself. First check that everything is properly configured by running:
-
-```R
-cmdstanr::check_cmdstan_toolchain()
-```
-
-You should see the following:
-```
-The C++ toolchain required for CmdStan is setup properly!
-```
-
-If you do, you can then install `CmdStan` by running:
-```R
-cmdstanr::install_cmdstan()
-```
-If installation succeeds, you should see a message like the following:
-```
-CmdStan path set to: {a path on your file system}
-```
-
-If you run into trouble, consult the official [`cmdstanr`](https://mc-stan.org/cmdstanr/index.html) website for further installation guides and help.
-
-## Download this repository and install the project package (`cfaforecastrenewalww`)
-Once `cmdstanr` and `CmdStan` are installed, the next step is to download this repository and install our project package, `cfaforecastrenewalww`. The repository provides an overall structure for running the forecasting analysis; the project package provides tools for specifying and running our models, and installs other needed dependencies.
-
-Once you have downloaded this repository, navigate to it within an R session and run the following:
-
-```R
-install.packages('remotes')
-remotes::install_local("cfaforecastrenewalww")
-```
-
-If using `renv` to manage your R packages and environment, use the following command from within the `wastewater-informed-covid-forecasting` repository to install `cfaforecastrenewalww`.
-
-```R
-renv::install("./cfaforecastrenewalww")
-```
-
-If that fails, confirm that your R working directory is indeed the project directory by running R's `getwd()` command.
-
-## R dependencies
-Installing the project package should take care of almost all dependencies installations. Confirm that package installation has succeeded by running the following within an R session:
-
-```R
-library(cfaforecastrenewalww)
-```
-
-## Set up API keys
-To load in the data you will need to set up a `secrets.yaml` file in the root of the directory with the following format:
-```
-covidcast_api_key: {key}
-NHSN_API_KEY_ID: {key}
-NHSN_API_KEY_SECRET: {key}
-nwss_data_token: {token}
-data_rid: {rid}
-```
-
-- covidcast: Go to the CMU Delphi [website](https://cmu-delphi.github.io/delphi-epidata/api/api_keys.html) and request an API key using [their form](https://api.delphi.cmu.edu/epidata/admin/registration_form). The key will come in an email.
-- NSHN: Log into HealthData.gov's [developer settings page](https://healthdata.gov/login). At the profile page, click the pencil next to the abstract avatar image, then "Developer Settings," then create an API key. Be sure to copy the key secret to a safe place because you won't be able to see it again.
-- NWSS: Ensure you have access to DCIPHER first. Then go to the [tokens page](https://dcipher.cdc.gov/workspace/settings/tokens) to create a new token. Be sure to copy the token to a safe place because you won't be able to see it again.
-- RID: The dataset RID is obtained when the data use agreement is approved and the link to the dataset on DCIPHER is provided.
-
-## Run the pipeline
-To run the pipeline, type the following at a command prompt from the top-level project directory:
-
-```bash
-Rscript --vanilla -e "targets::tar_make()"
-```
-
-Alternatively, in an interactive R session with your R working directory set to the project root, run
-```R
-targets::tar_make()
-```
-
-The first time you run the pipeline after installing `cfaforecastrenewalww`, `cmdstan` will compile the model source `.stan` files to executible binaries, which by default are stored in a subdirectory `bin/` of the top-level project directory. Subsequent runs should use those precompiled executibles, without need for recompilation. To force recompilation, delete the binaries stored in the `bin/` directory or reinstall the `cfaforecastrenewalww` R package.
-
-# Contributing to this project
-
-## Git workflow
-We store our production code in the `prod` branch; refer to the `HEAD` of that branch for the code used to produce our most recent published forecast. To develop new features or fix bugs, create a feature branch off of `prod`. When the feature is ready, make a pull request into `prod`. All tests should pass within a feature branch before pull request can be merged.
-
-Please see our [contributing guidelines](CONTRIBUTING.md) and [code-of-conduct](code-of-conduct.md) for more details.
-
-# Contact information
+## Contact information
 We want feedback and questions! Feel free to [submit an issue](../../issues) here on Github, or contact us via this [form](https://www.cdc.gov/forecast-outbreak-analytics/contact-us.html).
 
-# Standard CDCGov open source repository information, notices, and disclaimers
+## Standard CDCGov open source repository information, notices, and disclaimers
 
-## Public Domain Standard Notice
+### Public Domain Standard Notice
 This repository constitutes a work of the United States Government and is not
 subject to domestic copyright protection under 17 USC § 105. This repository is in
 the public domain within the United States, and copyright and related rights in
@@ -246,7 +80,7 @@ All contributions to this repository will be released under the CC0 dedication. 
 submitting a pull request you are agreeing to comply with this waiver of
 copyright interest.
 
-## License Standard Notice
+### License Standard Notice
 The repository utilizes code licensed under the terms of the Apache Software
 License and therefore is licensed under ASL v2 or later.
 
@@ -263,14 +97,14 @@ program. If not, see http://www.apache.org/licenses/LICENSE-2.0.html
 
 Any included source code adapted or reused from another open source project inherits that project's license.
 
-## Privacy Standard Notice
+### Privacy Standard Notice
 This repository contains only non-sensitive, publicly available data and
 information. All material and community participation is covered by the
 [Disclaimer](DISCLAIMER.md)
 and [Code of Conduct](code-of-conduct.md).
 For more information about CDC's privacy policy, please visit [http://www.cdc.gov/other/privacy.html](https://www.cdc.gov/other/privacy.html).
 
-## Contributing Standard Notice
+### Contributing Standard Notice
 Anyone is encouraged to contribute to the repository by [forking](https://help.github.com/articles/fork-a-repo)
 and submitting a pull request. (If you are new to GitHub, you might start with a
 [basic tutorial](https://help.github.com/articles/set-up-git).) By contributing
@@ -282,12 +116,12 @@ later.
 All comments, messages, pull requests, and other submissions received through
 CDC including this GitHub page may be subject to applicable federal law, including but not limited to the Federal Records Act, and may be archived. Learn more at [http://www.cdc.gov/other/privacy.html](http://www.cdc.gov/other/privacy.html).
 
-## Records Management Standard Notice
+### Records Management Standard Notice
 This repository is not a source of government records, but is a copy to increase
 collaboration and collaborative potential. All government records will be
 published through the [CDC web site](http://www.cdc.gov).
 
-## Additional Standard Notices
+### Additional Standard Notices
 Please refer to [CDC's Template Repository](https://github.com/CDCgov/template) for the standard/template [CDCGov](https://github.com/CDCGov) [README](https://github.com/CDCGov/template/blob/main/README.md), [contribution policy](https://github.com/CDCgov/template/blob/main/CONTRIBUTING.md),
 [disclaimer](https://github.com/CDCgov/template/blob/main/DISCLAIMER.md),
 and [code of conduct](https://github.com/CDCgov/template/blob/main/code-of-conduct.md) from which the corresponding documents found in this repository have been derived.
