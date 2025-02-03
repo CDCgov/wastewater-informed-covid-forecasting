@@ -59,10 +59,9 @@ container_build: $(CONTAINER_DEPS)
 > $(CONTAINER_IMAGE_BUILD_CMD) -t $(CONTAINER_IMAGE_NAME) .
 > $(CONTAINER_ENGINE) tag $(CONTAINER_IMAGE_NAME) $(CONTAINER_REMOTE)
 
-container_push: container_build
+container_push: container_build acr_login
 > $(ACR_LOGIN_COMMAND)
 > $(CONTAINER_ENGINE) push $(CONTAINER_REMOTE)
-> touch $@
 
 acr_login:
 > $(ACR_LOGIN_COMMAND)
