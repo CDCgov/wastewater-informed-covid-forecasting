@@ -27,7 +27,7 @@ which az
 ```
 
 #### Podman (recommended) or Docker
-For the default settings given in `batch_config.toml`, there should be a already container image for this project in the Azure Container Registry (ACR). To build and push one for yourself, however, you will need an Open Container Initiative (OCI)-compatible container engine, such as `docker` or `podman`. Frustratingly, Azure assumes you are using `docker`, so it requires some commands to start with `docker <command>`. Fortunately, `podman` works as a drop-in replacement if you install `podman-docker`. `podman-docker` simply creates an wrapper application at `/usr/bin/docker` that points to your `podman` installation.
+For the default setup we'll use in this tutorial, there should already be a "container image" for this project in the Azure Container Registry (ACR). To build and push one for yourself, however, you will need an Open Container Initiative (OCI)-compatible container engine, such as `docker` or `podman`. Frustratingly, Azure assumes you are using `docker`, so it requires some commands to start with `docker <command>`. Fortunately, `podman` works as a drop-in replacement if you install `podman-docker`. `podman-docker` simply creates an wrapper application at `/usr/bin/docker` that points to your `podman` installation.
 
 This tutorial uses `podman` as a drop-in replacement for docker. Install it with:
 
@@ -50,7 +50,8 @@ You should see a message that ends with:
 podman version <A VERSION NUMBER>
 ```
 
-__Warning__: the above is a bit of a hack. The lack of easy interfaces between `podman` and the Azure container registry has been [an open issue for some time](https://github.com/Azure/azure-cli/issues/14768#issue-678300971).
+> [!WARNING]
+> the above is a bit of a hack. The lack of easy interfaces between `podman` and the Azure container registry has been [an open issue for some time](https://github.com/Azure/azure-cli/issues/14768#issue-678300971).
 
 If you ever decide to replace `podman` with actual `docker`, you may wish to run `sudo rm /usr/bin/docker` to remove the symlink before installing real `docker`.
 
@@ -109,22 +110,24 @@ Confirm you can log in to Azure with `az login`
 
 Upon successful completion of the set-up instructions above, you should be logged in to azure (`az login` and click on link) and be inside a python virtual environment `python3 -m venv .` `source bin/activate`. You will also want to make sure you have installed python dependencies `pip install -r batch/requirements.txt`.
 
-### Set up your `batch_config.toml`
-This configuration file defines many parameters of your Batch setup. While it does not contain secrets, we don't recommend committing it to the repository. It is fine to share among analysts.
-
-Using details in the `[Authentication]` section of the config, the code should be able to retrieve a set of valid credentials on your behalf from an Azure Key Vault on behalf of the user (you), provided the user has run `az login`.
-
-### Getting data into blob storage
-`blob_storage.py` defines helper functions that get used in `upload_data.py`. Currently, blob storage container creation is on demand as needed when `upload_data.py` is run. i.e. if the requested upload location doesn't already exist, it tries to create it.
-
-`upload_data.py` is a script used to upload the data according to the structure specified in the `batch_config.toml`. For example
+### Set up your environmental variables
+We'll use the `EnvCredentialHandler` from the [`azuretools`](https://github.com/CDCgov/cfa-azuretools) Python library to handle credentials for CFA Azure resources. It looks for key configuration in your environment variables. CFA's STF Team provide a secret-free (but private) `azureconfig.sh` script to configure environment variables appropriately in their [SharePoint](https://cdc.sharepoint.com/:u:/r/teams/CenterforForecastingandOutbreakAnalytics/Shared%20Documents/General/02%20-%20Predict/Real%20Time%20Monitoring%20(RTM)%20Branch/Short%20Term%20Forecasts/azure/azureconfig.sh?csf=1&web=1&e=e7YBqr). Contact @dylanhmorris if you believe you should have access and do not. We recommend setting up those environment variables as part of your terminal setup, e.g. by adding the following to your [`.bash_profile`](https://linuxopsys.com/dotfiles-in-linux-explained):
 
 ```bash
-pyhton3 batch/upload_data.py -g *.csv input/hosp_data batch_config.toml
+. <path to your azuretools.sh from your home directory>
 ```
-will give you the option to upload anything with the `.csv` extension in your local folder `input/hosp_data` to blob storage. Specifically, it will use the blob storage account specified in the `[Storage]` section of `batch_config.toml` and the specific bucket that you've designed under `input_blob_storage_container_name` in the `[Container]` section.
 
-This is the step where you will want to upload all the needed input data in the file structure specified by your `eval_config_file` (e.g. `input/config/eval/eval_config.yaml`)
+Using the values of the environment variables defined in `azureconfig.sh`, `EnvCredentialHandler` should be able to retrieve a set of valid credentials on your behalf from an Azure Key Vault, provided you have run `az login`.
+
+### Getting data into blob storage
+You can upload data to blob storage via the Azure Storage Explorer GUI, but if you would like to work programmatically, we provide an `upload_data.py` script. For example
+
+```bash
+pyhton3 batch/upload_data.py -g *.csv input/hosp_data wastewater-input
+```
+will give you the option to upload anything with the `.csv` extension in your local folder `input/hosp_data` to a blob storage container (bucket) named `wastewater-input`. It will use the blob storage account specified `azureconfig.sh`.
+
+Upload any needed input data in the file structure specified by your evaluation configuration file, including the file itself (e.g. `input/config/eval/eval_config.yaml`).
 
 ### Containerize and push the container to the container registry
 Once your data is in blob storage, we next turn to creating a very different thing, confusingly also called a "container": a Docker-compatible [container](https://www.docker.com/resources/what-container/) in which to run our project code.
@@ -132,6 +135,8 @@ Once your data is in blob storage, we next turn to creating a very different thi
 We want to make it easy for an arbitrary virtual machine ("node") within Azure to run our code, with minimal set-up. Why? That will in turn makes it easy for us to add and subtract these "nodes" from our job(s) as needed—even automatically!—while trusting that each new one will be able to do its just for us.
 
 There are a number of ways to make it easy for a standard virtual machine to run your code in the way you want. Using Docker-style "containers" is one such solution; we use it here because Azure Batch's infrastructure supports it well. In particular, Azure has its own internal [container registries](https://www.redhat.com/en/topics/cloud-native-apps/what-is-a-container-registry) that nodes can access. We'll put our container in one of those, and then tell our group of Batch nodes (called a "pool") how to retrieve it and run it.
+
+
 ### Building the container image
 The first step is building the [container image](https://docs.docker.com/guides/docker-concepts/the-basics/what-is-an-image/). The recipe for this is specified in the repository `Containerfile`.
 
@@ -177,27 +182,39 @@ Look to see if it's there in portal.azure.com cfaprdbatchcr > services > reposit
 
 `setup_pool.py` needs to know some things from the config file, like how to authenticate, what container to associate with the pool (each pool can be associated with a default container), how to handle autoscaling, how to handle networking, what kind of virtual machines are desired, etc. You can view these specifications under Batch Accounts `cfaprdba > pools > wastewater_runner > jsonview`
 
-To run:
+Let's create a pool named `wastewater-demo-pool`:
 ```bash
-python3 batch/setup_pool.py batch_config.toml
+python3 batch/setup_pool.py wastewater-demo-pool
 ```
-Now we have a pool and we can run jobs on it.
+
+We can now run compute jobs on our `wastewater-demo-pool`.
 
 ### Set up a specific job
 A job is a set of tasks, each task (by default) gets handed to 1 virtual machine which (by default) runs it within the specified container.
 
 A gotcha: unlike most code run in a container, Batch tasks _don't_ default to starting in the container's own default working directory. In this tutorial, we _would_ like to start our tasks in the container's working directory. For that reason, `setup_job.py` contains [this line](https://github.com/cdcent/cfa-forecast-renewal-ww/blob/91080eaf42ad63f3b1de9e89c6221f58fa55a941/batch/setup_job.py#L70), which explicitly instructs Azure to use the container's default working directory.
 
-In our example `setup_job.py` creates a bunch of tasks, all of them consist of running the following command for different values of {config_index}:
+In our example, `setup_job.py` creates a bunch of tasks, all of them consist of running the following command for different values of {config_index}:
 ```
 Rscript pipeline/command_line_eval_{script_type}_ww.R {config_index}  input/config/eval/eval_config.yaml input/params.toml
 ```
 Each invocation of that command will perform one of the model fits specified in `eval_config.yaml`; which one depends on the value of `{config_index}`. `setup_job.py` loops over possible values of `{config_index}`, creating tasks for each one.
-We run `setup_job.py` to create the job and its constituent tasks:
+
+Let's run `setup_job.py` to create a model fitting job and its constituent tasks. We'll name it `my-demo-fit-job` and have it run on the `wastewater-demo-pool` we just created. Let's image we have a properly formatted configuration file named `eval_config.yaml` stored in `input/eval_config.yaml`. You can create one using the [`src/setup_eval.R`](../src/setup_eval.R) R script.
+
 ```bash
-python3 batch/setup_job.py batch_config.toml {local_path_to_eval_config_file} {script_type} {OPTIONAL --exclude_ww_model}
+python3 batch/setup_job.py input/eval_config.yaml fit my-demo-fit-job wastewater-demo-pool
 ```
 
-This should create a job with the name specified in `batch_config.toml` consistent of tasks that are named by forecast dates, locations, scenarios and the script type, with current options being either `fit` or `post_process`. Currently, we have not set up infrastructure for these to run sequentially automatically, so you must run `fit` and then `post_process`. Note, if you previously used this job name and the tasks have not been deleted, you will be told that the jobs already exist. Either delete the tasks or create a new job (go back to `setup_pool.py` with a modified `batch_config.toml` which has a different `job_id`.
+This should create a job named `my-demo-fit-job` consisting of tasks that are named by forecast dates, locations, scenarios and the the job type. (here `fit`). Once your fitting job is finished, set up a second job to postprocess it by running:
 
-To view the jobs, navigate in Home to Batch accounts > `cfaprdba`> `job_id`
+```bash
+python3 batch/setup_job.py input/eval_config.yaml post_process my-demo-postprocess-job wastewater-demo-pool
+````
+
+Note that you should wait for all tasks in `fit` to finish before kicking off the `post_process` job. Eventually . 
+
+> [!NOTE]
+> If you previously have previously used a job and tasks with these names and not deleted them, the script will error, telling you that the tasks already exist. Either delete the tasks or create a new job with a distinct name, e.g. `my-demo-fit-job-2`.
+
+To view all your jobs, navigate in Home to `Batch` > `accounts` > `cfaprdba`> `job_id`, or use the Batch Explorer.
