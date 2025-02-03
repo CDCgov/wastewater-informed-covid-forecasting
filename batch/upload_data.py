@@ -4,21 +4,21 @@ import argparse
 import os
 from glob import glob
 
-import toml
 from azuretools.auth import EnvCredentialHandler
 from azuretools.blob import (
-    get_blob_service_client,
     create_storage_container_if_not_exists,
-    upload_to_storage_container)
+    get_blob_service_client,
+    upload_to_storage_container,
+)
 
 
 def main(
-        source_directory: str,
-        storage_container_name: str,
-        glob_pattern: str = "**",
-        recursive: bool = False,
-        force: bool = False,
-        dir_root_remote: str = ".",
+    source_directory: str,
+    storage_container_name: str,
+    glob_pattern: str = "**",
+    recursive: bool = False,
+    force: bool = False,
+    dir_root_remote: str = ".",
 ) -> None:
     """
     Upload data files from a local directory to a
@@ -35,11 +35,11 @@ def main(
         via (virtual) blob storage sub-directories.
         Passed as the local_root_dir keyword argument
         to upload_to_storage_container().
-    
+
     storage_container_name
         Name of the blob storage container to which to
         upload the files.
-    
+
     glob_pattern
         Pattern to match for files to upload.
         Default '**' (upload all files).
@@ -115,9 +115,7 @@ def main(
     else:
         do_continue = True
     if do_continue:
-        create_storage_container_if_not_exists(
-            storage_container_name, client
-        )
+        create_storage_container_if_not_exists(storage_container_name, client)
         upload_to_storage_container(
             files_to_upload,
             storage_container_name,
@@ -178,9 +176,7 @@ if __name__ == "__main__":
     parser.add_argument(
         "storage_container_name",
         type=str,
-        help=(
-            "Name of the storage container to which to upload files."
-        ),
+        help=("Name of the storage container to which to upload files."),
     )
 
     parsed = vars(parser.parse_args())

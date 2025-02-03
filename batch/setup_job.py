@@ -4,18 +4,18 @@ import azure.batch.models as batchmodels
 import yaml
 from azuretools.auth import EnvCredentialHandler
 from azuretools.client import get_batch_service_client
-from azuretools.util import ensure_listlike
 from azuretools.task import get_container_settings, get_task_config
+from azuretools.util import ensure_listlike
 
 
 def main(
-        eval_config_file: str,
-        script_type: str,
-        job_id: str,
-        pool_id: str,
-        exclude_ww_model: bool,
-        container_image_name: str = "renewalww",
-        container_image_version: str = "latest",
+    eval_config_file: str,
+    script_type: str,
+    job_id: str,
+    pool_id: str,
+    exclude_ww_model: bool,
+    container_image_name: str = "renewalww",
+    container_image_version: str = "latest",
 ) -> None:
     """
     Create an Azure batch evaluation job according to the given
@@ -91,10 +91,7 @@ def main(
         container_image,
         working_directory="containerImageDefault",
         mount_pairs=[
-            {
-                "source": "input",
-                "target": "/input"
-            },
+            {"source": "input", "target": "/input"},
             {
                 "source": "output",
                 "target": "/output",
@@ -105,8 +102,13 @@ def main(
     with open(eval_config_file, "r") as stream:
         eval_spec = yaml.safe_load(stream)
 
-    for key in ["location_ww", "forecast_date_ww", "scenario",
-                "location_hosp", "forecast_date_hosp"]:
+    for key in [
+        "location_ww",
+        "forecast_date_ww",
+        "scenario",
+        "location_hosp",
+        "forecast_date_hosp",
+    ]:
         eval_spec[key] = ensure_listlike(eval_spec[key])
     raw_output_dir = eval_spec["raw_output_dir"]
     config_name = eval_spec["name_of_config"]
@@ -123,8 +125,10 @@ def main(
             this_location = eval_spec["location_ww"][config_row]
             this_forecast_date = eval_spec["forecast_date_ww"][config_row]
             this_scenario = eval_spec["scenario"][config_row]
-            task_name = (f"{script_type}-{this_scenario}-"
-                         f"{this_forecast_date}-{this_location}")
+            task_name = (
+                f"{script_type}-{this_scenario}-"
+                f"{this_forecast_date}-{this_location}"
+            )
             base_call = (
                 "/bin/sh -c '"
                 f"Rscript pipeline/command_line_eval_{script_type}_ww.R "
@@ -153,8 +157,10 @@ def main(
         this_location = eval_spec["location_hosp"][config_row]
         this_forecast_date = eval_spec["forecast_date_hosp"][config_row]
         this_scenario = "no_wastewater"
-        task_name = (f"{script_type}-{this_scenario}-"
-                     f"{this_forecast_date}-{this_location}")
+        task_name = (
+            f"{script_type}-{this_scenario}-"
+            f"{this_forecast_date}-{this_location}"
+        )
         base_call = (
             "/bin/sh -c '"
             f"Rscript pipeline/command_line_eval_{script_type}_hosp.R "
@@ -191,9 +197,8 @@ if __name__ == "__main__":
         help="Script to run (either `fit` or `post_process`)",
     )
     parser.add_argument(
-        "job_id",
-        type=str,
-        help="Name for the Azure batch job")
+        "job_id", type=str, help="Name for the Azure batch job"
+    )
 
     parser.add_argument(
         "pool_id",

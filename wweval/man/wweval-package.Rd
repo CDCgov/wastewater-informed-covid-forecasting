@@ -17,7 +17,7 @@ Useful links:
 
 }
 \author{
-\strong{Maintainer}: Kaitlyn Johnson \email{uox1@cdc.gov} (\href{https://orcid.org/0000-0001-8011-0012}{ORCID})
+\strong{Maintainer}: Kaitlyn Johnson \email{johnsonkaitlyne9@gmail.com} (\href{https://orcid.org/0000-0001-8011-0012}{ORCID})
 
 Authors:
 \itemize{
