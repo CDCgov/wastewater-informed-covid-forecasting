@@ -144,7 +144,8 @@ The first step is building the [container image](https://docs.docker.com/guides/
 The default `Containerfile` adds all the code in the repository that's not in the `.containerignore`, which works like a git ignore, with all the interesting stuff (dependencies and package installation) happening in `setup_container.R`.
 
 We want to _build_ this image (locally) and then _tag_ it with a reference to the place we'd like to upload it (namely, within a particular private Azure container registry we own, `cfaprdbatchcr`
-The `Makefile` automates this, and only rebuilds the container if the source files have changed:
+The `Makefile` automates this:
+
 ```
 make container_build
 ```
@@ -170,13 +171,13 @@ Once you've authenticated, push the container with:
 ```bash
 docker push cfaprdbatchcr.azurecr.io/renewalww:latest
 ```
-or use the Makefile:
+or just use the Makefile:
 
 ```bash
 make container_push
 ```
 
-Look to see if it's there in portal.azure.com cfaprdbatchcr > services > repositories> {name_of_project_container}
+Look to see if the container is now there there in `portal.azure.com` under `cfaprdbatchcr > services > repositories> renewalww`
 
 ### Create the pool
 `setup_pool.py` sets up a "pool" of virtual machines on Azure that will actually run your code when asked (by a "task" that forms part of a "job").
