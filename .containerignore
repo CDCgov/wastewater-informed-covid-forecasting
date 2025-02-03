@@ -1,0 +1,8 @@
+Containerfile
+Containerfile.dependencies
+output
+scratch
+src
+lib
+lib64
+bin
