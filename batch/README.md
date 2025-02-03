@@ -106,7 +106,8 @@ For checking your work, it may also be worth installing the [Azure Storage Explo
 ### Log in to Azure
 Confirm you can log in to Azure with `az login`
 
-## Step-by-step directions to run a batch job.
+
+## Step-by-step directions to run a batch evaluation job
 
 Upon successful completion of the set-up instructions above, you should be logged in to azure (`az login` and click on link) and be inside a python virtual environment `python3 -m venv .` `source bin/activate`. You will also want to make sure you have installed python dependencies `pip install -r batch/requirements.txt`.
 
@@ -212,7 +213,7 @@ This should create a job named `my-demo-fit-job` consisting of tasks that are na
 python3 batch/setup_job.py input/eval_config.yaml post_process my-demo-postprocess-job wastewater-demo-pool
 ````
 
-Note that you should wait for all tasks in `fit` to finish before kicking off the `post_process` job. Eventually . 
+Note that you should wait for all tasks in `fit` to finish before kicking off the `post_process` job. Eventually, we may unify these into a single job, in which the postprocess tasks wait for the corresponding fitting tasks to finish, but we have not yet implemented this.
 
 > [!NOTE]
 > If you previously have previously used a job and tasks with these names and not deleted them, the script will error, telling you that the tasks already exist. Either delete the tasks or create a new job with a distinct name, e.g. `my-demo-fit-job-2`.
