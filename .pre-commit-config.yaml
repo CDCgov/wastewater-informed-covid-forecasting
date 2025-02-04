@@ -2,7 +2,7 @@ repos:
 #####
 # Basic file cleanliness
 -   repo: https://github.com/pre-commit/pre-commit-hooks
-    rev: v4.6.0
+    rev: v5.0.0
     hooks:
     -   id: check-added-large-files
         args: ['--maxkb=4000']
@@ -15,7 +15,7 @@ repos:
 #####
 # R
 -   repo: https://github.com/lorenzwalthert/precommit
-    rev: v0.4.2
+    rev: v0.4.3
     hooks:
     -   id: style-files
         args: [--style_pkg=styler, --style_fun=tidyverse_style,
@@ -31,25 +31,25 @@ repos:
 ########
 # Python
 -   repo: https://github.com/psf/black
-    rev: 23.10.0
+    rev: 25.1.0
     hooks:
     -   id: black
         args: ['--line-length', '79']
 -   repo: https://github.com/PyCQA/isort
-    rev: 5.12.0
+    rev: 6.0.0
     hooks:
     -   id: isort
         args: ['--profile', 'black',
                '--line-length', '79']
 -   repo: https://github.com/astral-sh/ruff-pre-commit
-    rev: v0.1.0
+    rev: v0.9.4
     hooks:
     -   id: ruff
 
 #########
 # Secrets
 -   repo: https://github.com/Yelp/detect-secrets
-    rev: v1.4.0
+    rev: v1.5.0
     hooks:
     -   id: detect-secrets
         args: ['--baseline', '.secrets.baseline']
