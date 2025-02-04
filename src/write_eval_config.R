@@ -132,6 +132,15 @@ write_eval_config <- function(locations, forecast_dates,
     as.vector() |>
     unique()
 
+  real_time_output_dir <- file.path("output", "real_time_outputs")
+  path_to_table_of_run_ids <- file.path("output", "real_time_outputs", "table_of_run_ids.rds")
+  if (file.exists(path_to_table_of_run_ids)) {
+    table_of_run_ids <- readRDS(path_to_table_of_run_ids)
+    table_of_run_ids$forecast_date <- as.character(table_of_run_ids$forecast_date)
+  } else {
+    table_of_run_ids <- NULL
+  }
+
   # These come from the yaml files we saved in the forecast folders,
   # documentation which location-forecast dates we chose to use the hospital
   # admissions only model for in real-time
@@ -183,6 +192,7 @@ write_eval_config <- function(locations, forecast_dates,
     forecast_time = forecast_time,
     ww_data_mapping = ww_data_mapping,
     table_of_exclusions = table_of_exclusions,
+    table_of_run_ids = table_of_run_ids,
     real_time_output_dir = real_time_output_dir,
     ww_forecast_date_locs_to_excl = ww_forecast_date_locs_to_excl,
     # MCMC settings
