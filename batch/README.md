@@ -104,7 +104,7 @@ pip install -r batch/requirements.txt
 For checking your work, it may also be worth installing the [Azure Storage Explorer](https://azure.microsoft.com/en-us/products/storage/storage-explorer/) graphical application. You will also want to familiarize yourself with the [Azure web portal](https://portal.azure.com).
 
 ### Log in to Azure
-Confirm you can log in to Azure with `az login`
+Confirm you can log in to Azure with `az login`. `az login` will try to open a browser window for you. Use your `ext` account.
 
 
 ## Step-by-step directions to run a batch evaluation job
@@ -118,7 +118,7 @@ We'll use the `EnvCredentialHandler` from the [`azuretools`](https://github.com/
 . <path to your azuretools.sh from your home directory>
 ```
 
-Using the values of the environment variables defined in `azureconfig.sh`, `EnvCredentialHandler` should be able to retrieve a set of valid credentials on your behalf from an Azure Key Vault, provided you have run `az login`.
+Provided you have logged in to Azure at the command line (via `az login`) `EnvCredentialHandler` will be able to retrieve a set of valid credentials on your behalf from an Azure Key Vault. It will do this using the values of the environment variables defined in `azureconfig.sh`.
 
 ### Getting data into blob storage
 You can upload data to blob storage via the Azure Storage Explorer GUI, but if you would like to work programmatically, we provide an `upload_data.py` script. For example
