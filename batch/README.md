@@ -202,7 +202,7 @@ Rscript pipeline/command_line_eval_{script_type}_ww.R {config_index}  input/conf
 ```
 Each invocation of that command will perform one of the model fits specified in `eval_config.yaml`; which one depends on the value of `{config_index}`. `setup_job.py` loops over possible values of `{config_index}`, creating tasks for each one.
 
-Let's run `setup_job.py` to create a model fitting job and its constituent tasks. We'll name it `my-demo-fit-job` and have it run on the `wastewater-demo-pool` we just created. Let's image we have a properly formatted configuration file named `eval_config.yaml` stored in `input/eval_config.yaml`. You can create one using the [`src/setup_eval.R`](../src/setup_eval.R) R script.
+Let's run `setup_job.py` to create a model fitting job and its constituent tasks. We'll name it `my-demo-fit-job` and have it run on the `wastewater-demo-pool` we just created. Let's image we have a properly formatted configuration file named `eval_config.yaml` stored in `input/config/eval/eval_config.yaml`. You can create one using the [`src/setup_eval.R`](../src/setup_eval.R) R script. Note this must be the same config file you uploaded to blob storage in azure storage container for the wastewater input.
 
 ```bash
 python3 batch/setup_job.py input/eval_config.yaml fit my-demo-fit-job wastewater-demo-pool
