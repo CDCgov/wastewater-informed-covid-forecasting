@@ -211,7 +211,7 @@ python3 batch/setup_job.py input/eval_config.yaml fit my-demo-fit-job wastewater
 This should create a job named `my-demo-fit-job` consisting of tasks that are named by forecast dates, locations, scenarios and the the job type. (here `fit`). Once your fitting job is finished, set up a second job to postprocess it by running:
 
 ```bash
-python3 batch/setup_job.py input/eval_config.yaml post_process my-demo-postprocess-job wastewater-demo-pool
+python3 batch/setup_job.py input/config/eval/eval_config.yaml post_process my-demo-postprocess-job wastewater-demo-pool
 ````
 
 Note that you should wait for all tasks in `fit` to finish before kicking off the `post_process` job. Eventually, we may unify these into a single job, in which the postprocess tasks wait for the corresponding fitting tasks to finish, but we have not yet implemented this.
