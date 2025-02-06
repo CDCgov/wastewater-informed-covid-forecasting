@@ -152,6 +152,10 @@ Once you have followed the [general set-up instructions](#general-setup-to-inter
 - Be inside a Python virtual environment in which the dependencies specified in `batch/requirements.txt` have been installed.
 - Have appropriately environment variables. You can check this by printing one to the terminal, e.g. via `echo $AZURE_BATCH_ACCOUNT`.
 
+### Create or grab a configuration file
+We specify jobs using [YAML-formatted]() configuration files. We provide an `example_eval_config.yaml` in the `wastewater-input` Blob storage container within the `cfaazurebatchprd` Blob storage account. Download it to your local machine using the [Azure Storage Explorer] or via the command line, and save it the `wastewater-informed-covid-forecasting` directory under `input/config/eval/example_eval_config.yaml`.
+
+
 ### Create a pool
 `setup_pool.py` sets up a "pool" of virtual machines on Azure that will actually run your code when asked (by a "task" that forms part of a "job").
 
@@ -167,37 +171,47 @@ We can now run compute jobs on our `wastewater-demo-pool`.
 ### Set up a specific job
 A job is a set of tasks, each task (by default) gets handed to 1 virtual machine which (by default) runs it within a specified [OCI container](https://en.wikipedia.org/wiki/Open_Container_Initiative). "Containers" in this sense are a way of packaging code so it can run easily on a variety of operating systems / computers. For more on containers and how to customize the one we use here, see ["Building the container image"](#building-the-container-image), below.
 
-
 > [!NOTE]
 > Containers have a default working directory. Azure Batch tasks _don't_ default to starting in the container's own default working directory. In this tutorial, we _would_ like to start our tasks in the container's working directory. For that reason, `setup_job.py` contains [this line](https://github.com/cdcent/cfa-forecast-renewal-ww/blob/91080eaf42ad63f3b1de9e89c6221f58fa55a941/batch/setup_job.py#L70), which explicitly instructs Azure to use the container's default working directory.
 
-
-In our example, `setup_job.py` creates a bunch of tasks, all of them consist of running the following command for different values of {config_index}:
+In our example, `setup_job.py` creates a bunch of tasks, all of them consist of running the following command for different values of `{config_index}` (an integer) and `{script_type}` (one of `fit` or `post_process`):
 ```
-Rscript pipeline/command_line_eval_{script_type}_ww.R {config_index}  input/config/eval/example_eval_config.yaml input/params.toml
+Rscript pipeline/command_line_eval_{script_type}_ww.R {config_index} input/config/eval/example_eval_config.yaml input/params.toml
 ```
-Each invocation of that command will perform one of the model fits specified in `example_eval_config.yaml`; which one depends on the value of `{config_index}`. `setup_job.py` loops over possible values of `{config_index}`, creating tasks for each one.
 
-We provide an `example_eval_config.yaml` in the `wastewater-input` Blob storage container within the `cfaazurebatchprd` Blob storage account. Download it to your local machine using the [Azure Storage Explorer] or via the command line, and save it the `wastewater-informed-covid-forecasting` directory under `input/config/eval/example_eval_config.yaml`. [`input/params.toml`][../input/params.toml] is tracked in this repo, so you should already have a copy.
+Each invocation of that command will perform model fitting or model postprocessing for one of the forecasting problems specified in `example_eval_config.yaml` (a "forecasting problem" here means a forecast for a given location and date). Each forecasting problem has a corresponding `config_index` in the evaluation configuration `.yaml` file. For example, this command starts a fitting job for the 3rd entry in `example_eval_config.yaml`:
+```
+Rscript pipeline/command_line_eval_fit_ww.R 3 input/config/eval/example_eval_config.yaml input/params.toml
+```
+This command starts a post-processing job for the 6th entry:
+```
+Rscript pipeline/command_line_eval_post_process_ww.R 6 input/config/eval/example_eval_config.yaml input/params.toml
+```
 
-Let's run `setup_job.py` to create a model fitting job and its constituent tasks. We'll name it `my-demo-fit-job` and have it run on the `wastewater-demo-pool` we just created. Let's image we have a properly formatted configuration file named `eval_config.yaml` stored in `input/config/eval/eval_config.yaml`. You can create one using the [`src/setup_eval.R`](../src/setup_eval.R) R script. Note this must be the same config file you uploaded to blob storage in azure storage container for the wastewater input.
+The file [`input/params.toml`][../input/params.toml] specifies hyperparameters for priors and other model configuration that is shared across individual forecasting problems. It is tracked in this repo, so you should already have a copy.
+
+To save you writing this all out by hand, `setup_job.py` loops over all the values of `{config_index}` in `input/config/eval/example_eval_config.yaml`, creating tasks for each one. 
+
+#### Model fitting
+Let's run `setup_job.py` to create a model fitting job and its constituent tasks. We'll name it `my-demo-fit-job` and have it run on the `wastewater-demo-pool` we just created. We'll use our local copy of the example configuration file (`example_eval_config.yaml`) and the corresponding copy of it Blob storage container `wastewater-input`. Note that these must be identical, or the pipeline may error or behave unexpectedly.
 
 ```bash
-python3 batch/setup_job.py input/eval_config.yaml fit my-demo-fit-job wastewater-demo-pool
+python3 batch/setup_job.py input/config/eval/example_eval_config.yaml fit my-demo-fit-job wastewater-demo-pool
 ```
 
-This should create a job named `my-demo-fit-job` consisting of tasks that are named by forecast dates, locations, scenarios and the the job type. (here `fit`). Once your fitting job is finished, set up a second job to postprocess it by running:
+This should create a job named `my-demo-fit-job` consisting of tasks that are named by forecast dates, locations, scenarios and the the job type. (here `fit`). Confirm that this has happened by looking for the job and its tasks in the Azure Batch Explorer or in the Batch section of the Azure web portal. Once your fitting job is finished, examine the `wastewater-example-output` Blob storage container and confirm that output files have been generated. 
+
+#### Model postprocessing
+Next, set up a second job to postprocess the results of the fitting job by running:
 
 ```bash
-python3 batch/setup_job.py input/config/eval/eval_config.yaml post_process my-demo-postprocess-job wastewater-demo-pool
+python3 batch/setup_job.py input/config/eval/example_eval_config.yaml post_process my-demo-postprocess-job wastewater-demo-pool
 ````
 
 Note that you should wait for all tasks in `fit` to finish before kicking off the `post_process` job. Eventually, we may unify these into a single job, in which the postprocess tasks wait for the corresponding fitting tasks to finish, but we have not yet implemented this.
 
 > [!WARNING]
-> If you previously have previously used a job and tasks with these names and not deleted them, the script will error, telling you that the tasks already exist. Delete the tasks, delete and re-create the job, or create a new job with a distinct name, e.g. `my-demo-fit-job-2`.
-
-To view all your jobs, navigate in Home to `Batch` > `accounts` > `cfaprdba`> `job_id`, or use the Batch Explorer.
+> If you or someone else previously have previously created a job and tasks with these names the script will error, telling you that the tasks already exist. To fix this, delete the tasks, delete and re-create the job, or create a new job with a distinct name, e.g. `my-demo-fit-job-2`.
 
 
 ## Customizing and configuring the pipeline
