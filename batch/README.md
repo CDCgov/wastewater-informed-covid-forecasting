@@ -145,7 +145,6 @@ You may also want to familiarize yourself with the [Azure web portal](https://po
 ## Walkthrough: running an evaluation job on Batch
 
 This section walks you through running an example evaluation job on Azure Batch.
-</summary>
 
 ### Prerequisites and checks
 Once you have followed the [general set-up instructions](#general-setup-to-interact-with-batch) above, you should:
@@ -175,9 +174,11 @@ A job is a set of tasks, each task (by default) gets handed to 1 virtual machine
 
 In our example, `setup_job.py` creates a bunch of tasks, all of them consist of running the following command for different values of {config_index}:
 ```
-Rscript pipeline/command_line_eval_{script_type}_ww.R {config_index}  input/config/eval/eval_config.yaml input/params.toml
+Rscript pipeline/command_line_eval_{script_type}_ww.R {config_index}  input/config/eval/example_eval_config.yaml input/params.toml
 ```
-Each invocation of that command will perform one of the model fits specified in `eval_config.yaml`; which one depends on the value of `{config_index}`. `setup_job.py` loops over possible values of `{config_index}`, creating tasks for each one.
+Each invocation of that command will perform one of the model fits specified in `example_eval_config.yaml`; which one depends on the value of `{config_index}`. `setup_job.py` loops over possible values of `{config_index}`, creating tasks for each one.
+
+We provide an `example_eval_config.yaml` in the `wastewater-input` Blob storage container within the `cfaazurebatchprd` Blob storage account. Download it to your local machine using the [Azure Storage Explorer] or via the command line, and save it the `wastewater-informed-covid-forecasting` directory under `input/config/eval/example_eval_config.yaml`. [`input/params.toml`][../input/params.toml] is tracked in this repo, so you should already have a copy.
 
 Let's run `setup_job.py` to create a model fitting job and its constituent tasks. We'll name it `my-demo-fit-job` and have it run on the `wastewater-demo-pool` we just created. Let's image we have a properly formatted configuration file named `eval_config.yaml` stored in `input/config/eval/eval_config.yaml`. You can create one using the [`src/setup_eval.R`](../src/setup_eval.R) R script. Note this must be the same config file you uploaded to blob storage in azure storage container for the wastewater input.
 
@@ -204,7 +205,7 @@ To view all your jobs, navigate in Home to `Batch` > `accounts` > `cfaprdba`> `j
 This section explains how to customize and configure the pipeline.
 
 ### Uploading data
-The [walkthrough](#walkthrough-running-an-evaluation-job-on-batch) uses data and configuration to blob You can upload data to blob storage via the [Azure Storage Explorer](#azure-storage-explorer) GUI, but if you would like to work programmatically, we provide an `upload_data.py` script. 
+The [walkthrough](#walkthrough-running-an-evaluation-job-on-batch) uses data and configuration that are already in Azure Blob Storage. You can upload data to blob storage via the [Azure Storage Explorer](#azure-storage-explorer) GUI, but if you would like to work programmatically, we provide an `upload_data.py` script. 
 
 For example
 
