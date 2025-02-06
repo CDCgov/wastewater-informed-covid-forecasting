@@ -132,10 +132,10 @@ Provided you have logged in to Azure at the command line (via `az login`) `EnvCr
 ### Useful Azure GUI applications
 We recommend installing two official Azure desktop applications. Both are graphical user inferaces ("GUIs") for Azure resources. They will help you monitor your work on Azure.
 
-#### [Azure Storage Explorer](https://azure.microsoft.com/en-us/products/storage/storage-explorer/)
+#### Azure Storage Explorer ([link to download](https://azure.microsoft.com/en-us/products/storage/storage-explorer/))
 This application allows you to look at the navigate through the contents Azure blob storage containers as though they were a local files. You can use it to download files or directories, as well as to delete or rename files within Blob storage.
 
-#### [Azure Batch Explorer](https://azure.github.io/BatchExplorer/)
+#### Azure Batch Explorer ([link to download](https://azure.github.io/BatchExplorer/))
 This application allows you to monitor Azure batch "pools" (groups of virtual machines), "jobs" (sets of programs to run on those pools), and "tasks" (individaul components of a job). 
 
 ### Azure web portal
@@ -147,10 +147,16 @@ You may also want to familiarize yourself with the [Azure web portal](https://po
 This section walks you through running an example evaluation job on Azure Batch.
 
 ### Prerequisites and checks
-Once you have followed the [general set-up instructions](#general-setup-to-interact-with-batch) above, you should:
-- Be logged in to Azure. You can check this with `az account show`. 
+Once you have followed the [general set-up instructions](#general-setup-for-interacting-with-cfas-azure-resources) above, you should:
+- Be logged in to Azure. You can check this via:
+```bash
+az account show
+```
 - Be inside a Python virtual environment in which the dependencies specified in `batch/requirements.txt` have been installed.
-- Have appropriately environment variables. You can check this by printing one to the terminal, e.g. via `echo $AZURE_BATCH_ACCOUNT`.
+- Have appropriately environment variables. You can check this by trying to `echo` one to the Terminal:
+```bash
+echo $AZURE_BATCH_ACCOUNT`
+```
 
 ### Create or grab a configuration file
 We specify jobs using [YAML-formatted]() configuration files. We provide an `example_eval_config.yaml` in the `wastewater-input` Blob storage container within the `cfaazurebatchprd` Blob storage account. Download it to your local machine using the [Azure Storage Explorer] or via the command line, and save it the `wastewater-informed-covid-forecasting` directory under `input/config/eval/example_eval_config.yaml`.
@@ -219,7 +225,7 @@ Note that you should wait for all tasks in `fit` to finish before kicking off th
 This section explains how to customize and configure the pipeline.
 
 ### Uploading data
-The [walkthrough](#walkthrough-running-an-evaluation-job-on-batch) uses data and configuration that are already in Azure Blob Storage. You can upload data to blob storage via the [Azure Storage Explorer](#azure-storage-explorer) GUI, but if you would like to work programmatically, we provide an `upload_data.py` script. 
+The [walkthrough](#walkthrough-running-an-evaluation-job-on-azure-batch) uses data and configuration that are already in Azure Blob Storage. You can upload data to blob storage via the [Azure Storage Explorer](#azure-storage-explorer) GUI, but if you would like to work programmatically, we provide an `upload_data.py` script. 
 
 For example
 
