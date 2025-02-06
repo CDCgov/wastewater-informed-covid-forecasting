@@ -4,7 +4,7 @@ This readme is divided into subsections. Click their headers to expand or collap
 <details>
 <summary><h2>General setup to interact with Batch</h2>
   
-This section walks you through the installation of pipeline run requirements. It also recommends some optional tools we have found helpful.
+This section guides you through setting up your system (typically the CFA VAP) to run our pipeline. It also recommends some optional tools we have found helpful.
 </summary>
 
 ### System requirements
@@ -144,10 +144,11 @@ You may also want to familiarize yourself with the [Azure web portal](https://po
 
 <details><summary><h2>Step-by-step directions to run an evaluation job on Batch</h2>
 
-This section will walk you through running an example evaluation job on Azure Batch.
+This section walks you through running an example evaluation job on Azure Batch.
 </summary>
 
-Once you have followed the general set-up instructions above, you should:
+### Prerequisites and checks
+Once you have followed the [general set-up instructions](#general-setup-to-interact-with-batch) above, you should:
 - Be logged in to Azure. You can check this with `az account show`. 
 - Be inside a Python virtual environment in which the dependencies specified in `batch/requirements.txt` have been installed.
 - Have appropriately environment variables. You can check this by printing one to the terminal, e.g. via `echo $AZURE_BATCH_ACCOUNT`.
