@@ -1,11 +1,11 @@
 # Running the wastewater forecast evaluation pipeline on Azure Batch
 This readme is divided into the following subsections:
-- [General setup to interact with Batch](#general-setup-to-interact-with-batch)
-- [Walkthrough: running an evaluation job on Batch](#walkthrough-running-an-evaluation-job-on-batch)
-- [Customizing and configuring the pipeline](#customizing-and-configuring-the-pipeline)
+- [General setup for interacting with CFA's Azure resources](#general-setup-for-interacting-with-cfas-azure-resources)
+- [Walkthrough: running an evaluation job on Azure Batch](#walkthrough-running-an-evaluation-job-on-azure-batch)
+- [Customizing and configuring the evaluation pipeline](#customizing-and-configuring-the-evaluation-pipeline)
 
 
-## General setup to interact with Batch
+## General setup for interacting with CFA's Azure resources
   
 This section guides you through setting up your system (typically the CFA VAP) to run our pipeline. It also recommends some optional tools we have found helpful.
 
@@ -142,7 +142,7 @@ This application allows you to monitor Azure batch "pools" (groups of virtual ma
 You may also want to familiarize yourself with the [Azure web portal](https://portal.azure.com), which you can use in place of the two GUI applications above, as well as for other Azure tasks such as checking the status of OCI containers in an Azure container registry account. That said, we suggest defaulting to using the GUIs, as we find them more user-friendly.
 
 
-## Walkthrough: running an evaluation job on Batch
+## Walkthrough: running an evaluation job on Azure Batch
 
 This section walks you through running an example evaluation job on Azure Batch.
 
@@ -214,7 +214,7 @@ Note that you should wait for all tasks in `fit` to finish before kicking off th
 > If you or someone else previously have previously created a job and tasks with these names the script will error, telling you that the tasks already exist. To fix this, delete the tasks, delete and re-create the job, or create a new job with a distinct name, e.g. `my-demo-fit-job-2`.
 
 
-## Customizing and configuring the pipeline
+## Customizing and configuring the evaluation pipeline
 
 This section explains how to customize and configure the pipeline.
 
