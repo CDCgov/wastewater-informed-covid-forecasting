@@ -1,7 +1,7 @@
 # Running the wastewater forecast evaluation pipeline on Azure Batch
 This readme is divided into the following subsections:
 - [General setup to interact with Batch](#general-setup-to-interact-with-batch)
-- [Walkthrough: running an evaluation job on Batch](#walkthrough:-running-an-evaluation-job-on-batch)
+- [Walkthrough: running an evaluation job on Batch](#walkthrough-running-an-evaluation-job-on-batch)
 - [Customizing and configuring the pipeline](#customizing-and-configuring-the-pipeline)
 
 
@@ -204,7 +204,7 @@ To view all your jobs, navigate in Home to `Batch` > `accounts` > `cfaprdba`> `j
 This section explains how to customize and configure the pipeline.
 
 ### Uploading data
-The [walkthrough](#walkthrough:-running-an-evaluation-job-on-batch) uses data and configuration to blob You can upload data to blob storage via the [Azure Storage Explorer](#azure-storage-explorer) GUI, but if you would like to work programmatically, we provide an `upload_data.py` script. 
+The [walkthrough](#walkthrough-running-an-evaluation-job-on-batch) uses data and configuration to blob You can upload data to blob storage via the [Azure Storage Explorer](#azure-storage-explorer) GUI, but if you would like to work programmatically, we provide an `upload_data.py` script. 
 
 For example
 
