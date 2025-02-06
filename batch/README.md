@@ -1,6 +1,11 @@
 # Running the wastewater forecast evaluation pipeline on Azure Batch
+This readme is divided into subsections. Click their headers to expand or collapse them.
 
-## General setup to interact with Batch.
+<details>
+<summary><h2>General setup to interact with Batch</h2>
+  
+This section walks you through the installation of pipeline run requirements. It also recommends some optional tools we have found helpful.
+</summary>
 
 ### System requirements
 This guide assumes you are working on a Debian/Ubuntu family Linux machine or in an equivalent virtual machine (e.g. a WSL2 Ubuntu from Windows). It assumes you are comfortable working at the Unix command line, and are working at the top-level project directory (one level up from the `batch` subdirectory in which this README is located).
@@ -15,13 +20,8 @@ sudo apt update
 ```
 
 #### The Azure CLI and logging in to Azure
-You will need the Azure command line tool `az`. Install it by following Microsoft's [Option 2: Step-by-step installation instructions](https://learn.microsoft.com/en-us/cli/azure/install-azure-cli-linux?pivots=apt#option-2-step-by-step-installation-instructions) tutorial. It finishes with:
+You will need the Azure command line tool `az`. Install it by following Microsoft's [Option 2: Step-by-step installation instructions](https://learn.microsoft.com/en-us/cli/azure/install-azure-cli-linux?pivots=apt#option-2-step-by-step-installation-instructions) tutorial. Once you have followed it, confirm that `az` has been successfully installed by running 
 
-```bash
-sudo apt-get install azure-cli
-```
-
-Confirm that it is installed by checking the output of
 ```bash
 which az
 ```
@@ -31,7 +31,7 @@ Now confirm you can log in to Azure at the command line. Run
 ```bash
 az login
 ```
-This will prompt you to go to a website to log in. A browser window will open automatically if you have one set up. CFA VAP WSL2 setups don't have a browser set up by default, so you may need to click on or copy paste the link you see in the terminal into a browser you open manually. Use your `@ext.cdc.gov` to log in. Once you have logged in, you can return to the command prompt. You may be prompted to choose a subscription. Choose the one that begins with `OCIO`. You should then be authenticated.
+This will prompt you to go to a website to log in. A browser window will open automatically if you have one set up. CFA VAP WSL2 setups don't have a browser set up by default, so you may need to click on or copy paste the link you see in the terminal into a browser you open manually. In the browser, log in with your `@ext.cdc.gov` account when prompted. Once you have logged in, you can return to the command prompt.
 
 #### Podman (recommended) or Docker
 For the default setup we'll use in this tutorial, there should already be a "container image" for this project in the Azure Container Registry (ACR). To build and push one for yourself, however, you will need an Open Container Initiative (OCI)-compatible container engine, such as `docker` or `podman`. Frustratingly, Azure assumes you are using `docker`, so it requires some commands to start with `docker <command>`. Fortunately, `podman` works as a drop-in replacement if you install `podman-docker`. `podman-docker` simply creates an wrapper application at `/usr/bin/docker` that points to your `podman` installation.
@@ -101,37 +101,62 @@ Note that if you close and reopen your Terminal window, you may need to reactiva
 
 ### Installing Python dependencies.
 
-Once you have your Python set up, you install needed python dependencies by running the following from the top-level project directory.
+Once you have your Python virtual environment set up, install needed Python dependencies by running the following from the top-level project directory.
 
 ```bash
 pip install -r batch/requirements.txt
 ```
 
-### Useful GUI applications
-For checking your work, it may also be worth installing the [Azure Storage Explorer](https://azure.microsoft.com/en-us/products/storage/storage-explorer/) graphical application. You will also want to familiarize yourself with the [Azure web portal](https://portal.azure.com).
+### Set up environment variables
+We'll use the `EnvCredentialHandler` from the [`azuretools`](https://github.com/CDCgov/cfa-azuretools) Python library to handle credentials for CFA Azure resources. It looks for key configuration in your environment variables. CFA's STF Team provide a secret-free (but private) `azureconfig.sh` script to configure environment variables appropriately in their [SharePoint](https://cdc.sharepoint.com/:u:/r/teams/CenterforForecastingandOutbreakAnalytics/Shared%20Documents/General/02%20-%20Predict/Real%20Time%20Monitoring%20(RTM)%20Branch/Short%20Term%20Forecasts/azure/azureconfig.sh?csf=1&web=1&e=e7YBqr). Contact @dylanhmorris if you believe you should have access and do not. We recommend setting these environment variables as part of your Terminal setup.
 
-### Log in to Azure
-Confirm you can log in to Azure with `az login`. `az login` will try to open a browser window for you. Use your `ext` account.
-
-
-## Step-by-step directions to run a batch evaluation job
-
-Upon successful completion of the set-up instructions above, you should be logged in to azure (`az login` and click on link) and be inside a python virtual environment `python3 -m venv .` `source bin/activate`. You will also want to make sure you have installed python dependencies `pip install -r batch/requirements.txt`.
-
-### Set up your environmental variables
-We'll use the `EnvCredentialHandler` from the [`azuretools`](https://github.com/CDCgov/cfa-azuretools) Python library to handle credentials for CFA Azure resources. It looks for key configuration in your environment variables. CFA's STF Team provide a secret-free (but private) `azureconfig.sh` script to configure environment variables appropriately in their [SharePoint](https://cdc.sharepoint.com/:u:/r/teams/CenterforForecastingandOutbreakAnalytics/Shared%20Documents/General/02%20-%20Predict/Real%20Time%20Monitoring%20(RTM)%20Branch/Short%20Term%20Forecasts/azure/azureconfig.sh?csf=1&web=1&e=e7YBqr). Contact @dylanhmorris if you believe you should have access and do not. We recommend setting up those environment variables as part of your terminal setup, e.g. by adding the following to your [`.bash_profile`](https://linuxopsys.com/dotfiles-in-linux-explained):
-
-```bash
-. <path to your azuretools.sh from your home directory>
+#### Recommended approach
+1. Save `azureconfig.sh` to your Linux user home directory. Confirm this worked by running `ls ~/` and checking that `azureconfig.sh` is among the files listed.
+1. Create or open the [`.bash_profile`](https://linuxopsys.com/dotfiles-in-linux-explained) file in your user home directory, i.e. the file located at 
+```
+~/.bash_profile
 ```
 
+3. Add the following line to your `.bash_profile`:
+```bash
+. azureconfig.sh
+```
+Note the `.`!
+
+
 Provided you have logged in to Azure at the command line (via `az login`) `EnvCredentialHandler` will be able to retrieve a set of valid credentials on your behalf from an Azure Key Vault. It will do this using the values of the environment variables defined in `azureconfig.sh`.
+
+
+### Useful Azure GUI applications
+We recommend installing two official Azure desktop applications. Both are graphical user inferaces ("GUIs") for Azure resources. They will help you monitor your work on Azure.
+
+#### [Azure Storage Explorer](https://azure.microsoft.com/en-us/products/storage/storage-explorer/)
+This application allows you to look at the navigate through the contents Azure blob storage containers as though they were a local files. You can use it to download files or directories, as well as to delete or rename files within Blob storage.
+
+#### [Azure Batch Explorer](https://azure.github.io/BatchExplorer/)
+This application allows you to monitor Azure batch "pools" (groups of virtual machines), "jobs" (sets of programs to run on those pools), and "tasks" (individaul components of a job). 
+
+### Azure web portal
+You may also want to familiarize yourself with the [Azure web portal](https://portal.azure.com), which you can use in place of the two GUI applications above, as well as for other Azure tasks such as checking the status of OCI containers in an Azure container registry account. That said, we suggest defaulting to using the GUIs, as we find them more user-friendly.
+
+</details>
+
+
+<details><summary><h2>Step-by-step directions to run an evaluation job on Batch</h2>
+
+This section will walk you through running an example evaluation job on Azure Batch.
+</summary>
+
+Once you have followed the general set-up instructions above, you should:
+- Be logged in to Azure. You can check this with `az account show`. 
+- Be inside a Python virtual environment in which the dependencies specified in `batch/requirements.txt` have been installed.
+- Have appropriately environment variables. You can check this by printing one to the terminal, e.g. via `echo $AZURE_BATCH_ACCOUNT`.
 
 ### Getting data into blob storage
 You can upload data to blob storage via the Azure Storage Explorer GUI, but if you would like to work programmatically, we provide an `upload_data.py` script. For example
 
 ```bash
-pyhton3 batch/upload_data.py -g *.csv input/hosp_data wastewater-input
+python3 batch/upload_data.py -g *.csv input/hosp_data wastewater-input
 ```
 will give you the option to upload anything with the `.csv` extension in your local folder `input/hosp_data` to a blob storage container (bucket) named `wastewater-input`. It will use the blob storage account specified `azureconfig.sh`.
 
@@ -224,6 +249,7 @@ python3 batch/setup_job.py input/config/eval/eval_config.yaml post_process my-de
 Note that you should wait for all tasks in `fit` to finish before kicking off the `post_process` job. Eventually, we may unify these into a single job, in which the postprocess tasks wait for the corresponding fitting tasks to finish, but we have not yet implemented this.
 
 > [!NOTE]
-> If you previously have previously used a job and tasks with these names and not deleted them, the script will error, telling you that the tasks already exist. Either delete the tasks or create a new job with a distinct name, e.g. `my-demo-fit-job-2`.
+> If you previously have previously used a job and tasks with these names and not deleted them, the script will error, telling you that the tasks already exist. Delete the tasks, delete and re-create the job, or create a new job with a distinct name, e.g. `my-demo-fit-job-2`.
 
 To view all your jobs, navigate in Home to `Batch` > `accounts` > `cfaprdba`> `job_id`, or use the Batch Explorer.
+<\details>
