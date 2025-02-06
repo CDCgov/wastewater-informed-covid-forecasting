@@ -1,11 +1,13 @@
 # Running the wastewater forecast evaluation pipeline on Azure Batch
-This readme is divided into subsections. Click their headers to expand or collapse them.
+This readme is divided into the following subsections:
+- [General setup to interact with Batch](#general-setup-to-interact-with-batch)
+- [Walkthrough: running an evaluation job on Batch](#walkthrough:-running-an-evaluation-job-on-batch)
+- [Customizing and configuring the pipeline](#customizing-and-configuring-the-pipeline)
 
-<details>
-<summary><h2>General setup to interact with Batch</h2>
+
+## General setup to interact with Batch
   
 This section guides you through setting up your system (typically the CFA VAP) to run our pipeline. It also recommends some optional tools we have found helpful.
-</summary>
 
 ### System requirements
 This guide assumes you are working on a Debian/Ubuntu family Linux machine or in an equivalent virtual machine (e.g. a WSL2 Ubuntu from Windows). It assumes you are comfortable working at the Unix command line, and are working at the top-level project directory (one level up from the `batch` subdirectory in which this README is located).
@@ -139,10 +141,8 @@ This application allows you to monitor Azure batch "pools" (groups of virtual ma
 ### Azure web portal
 You may also want to familiarize yourself with the [Azure web portal](https://portal.azure.com), which you can use in place of the two GUI applications above, as well as for other Azure tasks such as checking the status of OCI containers in an Azure container registry account. That said, we suggest defaulting to using the GUIs, as we find them more user-friendly.
 
-</details>
 
-
-<details><summary><h2>Walkthrough: running an evaluation job on Batch</h2>
+## Walkthrough: running an evaluation job on Batch
 
 This section walks you through running an example evaluation job on Azure Batch.
 </summary>
@@ -198,13 +198,10 @@ Note that you should wait for all tasks in `fit` to finish before kicking off th
 
 To view all your jobs, navigate in Home to `Batch` > `accounts` > `cfaprdba`> `job_id`, or use the Batch Explorer.
 
-</details>
 
+## Customizing and configuring the pipeline
 
-<details><summary><h2>Customizing and configuring runs</h2>
-
-This section explains how to customize and configure jobs.
-</summary>
+This section explains how to customize and configure the pipeline.
 
 ### Uploading data
 The [walkthrough](#walkthrough:-running-an-evaluation-job-on-batch) uses data and configuration to blob You can upload data to blob storage via the [Azure Storage Explorer](#azure-storage-explorer) GUI, but if you would like to work programmatically, we provide an `upload_data.py` script. 
@@ -266,4 +263,3 @@ make container_push
 ```
 
 Look to see if the container is now there there in `portal.azure.com` under `cfaprdbatchcr > services > repositories> renewalww`
-</details>
