@@ -142,7 +142,7 @@ You may also want to familiarize yourself with the [Azure web portal](https://po
 </details>
 
 
-<details><summary><h2>Step-by-step directions to run an evaluation job on Batch</h2>
+<details><summary><h2>Walkthrough: running an evaluation job on Batch</h2>
 
 This section walks you through running an example evaluation job on Azure Batch.
 </summary>
@@ -153,8 +153,63 @@ Once you have followed the [general set-up instructions](#general-setup-to-inter
 - Be inside a Python virtual environment in which the dependencies specified in `batch/requirements.txt` have been installed.
 - Have appropriately environment variables. You can check this by printing one to the terminal, e.g. via `echo $AZURE_BATCH_ACCOUNT`.
 
-### Getting data into blob storage
-You can upload data to blob storage via the Azure Storage Explorer GUI, but if you would like to work programmatically, we provide an `upload_data.py` script. For example
+### Create a pool
+`setup_pool.py` sets up a "pool" of virtual machines on Azure that will actually run your code when asked (by a "task" that forms part of a "job").
+
+`setup_pool.py` needs to know some things from the config file, like how to authenticate, what container to associate with the pool (each pool can be associated with a default container), how to handle autoscaling, how to handle networking, what kind of virtual machines are desired, etc. You can view these specifications under Batch Accounts `cfaprdba > pools > wastewater_runner > jsonview` or under `Pools` in the [Azure Batch Explorer](#azure-batch-explorer) application.
+
+We'll create a pool named `wastewater-demo-pool`:
+```bash
+python3 batch/setup_pool.py wastewater-demo-pool
+```
+
+We can now run compute jobs on our `wastewater-demo-pool`.
+
+### Set up a specific job
+A job is a set of tasks, each task (by default) gets handed to 1 virtual machine which (by default) runs it within a specified [OCI container](https://en.wikipedia.org/wiki/Open_Container_Initiative). "Containers" in this sense are a way of packaging code so it can run easily on a variety of operating systems / computers. For more on containers and how to customize the one we use here, see ["Building the container image"](#building-the-container-image), below.
+
+
+> [!NOTE]
+> Containers have a default working directory. Azure Batch tasks _don't_ default to starting in the container's own default working directory. In this tutorial, we _would_ like to start our tasks in the container's working directory. For that reason, `setup_job.py` contains [this line](https://github.com/cdcent/cfa-forecast-renewal-ww/blob/91080eaf42ad63f3b1de9e89c6221f58fa55a941/batch/setup_job.py#L70), which explicitly instructs Azure to use the container's default working directory.
+
+
+In our example, `setup_job.py` creates a bunch of tasks, all of them consist of running the following command for different values of {config_index}:
+```
+Rscript pipeline/command_line_eval_{script_type}_ww.R {config_index}  input/config/eval/eval_config.yaml input/params.toml
+```
+Each invocation of that command will perform one of the model fits specified in `eval_config.yaml`; which one depends on the value of `{config_index}`. `setup_job.py` loops over possible values of `{config_index}`, creating tasks for each one.
+
+Let's run `setup_job.py` to create a model fitting job and its constituent tasks. We'll name it `my-demo-fit-job` and have it run on the `wastewater-demo-pool` we just created. Let's image we have a properly formatted configuration file named `eval_config.yaml` stored in `input/config/eval/eval_config.yaml`. You can create one using the [`src/setup_eval.R`](../src/setup_eval.R) R script. Note this must be the same config file you uploaded to blob storage in azure storage container for the wastewater input.
+
+```bash
+python3 batch/setup_job.py input/eval_config.yaml fit my-demo-fit-job wastewater-demo-pool
+```
+
+This should create a job named `my-demo-fit-job` consisting of tasks that are named by forecast dates, locations, scenarios and the the job type. (here `fit`). Once your fitting job is finished, set up a second job to postprocess it by running:
+
+```bash
+python3 batch/setup_job.py input/config/eval/eval_config.yaml post_process my-demo-postprocess-job wastewater-demo-pool
+````
+
+Note that you should wait for all tasks in `fit` to finish before kicking off the `post_process` job. Eventually, we may unify these into a single job, in which the postprocess tasks wait for the corresponding fitting tasks to finish, but we have not yet implemented this.
+
+> [!WARNING]
+> If you previously have previously used a job and tasks with these names and not deleted them, the script will error, telling you that the tasks already exist. Delete the tasks, delete and re-create the job, or create a new job with a distinct name, e.g. `my-demo-fit-job-2`.
+
+To view all your jobs, navigate in Home to `Batch` > `accounts` > `cfaprdba`> `job_id`, or use the Batch Explorer.
+
+</details>
+
+
+<details><summary><h2>Customizing and configuring runs</h2>
+
+This section explains how to customize and configure jobs.
+</summary>
+
+### Uploading data
+The [walkthrough](#walkthrough:-running-an-evaluation-job-on-batch) uses data and configuration to blob You can upload data to blob storage via the [Azure Storage Explorer](#azure-storage-explorer) GUI, but if you would like to work programmatically, we provide an `upload_data.py` script. 
+
+For example
 
 ```bash
 python3 batch/upload_data.py -g *.csv input/hosp_data wastewater-input
@@ -163,13 +218,13 @@ will give you the option to upload anything with the `.csv` extension in your lo
 
 Upload any needed input data in the file structure specified by your evaluation configuration file, including the file itself (e.g. `input/config/eval/eval_config.yaml`).
 
-### Containerize and push the container to the container registry
+
+### Setting up the job container
 Once your data is in blob storage, we next turn to creating a very different thing, confusingly also called a "container": a Docker-compatible [container](https://www.docker.com/resources/what-container/) in which to run our project code.
 
 We want to make it easy for an arbitrary virtual machine ("node") within Azure to run our code, with minimal set-up. Why? That will in turn makes it easy for us to add and subtract these "nodes" from our job(s) as needed—even automatically!—while trusting that each new one will be able to do its just for us.
 
 There are a number of ways to make it easy for a standard virtual machine to run your code in the way you want. Using Docker-style "containers" is one such solution; we use it here because Azure Batch's infrastructure supports it well. In particular, Azure has its own internal [container registries](https://www.redhat.com/en/topics/cloud-native-apps/what-is-a-container-registry) that nodes can access. We'll put our container in one of those, and then tell our group of Batch nodes (called a "pool") how to retrieve it and run it.
-
 
 ### Building the container image
 The first step is building the [container image](https://docs.docker.com/guides/docker-concepts/the-basics/what-is-an-image/). The recipe for this is specified in the repository `Containerfile`.
@@ -211,46 +266,4 @@ make container_push
 ```
 
 Look to see if the container is now there there in `portal.azure.com` under `cfaprdbatchcr > services > repositories> renewalww`
-
-### Create the pool
-`setup_pool.py` sets up a "pool" of virtual machines on Azure that will actually run your code when asked (by a "task" that forms part of a "job").
-
-`setup_pool.py` needs to know some things from the config file, like how to authenticate, what container to associate with the pool (each pool can be associated with a default container), how to handle autoscaling, how to handle networking, what kind of virtual machines are desired, etc. You can view these specifications under Batch Accounts `cfaprdba > pools > wastewater_runner > jsonview`
-
-Let's create a pool named `wastewater-demo-pool`:
-```bash
-python3 batch/setup_pool.py wastewater-demo-pool
-```
-
-We can now run compute jobs on our `wastewater-demo-pool`.
-
-### Set up a specific job
-A job is a set of tasks, each task (by default) gets handed to 1 virtual machine which (by default) runs it within the specified container.
-
-A gotcha: unlike most code run in a container, Batch tasks _don't_ default to starting in the container's own default working directory. In this tutorial, we _would_ like to start our tasks in the container's working directory. For that reason, `setup_job.py` contains [this line](https://github.com/cdcent/cfa-forecast-renewal-ww/blob/91080eaf42ad63f3b1de9e89c6221f58fa55a941/batch/setup_job.py#L70), which explicitly instructs Azure to use the container's default working directory.
-
-In our example, `setup_job.py` creates a bunch of tasks, all of them consist of running the following command for different values of {config_index}:
-```
-Rscript pipeline/command_line_eval_{script_type}_ww.R {config_index}  input/config/eval/eval_config.yaml input/params.toml
-```
-Each invocation of that command will perform one of the model fits specified in `eval_config.yaml`; which one depends on the value of `{config_index}`. `setup_job.py` loops over possible values of `{config_index}`, creating tasks for each one.
-
-Let's run `setup_job.py` to create a model fitting job and its constituent tasks. We'll name it `my-demo-fit-job` and have it run on the `wastewater-demo-pool` we just created. Let's image we have a properly formatted configuration file named `eval_config.yaml` stored in `input/config/eval/eval_config.yaml`. You can create one using the [`src/setup_eval.R`](../src/setup_eval.R) R script. Note this must be the same config file you uploaded to blob storage in azure storage container for the wastewater input.
-
-```bash
-python3 batch/setup_job.py input/eval_config.yaml fit my-demo-fit-job wastewater-demo-pool
-```
-
-This should create a job named `my-demo-fit-job` consisting of tasks that are named by forecast dates, locations, scenarios and the the job type. (here `fit`). Once your fitting job is finished, set up a second job to postprocess it by running:
-
-```bash
-python3 batch/setup_job.py input/config/eval/eval_config.yaml post_process my-demo-postprocess-job wastewater-demo-pool
-````
-
-Note that you should wait for all tasks in `fit` to finish before kicking off the `post_process` job. Eventually, we may unify these into a single job, in which the postprocess tasks wait for the corresponding fitting tasks to finish, but we have not yet implemented this.
-
-> [!NOTE]
-> If you previously have previously used a job and tasks with these names and not deleted them, the script will error, telling you that the tasks already exist. Delete the tasks, delete and re-create the job, or create a new job with a distinct name, e.g. `my-demo-fit-job-2`.
-
-To view all your jobs, navigate in Home to `Batch` > `accounts` > `cfaprdba`> `job_id`, or use the Batch Explorer.
-<\details>
+</details>
