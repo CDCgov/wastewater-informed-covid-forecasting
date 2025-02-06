@@ -15,7 +15,7 @@ This guide assumes you are working on a Debian/Ubuntu family Linux machine or in
 ### Installing needed command line utilities.
 
 #### Update apt
-Before start installing things with `apt`, it's always good practice to update:
+Before start installing things with `apt`, it's always good practice to update it:
 
 ```bash
 sudo apt update
@@ -60,7 +60,10 @@ podman version <A VERSION NUMBER>
 ```
 
 > [!WARNING]
-> the above is a bit of a hack. The lack of easy interfaces between `podman` and the Azure container registry has been [an open issue for some time](https://github.com/Azure/azure-cli/issues/14768#issue-678300971).
+> the above is a bit of a hack. The lack of easy interfaces between `podman` and the Azure container registry was [an open issue for some time](https://github.com/Azure/azure-cli/issues/14768#issue-678300971).
+
+>[!NOTE]
+> As of March 2024 [a less hacky approach should be possible](https://github.com/Azure/azure-cli/commit/4231b2b6ea913af966a213bac862a9cc235adcb9). Once we have confirmed that it works in practice, we will update the above guidance.
 
 If you ever decide to replace `podman` with actual `docker`, you may wish to run `sudo rm /usr/bin/docker` to remove the symlink before installing real `docker`.
 
