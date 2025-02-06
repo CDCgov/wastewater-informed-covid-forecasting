@@ -14,7 +14,7 @@ Before start installing things with `apt`, it's always good practice to update:
 sudo apt update
 ```
 
-#### The Azure CLI
+#### The Azure CLI and logging in to Azure
 You will need the Azure command line tool `az`. Install it by following Microsoft's [Option 2: Step-by-step installation instructions](https://learn.microsoft.com/en-us/cli/azure/install-azure-cli-linux?pivots=apt#option-2-step-by-step-installation-instructions) tutorial. It finishes with:
 
 ```bash
@@ -25,6 +25,13 @@ Confirm that it is installed by checking the output of
 ```bash
 which az
 ```
+
+Now confirm you can log in to Azure at the command line. Run 
+
+```bash
+az login
+```
+This will prompt you to go to a website to log in. A browser window will open automatically if you have one set up. CFA VAP WSL2 setups don't have a browser set up by default, so you may need to click on or copy paste the link you see in the terminal into a browser you open manually. Use your `@ext.cdc.gov` to log in. Once you have logged in, you can return to the command prompt. You may be prompted to choose a subscription. Choose the one that begins with `OCIO`. You should then be authenticated.
 
 #### Podman (recommended) or Docker
 For the default setup we'll use in this tutorial, there should already be a "container image" for this project in the Azure Container Registry (ACR). To build and push one for yourself, however, you will need an Open Container Initiative (OCI)-compatible container engine, such as `docker` or `podman`. Frustratingly, Azure assumes you are using `docker`, so it requires some commands to start with `docker <command>`. Fortunately, `podman` works as a drop-in replacement if you install `podman-docker`. `podman-docker` simply creates an wrapper application at `/usr/bin/docker` that points to your `podman` installation.
