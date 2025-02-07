@@ -10,12 +10,12 @@ This readme is divided into the following subsections:
 This section guides you through setting up your system (typically the CFA VAP) to run our pipeline. It also recommends some optional tools we have found helpful.
 
 ### System requirements
-This guide assumes you are working on a Debian/Ubuntu family Linux machine or in an equivalent virtual machine (e.g. a WSL2 Ubuntu from Windows). It assumes you are comfortable working at the Unix command line, and are working at the top-level project directory (one level up from the `batch` subdirectory in which this README is located).
+This guide assumes you are working on a Debian/Ubuntu family Linux machine or in an equivalent virtual machine (e.g. a WSL2 Ubuntu from Windows). It assumes you are comfortable working at the Unix command line. Unless otherwise specified, it expected you to run commands from the top-level project directory of this project / repository (i.e. one level up from the `batch` subdirectory in which this README is located).
 
 ### Installing needed command line utilities.
 
 #### Update apt
-Before installing things with `apt`, it's generally good practice to update it:
+Before installing things with `apt`, it's good to update package lists:
 
 ```bash
 sudo apt update
