@@ -6,7 +6,7 @@ This readme is divided into the following subsections:
 
 
 ## General setup for interacting with CFA's Azure resources
-  
+
 This section guides you through setting up your system (typically the CFA VAP) to run our pipeline. It also recommends some optional tools we have found helpful.
 
 ### System requirements
@@ -22,13 +22,13 @@ sudo apt update
 ```
 
 #### The Azure CLI and logging in to Azure
-You will need the Azure command line tool `az`. Install it by following Microsoft's [Option 2: Step-by-step installation instructions](https://learn.microsoft.com/en-us/cli/azure/install-azure-cli-linux?pivots=apt#option-2-step-by-step-installation-instructions) tutorial. Once you have followed it, confirm that `az` has been successfully installed by running 
+You will need the Azure command line tool `az`. Install it by following Microsoft's [Option 2: Step-by-step installation instructions](https://learn.microsoft.com/en-us/cli/azure/install-azure-cli-linux?pivots=apt#option-2-step-by-step-installation-instructions) tutorial. Once you have followed it, confirm that `az` has been successfully installed by running
 
 ```bash
 which az
 ```
 
-Now confirm you can log in to Azure at the command line. Run 
+Now confirm you can log in to Azure at the command line. Run
 
 ```bash
 az login
@@ -117,7 +117,7 @@ We'll use the `EnvCredentialHandler` from the [`azuretools`](https://github.com/
 
 #### Recommended approach
 1. Save `azureconfig.sh` to your Linux user home directory. Confirm this worked by running `ls ~/` and checking that `azureconfig.sh` is among the files listed.
-1. Create or open the [`.bash_profile`](https://linuxopsys.com/dotfiles-in-linux-explained) file in your user home directory, i.e. the file located at 
+1. Create or open the [`.bash_profile`](https://linuxopsys.com/dotfiles-in-linux-explained) file in your user home directory, i.e. the file located at
 ```
 ~/.bash_profile
 ```
@@ -139,7 +139,7 @@ We recommend installing two official Azure desktop applications. Both are graphi
 This application allows you to look at the navigate through the contents Azure blob storage containers as though they were a local files. You can use it to download files or directories, as well as to delete or rename files within Blob storage.
 
 #### Azure Batch Explorer ([link to download](https://azure.github.io/BatchExplorer/))
-This application allows you to monitor Azure batch "pools" (groups of virtual machines), "jobs" (sets of programs to run on those pools), and "tasks" (individaul components of a job). 
+This application allows you to monitor Azure batch "pools" (groups of virtual machines), "jobs" (sets of programs to run on those pools), and "tasks" (individaul components of a job).
 
 ### Azure web portal
 You may also want to familiarize yourself with the [Azure web portal](https://portal.azure.com), which you can use in place of the two GUI applications above, as well as for other Azure tasks such as checking the status of OCI containers in an Azure container registry account. That said, we suggest defaulting to using the GUIs, as we find them more user-friendly.
@@ -199,10 +199,10 @@ Rscript pipeline/command_line_eval_post_process_ww.R 6 input/config/eval/example
 
 The file [`input/params.toml`][../input/params.toml] specifies hyperparameters for priors and other model configuration that is shared across individual forecasting problems. It is tracked in this repo, so you should already have a copy.
 
-To save you writing this all out by hand, `setup_job.py` loops over all the values of `{config_index}` in `input/config/eval/example_eval_config.yaml`, creating tasks for each one. 
+To save you writing this all out by hand, `setup_job.py` loops over all the values of `{config_index}` in `input/config/eval/example_eval_config.yaml`, creating tasks for each one.
 
 #### Model fitting
-Let's run `setup_job.py` to create a model fitting job and its constituent tasks. We'll name it `my-demo-fit-job` and have it run on the `wastewater-demo-pool` we just created. We'll use our local copy of the example configuration file (`example_eval_config.yaml`) and the corresponding copy of it Blob storage container `wastewater-input`. 
+Let's run `setup_job.py` to create a model fitting job and its constituent tasks. We'll name it `my-demo-fit-job` and have it run on the `wastewater-demo-pool` we just created. We'll use our local copy of the example configuration file (`example_eval_config.yaml`) and the corresponding copy of it Blob storage container `wastewater-input`.
 
 > [!CAUTION]
 > Make sure your local and remote config files are identical. Otherwise, the pipeline may error or behave unexpectedly. We may deduplicate the configs in a future refactor.
@@ -211,7 +211,7 @@ Let's run `setup_job.py` to create a model fitting job and its constituent tasks
 python3 batch/setup_job.py input/config/eval/example_eval_config.yaml fit my-demo-fit-job wastewater-demo-pool
 ```
 
-This should create a job named `my-demo-fit-job` consisting of tasks that are named by forecast dates, locations, scenarios and the the job type. (here `fit`). Confirm that this has happened by looking for the job and its tasks in the Azure Batch Explorer or in the Batch section of the Azure web portal. Once your fitting job is finished, examine the `wastewater-example-output` Blob storage container and confirm that output files have been generated. 
+This should create a job named `my-demo-fit-job` consisting of tasks that are named by forecast dates, locations, scenarios and the the job type. (here `fit`). Confirm that this has happened by looking for the job and its tasks in the Azure Batch Explorer or in the Batch section of the Azure web portal. Once your fitting job is finished, examine the `wastewater-example-output` Blob storage container and confirm that output files have been generated.
 
 #### Model postprocessing
 Next, set up a second job to postprocess the results of the fitting job by running:
@@ -231,7 +231,7 @@ Note that you should wait for all tasks in `fit` to finish before kicking off th
 This section explains how to customize and configure the pipeline.
 
 ### Uploading data
-The [walkthrough](#walkthrough-running-an-evaluation-job-on-azure-batch) uses data and configuration that are already in Azure Blob Storage. You can upload data to blob storage via the [Azure Storage Explorer](#azure-storage-explorer) GUI, but if you would like to work programmatically, we provide an `upload_data.py` script. 
+The [walkthrough](#walkthrough-running-an-evaluation-job-on-azure-batch) uses data and configuration that are already in Azure Blob Storage. You can upload data to blob storage via the [Azure Storage Explorer](#azure-storage-explorer) GUI, but if you would like to work programmatically, we provide an `upload_data.py` script.
 
 For example
 
