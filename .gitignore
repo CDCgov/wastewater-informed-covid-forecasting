@@ -12,8 +12,6 @@ targets.log
 # default secrets file
 secrets.yaml
 
-# Azure batch configuration
-batch_config.toml
 
 # rendered documents ignored by default
 *.html
@@ -25,13 +23,20 @@ bin
 
 # Don't track data by default
 repo_data/
-input/*
 output/*
+input/*
+input/config/*
+input/config/eval/*
 
 # Do track certain static data
 !input/saved_pmfs
 !input/locations.csv
 !input/params.toml
+
+# do track example configuration
+!input/config/
+!input/config/eval/
+!input/config/eval/example_eval_config.yaml
 
 # Do track the output/forecasts directory
 !output/forecasts
