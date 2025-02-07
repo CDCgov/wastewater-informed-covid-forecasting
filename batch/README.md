@@ -126,7 +126,7 @@ We'll use the `EnvCredentialHandler` from the [`azuretools`](https://github.com/
 ```bash
 . azureconfig.sh
 ```
-Note the `.`!
+Note the `. `!
 
 
 Provided you have logged in to Azure at the command line (via `az login`) `EnvCredentialHandler` will be able to retrieve a set of valid credentials on your behalf from an Azure Key Vault. It will do this using the values of the environment variables defined in `azureconfig.sh`.
