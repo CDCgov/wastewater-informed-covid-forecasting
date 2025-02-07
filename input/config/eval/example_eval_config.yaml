@@ -85,7 +85,7 @@ n_parallel_chains: 4.0
 adapt_delta: 0.95
 max_treedepth: 12.0
 seed: 123.0
-name_of_config: eval_config
+name_of_config: example_eval_config
 generation_interval:
 - 0.1617012
 - 0.3205257

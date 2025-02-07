@@ -33,7 +33,7 @@ input/config/eval/*
 !input/locations.csv
 !input/params.toml
 
-# do track example configuration
+# do track example eval configuration
 !input/config/
 !input/config/eval/
 !input/config/eval/example_eval_config.yaml
