@@ -15,7 +15,7 @@ This guide assumes you are working on a Debian/Ubuntu family Linux machine or in
 ### Installing needed command line utilities.
 
 #### Update apt
-Before start installing things with `apt`, it's always good practice to update it:
+Before installing things with `apt`, it's generally good practice to update it:
 
 ```bash
 sudo apt update
@@ -59,7 +59,7 @@ You should see a message that ends with:
 podman version <A VERSION NUMBER>
 ```
 
-> [!WARNING]
+> [!CAUTION]
 > the above is a bit of a hack. The lack of easy interfaces between `podman` and the Azure container registry was [an open issue for some time](https://github.com/Azure/azure-cli/issues/14768#issue-678300971).
 
 >[!NOTE]
@@ -158,7 +158,7 @@ az account show
 - Be inside a Python virtual environment in which the dependencies specified in `batch/requirements.txt` have been installed.
 - Have appropriately environment variables. You can check this by trying to `echo` one to the Terminal:
 ```bash
-echo $AZURE_BATCH_ACCOUNT`
+echo $AZURE_BATCH_ACCOUNT
 ```
 
 ### Create or grab a configuration file
@@ -178,21 +178,21 @@ python3 batch/setup_pool.py wastewater-demo-pool
 We can now run compute jobs on our `wastewater-demo-pool`.
 
 ### Set up a specific job
-A job is a set of tasks, each task (by default) gets handed to 1 virtual machine which (by default) runs it within a specified [OCI container](https://en.wikipedia.org/wiki/Open_Container_Initiative). "Containers" in this sense are a way of packaging code so it can run easily on a variety of operating systems / computers. For more on containers and how to customize the one we use here, see ["Building the container image"](#building-the-container-image), below.
+A job is a set of tasks. Each task (by default) gets handed to 1 "node" (virtual machine) which (by default) runs it within a specified [OCI container](https://en.wikipedia.org/wiki/Open_Container_Initiative). "Containers" in this sense are a way of packaging code so it can run easily on a variety of operating systems / computers. For more on containers and how to customize the one we're use here, see ["Building the container image"](#building-the-container-image) below.
 
 > [!NOTE]
 > Containers have a default working directory. Azure Batch tasks _don't_ default to starting in the container's own default working directory. In this tutorial, we _would_ like to start our tasks in the container's working directory. For that reason, `setup_job.py` contains [this line](https://github.com/cdcent/cfa-forecast-renewal-ww/blob/91080eaf42ad63f3b1de9e89c6221f58fa55a941/batch/setup_job.py#L70), which explicitly instructs Azure to use the container's default working directory.
 
-In our example, `setup_job.py` creates a bunch of tasks, all of them consist of running the following command for different values of `{config_index}` (an integer) and `{script_type}` (one of `fit` or `post_process`):
+In our example, `setup_job.py` creates a bunch of tasks. All of them consist of running the following command for different values of `{config_index}` (an integer) and `{script_type}` (one of `fit` or `post_process`):
 ```
 Rscript pipeline/command_line_eval_{script_type}_ww.R {config_index} input/config/eval/example_eval_config.yaml input/params.toml
 ```
 
-Each invocation of that command will perform model fitting or model postprocessing for one of the forecasting problems specified in `example_eval_config.yaml` (a "forecasting problem" here means a forecast for a given location and date). Each forecasting problem has a corresponding `config_index` in the evaluation configuration `.yaml` file. For example, this command starts a fitting job for the 3rd entry in `example_eval_config.yaml`:
+Invoking the command above performs either model fitting or model postprocessing for one of the forecasting problems specified in `example_eval_config.yaml`. A "forecasting problem" here means a forecast for a given location and date. Each forecasting problem has a corresponding `config_index` in the evaluation configuration `.yaml` file. For example, this command starts a fitting job for the 3rd entry in `example_eval_config.yaml`:
 ```
 Rscript pipeline/command_line_eval_fit_ww.R 3 input/config/eval/example_eval_config.yaml input/params.toml
 ```
-This command starts a post-processing job for the 6th entry:
+This command starts a post-processing job for the 6th entry in the config:
 ```
 Rscript pipeline/command_line_eval_post_process_ww.R 6 input/config/eval/example_eval_config.yaml input/params.toml
 ```
@@ -202,7 +202,10 @@ The file [`input/params.toml`][../input/params.toml] specifies hyperparameters f
 To save you writing this all out by hand, `setup_job.py` loops over all the values of `{config_index}` in `input/config/eval/example_eval_config.yaml`, creating tasks for each one. 
 
 #### Model fitting
-Let's run `setup_job.py` to create a model fitting job and its constituent tasks. We'll name it `my-demo-fit-job` and have it run on the `wastewater-demo-pool` we just created. We'll use our local copy of the example configuration file (`example_eval_config.yaml`) and the corresponding copy of it Blob storage container `wastewater-input`. Note that these must be identical, or the pipeline may error or behave unexpectedly.
+Let's run `setup_job.py` to create a model fitting job and its constituent tasks. We'll name it `my-demo-fit-job` and have it run on the `wastewater-demo-pool` we just created. We'll use our local copy of the example configuration file (`example_eval_config.yaml`) and the corresponding copy of it Blob storage container `wastewater-input`. 
+
+> [!CAUTION]
+> Make sure your local and remote config files are identical. Otherwise, the pipeline may error or behave unexpectedly. We may deduplicate the configs in a future refactor.
 
 ```bash
 python3 batch/setup_job.py input/config/eval/example_eval_config.yaml fit my-demo-fit-job wastewater-demo-pool
@@ -219,7 +222,7 @@ python3 batch/setup_job.py input/config/eval/example_eval_config.yaml post_proce
 
 Note that you should wait for all tasks in `fit` to finish before kicking off the `post_process` job. Eventually, we may unify these into a single job, in which the postprocess tasks wait for the corresponding fitting tasks to finish, but we have not yet implemented this.
 
-> [!WARNING]
+> [!CAUTION]
 > If you or someone else previously have previously created a job and tasks with these names the script will error, telling you that the tasks already exist. To fix this, delete the tasks, delete and re-create the job, or create a new job with a distinct name, e.g. `my-demo-fit-job-2`.
 
 
@@ -267,8 +270,9 @@ and then
 docker tag renewalww cfaprdbatchcr.azurecr.io/renewalww:latest
 ```
 The first step builds the container and gives it the local name `renewalww`. The second adds a reference to where and what we'll put it in the cloud: `cfaprdbatchcr.azurecr.io/renewalww:latest`.
+
 ### Get the container onto the container registry
-Now we can get our container into the registry by "`push`-ing" it. First we need to authenticate to our private Azure container registry (here `cfaprdbatchcr`). Note that this is not the same thing as just logging into Azure itself.
+Now we can get our container into the registry by "`push`-ing" it. First we need to authenticate to our private Azure container registry (here `cfaprdbatchcr`). Note that this a separate step from logging into Azure resources generally.
 ```bash
 az acr login --name cfaprdbatchcr
 ```
@@ -286,4 +290,4 @@ or just use the Makefile:
 make container_push
 ```
 
-Look to see if the container is now there there in `portal.azure.com` under `cfaprdbatchcr > services > repositories> renewalww`
+Confirm that the container is now present in the registry by navigating to `portal.azure.com` and looking under `Resources > cfaprdbatchcr > services > repositories > renewalww`
