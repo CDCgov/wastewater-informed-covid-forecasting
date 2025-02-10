@@ -1,0 +1,176 @@
+location_ww:
+- VT
+- LA
+- SD
+- VT
+- LA
+- SD
+forecast_date_ww:
+- '2024-02-12'
+- '2024-02-12'
+- '2024-02-12'
+- '2024-01-15'
+- '2024-01-15'
+- '2024-01-15'
+scenario:
+- status_quo
+- status_quo
+- status_quo
+- status_quo
+- status_quo
+- status_quo
+location_hosp:
+- VT
+- LA
+- SD
+- VT
+- LA
+- SD
+forecast_date_hosp:
+- '2024-02-12'
+- '2024-02-12'
+- '2024-02-12'
+- '2024-01-15'
+- '2024-01-15'
+- '2024-01-15'
+eval_date: '2024-04-29'
+ww_data_dir: input/ww_data/monday_datasets
+scenario_dir: input/config/eval/scenarios
+hosp_data_dir: input/hosp_data/vintage_datasets
+stan_models_dir: cfaforecastrenewalww/inst/stan
+baseline_score_table_dir: output/baseline_score
+output_dir: output/eval
+hub_subdir: output/eval/hub
+benchmark_dir: output/benchmarking
+overwrite_benchmark: yes
+wwinference_version: v0.1.1
+retro_rt_path: input/retro_Rt/Rt_draws.parquet
+score_subdir: output/eval/hub
+raw_output_dir: output/eval/raw_output
+figure_dir: output/eval/plots
+ms_fig_dir: output/eval/plots/manuscript
+prop_dates_for_incl_hub: 0.8181818
+prop_locs_for_incl_hub: 0.7692308
+population_data_path: input/locations.csv
+init_dir: input/init_lists
+init_fps:
+- input/init_lists/init_1.json
+- input/init_lists/init_2.json
+- input/init_lists/init_3.json
+- input/init_lists/init_4.json
+overwrite_summary_table: no
+calibration_time: 90.0
+forecast_time: 28.0
+ww_data_mapping: 'Monday: Monday, Wednesday: Monday'
+table_of_exclusions: {}
+ww_forecast_date_locs_to_excl:
+  location:
+  - OH
+  - CO
+  - TX
+  - MN
+  - MN
+  - MN
+  forecast_date:
+  - '2024-02-12'
+  - '2024-02-12'
+  - '2024-02-12'
+  - '2024-01-15'
+  - '2024-01-22'
+  - '2024-01-29'
+iter_warmup: 750.0
+iter_sampling: 500.0
+n_chains: 4.0
+n_parallel_chains: 4.0
+adapt_delta: 0.95
+max_treedepth: 12.0
+seed: 123.0
+name_of_config: example_eval_config
+generation_interval:
+- 0.1617012
+- 0.3205257
+- 0.2421981
+- 0.1348253
+- 0.0689142
+- 0.034622
+- 0.0174977
+- 0.0090817
+- 0.0048366
+- 0.0026073
+- 0.001433
+- 0.00082
+- 0.000473
+- 0.0002844
+- 0.0001799
+infection_feedback_pmf:
+- 0.1617012
+- 0.3205257
+- 0.2421981
+- 0.1348253
+- 0.0689142
+- 0.034622
+- 0.0174977
+- 0.0090817
+- 0.0048366
+- 0.0026073
+- 0.001433
+- 0.00082
+- 0.000473
+- 0.0002844
+- 0.0001799
+inf_to_hosp:
+- 0.0
+- 0.0046938
+- 0.01452
+- 0.0278628
+- 0.0423656
+- 0.0558071
+- 0.0665713
+- 0.0737926
+- 0.0772855
+- 0.0773666
+- 0.0746515
+- 0.0698761
+- 0.0637664
+- 0.0569582
+- 0.04996
+- 0.0431457
+- 0.0367663
+- 0.0309703
+- 0.0258274
+- 0.0213505
+- 0.0175142
+- 0.0142698
+- 0.0115565
+- 0.0093089
+- 0.0074623
+- 0.0059561
+- 0.0047352
+- 0.0037512
+- 0.002962
+- 0.0023319
+- 0.0018308
+- 0.0014338
+- 0.0010708
+- 0.000773
+- 0.0005396
+- 0.0003642
+- 0.0002377
+- 0.0001502
+- 9.1828332e-05
+- 5.4407995e-05
+- 3.1254882e-05
+- 1.7420262e-05
+- 9.4269805e-06
+- 4.9561415e-06
+- 2.5327567e-06
+- 1.2585482e-06
+- 6.0811658e-07
+- 2.8557286e-07
+- 1.301294e-07
+- 5.732806e-08
+- 2.4219377e-08
+- 9.6316861e-09
+- 3.4380494e-09
+- 9.3480628e-10
+- 0.0e+00
