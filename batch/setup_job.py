@@ -10,7 +10,7 @@ from azuretools.util import ensure_listlike
 
 def main(
     eval_config_file: str,
-    script_type: str,
+    job_type: str,
     job_id: str,
     pool_id: str,
     exclude_ww_model: bool,
@@ -26,8 +26,8 @@ def main(
     eval_config_file
         Path to the YAML-formatted evaluation configuration file
 
-    script_type
-        Either `fit` to run model fitting or `post_process` to
+    job_type
+        Either ``fit`` to run model fitting or ``postprocess`` to
         run post-processing.
 
     job_id
@@ -58,11 +58,11 @@ def main(
     None
         Creating the job and its tasks as a side effect.
     """
-    valid_script_types = ["fit", "post_process"]
-    if script_type not in valid_script_types:
+    valid_job_types = ["fit", "postprocess"]
+    if job_type not in valid_job_types:
         raise ValueError(
-            f"Invalid script_type. Must be one of {valid_script_types}, "
-            f"but got {script_type}."
+            f"Invalid job_type. Must be one of {valid_job_types}, "
+            f"but got {job_type}."
         )
 
     creds = EnvCredentialHandler()
@@ -118,23 +118,22 @@ def main(
         for config_row in range(
             0, len(eval_spec["location_ww"])
         ):  # Edit this to test
-            R_config_index = (
-                config_row + 1
-            )  # This calls R script which indexes at 1
-            # Define the location, forecast date, and scenario for this iteration
+            R_config_index = config_row + 1  # R is 1-indexed
             this_location = eval_spec["location_ww"][config_row]
             this_forecast_date = eval_spec["forecast_date_ww"][config_row]
             this_scenario = eval_spec["scenario"][config_row]
             task_name = (
-                f"{script_type}-{this_scenario}-"
+                f"{job_type}-{this_scenario}-"
                 f"{this_forecast_date}-{this_location}"
             )
             base_call = (
                 "/bin/sh -c '"
-                f"Rscript pipeline/command_line_eval_{script_type}_ww.R "
+                f"Rscript run_eval.R "
                 f"{R_config_index} "
                 f"input/config/eval/{config_name}.yaml "
-                "input/params.toml"
+                "input/params.toml "
+                "ww "
+                f"{job_type}"
                 f" > {raw_output_dir}/stdout-{task_name}.txt "
                 f" 2> {raw_output_dir}/stderr-{task_name}.txt"
                 "'"
@@ -150,23 +149,22 @@ def main(
     for config_row in range(
         0, len(eval_spec["location_hosp"])
     ):  # Edit this to test
-        R_config_index = (
-            config_row + 1
-        )  # This calls an R script which indexes at 1
-        # Define the location, forecast date, and scenario for this iteration
+        R_config_index = config_row + 1  # R is 1-indexed
         this_location = eval_spec["location_hosp"][config_row]
         this_forecast_date = eval_spec["forecast_date_hosp"][config_row]
         this_scenario = "no_wastewater"
         task_name = (
-            f"{script_type}-{this_scenario}-"
+            f"{job_type}-{this_scenario}-"
             f"{this_forecast_date}-{this_location}"
         )
         base_call = (
             "/bin/sh -c '"
-            f"Rscript pipeline/command_line_eval_{script_type}_hosp.R "
+            f"Rscript run_eval.R "
             f"{R_config_index}  "
             f"input/config/eval/{config_name}.yaml "
-            "input/params.toml"
+            "input/params.toml "
+            "hosp "
+            "{job_type}"
             f" > {raw_output_dir}/{task_name}-stdout.txt "
             f" 2> {raw_output_dir}/{task_name}-stderr.txt"
             "'"
@@ -192,9 +190,9 @@ if __name__ == "__main__":
         help="Path to a YAML-formatted configuration file",
     )
     parser.add_argument(
-        "script_type",
+        "job_type",
         type=str,
-        help="Script to run (either `fit` or `post_process`)",
+        help="Type of job to run (either `fit` or `postprocess`)",
     )
     parser.add_argument(
         "job_id", type=str, help="Name for the Azure batch job"
