@@ -1,8 +1,39 @@
 Containerfile
-Containerfile.dependencies
 output
 scratch
 src
 lib
 lib64
 bin
+=======
+# data
+data/*
+
+# input
+input/*
+
+# output
+output/*
+
+# compiled stan binary
+example
+
+# emacs
+*~
+*#
+#*
+~*
+.#*
+.*~
+
+# venv
+bin
+lib
+lib64
+pyvenv.cfg
+
+# configuration
+config.toml
+
+
+__pycache__

@@ -30,9 +30,9 @@ This README is organized into the following sections:
 
 ## Evaluation pipeline
 Retrospective forecasts with and without wastewater data were generated and evaluated for all 22 forecast dates from October 16, 2023 to March 11, 2024, using the `wwinference` package run in Azure batch.
-The azure batch pipeline was broken into a `fit` and `post_process` job.
+The Azure batch pipeline was broken into a `fit` and `post_process` job.
 The outputs from the `post_process` job were copied onto a local machine to facilitate downstream analysis.
-This included the scores (generated from [`scoringutils` 1.2.2](https://github.com/epiforecasts/scoringutils/releases/tag/v1.2.2)) from the 2,000 posterior draws of hospital admissions forecasts, the quantiled hospital admissions and wastewater concentraitons from the calibration, nowcast, and forecast period and the input hospital admissions and wastewater data used to generate them.
+This included the scores (generated from [`scoringutils` 1.2.2](https://github.com/epiforecasts/scoringutils/releases/tag/v1.2.2)) from the 2,000 posterior draws of hospital admissions forecasts, the quantiled hospital admissions and wastewater concentrations from the calibration, nowcast, and forecast period and the input hospital admissions and wastewater data used to generate them.
 
 The [`_targets_eval_postprocessing.R`](_targets_eval_postprocessing.R) file provides the pipeline to produce the results for the real-time and retrospective evaluation with and without wastewater and compared to other Hub models.
 
