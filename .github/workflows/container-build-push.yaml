@@ -32,7 +32,7 @@ jobs:
 
       - name: Login to ACR
         run: az acr login --name ${{ vars.CONTAINER_REGISTRY_NAME }}
-      
+
       - name: Check out code
         uses: actions/checkout@v4
 
@@ -51,7 +51,7 @@ jobs:
           else
             echo "tag=${{ steps.branch-name.outputs.branch }}" >> $GITHUB_OUTPUT
           fi
-      
+
       - name: Build and push the container image
         id: build_and_push_model_image
         uses: docker/build-push-action@v6
