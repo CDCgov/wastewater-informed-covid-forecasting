@@ -5,7 +5,6 @@ src
 lib
 lib64
 bin
-=======
 # data
 data/*
 
