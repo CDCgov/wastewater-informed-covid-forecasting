@@ -1,0 +1,30 @@
+name: Build and push container image
+
+on:
+  push:
+    branches: [prod]
+  pull_request:
+  workflow_dispatch:
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.head_ref || github.ref }}
+  cancel-in-progress: true
+
+env:
+  IMAGE_NAME: renewalww
+
+jobs:
+
+  build-and-push-image:
+    runs-on: cfa-cdcgov
+    name: Build and push image
+
+    steps:
+      - name: Login to Azure
+        id: azure_login_2
+        uses: azure/login@v2
+        with:
+          creds: ${{ secrets.EDAV_STF_SERVICE_PRINCIPAL }}
+
+      - name: Login to ACR
+        run: az acr login --name ${{ vars.CONTAINER_REGISTRY_NAME }}
