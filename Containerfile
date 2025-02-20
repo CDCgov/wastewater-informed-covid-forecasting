@@ -6,16 +6,9 @@ ADD ./.ContainerBuildRprofile /.Rprofile
 RUN Rscript -e "install.packages('pak')"
 RUN Rscript -e "pak::pkg_install('github::stan-dev/cmdstanr')"
 RUN Rscript -e "cmdstanr::install_cmdstan()"
-
+RUN Rscript -e "pak::pkg_install('github::cdcgov/ww-inference-model')"
+RUN Rscript -e "pak::pkg_install('argparser')"
 
 ADD . /.
 
 RUN Rscript -e "pak::pkg_install('local::wweval')"
-RUN Rscript -e "pak::pkg_install('argparser')"
-
-RUN mkdir -p stanmodels
-RUN Rscript -e "wwinference::compile_model( \
-  system.file('stan','wwinference.stan', package = 'wwinference'), \
-  system.file('stan', package = 'wwinference'), \
-  'stanmodels' \
-)"
