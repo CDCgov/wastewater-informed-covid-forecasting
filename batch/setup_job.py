@@ -1,4 +1,5 @@
 import argparse
+from pathlib import Path
 
 import azure.batch.models as batchmodels
 import yaml
@@ -111,6 +112,7 @@ def main(
     ]:
         eval_spec[key] = ensure_listlike(eval_spec[key])
     raw_output_dir = eval_spec["raw_output_dir"]
+    log_dir = Path(raw_output_dir, "logs")
     config_name = eval_spec["name_of_config"]
 
     if not exclude_ww_model:
@@ -134,8 +136,8 @@ def main(
                 "input/params.toml "
                 "ww "
                 f"{job_type}"
-                f" > {raw_output_dir}/stdout-{task_name}.txt "
-                f" 2> {raw_output_dir}/stderr-{task_name}.txt"
+                f" > {log_dir}/stdout-{task_name}.txt "
+                f" 2> {log_dir}/stderr-{task_name}.txt"
                 "'"
             )
             task = get_task_config(
@@ -164,9 +166,9 @@ def main(
             f"input/config/eval/{config_name}.yaml "
             "input/params.toml "
             "hosp "
-            "{job_type}"
-            f" > {raw_output_dir}/{task_name}-stdout.txt "
-            f" 2> {raw_output_dir}/{task_name}-stderr.txt"
+            f"{job_type}"
+            f" > {log_dir}/{task_name}-stdout.txt "
+            f" 2> {log_dir}/{task_name}-stderr.txt"
             "'"
         )
         task = get_task_config(
