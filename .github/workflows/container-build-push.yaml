@@ -1,0 +1,63 @@
+name: Build and push container image
+
+on:
+  push:
+    branches: [prod]
+  pull_request:
+  workflow_dispatch:
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.head_ref || github.ref }}
+  cancel-in-progress: true
+
+permissions:
+  id-token: write
+  contents: read
+
+env:
+  IMAGE_NAME: renewalww
+
+jobs:
+
+  build-and-push-image:
+    runs-on: cfa-cdcgov
+    name: Build and push image
+
+    steps:
+      - name: Login to Azure
+        id: azure_login_2
+        uses: azure/login@v2
+        with:
+          creds: ${{ secrets.AZURE_STF_SP_CREDS }}
+
+      - name: Login to ACR
+        run: az acr login --name ${{ vars.CONTAINER_REGISTRY_NAME }}
+
+      - name: Check out code
+        uses: actions/checkout@v4
+
+      - name: Extract branch name
+        # From https://stackoverflow.com/a/58035262/2097171
+        shell: bash
+        run: echo "branch=${GITHUB_HEAD_REF:-${GITHUB_REF#refs/heads/}}" >> $GITHUB_OUTPUT
+        id: branch-name
+
+      - name: Figure out tag (either latest if it is main or the branch name)
+        shell: bash
+        id: image-tag
+        run: |
+          if [ "${{ steps.branch-name.outputs.branch }}" = "prod" ]; then
+            echo "tag=latest" >> $GITHUB_OUTPUT
+          else
+            echo "tag=${{ steps.branch-name.outputs.branch }}" >> $GITHUB_OUTPUT
+          fi
+
+      - name: Build and push the container image
+        id: build_and_push_model_image
+        uses: docker/build-push-action@v6
+        with:
+          no-cache: true
+          push: true
+          tags: |
+            ${{ vars.CONTAINER_REGISTRY_URL}}/${{ env.IMAGE_NAME }}:${{ steps.image-tag.outputs.tag }}
+          file: Containerfile
