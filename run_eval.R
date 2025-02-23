@@ -51,7 +51,8 @@ checkmate::assert_names(run_name,
 job_runner_function <- runner_functions[[run_name]]
 
 message(glue::glue(
-  "Starting a {run_name} job for index ",
+  "Starting a {parsed$job} job with the ",
+  "{parsed$model} model ({run_name}) for index ",
   "{parsed$config_index} in config ",
   "{parsed$eval_config_path} with parameters from ",
   "{parsed$params_path}"
