@@ -122,44 +122,6 @@ eval_fit_ww <- function(config_index,
   }
 
   save_object(ww_fit_obj)
-
-
-
-  # Get the evaluation data from the specified evaluation date ----------------
-  eval_hosp_data <- get_input_hosp_data(
-    forecast_date_i = eval_config$eval_date,
-    location_i = location,
-    hosp_data_dir = eval_config$hosp_data_dir,
-    calibration_time = 365 # Grab sufficient data for eval
-  ) |>
-    dplyr::filter(date >= min(input_hosp_data$date))
-
-  save_object(eval_hosp_data)
-
-  eval_ww_data <- tryCatch(
-    {
-      # Try to execute the risky function
-      get_input_ww_data(
-        forecast_date_i = eval_config$eval_date,
-        location_i = location,
-        scenario_i = scenario,
-        scenario_dir = eval_config$scenario_dir,
-        ww_data_dir = eval_config$ww_data_dir,
-        calibration_time = 365,
-        last_hosp_data_date = eval_config$eval_date,
-        ww_data_mapping = eval_config$ww_data_mapping
-      ) |>
-        dplyr::filter(date >= min(input_ww_data$date))
-    },
-    error = function(e) {
-      # Handle the error
-      message("Caught an error: ", e$message)
-    }
-  )
-
-  save_object(eval_ww_data)
-
-  # Get the table of hospital admissions outliers -----------
 }
 
 #' Fit Hospitalizations Model for Evaluation
@@ -240,16 +202,4 @@ eval_fit_hosp <- function(config_index,
     )
   )
   save_object(hosp_fit_obj)
-
-
-  # Get the evaluation data from the specified evaluation date ----------------
-  eval_hosp_data <- get_input_hosp_data(
-    forecast_date_i = eval_config$eval_date,
-    location_i = location,
-    hosp_data_dir = eval_config$hosp_data_dir,
-    calibration_time = 365 # Grab sufficient data for eval
-  ) |>
-    dplyr::filter(date >= min(input_hosp_data$date))
-
-  save_object(eval_hosp_data)
 }
