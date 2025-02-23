@@ -2,7 +2,7 @@
 % Please edit documentation in R/eval_post_process.R
 \name{eval_post_process_ww}
 \alias{eval_post_process_ww}
-\title{Post Process Wastewater Model for Evaluation}
+\title{Postprocess Wastewater Model for Evaluation}
 \usage{
 eval_post_process_ww(config_index, eval_config_path, params_path)
 }
@@ -14,5 +14,5 @@ eval_post_process_ww(config_index, eval_config_path, params_path)
 \item{params_path}{Path to params.toml}
 }
 \description{
-Post Process Wastewater Model for Evaluation
+Postprocess Wastewater Model for Evaluation
 }

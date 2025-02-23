@@ -162,7 +162,7 @@ echo $AZURE_BATCH_ACCOUNT
 ```
 
 ### Create or grab a configuration file
-We specify jobs using [YAML-formatted]() configuration files. We provide an `example_eval_config.yaml` in the `wastewater-input` Blob storage container within the `cfaazurebatchprd` Blob storage account. Download it to your local machine using the [Azure Storage Explorer] or via the command line, and save it the `wastewater-informed-covid-forecasting` directory under `input/config/eval/example_eval_config.yaml`.
+We specify evaluation jobs using [YAML-formatted]() configuration files. We provide an `example_eval_config.yaml` within this repo at `input/config/eval/example_eval_config.yaml`, and a copy is pre-uploaded to the `wastewater-input` Blob storage container within the `cfaazurebatchprd` Blob storage account.
 
 
 ### Create a pool
@@ -183,18 +183,18 @@ A job is a set of tasks. Each task (by default) gets handed to 1 "node" (virtual
 > [!NOTE]
 > Containers have a default working directory. Azure Batch tasks _don't_ default to starting in the container's own default working directory. In this tutorial, we _would_ like to start our tasks in the container's working directory. For that reason, `setup_job.py` contains [this line](https://github.com/cdcent/cfa-forecast-renewal-ww/blob/91080eaf42ad63f3b1de9e89c6221f58fa55a941/batch/setup_job.py#L70), which explicitly instructs Azure to use the container's default working directory.
 
-In our example, `setup_job.py` creates a bunch of tasks. All of them consist of running the following command for different values of `{config_index}` (an integer) and `{script_type}` (one of `fit` or `post_process`):
+In our example, `setup_job.py` creates a bunch of tasks. All of them consist of running the following command for different values of `{config_index}` (an integer), `{job_type}` (one of `fit` and `postprocess`), and `{model}` (one of `ww` and `hosp`):
 ```
-Rscript pipeline/command_line_eval_{script_type}_ww.R {config_index} input/config/eval/example_eval_config.yaml input/params.toml
+Rscript run_eval.R {config_index} input/config/eval/example_eval_config.yaml input/params.toml {model} {job_type}
 ```
 
-Invoking the command above performs either model fitting or model postprocessing for one of the forecasting problems specified in `example_eval_config.yaml`. A "forecasting problem" here means a forecast for a given location and date. Each forecasting problem has a corresponding `config_index` in the evaluation configuration `.yaml` file. For example, this command starts a fitting job for the 3rd entry in `example_eval_config.yaml`:
+Invoking the command above performs either model fitting or model postprocessing for one of the forecasting problems specified in `example_eval_config.yaml`. A "forecasting problem" here means a forecast for a given location and date. Each forecasting problem has a corresponding `config_index` in the evaluation configuration `.yaml` file. For example, this command starts a fitting job for the wastewater model with the 3rd entry in `example_eval_config.yaml`:
 ```
-Rscript pipeline/command_line_eval_fit_ww.R 3 input/config/eval/example_eval_config.yaml input/params.toml
+Rscript run_eval.R 3 input/config/eval/example_eval_config.yaml input/params.toml ww fit
 ```
-This command starts a post-processing job for the 6th entry in the config:
+This command starts a post-processing job for the 6th entry in the config for the hospital admissions-only model:
 ```
-Rscript pipeline/command_line_eval_post_process_ww.R 6 input/config/eval/example_eval_config.yaml input/params.toml
+Rscript pipeline/run_eval.R 6 input/config/eval/example_eval_config.yaml input/params.toml hosp postprocess
 ```
 
 The file [`input/params.toml`][../input/params.toml] specifies hyperparameters for priors and other model configuration that is shared across individual forecasting problems. It is tracked in this repo, so you should already have a copy.
@@ -205,7 +205,7 @@ To save you writing this all out by hand, `setup_job.py` loops over all the valu
 Let's run `setup_job.py` to create a model fitting job and its constituent tasks. We'll name it `my-demo-fit-job` and have it run on the `wastewater-demo-pool` we just created. We'll use our local copy of the example configuration file (`example_eval_config.yaml`) and the corresponding copy of it Blob storage container `wastewater-input`.
 
 > [!CAUTION]
-> Make sure your local and remote config files are identical. Otherwise, the pipeline may error or behave unexpectedly. We may deduplicate the configs in a future refactor.
+> Make sure your local and remote config files are identical. Otherwise, the pipeline may error or behave unexpectedly. We hope to deduplicate the configs in a future refactor.
 
 ```bash
 python3 batch/setup_job.py input/config/eval/example_eval_config.yaml fit my-demo-fit-job wastewater-demo-pool
@@ -218,9 +218,9 @@ Next, set up a second job to postprocess the results of the fitting job by runni
 
 ```bash
 python3 batch/setup_job.py input/config/eval/example_eval_config.yaml post_process my-demo-postprocess-job wastewater-demo-pool
-````
+```
 
-Note that you should wait for all tasks in `fit` to finish before kicking off the `post_process` job. Eventually, we may unify these into a single job, in which the postprocess tasks wait for the corresponding fitting tasks to finish, but we have not yet implemented this.
+Note that you should wait for all tasks in `fit` to finish before kicking off the `postprocess` job. Eventually, we may unify these into a single job, in which the postprocess tasks wait for the corresponding fitting tasks to finish, but we have not yet implemented this.
 
 > [!CAUTION]
 > If you or someone else previously have previously created a job and tasks with these names the script will error, telling you that the tasks already exist. To fix this, delete the tasks, delete and re-create the job, or create a new job with a distinct name, e.g. `my-demo-fit-job-2`.
@@ -291,3 +291,6 @@ make container_push
 ```
 
 Confirm that the container is now present in the registry by navigating to `portal.azure.com` and looking under `Resources > cfaprdbatchcr > services > repositories > renewalww`
+
+### Creating a configuration file
+The [`src/setup_eval.R`][../src/setup_eval.R] script ccan help you write properly formatted evaluation configuration YAML files. Remember to mirror config versions between your local `input/config/eval` directory and the one in your input Azure Blob storage container.
