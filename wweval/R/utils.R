@@ -76,7 +76,7 @@ to_rds_with_suffix <- function(object,
     object = object,
     file = fs::path(
       output_dir,
-      glue::glue("{object_name}{suffix}"),
+      glue::glue("{save_basename}{save_suffix}"),
       ext = ext
     )
   )
