@@ -182,7 +182,7 @@ def main(
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(
         description=(
-            "Set up an Azure batch job from an"
+            "Set up an Azure batch job from an "
             "evaluation configuration file."
         )
     )
