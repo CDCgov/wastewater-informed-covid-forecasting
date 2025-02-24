@@ -136,8 +136,8 @@ def main(
                 "input/params.toml "
                 "ww "
                 f"{job_type}"
-                f" > {log_dir}/stdout-{task_name}.txt "
-                f" 2> {log_dir}/stderr-{task_name}.txt"
+                f" > {log_dir}/{task_name}-stdout.txt "
+                f" 2> {log_dir}/{task_name}-stderr.txt"
                 "'"
             )
             task = get_task_config(
