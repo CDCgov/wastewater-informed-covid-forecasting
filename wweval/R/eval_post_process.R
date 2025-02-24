@@ -21,6 +21,7 @@ eval_post_process_ww <- function(config_index,
   scenario <- eval_config$scenario[config_index]
   hosp_data_dir <- eval_config$hosp_data_dir
   ww_data_dir <- eval_config$ww_data_dir
+  eval_date <- eval_config$eval_date
 
   raw_output_suffix <- get_raw_output_suffix(
     location,
@@ -576,6 +577,7 @@ eval_post_process_hosp <- function(config_index,
   forecast_date <- eval_config$forecast_date_hosp[config_index]
   scenario <- "no_wastewater"
   hosp_data_dir <- eval_config$hosp_data_dir
+  eval_date <- eval_config$eval_date
 
   raw_output_suffix <- get_raw_output_suffix(
     location,
@@ -606,7 +608,7 @@ eval_post_process_hosp <- function(config_index,
   last_hosp_data_date <- get_last_hosp_data_date(input_hosp_data)
 
   eval_hosp_data <- get_input_hosp_data(
-    forecast_date_i = eval_config$eval_date,
+    forecast_date_i = eval_date,
     location_i = location,
     hosp_data_dir = hosp_data_dir,
     calibration_time = max_eval_data_days
