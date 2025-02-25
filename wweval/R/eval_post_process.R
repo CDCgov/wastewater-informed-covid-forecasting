@@ -3,13 +3,15 @@
 #' @param config_index Index of eval_config to evaluate
 #' @param eval_config_path Path to eval_config (created with `write_eval_config`)
 #' @param params_path Path to params.toml
-#'
+#' @param max_eval_data_days Maximum number of days of data to pull
+#' when creating evaluation dataset. Default 365.
 #' @return NULL
 #' @export
 #'
 eval_post_process_ww <- function(config_index,
                                  eval_config_path,
-                                 params_path) {
+                                 params_path,
+                                 max_eval_data_days = 365) {
   eval_config <- yaml::read_yaml(eval_config_path)
   output_dir <- eval_config$output_dir
   raw_output_dir <- eval_config$raw_output_dir
@@ -17,6 +19,11 @@ eval_post_process_ww <- function(config_index,
   location <- eval_config$location_ww[config_index]
   forecast_date <- eval_config$forecast_date_ww[config_index]
   scenario <- eval_config$scenario[config_index]
+  hosp_data_dir <- eval_config$hosp_data_dir
+  ww_data_dir <- eval_config$ww_data_dir
+  eval_date <- eval_config$eval_date
+  fit_obj_name <- "ww_fit_obj"
+  ww_data_mapping <- eval_config$ww_data_mapping
 
   raw_output_suffix <- get_raw_output_suffix(
     location,
@@ -46,14 +53,12 @@ eval_post_process_ww <- function(config_index,
   input_hosp_data <- load_object("input_hosp_data")
   last_hosp_data_date <- get_last_hosp_data_date(input_hosp_data)
   input_ww_data <- load_object("input_ww_data")
-  max_eval_data_days <- 365
-  min_eval_data_date <-
-    eval_hosp_data <- get_input_hosp_data(
-      forecast_date_i = eval_date,
-      location_i = location,
-      hosp_data_dir = hosp_data_dir,
-      calibration_time = max_eval_data_days
-    ) |>
+  eval_hosp_data <- get_input_hosp_data(
+    forecast_date_i = eval_date,
+    location_i = location,
+    hosp_data_dir = hosp_data_dir,
+    calibration_time = max_eval_data_days
+  ) |>
     dplyr::filter(.data$date >= !!min(input_hosp_data$date))
   save_object(eval_hosp_data)
 
@@ -556,13 +561,15 @@ eval_post_process_ww <- function(config_index,
 #' @param config_index Index of eval_config to evaluate
 #' @param eval_config_path Path to eval_config (created with `write_eval_config`)
 #' @param params_path Path to params.toml
-#'
+#' @param max_eval_data_days Maximum number of days of data to pull
+#' when creating evaluation dataset. Default 365.
 #' @return NULL
 #' @export
 #'
 eval_post_process_hosp <- function(config_index,
                                    eval_config_path,
-                                   params_path) {
+                                   params_path,
+                                   max_eval_data_days = 365) {
   eval_config <- yaml::read_yaml(eval_config_path)
   output_dir <- eval_config$output_dir
   raw_output_dir <- eval_config$raw_output_dir
@@ -571,6 +578,9 @@ eval_post_process_hosp <- function(config_index,
   location <- eval_config$location_hosp[config_index]
   forecast_date <- eval_config$forecast_date_hosp[config_index]
   scenario <- "no_wastewater"
+  hosp_data_dir <- eval_config$hosp_data_dir
+  eval_date <- eval_config$eval_date
+
   raw_output_suffix <- get_raw_output_suffix(
     location,
     forecast_date,
@@ -598,7 +608,17 @@ eval_post_process_hosp <- function(config_index,
 
   input_hosp_data <- load_object("input_hosp_data")
   last_hosp_data_date <- get_last_hosp_data_date(input_hosp_data)
-  eval_hosp_data <- load_object("eval_hosp_data")
+
+  eval_hosp_data <- get_input_hosp_data(
+    forecast_date_i = eval_date,
+    location_i = location,
+    hosp_data_dir = hosp_data_dir,
+    calibration_time = max_eval_data_days
+  ) |>
+    dplyr::filter(date >= min(input_hosp_data$date))
+
+  save_object(eval_hosp_data)
+
   hosp_fit_obj_wwinference <- load_object("hosp_fit_obj")
   hosp_fit_obj <- hosp_fit_obj_wwinference$fit$result
 
