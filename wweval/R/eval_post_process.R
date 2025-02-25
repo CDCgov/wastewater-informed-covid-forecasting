@@ -22,6 +22,7 @@ eval_post_process_ww <- function(config_index,
   hosp_data_dir <- eval_config$hosp_data_dir
   ww_data_dir <- eval_config$ww_data_dir
   eval_date <- eval_config$eval_date
+  fit_obj_name <- "ww_fit_obj"
 
   raw_output_suffix <- get_raw_output_suffix(
     location,
