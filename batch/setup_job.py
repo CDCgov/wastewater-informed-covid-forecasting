@@ -149,7 +149,7 @@ def main(
 
     to_run = ["hosp"] if exclude_ww_model else ["ww", "hosp"]
     for model in to_run:
-        for i_row, loc, f_date, scen in enumerate(
+        for i_row, (loc, f_date, scen) in enumerate(
             zip(
                 eval_spec[f"location_{model}"],
                 eval_spec[f"forecast_date_{model}"],
