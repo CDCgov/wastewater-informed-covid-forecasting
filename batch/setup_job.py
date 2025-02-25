@@ -115,57 +115,25 @@ def main(
     log_dir = Path(raw_output_dir, "logs")
     config_name = eval_spec["name_of_config"]
 
-    if not exclude_ww_model:
-        # Set up each of the wastewater model run iterations
-        for config_row in range(
-            0, len(eval_spec["location_ww"])
-        ):  # Edit this to test
-            R_config_index = config_row + 1  # R is 1-indexed
-            this_location = eval_spec["location_ww"][config_row]
-            this_forecast_date = eval_spec["forecast_date_ww"][config_row]
-            this_scenario = eval_spec["scenario"][config_row]
-            task_name = (
-                f"{job_type}-{this_scenario}-"
-                f"{this_forecast_date}-{this_location}"
-            )
-            base_call = (
-                "/bin/sh -c '"
-                f"Rscript run_eval.R "
-                f"{R_config_index} "
-                f"input/config/eval/{config_name}.yaml "
-                "input/params.toml "
-                "ww "
-                f"{job_type}"
-                f" > {log_dir}/stdout-{task_name}.txt "
-                f" 2> {log_dir}/stderr-{task_name}.txt"
-                "'"
-            )
-            task = get_task_config(
-                f"{job_id}-{task_name}",
-                base_call=base_call,
-                container_settings=container_settings,
-            )
-            batch_service_client.task.add(job_id, task)
-
-    # Set up each of the hospital admissions model run iterations
-    for config_row in range(
-        0, len(eval_spec["location_hosp"])
-    ):  # Edit this to test
-        R_config_index = config_row + 1  # R is 1-indexed
-        this_location = eval_spec["location_hosp"][config_row]
-        this_forecast_date = eval_spec["forecast_date_hosp"][config_row]
-        this_scenario = "no_wastewater"
-        task_name = (
-            f"{job_type}-{this_scenario}-"
-            f"{this_forecast_date}-{this_location}"
-        )
+    def add_task(
+        R_config_index: int,
+        location: str,
+        forecast_date: str,
+        scenario: str,
+        model: str,
+    ) -> None:
+        """
+        Helper function to add tasks as we loop through.
+        """
+        task_name = f"{job_type}-{scenario}-" f"{forecast_date}-{location}"
         base_call = (
             "/bin/sh -c '"
+            f"mkdir -p {log_dir}; "
             f"Rscript run_eval.R "
-            f"{R_config_index}  "
+            f"{R_config_index} "
             f"input/config/eval/{config_name}.yaml "
             "input/params.toml "
-            "hosp "
+            f"{model} "
             f"{job_type}"
             f" > {log_dir}/{task_name}-stdout.txt "
             f" 2> {log_dir}/{task_name}-stderr.txt"
@@ -177,6 +145,27 @@ def main(
             container_settings=container_settings,
         )
         batch_service_client.task.add(job_id, task)
+        return None
+
+    to_run = ["hosp"] if exclude_ww_model else ["ww", "hosp"]
+    for model in to_run:
+        for i_row, loc, f_date, scen in enumerate(
+            zip(
+                eval_spec[f"location_{model}"],
+                eval_spec[f"forecast_date_{model}"],
+                eval_spec["scenario"],
+            )
+        ):
+            add_task(
+                R_config_index=i_row + 1,  # R is 1-indexed, Python 0-indexed
+                location=loc,
+                forecast_date=f_date,
+                scenario=scen if model == "ww" else "no_wastewater",
+                model=model,
+            )
+            pass
+        pass
+    return None
 
 
 if __name__ == "__main__":
