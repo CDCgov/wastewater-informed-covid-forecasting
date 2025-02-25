@@ -162,7 +162,7 @@ echo $AZURE_BATCH_ACCOUNT
 ```
 
 ### Create or grab a configuration file
-We specify jobs using [YAML-formatted]() configuration files. We provide an `example_eval_config.yaml` in the `wastewater-input` Blob storage container within the `cfaazurebatchprd` Blob storage account. Download it to your local machine using the [Azure Storage Explorer] or via the command line, and save it the `wastewater-informed-covid-forecasting` directory under `input/config/eval/example_eval_config.yaml`.
+We specify evaluation jobs using [YAML-formatted]() configuration files. We provide an `example_eval_config.yaml` within this repo at `input/config/eval/example_eval_config.yaml`, and a copy is pre-uploaded to the `wastewater-input` Blob storage container within the `cfaazurebatchprd` Blob storage account.
 
 
 ### Create a pool
@@ -205,7 +205,7 @@ To save you writing this all out by hand, `setup_job.py` loops over all the valu
 Let's run `setup_job.py` to create a model fitting job and its constituent tasks. We'll name it `my-demo-fit-job` and have it run on the `wastewater-demo-pool` we just created. We'll use our local copy of the example configuration file (`example_eval_config.yaml`) and the corresponding copy of it Blob storage container `wastewater-input`.
 
 > [!CAUTION]
-> Make sure your local and remote config files are identical. Otherwise, the pipeline may error or behave unexpectedly. We may deduplicate the configs in a future refactor.
+> Make sure your local and remote config files are identical. Otherwise, the pipeline may error or behave unexpectedly. We hope to deduplicate the configs in a future refactor.
 
 ```bash
 python3 batch/setup_job.py input/config/eval/example_eval_config.yaml fit my-demo-fit-job wastewater-demo-pool
@@ -291,3 +291,6 @@ make container_push
 ```
 
 Confirm that the container is now present in the registry by navigating to `portal.azure.com` and looking under `Resources > cfaprdbatchcr > services > repositories > renewalww`
+
+### Creating a configuration file
+The [`src/setup_eval.R`][../src/setup_eval.R] script ccan help you write properly formatted evaluation configuration YAML files. Remember to mirror config versions between your local `input/config/eval` directory and the one in your input Azure Blob storage container.
