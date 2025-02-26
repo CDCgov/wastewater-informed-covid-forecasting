@@ -117,9 +117,9 @@ echo $AZURE_BATCH_ACCOUNT
 ```
 
 ### Create or use an existing configuration file
-We specify evaluation jobs using [YAML-formatted]() configuration files. These tell the pipeline which individual "forecasting problems" to run. A forecasting problem is a forecast for a particular location and set of dates to predict given a particular model and a particular set of available data.
+We specify evaluation jobs using [YAML-formatted]() configuration files. These tell the pipeline to make and evaluate forecasts for one or more individual "forecasting problems". A forecasting problem is a forecast for a particular location as of a particular date using a particular model and particular set of available data.
 
-In particular, our forecasting problems will have a particular as-of date (typically a Monday), a particular location (a U.S. state or territory), a particular data "scenario" (typically all available wastewater data or no available wastewater data) and a particular model (hospital admissions only or wastewater informed).
+In our manuscript analysis, the as-of dates are Mondays in 2023-2024, the locations are individual U.S. states, dictricts, or territories, the data is all data that would have been available on the Monday as-of date, and the models are a hospital admissions-only model and a wastewater-informed model.
 
 We provide an `example_eval_config.yaml` within this repo at `input/config/eval/example_eval_config.yaml`, and a copy is pre-uploaded to the `wastewater-input` Blob storage container within the `cfaazurebatchprd` Blob storage account.
 
