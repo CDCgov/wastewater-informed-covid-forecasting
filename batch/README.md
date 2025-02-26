@@ -35,51 +35,6 @@ az login
 ```
 This will prompt you to go to a website to log in. A browser window will open automatically if you have one set up. CFA VAP WSL2 setups don't have a browser set up by default, so you may need to click on or copy paste the link you see in the terminal into a browser you open manually. In the browser, log in with your `@ext.cdc.gov` account when prompted. Once you have logged in, you can return to the command prompt.
 
-#### Podman (recommended) or Docker
-For the default setup we'll use in this tutorial, there should already be a "container image" for this project in the Azure Container Registry (ACR). To build and push one for yourself, however, you will need an Open Container Initiative (OCI)-compatible container engine, such as `docker` or `podman`. Frustratingly, Azure assumes you are using `docker`, so it requires some commands to start with `docker <command>`. Fortunately, `podman` works as a drop-in replacement if you install `podman-docker`. `podman-docker` simply creates an wrapper application at `/usr/bin/docker` that points to your `podman` installation.
-
-This tutorial uses `podman` as a drop-in replacement for docker. Install it with:
-
-```bash
-sudo apt install -y podman
-```
-Azure expects the container engine to be _named_ `docker`, but `podman` works fine. To use `podman` whenever `docker` is called, set up a symlink:
-
-
-```bash
-sudo ln -s /usr/bin/podman /usr/bin/docker
-```
-Confirm this works with
-```bash
-docker --version
-```
-You should see a message that ends with:
-
-```bash
-podman version <A VERSION NUMBER>
-```
-
-> [!CAUTION]
-> the above is a bit of a hack. The lack of easy interfaces between `podman` and the Azure container registry was [an open issue for some time](https://github.com/Azure/azure-cli/issues/14768#issue-678300971).
-
->[!NOTE]
-> As of March 2024 [a less hacky approach should be possible](https://github.com/Azure/azure-cli/commit/4231b2b6ea913af966a213bac862a9cc235adcb9). Once we have confirmed that it works in practice, we will update the above guidance.
-
-If you ever decide to replace `podman` with actual `docker`, you may wish to run `sudo rm /usr/bin/docker` to remove the symlink before installing real `docker`.
-
-#### Make
-GNU Make is not required to run this tutorial, but the provided `Makefile` can help you with some repetitive tasks, particularly buiding the container. If you would like to use it, install make with:
-
-```bash
-sudo apt install -y make
-```
-
-You will need at least `make` version `4.0`. Confirm this with
-
-```bash
-make --version
-```
-
 #### Python
 You will need a working installation of Python 3. Install and the default package manager `pip`. Install them with
 
@@ -161,8 +116,12 @@ az account show
 echo $AZURE_BATCH_ACCOUNT
 ```
 
-### Create or grab a configuration file
-We specify evaluation jobs using [YAML-formatted]() configuration files. We provide an `example_eval_config.yaml` within this repo at `input/config/eval/example_eval_config.yaml`, and a copy is pre-uploaded to the `wastewater-input` Blob storage container within the `cfaazurebatchprd` Blob storage account.
+### Create or use an existing configuration file
+We specify evaluation jobs using [YAML-formatted]() configuration files. These tell the pipeline which individual "forecasting problems" to run. A forecasting problem is a forecast for a particular location and set of dates to predict given a particular model and a particular set of available data.
+
+In particular, our forecasting problems will have a particular as-of date (typically a Monday), a particular location (a U.S. state or territory), a particular data "scenario" (typically all available wastewater data or no available wastewater data) and a particular model (hospital admissions only or wastewater informed).
+
+We provide an `example_eval_config.yaml` within this repo at `input/config/eval/example_eval_config.yaml`, and a copy is pre-uploaded to the `wastewater-input` Blob storage container within the `cfaazurebatchprd` Blob storage account.
 
 
 ### Create a pool
@@ -224,11 +183,51 @@ Note that you should wait for all tasks in `fit` to finish before kicking off th
 
 > [!CAUTION]
 > If you or someone else previously have previously created a job and tasks with these names the script will error, telling you that the tasks already exist. To fix this, delete the tasks, delete and re-create the job, or create a new job with a distinct name, e.g. `my-demo-fit-job-2`.
-
+3
 
 ## Customizing and configuring the evaluation pipeline
 
 This section explains how to customize and configure the pipeline.
+
+### Command line arguments to `setup_job.py`
+`setup_job.py` takes a number of command line arguments, as follows:
+
+```
+usage: setup_job.py [-h]
+                    [--container-image-name CONTAINER_IMAGE_NAME]
+                    [--container-image-version CONTAINER_IMAGE_VERSION]
+                    [--exclude-ww-model | --no-exclude-ww-model]
+                    eval_config_file job_type job_id pool_id
+
+Set up an Azure batch job from an evaluation configuration file.
+
+positional arguments:
+  eval_config_file      Path to a YAML-formatted configuration file
+  job_type              Type of job to run (either `fit` or
+                        `postprocess`)
+  job_id                Name for the Azure batch job
+  pool_id               Name of the Azure batch pool on which to run
+                        the job
+
+options:
+  -h, --help            show this help message and exit
+  --container-image-name CONTAINER_IMAGE_NAME
+                        Name of the container to use for the job.
+  --container-image-version CONTAINER_IMAGE_VERSION
+                        Version of the container to use for the job.
+  --exclude-ww-model, --no-exclude-ww-model
+                        Exclude the wastewater model from fitting?
+```
+
+As the above suggests, you can always view this help message by running 
+
+```bash
+python setup_job.py -h
+```
+The default values of `--container-image-name` and `--container-image-version` are `renewalww` and `latest`, respectively. This corresponds to the container image built and pushed via Github actions that reflecting the current state of `prod`.
+
+### Creating a configuration file
+The [`src/setup_eval.R`][../src/setup_eval.R] script can help you write properly formatted evaluation configuration YAML files. Remember to mirror config versions between your local `input/config/eval` directory and the one in your input Azure Blob storage container.
 
 ### Uploading data
 The [walkthrough](#walkthrough-running-an-evaluation-job-on-azure-batch) uses data and configuration that are already in Azure Blob Storage. You can upload data to blob storage via the [Azure Storage Explorer](#azure-storage-explorer) GUI, but if you would like to work programmatically, we provide an `upload_data.py` script.
@@ -238,17 +237,67 @@ For example
 ```bash
 python3 batch/upload_data.py -g *.csv input/hosp_data wastewater-input
 ```
+
 will give you the option to upload anything with the `.csv` extension in your local folder `input/hosp_data` to a blob storage container (bucket) named `wastewater-input`. It will use the blob storage account specified `azureconfig.sh`.
 
 Upload any needed input data in the file structure specified by your evaluation configuration file, including the file itself (e.g. `input/config/eval/eval_config.yaml`).
 
-
-### Setting up the job container
-Once your data is in blob storage, we next turn to creating a very different thing, confusingly also called a "container": a Docker-compatible [container](https://www.docker.com/resources/what-container/) in which to run our project code.
+### Building a job container
+Now that data is in blob storage, we next turn to creating a very different thing, confusingly also called a "container": a Docker-compatible [container](https://www.docker.com/resources/what-container/) in which to run our project code.
 
 We want to make it easy for an arbitrary virtual machine ("node") within Azure to run our code, with minimal set-up. Why? That will in turn makes it easy for us to add and subtract these "nodes" from our job(s) as needed—even automatically!—while trusting that each new one will be able to do its just for us.
 
 There are a number of ways to make it easy for a standard virtual machine to run your code in the way you want. Using Docker-style "containers" is one such solution; we use it here because Azure Batch's infrastructure supports it well. In particular, Azure has its own internal [container registries](https://www.redhat.com/en/topics/cloud-native-apps/what-is-a-container-registry) that nodes can access. We'll put our container in one of those, and then tell our group of Batch nodes (called a "pool") how to retrieve it and run it.
+
+For the default setup we used in this tutorial, there was already be a "container image" for this project in the Azure Container Registry (ACR). Container images reflecting the `prod` branch and all open pull requests are [built via Github actions](../.github/workflows/container-build-push.yaml) and pushed to the ACR as `renewalww:latest` (for `prod`) and `renewalww:{name of the PR branch}` for pull requests.
+
+You might, however, want to build a container image locally, either for local testing or for your own understanding. This section walks you through doing so.
+
+#### Podman (recommended) or Docker
+
+To build and push a custom container image, you will need an Open Container Initiative (OCI)-compatible container engine, such as `docker` or `podman`. Frustratingly, Azure assumes you are using `docker`, so it requires some commands to start with `docker <command>`. Fortunately, `podman` works as a drop-in replacement if you install `podman-docker`. `podman-docker` simply creates an wrapper application at `/usr/bin/docker` that points to your `podman` installation.
+
+This tutorial uses `podman` as a drop-in replacement for docker. Install it with:
+
+```bash
+sudo apt install -y podman
+```
+Azure expects the container engine to be _named_ `docker`, but `podman` works fine. To use `podman` whenever `docker` is called, set up a symlink:
+
+
+```bash
+sudo ln -s /usr/bin/podman /usr/bin/docker
+```
+Confirm this works with
+```bash
+docker --version
+```
+You should see a message that ends with:
+
+```bash
+podman version <A VERSION NUMBER>
+```
+
+> [!CAUTION]
+> the above is a bit of a hack. The lack of easy interfaces between `podman` and the Azure container registry was [an open issue for some time](https://github.com/Azure/azure-cli/issues/14768#issue-678300971).
+
+>[!NOTE]
+> As of March 2024 [a less hacky approach should be possible](https://github.com/Azure/azure-cli/commit/4231b2b6ea913af966a213bac862a9cc235adcb9). Once we have confirmed that it works in practice, we will update the above guidance.
+
+If you ever decide to replace `podman` with actual `docker`, you may wish to run `sudo rm /usr/bin/docker` to remove the symlink before installing real `docker`.
+
+#### Make
+GNU Make is not required to run this tutorial, but the provided `Makefile` can help you with some repetitive tasks, particularly buiding the container. If you would like to use it, install make with:
+
+```bash
+sudo apt install -y make
+```
+
+You will need at least `make` version `4.0`. Confirm this with
+
+```bash
+make --version
+```
 
 ### Building the container image
 The first step is building the [container image](https://docs.docker.com/guides/docker-concepts/the-basics/what-is-an-image/). The recipe for this is specified in the repository `Containerfile`.
@@ -290,7 +339,5 @@ or just use the Makefile:
 make container_push
 ```
 
-Confirm that the container is now present in the registry by navigating to `portal.azure.com` and looking under `Resources > cfaprdbatchcr > services > repositories > renewalww`
+Confirm that the container is now present in the registry by navigating to `portal.azure.com` and looking under `Resources > cfaprdbatchcr > services > repositories > renewalww`.
 
-### Creating a configuration file
-The [`src/setup_eval.R`][../src/setup_eval.R] script can help you write properly formatted evaluation configuration YAML files. Remember to mirror config versions between your local `input/config/eval` directory and the one in your input Azure Blob storage container.
