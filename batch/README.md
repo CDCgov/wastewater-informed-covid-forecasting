@@ -293,4 +293,4 @@ make container_push
 Confirm that the container is now present in the registry by navigating to `portal.azure.com` and looking under `Resources > cfaprdbatchcr > services > repositories > renewalww`
 
 ### Creating a configuration file
-The [`src/setup_eval.R`][../src/setup_eval.R] script ccan help you write properly formatted evaluation configuration YAML files. Remember to mirror config versions between your local `input/config/eval` directory and the one in your input Azure Blob storage container.
+The [`src/setup_eval.R`][../src/setup_eval.R] script can help you write properly formatted evaluation configuration YAML files. Remember to mirror config versions between your local `input/config/eval` directory and the one in your input Azure Blob storage container.
