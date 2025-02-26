@@ -219,7 +219,7 @@ options:
                         Exclude the wastewater model from fitting?
 ```
 
-As the above suggests, you can always view this help message by running 
+As the above suggests, you can always view this help message by running
 
 ```bash
 python setup_job.py -h
@@ -340,4 +340,3 @@ make container_push
 ```
 
 Confirm that the container is now present in the registry by navigating to `portal.azure.com` and looking under `Resources > cfaprdbatchcr > services > repositories > renewalww`.
-
