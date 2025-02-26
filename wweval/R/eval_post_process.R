@@ -1,50 +1,88 @@
-#' Post Process Wastewater Model for Evaluation
+#' Postprocess Wastewater Model for Evaluation
 #'
 #' @param config_index Index of eval_config to evaluate
 #' @param eval_config_path Path to eval_config (created with `write_eval_config`)
 #' @param params_path Path to params.toml
-#'
+#' @param max_eval_data_days Maximum number of days of data to pull
+#' when creating evaluation dataset. Default 365.
 #' @return NULL
 #' @export
 #'
 eval_post_process_ww <- function(config_index,
                                  eval_config_path,
-                                 params_path) {
+                                 params_path,
+                                 max_eval_data_days = 365) {
   eval_config <- yaml::read_yaml(eval_config_path)
   output_dir <- eval_config$output_dir
   raw_output_dir <- eval_config$raw_output_dir
+  params <- wwinference::get_params(params_path)
+  location <- eval_config$location_ww[config_index]
+  forecast_date <- eval_config$forecast_date_ww[config_index]
+  scenario <- eval_config$scenario[config_index]
+  hosp_data_dir <- eval_config$hosp_data_dir
+  ww_data_dir <- eval_config$ww_data_dir
+  eval_date <- eval_config$eval_date
+  fit_obj_name <- "ww_fit_obj"
+  ww_data_mapping <- eval_config$ww_data_mapping
 
-  save_object <- function(object_name, output_file_suffix) {
-    saveRDS(
-      object = get(object_name),
-      file = file.path(raw_output_dir, paste0(object_name, output_file_suffix))
-    )
-  }
-  load_object <- function(object_name, output_file_suffix) {
-    readRDS(file.path(raw_output_dir, paste0(object_name, output_file_suffix)))
+  raw_output_suffix <- get_raw_output_suffix(
+    location,
+    forecast_date,
+    scenario
+  )
+
+  save_object <- purrr::partial(
+    to_rds_with_suffix,
+    output_dir = raw_output_dir,
+    save_suffix = raw_output_suffix
+  )
+
+  load_object <- function(object_name) {
+    return(readRDS(
+      fs::path(raw_output_dir,
+        glue::glue("{object_name}{raw_output_suffix}"),
+        ext = "rds"
+      )
+    ))
   }
 
   wwinference::create_dir(output_dir)
   wwinference::create_dir(raw_output_dir)
 
 
-  params <- wwinference::get_params(params_path)
-  location <- eval_config$location_ww[config_index]
-  forecast_date <- eval_config$forecast_date_ww[config_index]
-  scenario <- eval_config$scenario[config_index]
-
-  output_file_suffix <- paste("", location, format(as.Date(forecast_date), "%Y.%m.%d"), scenario,
-    sep = "_"
-  ) |> paste0(".rds")
-
-
-
-  input_hosp_data <- load_object("input_hosp_data", output_file_suffix)
+  input_hosp_data <- load_object("input_hosp_data")
   last_hosp_data_date <- get_last_hosp_data_date(input_hosp_data)
-  eval_hosp_data <- load_object("eval_hosp_data", output_file_suffix)
-  input_ww_data <- load_object("input_ww_data", output_file_suffix)
-  eval_ww_data <- load_object("eval_ww_data", output_file_suffix)
-  ww_fit_obj_wwinference <- load_object("ww_fit_obj", output_file_suffix)
+  input_ww_data <- load_object("input_ww_data")
+  eval_hosp_data <- get_input_hosp_data(
+    forecast_date_i = eval_date,
+    location_i = location,
+    hosp_data_dir = hosp_data_dir,
+    calibration_time = max_eval_data_days
+  ) |>
+    dplyr::filter(.data$date >= !!min(input_hosp_data$date))
+  save_object(eval_hosp_data)
+
+  eval_ww_data <- tryCatch(
+    {
+      get_input_ww_data(
+        forecast_date_i = eval_date,
+        location_i = location,
+        scenario_i = scenario,
+        scenario_dir = scenario_dir,
+        ww_data_dir = ww_data_dir,
+        calibration_time = max_eval_data_days,
+        last_hosp_data_date = eval_date,
+        ww_data_mapping = ww_data_mapping
+      ) |>
+        dplyr::filter(.data$date >= !!min(input_ww_data$date))
+    },
+    error = function(e) {
+      message("Caught an error: ", e$message)
+    }
+  )
+  save_object(eval_ww_data)
+
+  ww_fit_obj_wwinference <- load_object(fit_obj_name)
   ww_fit_obj <- ww_fit_obj_wwinference$fit$result
 
   # Format input hosp data in format the eval pipeline expects
@@ -92,7 +130,7 @@ eval_post_process_ww <- function(config_index,
   # If model fit failed, dont produce any of the below outputs
   if (!is.null(ww_fit_obj$error)) {
     errors <- ww_fit_obj$error
-    save_object("errors", output_file_suffix)
+    save_object(errors)
     # Save errors
     save_table(
       data_to_save = errors,
@@ -106,11 +144,11 @@ eval_post_process_ww <- function(config_index,
   } else { # model fit succeeded
 
     ww_raw_draws <- ww_fit_obj$draws()
-    save_object("ww_raw_draws", output_file_suffix)
+    save_object(ww_raw_draws)
     ww_diagnostics <- ww_fit_obj$sampler_diagnostics(format = "df")
-    save_object("ww_diagnostics", output_file_suffix)
+    save_object(ww_diagnostics)
     ww_diagnostic_summary <- ww_fit_obj$diagnostic_summary()
-    save_object("ww_diagnostic_summary", output_file_suffix)
+    save_object(ww_diagnostic_summary)
 
     metadata <- ww_fit_obj$metadata()
     raw_flags <- get_diagnostic_flags(
@@ -118,7 +156,7 @@ eval_post_process_ww <- function(config_index,
       metadata$num_chains,
       metadata$iter_sampling
     )
-    save_object("raw_flags", output_file_suffix)
+    save_object(raw_flags)
 
     flags <- raw_flags |> dplyr::mutate(
       scenario = scenario,
@@ -267,7 +305,7 @@ eval_post_process_ww <- function(config_index,
         )
       }
     }
-    save_object("hosp_draws", output_file_suffix)
+    save_object(hosp_draws)
 
     ww_draws <- {
       if (!is.null(ww_fit_obj_wwinference$error)) {
@@ -284,7 +322,7 @@ eval_post_process_ww <- function(config_index,
         )
       }
     }
-    save_object("ww_draws", output_file_suffix)
+    save_object(ww_draws)
 
     full_hosp_quantiles <- {
       if (is.null(hosp_draws)) {
@@ -295,7 +333,7 @@ eval_post_process_ww <- function(config_index,
         )
       }
     }
-    save_object("full_hosp_quantiles", output_file_suffix)
+    save_object(full_hosp_quantiles)
 
 
 
@@ -308,7 +346,7 @@ eval_post_process_ww <- function(config_index,
         )
       }
     }
-    save_object("full_ww_quantiles", output_file_suffix)
+    save_object(full_ww_quantiles)
 
     hosp_quantiles <- {
       if (is.null(full_hosp_quantiles)) {
@@ -318,7 +356,7 @@ eval_post_process_ww <- function(config_index,
           dplyr::filter(period != "calibration")
       }
     }
-    save_object("hosp_quantiles", output_file_suffix)
+    save_object(hosp_quantiles)
 
     ww_quantiles <- {
       if (is.null(full_ww_quantiles)) {
@@ -328,7 +366,7 @@ eval_post_process_ww <- function(config_index,
           dplyr::filter(period != "calibration")
       }
     }
-    save_object("ww_quantiles", output_file_suffix)
+    save_object(ww_quantiles)
     # Save forecasted quantiles locally as well as via
     # targets caching just for backup
     save_table(
@@ -390,7 +428,7 @@ eval_post_process_ww <- function(config_index,
       create.dir = TRUE
     )
 
-    save_object("plot_hosp_draws", output_file_suffix)
+    save_object(plot_hosp_draws)
 
     # Plots of R(t)s
     draws <- wwinference::get_draws(ww_fit_obj_wwinference, what = "all")
@@ -461,11 +499,11 @@ eval_post_process_ww <- function(config_index,
       create.dir = TRUE
     )
 
-    save_object("plot_ww_draws", output_file_suffix)
+    save_object(plot_ww_draws)
 
     ## Score hospital admissions forecasts----------------------------------
     hosp_scores <- get_full_scores(hosp_draws, scenario)
-    save_object("hosp_scores", output_file_suffix)
+    save_object(hosp_scores)
     save_table(
       data_to_save = hosp_scores,
       type_of_output = "scores",
@@ -476,7 +514,7 @@ eval_post_process_ww <- function(config_index,
       location = location
     )
     hosp_scores_quantiles <- get_scores_from_quantiles(hosp_quantiles, scenario)
-    save_object("hosp_scores_quantiles", output_file_suffix)
+    save_object(hosp_scores_quantiles)
     save_table(
       data_to_save = hosp_scores_quantiles,
       type_of_output = "scores_quantiles",
@@ -523,66 +561,87 @@ eval_post_process_ww <- function(config_index,
 #' @param config_index Index of eval_config to evaluate
 #' @param eval_config_path Path to eval_config (created with `write_eval_config`)
 #' @param params_path Path to params.toml
-#'
+#' @param max_eval_data_days Maximum number of days of data to pull
+#' when creating evaluation dataset. Default 365.
 #' @return NULL
 #' @export
 #'
 eval_post_process_hosp <- function(config_index,
                                    eval_config_path,
-                                   params_path) {
+                                   params_path,
+                                   max_eval_data_days = 365) {
   eval_config <- yaml::read_yaml(eval_config_path)
   output_dir <- eval_config$output_dir
   raw_output_dir <- eval_config$raw_output_dir
-
-  save_object <- function(object_name, output_file_suffix) {
-    saveRDS(
-      object = get(object_name),
-      file = file.path(raw_output_dir, paste0(object_name, output_file_suffix))
-    )
-  }
-  load_object <- function(object_name, output_file_suffix) {
-    readRDS(file.path(raw_output_dir, paste0(object_name, output_file_suffix)))
-  }
-
-
-  wwinference::create_dir(output_dir)
-  wwinference::create_dir(raw_output_dir)
-
 
   params <- wwinference::get_params(params_path)
   location <- eval_config$location_hosp[config_index]
   forecast_date <- eval_config$forecast_date_hosp[config_index]
   scenario <- "no_wastewater"
+  hosp_data_dir <- eval_config$hosp_data_dir
+  eval_date <- eval_config$eval_date
 
-  output_file_suffix <- paste("", location, format(as.Date(forecast_date), "%Y.%m.%d"), scenario,
-    sep = "_"
-  ) |> paste0(".rds")
-
-  input_hosp_data <- load_object("input_hosp_data", output_file_suffix)
-  last_hosp_data_date <- get_last_hosp_data_date(input_hosp_data)
-  eval_hosp_data <- load_object("eval_hosp_data", output_file_suffix)
-  hosp_fit_obj_wwinference <- load_object(
-    "hosp_fit_obj",
-    output_file_suffix
+  raw_output_suffix <- get_raw_output_suffix(
+    location,
+    forecast_date,
+    scenario
   )
+
+  save_object <- purrr::partial(
+    to_rds_with_suffix,
+    output_dir = raw_output_dir,
+    save_suffix = raw_output_suffix
+  )
+
+  load_object <- function(object_name) {
+    return(readRDS(
+      fs::path(raw_output_dir,
+        glue::glue("{object_name}{raw_output_suffix}"),
+        ext = "rds"
+      )
+    ))
+  }
+
+  wwinference::create_dir(output_dir)
+  wwinference::create_dir(raw_output_dir)
+
+
+  input_hosp_data <- load_object("input_hosp_data")
+  last_hosp_data_date <- get_last_hosp_data_date(input_hosp_data)
+
+  eval_hosp_data <- get_input_hosp_data(
+    forecast_date_i = eval_date,
+    location_i = location,
+    hosp_data_dir = hosp_data_dir,
+    calibration_time = max_eval_data_days
+  ) |>
+    dplyr::filter(date >= min(input_hosp_data$date))
+
+  save_object(eval_hosp_data)
+
+  hosp_fit_obj_wwinference <- load_object("hosp_fit_obj")
   hosp_fit_obj <- hosp_fit_obj_wwinference$fit$result
 
   hosp_raw_draws <- hosp_fit_obj$draws()
-  save_object("hosp_raw_draws", output_file_suffix)
+  save_object(hosp_raw_draws)
+
   hosp_diagnostics <- hosp_fit_obj$sampler_diagnostics(format = "df")
-  save_object("hosp_diagnostics", output_file_suffix)
+  save_object(hosp_diagnostics)
+
   hosp_diagnostic_summary <- hosp_fit_obj$diagnostic_summary()
-  save_object("hosp_diagnostic_summary", output_file_suffix)
+  save_object(hosp_diagnostic_summary)
+
   errors <- hosp_fit_obj$error
-  save_object("errors", output_file_suffix)
+  save_object(errors)
+
   metadata <- hosp_fit_obj$metadata()
   raw_flags <- get_diagnostic_flags(
     hosp_fit_obj,
     metadata$num_chains,
     metadata$iter_sampling
   )
-  save_object("raw_flags", output_file_suffix)
-  # Save errors
+  save_object(raw_flags)
+
   save_table(
     data_to_save = errors,
     type_of_output = "errors",
@@ -687,18 +746,19 @@ eval_post_process_hosp <- function(config_index,
     location = location,
     eval_data = eval_hosp_data
   )
-  save_object("hosp_model_hosp_draws", output_file_suffix)
+  save_object(hosp_model_hosp_draws)
+
   full_hosp_model_quantiles <- get_state_level_quantiles(
     draws = hosp_model_hosp_draws
   )
-  save_object("full_hosp_model_quantiles", output_file_suffix)
+  save_object(full_hosp_model_quantiles)
 
   hosp_model_quantiles <- full_hosp_model_quantiles |>
     dplyr::filter(period != "calibration")
-  save_object("hosp_model_quantiles", output_file_suffix)
+  save_object(hosp_model_quantiles)
 
   # Save forecasted quantiles locally as well as via
-  # targets caching just for backup
+  # targets cacheing just for backup
   save_table(
     data_to_save = full_hosp_model_quantiles,
     type_of_output = "quantiles",
@@ -715,7 +775,7 @@ eval_post_process_hosp <- function(config_index,
     location,
     model_type = "hosp"
   )
-  save_object("plot_hosp_draws_hosp_model", output_file_suffix)
+  save_object(plot_hosp_draws_hosp_model)
   ggsave(plot_hosp_draws_hosp_model,
     filename = file.path(
       output_dir, scenario,
@@ -763,7 +823,8 @@ eval_post_process_hosp <- function(config_index,
   hosp_scores <- get_full_scores(hosp_model_hosp_draws,
     scenario = "no_wastewater"
   )
-  save_object("hosp_scores", output_file_suffix)
+  save_object(hosp_scores)
+
   save_table(
     data_to_save = hosp_scores,
     type_of_output = "scores",
@@ -773,10 +834,13 @@ eval_post_process_hosp <- function(config_index,
     model_type = "hosp",
     location = location
   )
-  hosp_scores_quantiles <- get_scores_from_quantiles(hosp_model_quantiles,
+
+  hosp_scores_quantiles <- get_scores_from_quantiles(
+    hosp_model_quantiles,
     scenario = "no_wastewater"
   )
-  save_object("hosp_scores_quantiles", output_file_suffix)
+  save_object(hosp_scores_quantiles)
+
   save_table(
     data_to_save = hosp_scores_quantiles,
     type_of_output = "scores_quantiles",
