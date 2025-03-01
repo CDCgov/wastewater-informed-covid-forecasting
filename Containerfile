@@ -3,9 +3,10 @@ ENV R_BUILD_REPOS="'https://packagemanager.posit.co/cran/__linux__/jammy/latest'
 
 ADD ./.ContainerBuildRprofile /.Rprofile
 
+RUN apt-get update
+RUN apt-get install -y libcurl4-openssl-dev
 RUN Rscript -e "install.packages('pak')"
 RUN Rscript -e "pak::pkg_install('github::stan-dev/cmdstanr')"
-RUN apt-get install -y libcurl4-openssl-dev
 RUN Rscript -e "cmdstanr::install_cmdstan()"
 RUN Rscript -e "pak::pkg_install('github::cdcgov/ww-inference-model')"
 RUN Rscript -e "pak::pkg_install('argparser')"
