@@ -14,27 +14,23 @@ eval_fit_ww <- function(config_index,
   eval_config <- yaml::read_yaml(eval_config_path)
   output_dir <- eval_config$output_dir
   raw_output_dir <- eval_config$raw_output_dir
-
-  save_object <- function(object_name, output_file_suffix) {
-    saveRDS(
-      object = get(object_name),
-      file = file.path(raw_output_dir, paste0(object_name, output_file_suffix))
-    )
-  }
-
-
-  wwinference::create_dir(output_dir)
-  wwinference::create_dir(raw_output_dir)
-
   params <- wwinference::get_params(params_path)
   location <- eval_config$location_ww[config_index]
   forecast_date <- eval_config$forecast_date_ww[config_index]
   scenario <- eval_config$scenario[config_index]
+  raw_output_suffix <- get_raw_output_suffix(
+    location,
+    forecast_date,
+    scenario
+  )
 
-  output_file_suffix <- paste("", location, format(as.Date(forecast_date), "%Y.%m.%d"), scenario,
-    sep = "_"
-  ) |> paste0(".rds")
+  save_object <- purrr::partial(to_rds_with_suffix,
+    output_dir = raw_output_dir,
+    save_suffix = raw_output_suffix
+  )
 
+  wwinference::create_dir(output_dir)
+  wwinference::create_dir(raw_output_dir)
 
   table_of_exclusions <- tibble::as_tibble(eval_config$table_of_exclusions)
 
@@ -53,7 +49,7 @@ eval_fit_ww <- function(config_index,
     forecast_date = forecast_date,
     table_of_exclusions = table_of_exclusions
   )
-  save_object("input_hosp_data", output_file_suffix)
+  save_object(input_hosp_data)
 
 
   last_hosp_data_date <- get_last_hosp_data_date(input_hosp_data)
@@ -76,9 +72,7 @@ eval_fit_ww <- function(config_index,
       message("Caught an error: ", e$message)
     }
   )
-
-
-  save_object("input_ww_data", output_file_suffix)
+  save_object(input_ww_data)
 
   ## Use wwinference to fit the model------------------------------------------
   if (!is.null(input_ww_data)) {
@@ -127,45 +121,7 @@ eval_fit_ww <- function(config_index,
     )
   }
 
-  save_object("ww_fit_obj", output_file_suffix)
-
-
-
-  # Get the evaluation data from the specified evaluation date ----------------
-  eval_hosp_data <- get_input_hosp_data(
-    forecast_date_i = eval_config$eval_date,
-    location_i = location,
-    hosp_data_dir = eval_config$hosp_data_dir,
-    calibration_time = 365 # Grab sufficient data for eval
-  ) |>
-    dplyr::filter(date >= min(input_hosp_data$date))
-
-  save_object("eval_hosp_data", output_file_suffix)
-
-  eval_ww_data <- tryCatch(
-    {
-      # Try to execute the risky function
-      get_input_ww_data(
-        forecast_date_i = eval_config$eval_date,
-        location_i = location,
-        scenario_i = scenario,
-        scenario_dir = eval_config$scenario_dir,
-        ww_data_dir = eval_config$ww_data_dir,
-        calibration_time = 365,
-        last_hosp_data_date = eval_config$eval_date,
-        ww_data_mapping = eval_config$ww_data_mapping
-      ) |>
-        dplyr::filter(date >= min(input_ww_data$date))
-    },
-    error = function(e) {
-      # Handle the error
-      message("Caught an error: ", e$message)
-    }
-  )
-
-  save_object("eval_ww_data", output_file_suffix)
-
-  # Get the table of hospital admissions outliers -----------
+  save_object(ww_fit_obj)
 }
 
 #' Fit Hospitalizations Model for Evaluation
@@ -183,26 +139,24 @@ eval_fit_hosp <- function(config_index,
   eval_config <- yaml::read_yaml(eval_config_path)
   output_dir <- eval_config$output_dir
   raw_output_dir <- eval_config$raw_output_dir
-
-  save_object <- function(object_name, output_file_suffix) {
-    saveRDS(
-      object = get(object_name),
-      file = file.path(raw_output_dir, paste0(object_name, output_file_suffix))
-    )
-  }
-
-  wwinference::create_dir(output_dir)
-  wwinference::create_dir(raw_output_dir)
-
   params <- wwinference::get_params(params_path)
   location <- eval_config$location_hosp[config_index]
   forecast_date <- eval_config$forecast_date_hosp[config_index]
   scenario <- "no_wastewater"
 
-  output_file_suffix <- paste("", location, format(as.Date(forecast_date), "%Y.%m.%d"), scenario,
-    sep = "_"
-  ) |> paste0(".rds")
+  raw_output_suffix <- get_raw_output_suffix(
+    location,
+    forecast_date,
+    scenario
+  )
 
+  save_object <- purrr::partial(to_rds_with_suffix,
+    output_dir = raw_output_dir,
+    save_suffix = raw_output_suffix
+  )
+
+  wwinference::create_dir(output_dir)
+  wwinference::create_dir(raw_output_dir)
 
   # Get the table of hospital admissions outliers ----------------------------
   table_of_exclusions <- tibble::as_tibble(eval_config$table_of_exclusions)
@@ -220,7 +174,7 @@ eval_fit_hosp <- function(config_index,
     table_of_exclusions = table_of_exclusions
   )
 
-  save_object("input_hosp_data", output_file_suffix)
+  save_object(input_hosp_data)
 
 
   last_hosp_data_date <- get_last_hosp_data_date(input_hosp_data)
@@ -247,18 +201,5 @@ eval_fit_hosp <- function(config_index,
       max_treedepth = eval_config$max_treedepth
     )
   )
-
-  save_object("hosp_fit_obj", output_file_suffix)
-
-
-  # Get the evaluation data from the specified evaluation date ----------------
-  eval_hosp_data <- get_input_hosp_data(
-    forecast_date_i = eval_config$eval_date,
-    location_i = location,
-    hosp_data_dir = eval_config$hosp_data_dir,
-    calibration_time = 365 # Grab sufficient data for eval
-  ) |>
-    dplyr::filter(date >= min(input_hosp_data$date))
-
-  save_object("eval_hosp_data", output_file_suffix)
+  save_object(hosp_fit_obj)
 }

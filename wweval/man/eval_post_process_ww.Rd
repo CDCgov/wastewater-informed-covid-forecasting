@@ -2,9 +2,14 @@
 % Please edit documentation in R/eval_post_process.R
 \name{eval_post_process_ww}
 \alias{eval_post_process_ww}
-\title{Post Process Wastewater Model for Evaluation}
+\title{Postprocess Wastewater Model for Evaluation}
 \usage{
-eval_post_process_ww(config_index, eval_config_path, params_path)
+eval_post_process_ww(
+  config_index,
+  eval_config_path,
+  params_path,
+  max_eval_data_days = 365
+)
 }
 \arguments{
 \item{config_index}{Index of eval_config to evaluate}
@@ -12,7 +17,10 @@ eval_post_process_ww(config_index, eval_config_path, params_path)
 \item{eval_config_path}{Path to eval_config (created with \code{write_eval_config})}
 
 \item{params_path}{Path to params.toml}
+
+\item{max_eval_data_days}{Maximum number of days of data to pull
+when creating evaluation dataset. Default 365.}
 }
 \description{
-Post Process Wastewater Model for Evaluation
+Postprocess Wastewater Model for Evaluation
 }
