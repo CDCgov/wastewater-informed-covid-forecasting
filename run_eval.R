@@ -4,10 +4,8 @@ library(argparser)
 options(mc.cores = 4)
 
 runner_functions <- c(
-  "fit_hosp" = wweval::eval_fit_hosp,
-  "fit_ww" = wweval::eval_fit_ww,
-  "postprocess_hosp" = wweval::eval_post_process_hosp,
-  "postprocess_ww" = wweval::eval_post_process_ww
+  "fit" = wweval::eval_fit,
+  "postprocess" = wweval::eval_post_process
 )
 
 
@@ -62,5 +60,6 @@ message(glue::glue(
 config_index <- job_runner_function(
   config_index = parsed$config_index,
   eval_config_path = parsed$eval_config_path,
-  params_path = parsed$params_path
+  params_path = parsed$params_path,
+  model = parsed$model
 )
