@@ -123,10 +123,5 @@ eval_fit <- function(config_index,
     fit_obj <- list(fit = list(result = list(error = err_msg)))
   }
 
-  save_basename <- ifelse(ww_model,
-    "ww_fit_obj",
-    "hosp_fit_obj"
-  )
-
-  save_object(fit_obj, save_basename = save_basename)
+  save_object(fit_obj, save_basename = glue::glue("{model}_fit_obj"))
 }
