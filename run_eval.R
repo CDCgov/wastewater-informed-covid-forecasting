@@ -5,7 +5,7 @@ options(mc.cores = 4)
 
 runner_functions <- c(
   "fit" = wweval::eval_fit,
-  "postprocess" = wweval::eval_post_process
+  "postprocess" = wweval::eval_postprocess
 )
 
 
