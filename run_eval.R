@@ -40,17 +40,16 @@ checkmate::assert_names(parsed$job,
   subset.of = c("fit", "postprocess")
 )
 
-run_name <- glue::glue("{parsed$job}_{parsed$model}")
 
-checkmate::assert_names(run_name,
+checkmate::assert_names(model,
   subset.of = names(runner_functions)
 )
 
-job_runner_function <- runner_functions[[run_name]]
+job_runner_function <- runner_functions[[model]]
 
 message(glue::glue(
   "Starting a {parsed$job} job with the ",
-  "{parsed$model} model ({run_name}) for index ",
+  "{parsed$model} model for index ",
   "{parsed$config_index} in config ",
   "{parsed$eval_config_path} with parameters from ",
   "{parsed$params_path}"
