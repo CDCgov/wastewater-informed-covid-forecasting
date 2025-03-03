@@ -853,6 +853,15 @@ eval_post_process_hosp <- function(config_index,
 }
 
 #' placeholder wrapper for testing refactor
+#'
+#' @param config_index Index of eval_config to evaluate
+#' @param eval_config_path Path to eval_config (created with `write_eval_config`)
+#' @param params_path Path to params.toml
+#' @param model model to use. One of `"ww"` and `"hosp"`.
+#' @param max_eval_data_days Maximum number of days of data to pull
+#' when creating evaluation dataset. Default 365.
+#' @return NULL
+
 #' @export
 eval_postprocess <- function(config_index,
                              eval_config_path,

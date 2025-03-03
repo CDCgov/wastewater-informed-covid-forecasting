@@ -12,6 +12,18 @@ eval_postprocess(
   max_eval_data_days = 365
 )
 }
+\arguments{
+\item{config_index}{Index of eval_config to evaluate}
+
+\item{eval_config_path}{Path to eval_config (created with \code{write_eval_config})}
+
+\item{params_path}{Path to params.toml}
+
+\item{model}{model to use. One of \code{"ww"} and \code{"hosp"}.}
+
+\item{max_eval_data_days}{Maximum number of days of data to pull
+when creating evaluation dataset. Default 365.}
+}
 \description{
 placeholder wrapper for testing refactor
 }
