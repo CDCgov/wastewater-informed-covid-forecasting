@@ -34,18 +34,13 @@ parsed <- arg_parser("Run eval pipeline for one config") |>
   parse_args()
 
 checkmate::assert_names(parsed$model,
-  subset.of = c("ww", "hosp")
+  subset.of = names(runner_functions)
 )
 checkmate::assert_names(parsed$job,
   subset.of = c("fit", "postprocess")
 )
 
-
-checkmate::assert_names(model,
-  subset.of = names(runner_functions)
-)
-
-job_runner_function <- runner_functions[[model]]
+job_runner_function <- runner_functions[[parsed$model]]
 
 message(glue::glue(
   "Starting a {parsed$job} job with the ",
