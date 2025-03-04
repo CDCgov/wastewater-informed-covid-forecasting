@@ -15,14 +15,16 @@ mock_all_scores_incomplete <- mock_all_scores_full[-c(1, 2, 3, 9), ]
 
 # Test that the function returns a data frame
 test_that("Function returns a data frame", {
-  result <- create_mock_submission_scores(mock_all_scores_full)
+  result <- create_mock_submission_scores(mock_all_scores_full) |>
+    suppressMessages()
   expect_true(is.data.frame(result))
 })
 
 # Test that all combinations of forecast dates, locations, and scenarios are present
 # when we pass in an incomplete dataframe
 test_that("All combinations of dates, locations, and scenarios are present", {
-  result <- create_mock_submission_scores(mock_all_scores_incomplete)
+  result <- create_mock_submission_scores(mock_all_scores_incomplete) |>
+    suppressMessages()
 
   expected_combos <- expand.grid(
     forecast_date = unique(mock_all_scores_incomplete$forecast_date),
@@ -42,7 +44,8 @@ test_that("All combinations of dates, locations, and scenarios are present", {
 # Test that missing locations are filled with scores from the replacement model
 test_that("Missing locations are filled with scores from replacement model", {
   # Run the function on incomplete data
-  result <- create_mock_submission_scores(mock_all_scores_incomplete)
+  result <- create_mock_submission_scores(mock_all_scores_incomplete) |>
+    suppressMessages()
 
   # Check if all missing locations have been filled with 'no_wastewater' scenario scores
   no_wastewater_data <- filter(result, scenario == "no_wastewater")
@@ -81,7 +84,8 @@ test_that("Function fails when replacement model scores are unavailable", {
 
 # Test that the function adds correct model_type labels to each row
 test_that("Correct model_type labels are added", {
-  result <- create_mock_submission_scores(mock_all_scores_incomplete)
+  result <- create_mock_submission_scores(mock_all_scores_incomplete) |>
+    suppressMessages()
 
 
   # Check if all scenarios have their respective model types labeled correctly
