@@ -134,7 +134,7 @@ def main(
         task_deps = None
         if task_type == "postprocess" and deps:
             task_deps = batchmodels.TaskDependencies(
-                [f"{job_id}-fit-{task_name}"]
+                task_ids=[f"{job_id}-fit-{task_name}"]
             )
 
         base_call = (
