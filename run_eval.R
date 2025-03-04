@@ -40,7 +40,7 @@ checkmate::assert_names(parsed$job,
   subset.of = names(runner_functions)
 )
 
-job_runner_function <- runner_functions[[parsed$model]]
+job_runner_function <- runner_functions[[parsed$job]]
 
 message(glue::glue(
   "Starting a {parsed$job} job with the ",
