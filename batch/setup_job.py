@@ -130,7 +130,7 @@ def main(
         Helper function to add tasks as we loop through.
         """
         task_name = f"{scenario}-{forecast_date}-{location}"
-        task_id = f"{job_id}-{job_type}-{task_name}"
+        task_id = f"{job_id}-{task_type}-{task_name}"
         task_deps = None
         if task_type == "postprocess" and deps:
             task_deps = batchmodels.TaskDependencies(
