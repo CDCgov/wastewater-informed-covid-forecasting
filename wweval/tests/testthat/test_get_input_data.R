@@ -1,4 +1,4 @@
-test_that("Test data_of_ww_data returns the correct date to pull the wastewater data", {
+test_that("Test date_of_ww_data returns the correct date to pull the wastewater data", {
   create_fake_ww_files <- function(temp_dir, dates) {
     file_paths <- file.path(temp_dir, paste0(dates, ".csv"))
     file.create(file_paths)
@@ -7,7 +7,6 @@ test_that("Test data_of_ww_data returns the correct date to pull the wastewater 
   sample_dates <- c("2024-03-16", "2024-03-17", "2024-03-18")
   temp_dir <- tempdir()
   create_fake_ww_files(temp_dir, sample_dates)
-
 
   # Test case where ww_data_mapping is NULL
   forecast_date <- "2024-03-18"
@@ -82,23 +81,29 @@ test_that("clean_ww_data correctly cleans and renames columns", {
   # Expected output after cleaning
   expected_nwss_output <- tibble::tibble(
     date = as.Date(c("2021-01-01", "2021-01-02")),
-    location = c("AK", "AL"),
-    ww = c(100, 200),
     site = c(132, 142),
     lab = c(5, 5),
-    lab_wwtp_unique_id = c(1, 2),
-    ww_pop = c(50000, 60000),
-    below_LOD = c(FALSE, FALSE),
-    lod_sewage = c(10, 20)
+    log_genome_copies_per_ml = log(c(100, 200)),
+    log_lod = log(c(10, 20)),
+    site_pop = c(50000, 60000),
+    location = c("AK", "AL")
   )
+
   # Apply the cleaning function to our sample data
   cleaned_data <- clean_ww_data(fake_nwss_subset)
 
-  # Check if the cleaned data matches our expected output
-  expect_equal(cleaned_data, expected_nwss_output)
+  ## Check if all expected columns are present
+  ## but no extra columns are present
+  expected_colnames <- c(
+    "date", "site", "lab",
+    "log_genome_copies_per_ml", "log_lod",
+    "site_pop", "location"
+  )
 
-  # Check if all expected columns are present
-  expect_true(all(names(expected_nwss_output) %in% names(cleaned_data)))
+  checkmate::assert_names(names(cleaned_data),
+    permutation.of = expected_colnames
+  )
+
 
   # Check if 'location' and 'site' columns are correctly transformed to uppercase
   expect_true(all(toupper(fake_nwss_subset$wwtp_jurisdiction) == cleaned_data$location))
@@ -108,18 +113,14 @@ test_that("clean_ww_data correctly cleans and renames columns", {
   expect_equal(cleaned_data$date, fake_nwss_subset$sample_collect_date)
 
   # Check if the ww (wastewater) column is renamed correctly
-  expect_equal(cleaned_data$ww, fake_nwss_subset$pcr_target_avg_conc)
+  expect_equal(cleaned_data$log_genome_copies_per_ml, log(fake_nwss_subset$pcr_target_avg_conc))
 
   # Check if the ww_pop (population served) column is renamed correctly
-  expect_equal(cleaned_data$ww_pop, fake_nwss_subset$population_served)
+  expect_equal(cleaned_data$site_pop, fake_nwss_subset$population_served)
 
   # Check for correct renaming of lab_id to lab
   expect_equal(cleaned_data$lab, fake_nwss_subset$lab_id)
 
-  # Ensure no extra columns are present in the cleaned data
-  expected_colnames <- c(
-    "date", "location", "ww", "site", "lab",
-    "lab_wwtp_unique_id", "ww_pop", "below_LOD", "lod_sewage"
-  )
-  expect_equal(sort(names(cleaned_data)), sort(expected_colnames))
+  # Check if the cleaned data matches our expected output
+  expect_equal(cleaned_data, expected_nwss_output)
 })

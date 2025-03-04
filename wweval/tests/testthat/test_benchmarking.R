@@ -17,8 +17,22 @@ hosp_scores <- tibble::tibble(
 )
 
 test_that("benchmarking writes files correctly", {
-  benchmark_dir <- tempdir()
+  benchmark_dir <- withr::local_tempdir("benchmarks")
 
+  ## benchmark_performance expects to be run within a
+  ## git repo. We create a temporary one.
+  file.create(file.path(benchmark_dir, "a_file.txt"))
+  withr::local_dir(new = benchmark_dir)
+  system(
+    paste0(
+      "git config --global user.name test && ",
+      "git config --global user.email test@example.com && ",
+      "git config --global init.defaultBranch main && ",
+      "git init && git add a_file.txt && ",
+      "git commit -m 'Initial commit'"
+    ),
+    intern = TRUE
+  )
 
   write_files <- benchmark_performance(ww_scores,
     hosp_scores,
@@ -29,7 +43,6 @@ test_that("benchmarking writes files correctly", {
   )
 
   df <- readr::read_tsv(file.path(benchmark_dir, "all_by_location.tsv"))
-
 
   # append
   write_files_again <- benchmark_performance(ww_scores,
