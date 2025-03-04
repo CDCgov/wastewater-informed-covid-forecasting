@@ -199,7 +199,7 @@ if __name__ == "__main__":
         help="Path to a YAML-formatted configuration file",
     )
     parser.add_argument(
-        "job_types",
+        "job_type",
         type=str,
         help="Type(s) of job to run (`fit`, `postprocess`, or `both`)",
     )
