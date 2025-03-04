@@ -79,7 +79,8 @@ Imports:
     zoltr,
     wwinference,
     scoringutils (>= 1.2.2),
-    fs
+    fs,
+    checkmate
 Suggests:
     httr,
     sessioninfo,

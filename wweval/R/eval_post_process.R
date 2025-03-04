@@ -851,3 +851,33 @@ eval_post_process_hosp <- function(config_index,
     location = location
   )
 }
+
+#' placeholder wrapper for testing refactor
+#'
+#' @param config_index Index of eval_config to evaluate
+#' @param eval_config_path Path to eval_config (created with `write_eval_config`)
+#' @param params_path Path to params.toml
+#' @param model model to use. One of `"ww"` and `"hosp"`.
+#' @param max_eval_data_days Maximum number of days of data to pull
+#' when creating evaluation dataset. Default 365.
+#' @return NULL
+#' @export
+eval_postprocess <- function(config_index,
+                             eval_config_path,
+                             params_path,
+                             model,
+                             max_eval_data_days = 365) {
+  checkmate::assert_names(model, subset.of = c("ww", "hosp"))
+  ww_model <- model == "ww"
+  pp_func <- ifelse(
+    ww_model,
+    eval_post_process_ww,
+    eval_post_process_hosp
+  )
+  pp_func(
+    config_index = config_index,
+    eval_config_path = eval_config_path,
+    params_path = params_path,
+    max_eval_data_days = max_eval_data_days
+  )
+}
