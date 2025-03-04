@@ -71,10 +71,11 @@ def main(
     creds = EnvCredentialHandler()
 
     batch_service_client = get_batch_service_client(creds)
-
+    uses_deps = job_type == "both"
     job = batchmodels.JobAddParameter(
         id=job_id,
         pool_info=batchmodels.PoolInformation(pool_id=pool_id),
+        uses_task_dependencies=uses_deps,
     )
 
     try:
@@ -124,7 +125,7 @@ def main(
         scenario: str,
         model: str,
         task_type: str,
-        deps: bool,
+        uses_task_dependencies: bool,
     ) -> None:
         """
         Helper function to add tasks as we loop through.
@@ -132,7 +133,7 @@ def main(
         task_name = f"{scenario}-{forecast_date}-{location}"
         task_id = f"{job_id}-{task_type}-{task_name}"
         task_deps = None
-        if task_type == "postprocess" and deps:
+        if task_type == "postprocess" and uses_task_dependencies:
             task_deps = batchmodels.TaskDependencies(
                 task_ids=[f"{job_id}-fit-{task_name}"]
             )
@@ -180,7 +181,7 @@ def main(
                 scenario=scen if model == "ww" else "no_wastewater",
                 model=model,
                 task_type=task_type,
-                deps=(job_type == "both"),
+                uses_task_dependencies=uses_deps,
             )
             pass
         pass
