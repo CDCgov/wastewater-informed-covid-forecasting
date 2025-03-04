@@ -37,7 +37,8 @@ checkmate::assert_names(parsed$model,
   subset.of = c("ww", "hosp")
 )
 checkmate::assert_names(parsed$job,
-  subset.of = names(runner_functions))
+  subset.of = names(runner_functions)
+)
 
 job_runner_function <- runner_functions[[parsed$model]]
 
