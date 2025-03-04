@@ -17,7 +17,7 @@ hosp_scores <- tibble::tibble(
 )
 
 test_that("benchmarking writes files correctly", {
-  benchmark_dir <- tempdir()
+  benchmark_dir <- withr::local_tempdir("benchmarks")
 
 
   write_files <- benchmark_performance(ww_scores,
@@ -29,7 +29,6 @@ test_that("benchmarking writes files correctly", {
   )
 
   df <- readr::read_tsv(file.path(benchmark_dir, "all_by_location.tsv"))
-
 
   # append
   write_files_again <- benchmark_performance(ww_scores,

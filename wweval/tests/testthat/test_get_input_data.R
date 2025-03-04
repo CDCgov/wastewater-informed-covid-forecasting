@@ -1,4 +1,4 @@
-test_that("Test data_of_ww_data returns the correct date to pull the wastewater data", {
+test_that("Test date_of_ww_data returns the correct date to pull the wastewater data", {
   create_fake_ww_files <- function(temp_dir, dates) {
     file_paths <- file.path(temp_dir, paste0(dates, ".csv"))
     file.create(file_paths)
@@ -7,7 +7,6 @@ test_that("Test data_of_ww_data returns the correct date to pull the wastewater 
   sample_dates <- c("2024-03-16", "2024-03-17", "2024-03-18")
   temp_dir <- tempdir()
   create_fake_ww_files(temp_dir, sample_dates)
-
 
   # Test case where ww_data_mapping is NULL
   forecast_date <- "2024-03-18"

@@ -1,13 +1,13 @@
 # Create a mock dataset to use for testing
 
-set.seed(123) # For reproducibility
-# Create a full expanded grid with all combos
-mock_all_scores_full <- expand.grid(
-  forecast_date = seq(as.Date("2024-01-01"), by = "month", length.out = 3),
-  scenario = c("base", "no_wastewater", "optimistic", "pessimistic"),
-  location = c("State1", "State2")
-) |> cbind(data.frame(score = runif(24, min = 0, max = 100)))
-
+withr::with_seed(123, {
+  # Create a full expanded grid with all combos
+  mock_all_scores_full <- expand.grid(
+    forecast_date = seq(as.Date("2024-01-01"), by = "month", length.out = 3),
+    scenario = c("base", "no_wastewater", "optimistic", "pessimistic"),
+    location = c("State1", "State2")
+  ) |> cbind(data.frame(score = runif(24, min = 0, max = 100)))
+})
 # Remove an entire state for a scenario, and then remove a random row
 # simulating a scenario without WW in that location + a location with
 # missign data for a single forecast date
@@ -75,7 +75,7 @@ test_that("Function fails when replacement model scores are unavailable", {
 
   expect_error(
     create_mock_submission_scores(no_replacement_scores),
-    "Replacement scores unavailable"
+    "replacement scores from model"
   )
 })
 
