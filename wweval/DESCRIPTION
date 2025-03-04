@@ -79,11 +79,13 @@ Imports:
     zoltr,
     wwinference,
     scoringutils (>= 1.2.2),
-    fs
+    fs,
+    checkmate
 Suggests:
     httr,
     sessioninfo,
-    testthat (>= 3.0.0)
+    testthat (>= 3.0.0),
+    withr
 SystemRequirements: CmdStan (>=2.34.1)
 Encoding: UTF-8
 Roxygen: list(markdown = TRUE)
