@@ -98,6 +98,8 @@ eval_fit <- function(config_index,
       (!include_ww || !is.null(input_ww_data))
   )
 
+  fit_obj <- NULL
+
   if (do_fit) {
     fit_fn <- purrr::safely(wwinference::wwinference)
     fit_obj <- fit_fn(
