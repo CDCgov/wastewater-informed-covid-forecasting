@@ -60,6 +60,14 @@ create_mock_submission_scores <- function(all_scores,
         ) |>
         dplyr::mutate(scenario = scenarios[j])
 
+      if (length(needed_locs) > 0 && nrow(replacement_scores) == 0) {
+        cli::cli_abort(paste0(
+          "Scores missing for scenario {scenarios[j]} and ",
+          "replacement scores from model {name_of_replacement_model} ",
+          "not found"
+        ))
+      }
+
       submission_scores <- rbind(
         scores_from_model,
         replacement_scores
@@ -84,7 +92,7 @@ create_mock_submission_scores <- function(all_scores,
 
   exclusions <- all_submission_scores |>
     dplyr::distinct(location, forecast_date, scenario) |>
-    count(location, forecast_date) |>
+    dplyr::count(location, forecast_date) |>
     arrange(n) |>
     dplyr::filter(n < length(unique(all_submission_scores$scenario)))
 
@@ -105,7 +113,7 @@ create_mock_submission_scores <- function(all_scores,
   # check that all ns are n_unique combos
   test <- filtered_scores |>
     dplyr::distinct(location, forecast_date, scenario) |>
-    count(location, forecast_date) |>
+    dplyr::count(location, forecast_date) |>
     arrange(n)
 
   stopifnot(

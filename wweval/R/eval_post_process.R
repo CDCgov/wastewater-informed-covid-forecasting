@@ -87,7 +87,7 @@ eval_post_process_ww <- function(config_index,
 
   # Format input hosp data in format the eval pipeline expects
   input_hosp_data_wweval <- input_hosp_data |>
-    dplyr:::rename(
+    dplyr::rename(
       "daily_hosp_admits" = "count",
       "pop" = "total_pop"
     )
