@@ -123,7 +123,7 @@ def main(
         forecast_date: str,
         scenario: str,
         model: str,
-        job_type: str,
+        task_type: str,
         deps: bool,
     ) -> None:
         """
@@ -132,7 +132,7 @@ def main(
         task_name = f"{scenario}-{forecast_date}-{location}"
         task_id = f"{job_id}-{job_type}-{task_name}"
         task_deps = None
-        if job_type == "postprocess" and deps:
+        if task_type == "postprocess" and deps:
             task_deps = batchmodels.TaskDependencies(
                 [f"{job_id}-fit-{task_name}"]
             )
@@ -145,7 +145,7 @@ def main(
             f"input/config/eval/{config_name}.yaml "
             "input/params.toml "
             f"{model} "
-            f"{job_type}"
+            f"{task_type}"
             f" > {log_dir}/{task_name}-stdout.txt "
             f" 2> {log_dir}/{task_name}-stderr.txt"
             "'"
@@ -165,7 +165,7 @@ def main(
         if job_type == "both"
         else ensure_listlike(job_type)
     )
-    for model, job_type in itertools.product(to_run, task_types):
+    for model, task_type in itertools.product(to_run, task_types):
         for i_row, (loc, f_date, scen) in enumerate(
             zip(
                 eval_spec[f"location_{model}"],
@@ -179,7 +179,7 @@ def main(
                 forecast_date=f_date,
                 scenario=scen if model == "ww" else "no_wastewater",
                 model=model,
-                job_type=job_type,
+                task_type=task_type,
                 deps=(job_type == "both"),
             )
             pass
