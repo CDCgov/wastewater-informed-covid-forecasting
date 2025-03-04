@@ -25,6 +25,9 @@ test_that("benchmarking writes files correctly", {
   withr::local_dir(new = benchmark_dir)
   system(
     paste0(
+      "git config --global user.name test && ",
+      "git config --global user.email test@example.com && ",
+      "git config --global init.defaultBranch main && ",
       "git init && git add a_file.txt && ",
       "git commit -m 'Initial commit'"
     ),
