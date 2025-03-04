@@ -80,8 +80,8 @@ def main(
     except batchmodels.BatchErrorException as err:
         if err.error.code != "JobExists":
             raise
-    else:
-        print(f"Job {job_id} already exists.")
+        else:
+            print(f"Job {job_id} already exists.")
 
     container_image = (
         f"{creds.azure_container_registry_account}."
