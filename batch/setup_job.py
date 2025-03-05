@@ -12,9 +12,9 @@ from azuretools.util import ensure_listlike
 
 def main(
     eval_config_file: str,
-    job_type: str,
     job_id: str,
     pool_id: str,
+    job_type: str,
     exclude_ww_model: bool,
     container_image_name: str = "renewalww",
     container_image_version: str = "latest",
@@ -28,18 +28,18 @@ def main(
     eval_config_file
         Path to the YAML-formatted evaluation configuration file
 
-    job_type
-        ``fit`` to run model fitting, ``postprocess`` to
-        run post-processing, or ``both`` to run both,
-        with postprocess tasks as dependencies of their
-        associated fit jobs.
-
     job_id
         ID for the batch job to create.
 
     pool_id
         ID of the batch pool on which to run the job.
         Must already exist.
+
+    job_type
+        ``fit`` to run model fitting, ``postprocess`` to
+        run post-processing, or ``both`` to run both,
+        with postprocess tasks as dependencies of their
+        associated fit jobs.
 
     exclude_ww_model
         If ``True``, fit only the hospital admissions-only model,
@@ -199,11 +199,7 @@ if __name__ == "__main__":
         type=str,
         help="Path to a YAML-formatted configuration file",
     )
-    parser.add_argument(
-        "job_type",
-        type=str,
-        help="Type(s) of job to run (`fit`, `postprocess`, or `both`)",
-    )
+
     parser.add_argument(
         "job_id", type=str, help="Name for the Azure batch job"
     )
@@ -212,6 +208,13 @@ if __name__ == "__main__":
         "pool_id",
         type=str,
         help="Name of the Azure batch pool on which to run the job",
+    )
+
+    parser.add_argument(
+        "--job-type",
+        type=str,
+        default="both",
+        help="Type(s) of job to run (`fit`, `postprocess`, or `both`)",
     )
 
     parser.add_argument(
