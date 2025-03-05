@@ -1,4 +1,5 @@
 import argparse
+import itertools
 from pathlib import Path
 
 import azure.batch.models as batchmodels
@@ -11,9 +12,9 @@ from azuretools.util import ensure_listlike
 
 def main(
     eval_config_file: str,
-    job_type: str,
     job_id: str,
     pool_id: str,
+    job_type: str,
     exclude_ww_model: bool,
     container_image_name: str = "renewalww",
     container_image_version: str = "latest",
@@ -27,16 +28,18 @@ def main(
     eval_config_file
         Path to the YAML-formatted evaluation configuration file
 
-    job_type
-        Either ``fit`` to run model fitting or ``postprocess`` to
-        run post-processing.
-
     job_id
         ID for the batch job to create.
 
     pool_id
         ID of the batch pool on which to run the job.
         Must already exist.
+
+    job_type
+        ``fit`` to run model fitting, ``postprocess`` to
+        run post-processing, or ``both`` to run both,
+        with postprocess tasks as dependencies of their
+        associated fit jobs.
 
     exclude_ww_model
         If ``True``, fit only the hospital admissions-only model,
@@ -59,20 +62,20 @@ def main(
     None
         Creating the job and its tasks as a side effect.
     """
-    valid_job_types = ["fit", "postprocess"]
+    valid_job_types = ["fit", "postprocess", "both"]
     if job_type not in valid_job_types:
         raise ValueError(
-            f"Invalid job_type. Must be one of {valid_job_types}, "
-            f"but got {job_type}."
+            f"Invalid job_type. Must be one of {valid_job_types}, but got {job_type}."
         )
 
     creds = EnvCredentialHandler()
 
     batch_service_client = get_batch_service_client(creds)
-
+    uses_deps = job_type == "both"
     job = batchmodels.JobAddParameter(
         id=job_id,
         pool_info=batchmodels.PoolInformation(pool_id=pool_id),
+        uses_task_dependencies=uses_deps,
     )
 
     try:
@@ -121,11 +124,20 @@ def main(
         forecast_date: str,
         scenario: str,
         model: str,
+        task_type: str,
+        uses_task_dependencies: bool,
     ) -> None:
         """
         Helper function to add tasks as we loop through.
         """
-        task_name = f"{job_type}-{scenario}-" f"{forecast_date}-{location}"
+        task_name = f"{scenario}-{forecast_date}-{location}"
+        task_id = f"{job_id}-{task_type}-{task_name}"
+        task_deps = None
+        if task_type == "postprocess" and uses_task_dependencies:
+            task_deps = batchmodels.TaskDependencies(
+                task_ids=[f"{job_id}-fit-{task_name}"]
+            )
+
         base_call = (
             "/bin/sh -c '"
             f"mkdir -p {log_dir}; "
@@ -134,21 +146,27 @@ def main(
             f"input/config/eval/{config_name}.yaml "
             "input/params.toml "
             f"{model} "
-            f"{job_type}"
+            f"{task_type}"
             f" > {log_dir}/{task_name}-stdout.txt "
             f" 2> {log_dir}/{task_name}-stderr.txt"
             "'"
         )
         task = get_task_config(
-            f"{job_id}-{task_name}",
+            task_id,
             base_call=base_call,
             container_settings=container_settings,
+            depends_on=task_deps,
         )
         batch_service_client.task.add(job_id, task)
         return None
 
     to_run = ["hosp"] if exclude_ww_model else ["ww", "hosp"]
-    for model in to_run:
+    task_types = (
+        ["fit", "postprocess"]
+        if job_type == "both"
+        else ensure_listlike(job_type)
+    )
+    for model, task_type in itertools.product(to_run, task_types):
         for i_row, (loc, f_date, scen) in enumerate(
             zip(
                 eval_spec[f"location_{model}"],
@@ -162,6 +180,8 @@ def main(
                 forecast_date=f_date,
                 scenario=scen if model == "ww" else "no_wastewater",
                 model=model,
+                task_type=task_type,
+                uses_task_dependencies=uses_deps,
             )
             pass
         pass
@@ -171,20 +191,16 @@ def main(
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(
         description=(
-            "Set up an Azure batch job from an "
-            "evaluation configuration file."
-        )
+            "Set up an Azure batch job from an evaluation configuration file."
+        ),
+        formatter_class=argparse.ArgumentDefaultsHelpFormatter,
     )
     parser.add_argument(
         "eval_config_file",
         type=str,
         help="Path to a YAML-formatted configuration file",
     )
-    parser.add_argument(
-        "job_type",
-        type=str,
-        help="Type of job to run (either `fit` or `postprocess`)",
-    )
+
     parser.add_argument(
         "job_id", type=str, help="Name for the Azure batch job"
     )
@@ -193,6 +209,13 @@ if __name__ == "__main__":
         "pool_id",
         type=str,
         help="Name of the Azure batch pool on which to run the job",
+    )
+
+    parser.add_argument(
+        "--job-type",
+        type=str,
+        default="both",
+        help="Type(s) of job to run (`fit`, `postprocess`, or `both`)",
     )
 
     parser.add_argument(

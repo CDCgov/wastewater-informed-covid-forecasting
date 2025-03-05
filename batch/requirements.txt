@@ -14,7 +14,7 @@ azure-mgmt-batch==18.0.0
 azure-mgmt-compute==33.1.0
 azure-mgmt-core==1.5.0
 azure-storage-blob==12.24.1
-azuretools @ git+https://github.com/cdcgov/cfa-azuretools@ff598475b5dbff25666fcabf0a38ebd8225f9ca0
+azuretools @ git+https://github.com/cdcgov/cfa-azuretools@c1791847c4abc2c8e02a9aceb6dab26450c21e08
 babel==2.17.0
 build==1.2.2.post1
 certifi==2025.1.31
