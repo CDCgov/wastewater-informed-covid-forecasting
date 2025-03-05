@@ -21,8 +21,11 @@ RMDIR = @rmdir
 RSCRIPT = Rscript --vanilla
 PYTHON = python3
 AZURE_CLI = az
-CONTAINER_ENGINE = docker
-CONTAINER_IMAGE_BUILD_CMD = $(CONTAINER_ENGINE) build
+DOCKER_COMMAND = podman
+CONTAINER_ENGINE = $(DOCKER_COMMAND)
+
+CONTAINER_BUILD_CMD = $(CONTAINER_ENGINE) build
+CONTAINER_TAG_CMD = $(CONTAINER_ENGINE) tag
 
 ##############################
 # directory and file structure
@@ -56,8 +59,8 @@ data_upload: $(BATCH_DIR)/upload_data.py $(DATA_DEPS)
 > $(PYTHON) $< -rf $(DATA_DIR) $(CONFIG)
 
 container_build: $(CONTAINER_DEPS)
-> $(CONTAINER_IMAGE_BUILD_CMD) -t $(CONTAINER_IMAGE_NAME) .
-> $(CONTAINER_ENGINE) tag $(CONTAINER_IMAGE_NAME) $(CONTAINER_REMOTE)
+> $(CONTAINER_BUILD_CMD) -t $(CONTAINER_IMAGE_NAME) .
+> $(CONTAINER_TAG_CMD) $(CONTAINER_IMAGE_NAME) $(CONTAINER_REMOTE)
 
 container_push: container_build acr_login
 > $(ACR_LOGIN_COMMAND)
@@ -71,7 +74,7 @@ acr_login:
 # shortcuts
 #######################
 
-.PHONY: clean
+.PHONY: clean echo_container_engine
 
 clean:
 > $(RM) -f *~ #*
@@ -79,5 +82,7 @@ clean:
 > $(RM) -f $(DATA_DIR)/*
 > $(MKDIR) $(DATA_DIR)
 > $(RMDIR) $(DATA_DIR)
+echo_container_engine:
+> @echo $(CONTAINER_ENGINE)
 
 all: container_push

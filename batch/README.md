@@ -266,39 +266,27 @@ You might, however, want to build a container image locally, either for local te
 
 #### Podman (recommended) or Docker
 
-To build and push a custom container image, you will need an Open Container Initiative (OCI)-compatible container engine, such as `docker` or `podman`. Frustratingly, Azure assumes you are using `docker`, so it requires some commands to start with `docker <command>`. Fortunately, `podman` works as a drop-in replacement if you install `podman-docker`. `podman-docker` simply creates an wrapper application at `/usr/bin/docker` that points to your `podman` installation.
+To build and push a custom container image, you will need an Open Container Initiative (OCI)-compatible container engine, such as `docker` or `podman`.
 
 This tutorial uses `podman` as a drop-in replacement for docker. Install it with:
 
 ```bash
 sudo apt install -y podman
 ```
-Azure expects the container engine to be _named_ `docker`, but `podman` works fine. To use `podman` whenever `docker` is called, set up a symlink:
+Azure expects the container engine to be `docker`, unless the `DOCKER_COMMAND` environment variable is set to something else. To set that variable to `podman` the following to your `.bash_profile` or similar:
 
-
-```bash
-sudo ln -s /usr/bin/podman /usr/bin/docker
 ```
-Confirm this works with
-```bash
-docker --version
-```
-You should see a message that ends with:
-
-```bash
-podman version <A VERSION NUMBER>
+export DOCKER_COMMAND=podman
 ```
 
-> [!CAUTION]
-> the above is a bit of a hack. The lack of easy interfaces between `podman` and the Azure container registry was [an open issue for some time](https://github.com/Azure/azure-cli/issues/14768#issue-678300971).
+Start a new shell and confirm this worked with
 
->[!NOTE]
-> As of March 2024 [a less hacky approach should be possible](https://github.com/Azure/azure-cli/commit/4231b2b6ea913af966a213bac862a9cc235adcb9). Once we have confirmed that it works in practice, we will update the above guidance.
-
-If you ever decide to replace `podman` with actual `docker`, you may wish to run `sudo rm /usr/bin/docker` to remove the symlink before installing real `docker`.
+```bash
+echo $DOCKER_COMMAND
+```
 
 #### Make
-GNU Make is not required to run this tutorial, but the provided `Makefile` can help you with some repetitive tasks, particularly buiding the container. If you would like to use it, install make with:
+GNU Make is not required to run this tutorial, but the provided `Makefile` can help you with some repetitive tasks, particularly building the container. If you would like to use it, install make with:
 
 ```bash
 sudo apt install -y make
@@ -315,35 +303,59 @@ The first step is building the [container image](https://docs.docker.com/guides/
 
 The default `Containerfile` adds all the code in the repository that's not in the `.containerignore`, which works like a git ignore, with all the interesting stuff (dependencies and package installation) happening in `setup_container.R`.
 
-We want to _build_ this image (locally) and then _tag_ it with a reference to the place we'd like to upload it (namely, within a particular private Azure container registry we own, `cfaprdbatchcr`
-The `Makefile` automates this:
+We want to _build_ this image (locally) and then _tag_ it with a reference to the place we'd like to upload it (namely, within a particular private Azure container registry we own, `cfaprdbatchcr`.
+
+The `Makefile` automates this.
 
 ```
 make container_build
 ```
-The commands it actually runs (which you can also do manually) are:
+
+The commands it actually runs (which you can also run manually) are:
+
 ```
-docker build -t renewalww .
+podman build -t renewalww .
 ```
 and then
+
 ```
-docker tag renewalww cfaprdbatchcr.azurecr.io/renewalww:latest
+podman tag renewalww cfaprdbatchcr.azurecr.io/renewalww:latest
 ```
-The first step builds the container and gives it the local name `renewalww`. The second adds a reference to where and what we'll put it in the cloud: `cfaprdbatchcr.azurecr.io/renewalww:latest`.
+The first command builds the container and gives it the local name `renewalww`. The second adds a reference to where and what we'll put it in the cloud: `cfaprdbatchcr.azurecr.io/renewalww:latest`.
+
+Throughout, the Makefile uses `podman` as its container engine. If you prefer a different engine (such as `docker`), run the variable `make` commands with the variable `DOCKER_COMMAND` set your preferred engine, e.g.:
+
+```
+make container_build DOCKER_COMMAND=docker
+```
 
 ### Get the container onto the container registry
 Now we can get our container into the registry by "`push`-ing" it. First we need to authenticate to our private Azure container registry (here `cfaprdbatchcr`). Note that this a separate step from logging into Azure resources generally.
+
 ```bash
 az acr login --name cfaprdbatchcr
 ```
-Again, the Makefile provides a shortcut:
+
+If you get an error at this step, it's likely the Azure error mentioned above. Confirm that your `DOCKER_COMMAND` environment variable is set to `podman`.
+
+The Makefile provides a shortcut:
+
 ```bash
 make acr_login
 ```
-Once you've authenticated, push the container with:
-```bash
-docker push cfaprdbatchcr.azurecr.io/renewalww:latest
+
+`make acr_login` sets `DOCKER_COMMAND` to `podman` for you unless you explicitly override this, e.g.:
+
 ```
+make acr_login DOCKER_COMMAND=docker
+```
+
+Once you've authenticated, push the container with:
+
+```bash
+podman push cfaprdbatchcr.azurecr.io/renewalww:latest
+```
+
 or just use the Makefile:
 
 ```bash
