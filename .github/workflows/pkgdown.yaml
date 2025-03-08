@@ -46,9 +46,7 @@ jobs:
           working-directory: wweval
 
       - name: Build site
-        run: |
-           pkgdown::build_site_github_pages('wweval', \
-              new_process = FALSE, install = FALSE)
+        run: "pkgdown::build_site_github_pages('wweval', new_process = FALSE, install = FALSE)"
         shell: Rscript {0}
 
       - name: Upload artifact for GH pages deployment
