@@ -43,6 +43,7 @@ jobs:
           pak-version: rc
           extra-packages: any::pkgdown, local::.
           needs: website
+          working-directory: wweval
 
       - name: Build site
         run: |
