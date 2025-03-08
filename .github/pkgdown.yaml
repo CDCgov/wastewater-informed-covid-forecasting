@@ -55,7 +55,26 @@ jobs:
         with:
           path: "wweval/docs/"
 
+  post-artifact-to-pr:
+    runs-on: ubuntu-latest
 
+    if: ${{ github.event_name == 'pull_request' }}
+    # This job depends on the `build` job
+    needs: build
+
+    # Required permissions
+    permissions:
+      contents: read
+      pull-requests: write
+
+    steps:
+      # Post the artifact pulling the id from the `readme` step.
+      # The msg will refer to the arfitact as 'README file'.
+      - name: Post the artifact
+        uses: CDCgov/cfa-actions/post-artifact@v1.2.1
+        with:
+          artifact-name: github-pages
+          gh-token: ${{ secrets.GITHUB_TOKEN }}
   deploy:
     if: ${{ github.event_name != 'pull_request' }}
     needs: build
