@@ -21,18 +21,18 @@
 #' @param eval_ww_data Evaluation wastewater admissions data in newer `wwinference` format.
 #' @return Nothing, saving results to disk as a side effect.
 #' @export
-process_successful_fit <- function(wwinference_fit_obj,
-                                   stan_fit_obj,
-                                   model,
-                                   location,
-                                   forecast_date,
-                                   scenario,
-                                   output_dir,
-                                   raw_output_dir,
-                                   input_hosp_data_wweval,
-                                   input_ww_data_wweval,
-                                   eval_hosp_data,
-                                   eval_ww_data) {
+postprocess_successful_fit <- function(wwinference_fit_obj,
+                                       stan_fit_obj,
+                                       model,
+                                       location,
+                                       forecast_date,
+                                       scenario,
+                                       output_dir,
+                                       raw_output_dir,
+                                       input_hosp_data_wweval,
+                                       input_ww_data_wweval,
+                                       eval_hosp_data,
+                                       eval_ww_data) {
   checkmate::assert_names(model, subset.of = c("ww", "hosp"))
   ww_model <- model == "ww"
   raw_output_suffix <- get_raw_output_suffix(
@@ -513,7 +513,7 @@ eval_postprocess <- function(config_index,
       location = location
     )
   } else {
-    process_successful_fit(
+    postprocess_successful_fit(
       wwinference_fit_obj = fit_obj_wwinference,
       stan_fit_obj = fit_obj,
       model = model,
