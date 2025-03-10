@@ -12,10 +12,15 @@
 #' @return NULL, saving the data to disk as a side effect.
 #' @examples
 #'
+#' #'
+#' \dontrun{
+#' # this will write a file named `<today's date>.csv` to a directory named
+#' # `input/hosp_data/vintage_datasets`.
 #' pull_and_write_hosp_data(
 #'   file.path("input", "locations.csv"),
 #'   file.path("input", "hosp_data", "vintage_datasets")
 #' )
+#' }
 #'
 #' @export
 pull_and_write_hosp_data <- function(location_data_path,
