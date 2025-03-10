@@ -114,8 +114,7 @@ def main(
         "forecast_date_hosp",
     ]:
         eval_spec[key] = ensure_listlike(eval_spec[key])
-    raw_output_dir = eval_spec["raw_output_dir"]
-    log_dir = Path(raw_output_dir, "logs")
+    log_dir = Path("output", "logs")
     config_name = eval_spec["name_of_config"]
 
     def add_task(
@@ -147,8 +146,8 @@ def main(
             "input/params.toml "
             f"{model} "
             f"{task_type}"
-            f" > {log_dir}/{task_name}-stdout.txt "
-            f" 2> {log_dir}/{task_name}-stderr.txt"
+            f" > {log_dir}/{task_id}-stdout.txt "
+            f" 2> {log_dir}/{task_id}-stderr.txt"
             "'"
         )
         task = get_task_config(

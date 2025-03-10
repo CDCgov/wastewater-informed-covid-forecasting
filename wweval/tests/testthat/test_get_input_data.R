@@ -100,7 +100,7 @@ test_that("clean_ww_data correctly cleans and renames columns", {
     "site_pop", "location"
   )
 
-  checkmate::assert_names(names(cleaned_data),
+  checkmate::expect_names(names(cleaned_data),
     permutation.of = expected_colnames
   )
 
