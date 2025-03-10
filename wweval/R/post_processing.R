@@ -22,6 +22,9 @@ get_model_draws_w_data <- function(fit_obj_wwinference,
                                    location,
                                    eval_data) {
   model_type <- arg_match(model_type)
+  if (is.null(eval_data) || is.null(fit_obj_wwinference)) {
+    return(NULL)
+  }
   eval_data <- eval_data |>
     dplyr::filter(location == !!location)
   stopifnot(
