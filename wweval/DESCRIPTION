@@ -44,7 +44,7 @@ Description: This package provides helper functions designed to
  semi-mechanistic renewal model with and without incorporating
  wastewater.
 License: Apache License (== 2.0)
-URL: https://github.com/cdcgov/wastewater-informed-covid-forecasting/
+URL: https://github.com/cdcgov/wastewater-informed-covid-forecasting/, https://cdcgov.github.io/wastewater-informed-covid-forecasting/
 BugReports: https://github.com/cdcgov/wastewater-informed-covid-forecasting/issues/
 Depends:
     R (>= 4.1.0)
