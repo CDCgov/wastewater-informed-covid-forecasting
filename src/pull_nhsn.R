@@ -5,9 +5,11 @@ pull_and_write <- function(location_data_path,
   pull_date <- lubridate::today()
 
   location_data <- readr::read_csv(location_data_path) |>
-      dplyr::select(state = abbreviation,
-                    pop = population)
-  
+    dplyr::select(
+      state = abbreviation,
+      pop = population
+    )
+
   raw_data <- wweval::pull_nhsn(
     start_date = "2023-01-01",
     columns = c(
@@ -25,16 +27,17 @@ pull_and_write <- function(location_data_path,
           .data$previous_day_admission_pediatric_covid_confirmed
         ),
       date = as.Date(.data$date) - lubridate::ddays(1)
-      ) |>
-      ## convert from previous day to date-of-event indexing,
-      ## following covidcast/epidatr
+    ) |>
+    ## convert from previous day to date-of-event indexing,
+    ## following covidcast/epidatr
     dplyr::inner_join(location_data, by = "state") |>
     dplyr::select(
       date,
       ABBR = state,
       daily_hosp_admits,
-      pop)
-  
+      pop
+    )
+
   output_path <- fs::path(output_dir, pull_date, ext = "csv")
 
   if (fs::file_exists(output_path) && !force) {
