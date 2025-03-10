@@ -1,5 +1,10 @@
 #' Postprocess a successful eval fitting job.
 #'
+#' Helper function called within the [eval_postprocess()] wrapper function and
+#' only if the fit was successful. This handles the bulk of the postprocessing,
+#' but there are some postprocessing tasks we wish to perform regardless of
+#' whether the model fit was successful.
+#'
 #' @param wwinference_fit_obj Fit object to process, as the output of
 #' [wwinference::wwinference()].
 #' @param stan_fit_obj Corresponding stan fit object.
@@ -357,6 +362,17 @@ process_successful_fit <- function(wwinference_fit_obj,
 }
 
 #' Postprocess model for evaluation.
+#'
+#' Raw output is saved to disk in the `raw_output_dir` specified in the eval config
+#' as serialized `.rds` files. Processed output is saved in a structured directory
+#' format in the `output_dir` specified in the eval config. See the [save_table()],
+#' [to_rds_with_suffix()], and [get_raw_output_suffix()] functions for more details.
+#'
+#' The bulk of the postprocessing for successful model fits is handled
+#' by the [postprocess_successful_fit()] function, which is called within this
+#' function provided the target model fit was indeed successful, but there are
+#' some postprocessing tasks we wish to perform regardless of
+#' whether the model fit was successful.
 #'
 #' @param config_index Index of eval_config to evaluate
 #' @param eval_config_path Path to eval_config (created with `write_eval_config`)

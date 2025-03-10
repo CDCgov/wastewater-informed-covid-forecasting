@@ -50,5 +50,8 @@ as serialized \code{.rds} files.}
 Nothing, saving results to disk as a side effect.
 }
 \description{
-Postprocess a successful eval fitting job.
+Helper function called within the \code{\link[=eval_postprocess]{eval_postprocess()}} wrapper function and
+only if the fit was successful. This handles the bulk of the postprocessing,
+but there are some postprocessing tasks we wish to perform regardless of
+whether the model fit was successful.
 }

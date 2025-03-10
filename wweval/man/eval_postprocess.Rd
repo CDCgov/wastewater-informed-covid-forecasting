@@ -28,5 +28,15 @@ when creating evaluation dataset. Default 365.}
 NULL, saving plots and tables to disk as side effects.
 }
 \description{
-Postprocess model for evaluation.
+Raw output is saved to disk in the \code{raw_output_dir} specified in the eval config
+as serialized \code{.rds} files. Processed output is saved in a structured directory
+format in the \code{output_dir} specified in the eval config. See the \code{\link[=save_table]{save_table()}},
+\code{\link[=to_rds_with_suffix]{to_rds_with_suffix()}}, and \code{\link[=get_raw_output_suffix]{get_raw_output_suffix()}} functions for more details.
+}
+\details{
+The bulk of the postprocessing for successful model fits is handled
+by the \code{\link[=postprocess_successful_fit]{postprocess_successful_fit()}} function, which is called within this
+function provided the target model fit was indeed successful, but there are
+some postprocessing tasks we wish to perform regardless of
+whether the model fit was successful.
 }
