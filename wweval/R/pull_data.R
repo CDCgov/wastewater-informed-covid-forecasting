@@ -12,7 +12,7 @@
 #' @return NULL, saving the data to disk as a side effect.
 #' @examples
 #'
-#' pull_and_write_hosp(
+#' pull_and_write_hosp_data(
 #'   file.path("input", "locations.csv"),
 #'   file.path("input", "hosp_data", "vintage_datasets")
 #' )
