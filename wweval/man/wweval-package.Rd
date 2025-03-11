@@ -12,6 +12,7 @@ This package provides helper functions designed to preprocess, postprocess, and 
 Useful links:
 \itemize{
   \item \url{https://github.com/cdcgov/wastewater-informed-covid-forecasting/}
+  \item \url{https://cdcgov.github.io/wastewater-informed-covid-forecasting/}
   \item Report bugs at \url{https://github.com/cdcgov/wastewater-informed-covid-forecasting/issues/}
 }
 
