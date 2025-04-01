@@ -67,7 +67,7 @@ jobs:
           $GITHUB_WORKSPACE/.github/scripts/docker_build_and_push.sh ${{ env.IMAGE_NAME }} ${{ steps.image-tag.outputs.tag }}
   
   acr-import:
-    needs: build-pipeline-image
+    needs: build-and-push-image
     name: Import image from GHCR
     runs-on: ubuntu-latest
     
