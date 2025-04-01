@@ -11,4 +11,4 @@ time docker buildx build --push -t "$IMAGE:$TAG" \
 	--cache-from "type=registry,ref=$IMAGE:$TAG-cache" \
 	--cache-from "type=registry,ref=$IMAGE:latest-cache" \
 	--cache-to "type=registry,ref=$IMAGE:$TAG-cache,mode=max" \
-	-f Dockerfile .
+	-f Containerfile .
