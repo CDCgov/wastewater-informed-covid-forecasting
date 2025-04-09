@@ -26,14 +26,6 @@ jobs:
         tag: ${{ steps.image-tag.outputs.tag }}
 
     steps:
-      - name: Login to Azure
-        id: azure_login_2
-        uses: azure/login@v2
-        with:
-          creds: ${{ secrets.AZURE_STF_SP_CREDS }}
-
-      - name: Login to ACR
-        run: az acr login --name ${{ vars.CONTAINER_REGISTRY_NAME }}
 
       - name: Check out code
         uses: actions/checkout@v4
