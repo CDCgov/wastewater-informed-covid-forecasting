@@ -71,9 +71,9 @@ jobs:
           IMAGE_TAG=${{ env.IMAGE_NAME }}:${{ needs.build-and-push-image.outputs.tag }}
 
           az login --service-principal \
-          --username ${{ fromJSON(secrets.EDAV_STF_SERVICE_PRINCIPAL).clientId }} \
-          --password ${{ fromJSON(secrets.EDAV_STF_SERVICE_PRINCIPAL).clientSecret }} \
-          --tenant ${{ fromJSON(secrets.EDAV_STF_SERVICE_PRINCIPAL).tenantId }}
+          --username ${{ fromJSON(secrets.AZURE_SFT_SP_CREDS).clientId }} \
+          --password ${{ fromJSON(secrets.AZURE_SFT_SP_CREDS).clientSecret }} \
+          --tenant ${{ fromJSON(secrets.AZURE_SFT_SP_CREDS).tenantId }}
 
           az acr import --name ${{ vars.CONTAINER_REGISTRY_URL }} \
             --source "ghcr.io/cdcgov/$IMAGE_TAG" \
