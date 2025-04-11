@@ -53,12 +53,12 @@ jobs:
         run: |
           chmod +x $GITHUB_WORKSPACE/.github/scripts/docker_build_and_push.sh
           $GITHUB_WORKSPACE/.github/scripts/docker_build_and_push.sh ${{ env.IMAGE_NAME }} ${{ steps.image-tag.outputs.tag }}
-  
+
   acr-import:
     needs: build-and-push-image
     name: Import image from GHCR
     runs-on: ubuntu-latest
-    
+
     steps:
     - name: ACR Import
       uses: CDCgov/cfa-actions/runner-action@v1.3.0
@@ -84,4 +84,4 @@ jobs:
 
           if [ $? -ne 0 ]; then
             echo "Failed to copy image"
-          fi  
+          fi
