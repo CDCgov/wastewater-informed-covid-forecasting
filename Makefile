@@ -30,7 +30,7 @@ CONTAINER_TAG_CMD = $(CONTAINER_ENGINE) tag
 ##############################
 # directory and file structure
 ##############################
-CTR_REGISTRY_PATH = $(AZURE_CONTAINER_REGISTRY_ACCOUNT).$(AZURE_CONTAINER_REGISTRY_DOMAIN)
+CTR_REGISTRY_PATH = ghcr.io/cdcgov/wastewater-informed-covid-forecasting
 ACR_LOGIN_COMMAND = $(AZURE_CLI) acr login \
     --name $(AZURE_CONTAINER_REGISTRY_ACCOUNT)
 
@@ -59,15 +59,17 @@ data_upload: $(BATCH_DIR)/upload_data.py $(DATA_DEPS)
 > $(PYTHON) $< -rf $(DATA_DIR) $(CONFIG)
 
 container_build: $(CONTAINER_DEPS)
-> $(CONTAINER_BUILD_CMD) -t $(CONTAINER_IMAGE_NAME) .
+> $(CONTAINER_BUILD_CMD) -t $(CONTAINER_IMAGE_NAME) -f Containerfile .
 > $(CONTAINER_TAG_CMD) $(CONTAINER_IMAGE_NAME) $(CONTAINER_REMOTE)
 
-container_push: container_build acr_login
-> $(ACR_LOGIN_COMMAND)
+container_push: container_build ghcr_login
 > $(CONTAINER_ENGINE) push $(CONTAINER_REMOTE)
 
 acr_login:
 > $(ACR_LOGIN_COMMAND)
+
+ghcr_login:
+> echo $(GH_PAT) | $(CONTAINER_ENGINE) login ghcr.io -u $(GH_USERNAME) --password-stdin
 
 
 #######################

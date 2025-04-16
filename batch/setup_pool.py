@@ -49,7 +49,7 @@ def main(pool_name: str) -> None:
         models.ContainerConfiguration(
             type="dockerCompatible",
             container_image_names=[
-                "https://cfaprdbatchcr.azurecr.io/renewalww:latest"
+                "https://ghcr.io/cdcgov/wastewater-informed-covid-forecasting/renewalww:latest"
             ],
             container_registries=[creds.azure_container_registry],
         ),
