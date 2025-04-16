@@ -51,4 +51,8 @@ jobs:
 
       - name: Docker build and push
         run: |
-         bash $GITHUB_WORKSPACE/.github/scripts/docker_build_and_push.sh ${{ env.IMAGE_NAME }} ${{ steps.image-tag.outputs.tag }}
+          bash $GITHUB_WORKSPACE/.github/scripts/docker_build_and_push.sh \
+            ${{ env.IMAGE_NAME }} \
+            ${{ steps.image-tag.outputs.tag }} \
+            ${{ github.event.pull_request.head.sha || github.sha }} \
+            ${{ steps.branch.outputs.name }}
