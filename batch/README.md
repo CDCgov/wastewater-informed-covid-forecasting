@@ -319,9 +319,9 @@ podman build -t renewalww .
 and then
 
 ```
-podman tag renewalww cfaprdbatchcr.azurecr.io/renewalww:latest
+podman tag renewalww ghcr.io/cdcgov/wastewater-informed-covid-forecasting/renewalww:latest
 ```
-The first command builds the container and gives it the local name `renewalww`. The second adds a reference to where and what we'll put it in the cloud: `cfaprdbatchcr.azurecr.io/renewalww:latest`.
+The first command builds the container and gives it the local name `renewalww`. The second adds a reference to where and what we'll put it in the cloud: `ghcr.io/cdcgov/renewalww:latest`.
 
 Throughout, the Makefile uses `podman` as its container engine. If you prefer a different engine (such as `docker`), run the variable `make` commands with the variable `DOCKER_COMMAND` set your preferred engine, e.g.:
 
@@ -330,30 +330,30 @@ make container_build DOCKER_COMMAND=docker
 ```
 
 ### Get the container onto the container registry
-Now we can get our container into the registry by "`push`-ing" it. First we need to authenticate to our private Azure container registry (here `cfaprdbatchcr`). Note that this a separate step from logging into Azure resources generally.
+Now we can get our container into the registry by "`push`-ing" it. First we need to authenticate to our Github container registry. You should already have your Github PAT saved as an environment variable. Github PAT instructions are available [here](https://docs.github.com/en/packages/working-with-a-github-packages-registry/working-with-the-container-registry#authenticating-with-a-personal-access-token-classic)
 
 ```bash
-az acr login --name cfaprdbatchcr
+echo $GH_PAT | podman login ghcr.io -u $GH_USERNAME --password-stdin
 ```
 
-If you get an error at this step, it's likely the Azure error mentioned above. Confirm that your `DOCKER_COMMAND` environment variable is set to `podman`.
+If you get an error at this step, confirm that your `DOCKER_COMMAND` environment variable is set to `podman`.
 
 The Makefile provides a shortcut:
 
 ```bash
-make acr_login
+make ghcr_login
 ```
 
-`make acr_login` sets `DOCKER_COMMAND` to `podman` for you unless you explicitly override this, e.g.:
+`make ghcr_login` sets `DOCKER_COMMAND` to `podman` for you unless you explicitly override this, e.g.:
 
 ```
-make acr_login DOCKER_COMMAND=docker
+make ghcr_login DOCKER_COMMAND=docker
 ```
 
 Once you've authenticated, push the container with:
 
 ```bash
-podman push cfaprdbatchcr.azurecr.io/renewalww:latest
+podman push ghcr.io/cdcgov/wastewater-informed-covid-forecasting/renewalww:latest
 ```
 
 or just use the Makefile:
@@ -362,4 +362,4 @@ or just use the Makefile:
 make container_push
 ```
 
-Confirm that the container is now present in the registry by navigating to `portal.azure.com` and looking under `Resources > cfaprdbatchcr > services > repositories > renewalww`.
+Confirm that the container is now present in the registry by navigating to [Github Packages](https://github.com/CDCgov/wastewater-informed-covid-forecasting/pkgs/container/renewalww)
