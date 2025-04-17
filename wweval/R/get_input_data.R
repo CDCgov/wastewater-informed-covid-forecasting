@@ -172,8 +172,10 @@ get_scenario_site_ids <- function(init_subset_nwss_data,
 #' @return a tibble containing the preprocessed hospital admissions data ready
 #' to be passed into the wwinference function
 #' @export
-get_input_hosp_data <- function(forecast_date_i, location_i,
-                                hosp_data_dir, calibration_time,
+get_input_hosp_data <- function(forecast_date_i,
+                                location_i,
+                                hosp_data_dir,
+                                calibration_time,
                                 for_eval = FALSE,
                                 load_from_epidatr = FALSE,
                                 population_data_path = NA) {
