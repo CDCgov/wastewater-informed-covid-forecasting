@@ -177,26 +177,28 @@ get_state_level_quantiles <- function(draws) {
 #' required for the Hub submission for each site lab in the state
 #' @export
 get_state_level_ww_quantiles <- function(ww_draws) {
-  
-    quantiles <- ww_draws |>
-        dplyr::select("date", "value", "site_lab_name") |>
-        trajectories_to_quantiles(
-            timepoint_cols = "date",
-            value_col = "value",
-            id_cols = "site_lab_name",
-            quantile_level_name = "quantile",
-            quantile_value_name = "value") |>
-        dplyr::inner_join(ww_draws |>
-                          dplyr::select(-"value", -"draw") |>
-                          dplyr::distinct(),
-                          by = c("site_lab_name", "date")) |>
-        dplyr::mutate(
-                   period = dplyr::case_when(
-                                       date <= forecast_date ~ "calibration",
-                                       TRUE ~ "forecast"
-                                   ),
-                   quantile = round(quantile, 4)
-               )
+  quantiles <- ww_draws |>
+    dplyr::select("date", "value", "site_lab_name") |>
+    trajectories_to_quantiles(
+      timepoint_cols = "date",
+      value_col = "value",
+      id_cols = "site_lab_name",
+      quantile_level_name = "quantile",
+      quantile_value_name = "value"
+    ) |>
+    dplyr::inner_join(
+      ww_draws |>
+        dplyr::select(-"value", -"draw") |>
+        dplyr::distinct(),
+      by = c("site_lab_name", "date")
+    ) |>
+    dplyr::mutate(
+      period = dplyr::case_when(
+        date <= forecast_date ~ "calibration",
+        TRUE ~ "forecast"
+      ),
+      quantile = round(quantile, 4)
+    )
 
   return(quantiles)
 }
@@ -746,9 +748,7 @@ eval_postprocess <- function(forecast_date,
         "Pulled eval wastewater data from ",
         "{min(eval_ww_data$date)} to ",
         "{max(eval_ww_data$date)}"
-        ))
-
-      print(eval_ww_data)
+      ))
 
       eval_ww_data <- eval_ww_data |>
         dplyr::filter(.data$date >= !!min(input_ww_data$date))
@@ -757,7 +757,7 @@ eval_postprocess <- function(forecast_date,
         "Using eval wastewater data from ",
         "{min(eval_ww_data$date)} to ",
         "{max(eval_ww_data$date)}"
-        ))
+      ))
     }
     if (!is.null(input_ww_data)) {
       input_ww_data_wweval <- input_ww_data |>
