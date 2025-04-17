@@ -171,38 +171,32 @@ get_state_level_quantiles <- function(draws) {
 #' Get quantiles for site-lab level wastewater
 #'
 #' @param ww_draws a dataframe containing all the draws from the model estimated
-#' site-lab level cocnentrations
+#' site-lab level concentrations
 #'
 #' @return a dataframe containing the quantile value for the quantiles
 #' required for the Hub submission for each site lab in the state
 #' @export
 get_state_level_ww_quantiles <- function(ww_draws) {
-  quantiles <- trajectories_to_quantiles(
-    ww_draws,
-    timepoint_cols = "date",
-    value_col = "value",
-    id_cols = c("location", "name", "scenario", "model_type", "site_lab_name")
-  ) |>
-    dplyr::rename(
-      quantile = quantile_level,
-      value = quantile_value
-    ) |>
-    dplyr::left_join(
-      ww_draws |>
-        select(-draw, -value) |>
-        unique(),
-      by = c(
-        "date", "name", "location", "scenario",
-        "model_type", "site_lab_name"
-      )
-    ) |>
-    dplyr::mutate(
-      period = dplyr::case_when(
-        date <= forecast_date ~ "calibration",
-        TRUE ~ "forecast"
-      ),
-      quantile = round(quantile, 4)
-    )
+  
+    quantiles <- ww_draws |>
+        dplyr::select("date", "value", "site_lab_name") |>
+        trajectories_to_quantiles(
+            timepoint_cols = "date",
+            value_col = "value",
+            id_cols = "site_lab_name",
+            quantile_level_name = "quantile",
+            quantile_value_name = "value") |>
+        dplyr::inner_join(ww_draws |>
+                          dplyr::select(-"value", -"draw") |>
+                          dplyr::distinct(),
+                          by = c("site_lab_name", "date")) |>
+        dplyr::mutate(
+                   period = dplyr::case_when(
+                                       date <= forecast_date ~ "calibration",
+                                       TRUE ~ "forecast"
+                                   ),
+                   quantile = round(quantile, 4)
+               )
 
   return(quantiles)
 }
@@ -752,10 +746,18 @@ eval_postprocess <- function(forecast_date,
         "Pulled eval wastewater data from ",
         "{min(eval_ww_data$date)} to ",
         "{max(eval_ww_data$date)}"
-      ))
+        ))
+
+      print(eval_ww_data)
 
       eval_ww_data <- eval_ww_data |>
         dplyr::filter(.data$date >= !!min(input_ww_data$date))
+
+      message(glue::glue(
+        "Using eval wastewater data from ",
+        "{min(eval_ww_data$date)} to ",
+        "{max(eval_ww_data$date)}"
+        ))
     }
     if (!is.null(input_ww_data)) {
       input_ww_data_wweval <- input_ww_data |>
