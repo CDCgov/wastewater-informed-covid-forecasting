@@ -1,3 +1,271 @@
+#' Get model draws combined with input and evaluation data
+#'
+#' @param fit_obj_wwinference wwinference_fit object that is returned when
+#' wwinference::wwinference() is run.
+#' @param model_output the type of model expected observation you want,
+#' options are "hosp" and "ww"
+#' @param model_type The type of model, options are "ww" and "hosp"
+#' @param forecast_date The date the forecast was made
+#' @param scenario A name for the scenario that the input
+#' data represents, as a string.
+#' @param location The location for which the model is being run.
+#' @param eval_data The retrospective dataset used to evaluate the model
+#' (should have data beyond the forecast date)
+#' @return a dataframe of model draws subsetted to only the specified output
+#' type, joined with the evaluation data and the input calibration data
+#' @export
+get_model_draws_w_data <- function(fit_obj_wwinference,
+                                   model_output = c("ww", "hosp"),
+                                   model_type = c("ww", "hosp"),
+                                   forecast_date,
+                                   scenario,
+                                   location,
+                                   eval_data) {
+  model_type <- arg_match(model_type)
+  model_output <- arg_match(model_output)
+  if (is.null(eval_data) || is.null(fit_obj_wwinference)) {
+    return(NULL)
+  }
+  eval_data <- eval_data |>
+    dplyr::filter(location == !!location)
+  stopifnot(
+    "More than one location in eval data that is getting joined" =
+      eval_data |> dplyr::pull(location) |> unique() |> length() == 1
+  )
+
+
+  # Dataframe with columns
+  if (model_output == "hosp") {
+    new_hosp_draws <- wwinference::get_draws(
+      fit_obj_wwinference,
+      what = "predicted_counts"
+    )$predicted_counts
+
+    draws_w_data <- new_hosp_draws |>
+      dplyr::mutate(
+        "name" = "pred_hosp",
+        "forecast_date" = lubridate::ymd(!!forecast_date),
+        "model_type" = !!model_type,
+        "location" = !!location,
+        "scenario" = !!scenario
+      ) |>
+      dplyr::rename(
+        "value" = "pred_value",
+        "calib_data" = "observed_value",
+        "pop" = "total_pop"
+      ) |>
+      dplyr::left_join(
+        eval_data |>
+          dplyr::select("date", "count"),
+        by = c("date")
+      ) |>
+      dplyr::rename("eval_data" = "count") |>
+      dplyr::ungroup()
+  } else if (model_output == "ww") {
+    new_ww_draws <- wwinference::get_draws(
+      fit_obj_wwinference,
+      what = "predicted_ww"
+    )$predicted_ww
+
+
+    draws_w_data <- new_ww_draws |>
+      dplyr::left_join(
+        eval_data |>
+          dplyr::rename(
+            "below_lod_eval" = "below_lod",
+            "log_lod_eval" = "log_lod"
+          ) |>
+          dplyr::select(
+            "date",
+            "log_genome_copies_per_ml",
+            "lab",
+            "site",
+            "exclude",
+            "below_lod_eval",
+            "log_lod_eval"
+          ) |>
+          unique(),
+        by = c("date", "lab", "site")
+      ) |>
+      dplyr::rename(
+        "ww_pop" = "subpop_pop",
+        "site_lab_name" = "lab_site_name",
+        "flag_as_ww_outlier" = "exclude",
+        "below_LOD" = "below_lod"
+      ) |>
+      dplyr::mutate(
+        "name" = "pred_ww",
+        "value" = exp(.data$pred_value),
+        "calib_data" = exp(.data$observed_value),
+        "eval_data" = exp(.data$log_genome_copies_per_ml),
+        "lod_sewage" = exp(.data$log_lod),
+        "lod_sewage_eval" = exp(.data$log_lod_eval),
+        "forecast_date" = lubridate::ymd(!!forecast_date),
+        "model_type" = !!model_type,
+        "scenario" = !!scenario,
+        "location" = !!location
+      ) |>
+      dplyr::ungroup() |>
+      # Replace values below LOD with LOD in observations
+      dplyr::mutate(
+        "eval_data" = ifelse(
+          .data$below_lod_eval == 1, .data$lod_sewage_eval, .data$eval_data
+        ),
+        "calib_data" = ifelse(
+          .data$below_LOD == 1, .data$lod_sewage, .data$eval_data
+        )
+      ) |>
+      dplyr::select(
+        "name", "lab_site_index", "value", "draw", "date", "site", "lab",
+        "location", "ww_pop", "calib_data", "below_LOD", "lod_sewage",
+        "below_lod_eval",
+        "flag_as_ww_outlier", "eval_data", "forecast_date", "model_type",
+        "scenario", "site_lab_name"
+      )
+  } else {
+    stop(glue::glue("Unknown model_output {model_output}"))
+  }
+
+  return(draws_w_data)
+}
+
+
+
+#' Get quantiles for state-level generated quantities
+#'
+#' @param draws a dataframe containing all the draws from the model estimated
+#' state-level quantities
+#'
+#' @return a dataframe containing the quantile value for the quantiles
+#' required for the Hub submission
+#' @export
+get_state_level_quantiles <- function(draws) {
+  quantiles <- trajectories_to_quantiles(
+    draws,
+    timepoint_cols = "date",
+    value_col = "value",
+    id_cols = c("location", "name", "scenario", "model_type")
+  ) |>
+    dplyr::rename(
+      quantile = quantile_level,
+      value = quantile_value
+    ) |>
+    dplyr::left_join(
+      draws |>
+        select(-draw, -value) |>
+        unique(),
+      by = c("date", "name", "location", "scenario", "model_type")
+    ) |>
+    dplyr::mutate(
+      period = dplyr::case_when(
+        !is.na(.data$calib_data) ~ "calibration",
+        date <= .data$forecast_date ~ "nowcast",
+        TRUE ~ "forecast"
+      ),
+      quantile = round(quantile, 4)
+    )
+
+  return(quantiles)
+}
+
+#' Get quantiles for site-lab level wastewater
+#'
+#' @param ww_draws a dataframe containing all the draws from the model estimated
+#' site-lab level cocnentrations
+#'
+#' @return a dataframe containing the quantile value for the quantiles
+#' required for the Hub submission for each site lab in the state
+#' @export
+get_state_level_ww_quantiles <- function(ww_draws) {
+  quantiles <- trajectories_to_quantiles(
+    ww_draws,
+    timepoint_cols = "date",
+    value_col = "value",
+    id_cols = c("location", "name", "scenario", "model_type", "site_lab_name")
+  ) |>
+    dplyr::rename(
+      quantile = quantile_level,
+      value = quantile_value
+    ) |>
+    dplyr::left_join(
+      ww_draws |>
+        select(-draw, -value) |>
+        unique(),
+      by = c(
+        "date", "name", "location", "scenario",
+        "model_type", "site_lab_name"
+      )
+    ) |>
+    dplyr::mutate(
+      period = dplyr::case_when(
+        date <= forecast_date ~ "calibration",
+        TRUE ~ "forecast"
+      ),
+      quantile = round(quantile, 4)
+    )
+
+  return(quantiles)
+}
+
+
+#' Save table
+#' @description This helper function is a wrapper to save intermediate outputs
+#' running within the model fit loop as tsvs in the following file strucuture:
+#' scenario > forecast_date > model_type > location > type_of_output
+#'
+#' @param data_to_save The dataframe/tibble to save
+#' @param type_of_output The name of the type of output e.g. scores, quantiles,
+#' etc.
+#' @param output_dir The upper level directory to save these outputs in
+#' @param scenario A  string indicating the scenario under which the
+#' model was run
+#' @param forecast_date A string indicating the date of the forecast,
+#' in YYYY-MM-DD
+#' @param model_type A string indicating the type of model (either `ww` or `hosp`)
+#' @param location A string indicating the location (e.g. 2 letter abbreviation
+#' for the state)
+#'
+#' @return NULL
+#' @export
+#'
+save_table <- function(data_to_save,
+                       type_of_output,
+                       output_dir,
+                       scenario,
+                       forecast_date,
+                       model_type = c("ww", "hosp"),
+                       location) {
+  model_type <- arg_match(model_type)
+  if (!is.null(data_to_save)) {
+    full_dir <- file.path(
+      output_dir,
+      scenario,
+      forecast_date,
+      model_type,
+      location
+    )
+
+    fp <- get_filepath(
+      output_dir,
+      scenario,
+      forecast_date,
+      model_type,
+      location,
+      glue::glue("{type_of_output}"),
+      "tsv"
+    )
+
+
+
+    wwinference::create_dir(full_dir)
+
+    readr::write_tsv(as_tibble(data_to_save),
+      file = fp
+    )
+  }
+  return(NULL)
+}
+
 #' Postprocess a successful eval fitting job.
 #'
 #' Helper function called within the [eval_postprocess()] wrapper function and
@@ -141,6 +409,8 @@ postprocess_successful_fit <- function(wwinference_fit_obj,
   message("Done plotting histograms.")
 
   if (ww_model) {
+    message("Plotting ww growth rates..")
+
     ## Plots of overlaid exponential growth rates in ww vs hosp
     plot_growth_rates <- get_growth_rate_plot(
       input_hosp_data_wweval,
@@ -169,6 +439,7 @@ postprocess_successful_fit <- function(wwinference_fit_obj,
       eval_data = eval_hosp_data
     )
     if (ww_model) {
+      message("Extracting wastewater draws and joining to data...")
       ww_draws <- get_model_draws_w_data(
         fit_obj_wwinference = wwinference_fit_obj,
         model_output = "ww",
@@ -199,18 +470,6 @@ postprocess_successful_fit <- function(wwinference_fit_obj,
   )
   save_object(full_hosp_quantiles)
 
-
-  full_ww_quantiles <- {
-    if (is.null(ww_draws)) {
-      NULL
-    } else {
-      get_state_level_ww_quantiles(
-        ww_draws = ww_draws
-      )
-    }
-  }
-  save_object(full_ww_quantiles)
-
   hosp_quantiles <- {
     if (is.null(full_hosp_quantiles)) {
       NULL
@@ -221,17 +480,6 @@ postprocess_successful_fit <- function(wwinference_fit_obj,
   }
   save_object(hosp_quantiles)
 
-  ww_quantiles <- {
-    if (is.null(full_ww_quantiles)) {
-      NULL
-    } else {
-      full_ww_quantiles |>
-        dplyr::filter(period != "calibration")
-    }
-  }
-  save_object(ww_quantiles)
-  # Save forecasted quantiles locally as well as via
-  # targets caching just for backup
   save_table(
     data_to_save = full_hosp_quantiles,
     type_of_output = ifelse(
@@ -246,15 +494,36 @@ postprocess_successful_fit <- function(wwinference_fit_obj,
     location = location
   )
 
-  save_table(
-    data_to_save = full_ww_quantiles,
-    type_of_output = "ww_quantiles",
-    output_dir = output_dir,
-    scenario = scenario,
-    forecast_date = forecast_date,
-    model_type = model,
-    location = location
-  )
+  if (ww_model) {
+    if (!is.null(ww_draws)) {
+      message("Computing wastewater quantiles from draws...")
+      full_ww_quantiles <- get_state_level_ww_quantiles(
+        ww_draws = ww_draws
+      )
+      ww_quantiles <- full_ww_quantiles |>
+        dplyr::filter(period != "calibration")
+      message("Done.")
+    } else {
+      message(paste0(
+        "No wastewater draws found. ",
+        "Not computing wastewater quantiles."
+      ))
+      full_ww_quantiles <- NULL
+      ww_quantiles <- NULL
+    }
+    save_object(full_ww_quantiles)
+    save_object(ww_quantiles)
+    save_table(
+      data_to_save = full_ww_quantiles,
+      type_of_output = "ww_quantiles",
+      output_dir = output_dir,
+      scenario = scenario,
+      forecast_date = forecast_date,
+      model_type = model,
+      location = location
+    )
+  }
+
 
   ### Plot the draw comparison-------------------------------------
   plot_hosp_draws <- {
@@ -290,9 +559,49 @@ postprocess_successful_fit <- function(wwinference_fit_obj,
 
   ggsave_plot(plot_hosp_t)
 
-
-  # Plots of R(t)
+  message("Getting wwinference-style draws...")
   draws <- wwinference::get_draws(wwinference_fit_obj, what = "all")
+
+  if (ww_model) {
+    message("Making wastewater plots...")
+    plot_subpop_rt <- wwinference::get_plot_subpop_rt(
+      draws$subpop_rt,
+      forecast_date
+    )
+    ggsave_plot(plot_subpop_rt)
+
+    if (!is.null(ww_draws)) {
+      plot_ww_draws <- get_plot_ww_data_comparison(
+        ww_draws,
+        location,
+        model_type = model
+      )
+
+      ggsave_plot(plot_ww_draws)
+    } else {
+      plot_ww_draws <- NULL
+    }
+    save_object(plot_ww_draws)
+
+    if (!is.null(full_ww_quantiles)) {
+      plot_ww_t <- make_fig2_ct(
+        full_ww_quantiles,
+        loc_to_plot = location,
+        date_to_plot = forecast_date,
+        max_n_site_labs_to_show = length(unique(full_ww_quantiles$lab_site_index))
+      ) +
+        facet_wrap(~site_lab_name, scales = "free_y") +
+        ggtitle(glue::glue("{location} on {forecast_date}")) +
+        theme_bw()
+
+      ggsave_plot(plot_ww_t)
+    } else {
+      plot_ww_t <- NULL
+    }
+    save_object(plot_ww_t)
+  }
+
+  message("Making R(t) plots...")
 
   plot_state_rt <- wwinference::get_plot_global_rt(
     draws$global_rt,
@@ -300,43 +609,7 @@ postprocess_successful_fit <- function(wwinference_fit_obj,
   )
   ggsave_plot(plot_state_rt)
 
-  if (ww_model) {
-    plot_subpop_rt <- wwinference::get_plot_subpop_rt(
-      draws$subpop_rt,
-      forecast_date
-    )
-    ggsave_plot(plot_subpop_rt)
-  }
-
-  if (!is.null(ww_draws)) {
-    plot_ww_draws <- get_plot_ww_data_comparison(
-      ww_draws,
-      location,
-      model_type = model
-    )
-
-    ggsave_plot(plot_ww_draws)
-  } else {
-    plot_ww_draws <- NULL
-  }
-  save_object(plot_ww_draws)
-
-  if (!is.null(full_ww_quantiles)) {
-    plot_ww_t <- make_fig2_ct(
-      full_ww_quantiles,
-      loc_to_plot = location,
-      date_to_plot = forecast_date,
-      max_n_site_labs_to_show = length(unique(full_ww_quantiles$lab_site_index))
-    ) +
-      facet_wrap(~site_lab_name, scales = "free_y") +
-      ggtitle(glue::glue("{location} on {forecast_date}")) +
-      theme_bw()
-
-    ggsave_plot(plot_ww_t)
-  }
-
-
-  ## Score hospital admissions forecasts----------------------------------
+  message("Scoring admissions forecasts...")
   hosp_scores <- get_full_scores(hosp_draws, scenario)
   save_object(hosp_scores)
   save_table(
@@ -374,37 +647,43 @@ postprocess_successful_fit <- function(wwinference_fit_obj,
 #' some postprocessing tasks we wish to perform regardless of
 #' whether the model fit was successful.
 #'
-#' @param config_index Index of eval_config to evaluate
-#' @param eval_config_path Path to eval_config (created with `write_eval_config`)
-#' @param params_path Path to params.toml
-#' @param model model to postprocess. One of `"hosp"` and `"ww"`.
+
+#' @param forecast_date As-of date for the forecast.
+#' @param eval_date As-of date for evaluation data to use.
+#' @param location Location to forecast.
+#' @param model Model to postprocess. One of `"ww"` and `"hosp"`
+#' @param scenario Wastewater data availability scenario to analyze.
+#' @param hosp_data_dir Path to a directory containing vintaged hospital
+#' admissions data in date-stamped .csv files.
+#' @param ww_data_dir Path to a directory containing vintaged wastewater
+#' data in date-stamped .csv files.
+#' @param ww_data_mapping String associating forecast dates to wastewater
+#' vintage dates. Passed to [date_of_ww_data()].
+#' @param scenario_dir Path to a directory containing .csv files that
+#' define wastewater data availability scenarios.
+#' @param output_dir Path to a direcotry in which to save general
+#' postprocess output.
+#' @param raw_output_dir Path to a directory in which to save
+#' raw output as serialized `.rds` files.
 #' @param max_eval_data_days Maximum number of days of data to pull
 #' when creating evaluation dataset. Default 365.
 #' @return NULL, saving plots and tables to disk as side effects.
 #' @export
-eval_postprocess <- function(config_index,
-                             eval_config_path,
-                             params_path,
+eval_postprocess <- function(forecast_date,
+                             eval_date,
+                             location,
                              model,
+                             scenario,
+                             hosp_data_dir,
+                             ww_data_dir,
+                             ww_data_mapping,
+                             scenario_dir,
+                             output_dir,
+                             raw_output_dir,
                              max_eval_data_days = 365) {
   checkmate::assert_names(model, subset.of = c("ww", "hosp"))
   ww_model <- model == "ww"
-  eval_config <- yaml::read_yaml(eval_config_path)
-  output_dir <- eval_config$output_dir
-  raw_output_dir <- eval_config$raw_output_dir
-  params <- wwinference::get_params(params_path)
-  location <- eval_config$location_ww[config_index]
-  forecast_date <- eval_config$forecast_date_ww[config_index]
-  scenario <- ifelse(ww_model,
-    eval_config$scenario[config_index],
-    "no_wastewater"
-  )
-  hosp_data_dir <- eval_config$hosp_data_dir
-  ww_data_dir <- eval_config$ww_data_dir
-  eval_date <- eval_config$eval_date
   fit_obj_name <- glue::glue("{model}_fit_obj")
-
-  ww_data_mapping <- eval_config$ww_data_mapping
 
   raw_output_suffix <- get_raw_output_suffix(
     location,
@@ -460,8 +739,9 @@ eval_postprocess <- function(config_index,
       scenario_dir = scenario_dir,
       ww_data_dir = ww_data_dir,
       calibration_time = max_eval_data_days,
-      last_hosp_data_date = eval_date,
-      ww_data_mapping = ww_data_mapping
+      last_hosp_data_date = last_hosp_data_date,
+      ww_data_mapping = "most recent",
+      for_eval = TRUE
     )$result
 
     if (!is.null(eval_ww_data) && !is.null(input_ww_data)) {
@@ -501,7 +781,7 @@ eval_postprocess <- function(config_index,
 
   # If model fit failed, dont produce any of the below outputs
   if (!is.null(fit_obj$error)) {
-    errors <- fit_obj$error
+    errors <- as.character(fit_obj$error)
     save_object(errors)
     save_table(
       data_to_save = errors,

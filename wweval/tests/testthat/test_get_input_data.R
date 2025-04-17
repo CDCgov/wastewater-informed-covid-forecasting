@@ -8,10 +8,10 @@ test_that("Test date_of_ww_data returns the correct date to pull the wastewater 
   temp_dir <- tempdir()
   create_fake_ww_files(temp_dir, sample_dates)
 
-  # Test case where ww_data_mapping is NULL
+  # Test case where ww_data_mapping is "most recent"
   forecast_date <- "2024-03-18"
   expect_equal(
-    date_of_ww_data(forecast_date, NULL, temp_dir),
+    date_of_ww_data(forecast_date, "most recent", temp_dir),
     "2024-03-17" # Most recent date
   )
 

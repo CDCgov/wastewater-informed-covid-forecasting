@@ -41,8 +41,14 @@ get_input_ww_data <- function(forecast_date_i,
   # the date `ww_data_mapping` which is a string that we will specify
   # in the config
   date_to_pull <- date_of_ww_data(
-    forecast_date_i, ww_data_mapping,
+    forecast_date_i,
+    ww_data_mapping,
     ww_data_dir
+  )
+
+  first_calibration_date <- (
+    lubridate::ymd(last_hosp_data_date) -
+      lubridate::days(calibration_time) + lubridate::days(1)
   )
 
   ww_data_path <- file.path(ww_data_dir, paste0(date_to_pull, ".csv"))
@@ -62,18 +68,21 @@ get_input_ww_data <- function(forecast_date_i,
     clean_ww_data() |>
     filter(
       location %in% c(!!location_i),
-      date >= lubridate::ymd(!!last_hosp_data_date) -
-        lubridate::days(!!calibration_time) + lubridate::days(1),
-      # If missing lab or site, exclude data point
-      !is.na(lab),
-      !is.na(site)
+      .data$date >= !!first_calibration_date,
+      !is.na(.data$lab),
+      !is.na(.data$site)
     ) |>
-    dplyr::group_by(lab, site, date, location) |>
+    dplyr::group_by(
+      .data$lab,
+      .data$site,
+      .data$date,
+      .data$location
+    ) |>
     summarize(across(
       c(
-        log_genome_copies_per_ml,
-        log_lod,
-        site_pop
+        "log_genome_copies_per_ml",
+        "log_lod",
+        "site_pop"
       ),
       mean
     )) |>
@@ -246,12 +255,26 @@ get_input_hosp_data <- function(forecast_date_i, location_i,
 #'
 #' @return the date to get the ww data from
 #' @export
-date_of_ww_data <- function(forecast_date, ww_data_mapping,
+date_of_ww_data <- function(forecast_date,
+                            ww_data_mapping,
                             ww_data_dir) {
-  if (is.null(ww_data_mapping)) {
-    dates <- gsub(".{4}$", "", list.files(ww_data_dir))
+  if (ww_data_mapping == "most recent") {
+    dates <- fs::dir_ls(ww_data_dir,
+      type = "file",
+      glob = "*.csv"
+    ) |>
+      fs::path_file() |>
+      fs::path_ext_remove() |>
+      unname() |>
+      lubridate::ymd() |>
+      purrr::keep(~ . < lubridate::ymd(forecast_date))
+
+    if (length(dates) == 0) {
+      stop("Could not find a valid wastewater data vintage.")
+    } else {
+      date_to_pull <- as.character(max(dates, na.rm = TRUE))
+    }
     # Get the nearest date less than the forecast date
-    date_to_pull <- as.character(max(dates[dates < ymd(forecast_date)], na.rm = TRUE))
   } else if (ww_data_mapping == "Monday: Monday, Wednesday: Monday") {
     # Error if mapping is Monday to Wednesday and forecast date is neither
     stopifnot(
