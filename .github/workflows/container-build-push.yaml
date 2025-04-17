@@ -18,6 +18,8 @@ jobs:
   build-and-push-image:
     runs-on: ubuntu-latest
     name: Build and push image
+    permissions:
+        packages: write
     outputs:
         tag: ${{ steps.image-tag.outputs.tag }}
 
