@@ -352,11 +352,17 @@ postprocess_successful_fit <- function(wwinference_fit_obj,
 
   message("Saving raw draws and diagnostics...")
   raw_draws <- stan_fit_obj$draws()
-  save_object(raw_draws, save_basename = glue::glue("{model}_raw_draws"))
+  save_object(raw_draws,
+    save_basename = glue::glue("{model}_raw_draws")
+  )
   diagnostic_df <- stan_fit_obj$sampler_diagnostics(format = "df")
-  save_object(diagnostic_df, save_basename = glue::glue("{model}_diagnostics"))
+  save_object(diagnostic_df,
+    save_basename = glue::glue("{model}_diagnostics")
+  )
   diagnostic_summary <- stan_fit_obj$diagnostic_summary()
-  save_object(diagnostic_summary, save_basename = glue::glue("{model}_diagnostic_summary"))
+  save_object(diagnostic_summary,
+    save_basename = glue::glue("{model}_diagnostic_summary")
+  )
 
   metadata <- stan_fit_obj$metadata()
   raw_flags <- get_diagnostic_flags(
@@ -582,24 +588,28 @@ postprocess_successful_fit <- function(wwinference_fit_obj,
     ggsave_plot(plot_subpop_rt)
 
     if (!is.null(ww_draws)) {
+      n_site_labs <- dplyr::n_distinct(ww_draws$lab_site_index)
       plot_ww_draws <- get_plot_ww_data_comparison(
         ww_draws,
         location,
         model_type = model
       )
 
-      ggsave_plot(plot_ww_draws)
+      ggsave_plot(plot_ww_draws,
+        width = 5 * n_site_labs
+      )
     } else {
       plot_ww_draws <- NULL
     }
     save_object(plot_ww_draws)
 
     if (!is.null(full_ww_quantiles)) {
+      n_site_labs <- dplyr::n_distinct(full_ww_quantiles$lab_site_index)
       plot_ww_t <- make_fig2_ct(
         full_ww_quantiles,
         loc_to_plot = location,
         date_to_plot = forecast_date,
-        max_n_site_labs_to_show = length(unique(full_ww_quantiles$lab_site_index))
+        max_n_site_labs_to_show = n_site_labs
       ) +
         facet_wrap(~site_lab_name, scales = "free_y") +
         ggtitle(glue::glue("{location} on {forecast_date}")) +
@@ -607,6 +617,7 @@ postprocess_successful_fit <- function(wwinference_fit_obj,
 
       ggsave_plot(
         plot_ww_t,
+        width = 5 * n_site_labs
       )
     } else {
       plot_ww_t <- NULL
