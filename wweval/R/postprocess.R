@@ -140,21 +140,19 @@ get_model_draws_w_data <- function(fit_obj_wwinference,
 #' required for the Hub submission
 #' @export
 get_state_level_quantiles <- function(draws) {
-  quantiles <- trajectories_to_quantiles(
-    draws,
-    timepoint_cols = "date",
-    value_col = "value",
-    id_cols = c("location", "name", "scenario", "model_type")
-  ) |>
-    dplyr::rename(
-      quantile = quantile_level,
-      value = quantile_value
+  quantiles <- draws |>
+    dplyr::select("date", "value") |>
+    trajectories_to_quantiles(
+      timepoint_cols = "date",
+      value_col = "value",
+      quantile_level_name = "quantile",
+      quantile_value_name = "value"
     ) |>
-    dplyr::left_join(
+    dplyr::inner_join(
       draws |>
-        select(-draw, -value) |>
-        unique(),
-      by = c("date", "name", "location", "scenario", "model_type")
+        dplyr::select(-"value", -"draw") |>
+        dplyr::distinct(),
+      by = "date"
     ) |>
     dplyr::mutate(
       period = dplyr::case_when(
