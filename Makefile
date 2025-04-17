@@ -30,7 +30,7 @@ CONTAINER_TAG_CMD = $(CONTAINER_ENGINE) tag
 ##############################
 # directory and file structure
 ##############################
-CTR_REGISTRY_PATH = ghcr.io/cdcgov/wastewater-informed-covid-forecasting
+CTR_REGISTRY_PATH = ghcr.io/cdcgov
 ACR_LOGIN_COMMAND = $(AZURE_CLI) acr login \
     --name $(AZURE_CONTAINER_REGISTRY_ACCOUNT)
 
