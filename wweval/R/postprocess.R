@@ -596,7 +596,8 @@ postprocess_successful_fit <- function(wwinference_fit_obj,
       )
 
       ggsave_plot(plot_ww_draws,
-        width = 5 * n_site_labs
+        width = (5 / 7) * n_site_labs,
+        limitsize = FALSE
       )
     } else {
       plot_ww_draws <- NULL
@@ -617,7 +618,8 @@ postprocess_successful_fit <- function(wwinference_fit_obj,
 
       ggsave_plot(
         plot_ww_t,
-        width = 5 * n_site_labs
+        width = (5 / 7) * n_site_labs,
+        limitsize = FALSE
       )
     } else {
       plot_ww_t <- NULL
