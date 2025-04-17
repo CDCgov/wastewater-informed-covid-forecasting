@@ -260,7 +260,7 @@ We want to make it easy for an arbitrary virtual machine ("node") within Azure t
 
 There are a number of ways to make it easy for a standard virtual machine to run your code in the way you want. Using Docker-style "containers" is one such solution; we use it here because Azure Batch's infrastructure supports it well. In particular, Azure has its own internal [container registries](https://www.redhat.com/en/topics/cloud-native-apps/what-is-a-container-registry) that nodes can access. We'll put our container in one of those, and then tell our group of Batch nodes (called a "pool") how to retrieve it and run it.
 
-For the default setup we used in this tutorial, there was already be a "container image" for this project in the Azure Container Registry (ACR). Container images reflecting the `prod` branch and all open pull requests are [built via Github actions](../.github/workflows/container-build-push.yaml) and pushed to the ACR as `renewalww:latest` (for `prod`) and `renewalww:{name of the PR branch}` for pull requests.
+For the default setup we used in this tutorial, there was already be a "container image" for this project in the Azure Container Registry (ACR). Container images reflecting the `prod` branch and all open pull requests are [built via Github actions](../.github/workflows/container-build-push.yaml) and pushed to the [Github Container Registry](https://docs.github.com/en/packages/working-with-a-github-packages-registry/working-with-the-container-registry) as `renewalww:latest` (for `prod`) and `renewalww:{name of the PR branch}` for pull requests. [Here's a link to the currently available builds](../../../pkgs/container/renewalww).
 
 You might, however, want to build a container image locally, either for local testing or for your own understanding. This section walks you through doing so.
 
@@ -272,17 +272,6 @@ This tutorial uses `podman` as a drop-in replacement for docker. Install it with
 
 ```bash
 sudo apt install -y podman
-```
-Azure expects the container engine to be `docker`, unless the `DOCKER_COMMAND` environment variable is set to something else. To set that variable to `podman` the following to your `.bash_profile` or similar:
-
-```
-export DOCKER_COMMAND=podman
-```
-
-Start a new shell and confirm this worked with
-
-```bash
-echo $DOCKER_COMMAND
 ```
 
 #### Make
@@ -319,7 +308,7 @@ podman build -t renewalww .
 and then
 
 ```
-podman tag renewalww ghcr.io/cdcgov/wastewater-informed-covid-forecasting/renewalww:latest
+podman tag renewalww ghcr.io/cdcgov/renewalww:latest
 ```
 The first command builds the container and gives it the local name `renewalww`. The second adds a reference to where and what we'll put it in the cloud: `ghcr.io/cdcgov/renewalww:latest`.
 
@@ -330,13 +319,11 @@ make container_build DOCKER_COMMAND=docker
 ```
 
 ### Get the container onto the container registry
-Now we can get our container into the registry by "`push`-ing" it. First we need to authenticate to our Github container registry. You should already have your Github PAT saved as an environment variable. Github PAT instructions are available [here](https://docs.github.com/en/packages/working-with-a-github-packages-registry/working-with-the-container-registry#authenticating-with-a-personal-access-token-classic)
+Now we can get our container into the registry by "`push`-ing" it. First we need to authenticate to the Github container registry. You will need a [Github Personal Access Token (classic)](https://docs.github.com/en/authentication/keeping-your-account-and-data-secure/managing-your-personal-access-tokens). Set one up and then follow the instructions [here to log in to `ghcr.io`](https://docs.github.com/en/packages/working-with-a-github-packages-registry/working-with-the-container-registry#authenticating-with-a-personal-access-token-classic). Github recommends storing it in an environment variable. We follow their tutorial and name that varibale `CR_PAT`:
 
 ```bash
-echo $GH_PAT | podman login ghcr.io -u $GH_USERNAME --password-stdin
+echo $CR_PAT | docker login ghcr.io -u {your github username} --password-stdin
 ```
-
-If you get an error at this step, confirm that your `DOCKER_COMMAND` environment variable is set to `podman`.
 
 The Makefile provides a shortcut:
 
@@ -362,4 +349,4 @@ or just use the Makefile:
 make container_push
 ```
 
-Confirm that the container is now present in the registry by navigating to [Github Packages](https://github.com/CDCgov/wastewater-informed-covid-forecasting/pkgs/container/renewalww)
+Confirm that the container is now present in the registry by navigating to the [`renewalww` container page in this repo](../../..//pkgs/container/renewalww).
