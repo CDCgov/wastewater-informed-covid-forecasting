@@ -88,22 +88,22 @@ get_model_draws_w_data <- function(fit_obj_wwinference,
         by = c("date", "lab", "site")
       ) |>
       dplyr::rename(
-        "ww_pop" = "subpop_pop",
-        "site_lab_name" = "lab_site_name",
-        "flag_as_ww_outlier" = "exclude",
-        "below_LOD" = "below_lod"
+        ww_pop = "subpop_pop",
+        site_lab_name = "lab_site_name",
+        flag_as_ww_outlier = "exclude",
+        below_LOD = "below_lod"
       ) |>
       dplyr::mutate(
-        "name" = "pred_ww",
-        "value" = exp(.data$pred_value),
-        "calib_data" = exp(.data$observed_value),
-        "eval_data" = exp(.data$log_genome_copies_per_ml),
-        "lod_sewage" = exp(.data$log_lod),
-        "lod_sewage_eval" = exp(.data$log_lod_eval),
-        "forecast_date" = lubridate::ymd(!!forecast_date),
-        "model_type" = !!model_type,
-        "scenario" = !!scenario,
-        "location" = !!location
+        name = "pred_ww",
+        value = exp(.data$pred_value),
+        calib_data = exp(.data$observed_value),
+        eval_data = exp(.data$log_genome_copies_per_ml),
+        lod_sewage = exp(.data$log_lod),
+        lod_sewage_eval = exp(.data$log_lod_eval),
+        forecast_date = lubridate::ymd(!!forecast_date),
+        model_type = !!model_type,
+        scenario = !!scenario,
+        location = !!location
       ) |>
       dplyr::ungroup() |>
       # Replace values below LOD with LOD in observations
@@ -116,11 +116,25 @@ get_model_draws_w_data <- function(fit_obj_wwinference,
         )
       ) |>
       dplyr::select(
-        "name", "lab_site_index", "value", "draw", "date", "site", "lab",
-        "location", "ww_pop", "calib_data", "below_LOD", "lod_sewage",
+        "name",
+        "lab_site_index",
+        "value",
+        "draw",
+        "date",
+        "site",
+        "lab",
+        "location",
+        "ww_pop",
+        "calib_data",
+        "below_LOD",
+        "lod_sewage",
         "below_lod_eval",
-        "flag_as_ww_outlier", "eval_data", "forecast_date", "model_type",
-        "scenario", "site_lab_name"
+        "flag_as_ww_outlier",
+        "eval_data",
+        "forecast_date",
+        "model_type",
+        "scenario",
+        "site_lab_name"
       )
   } else {
     stop(glue::glue("Unknown model_output {model_output}"))
@@ -176,11 +190,11 @@ get_state_level_quantiles <- function(draws) {
 #' @export
 get_state_level_ww_quantiles <- function(ww_draws) {
   quantiles <- ww_draws |>
-    dplyr::select("date", "value", "site_lab_name") |>
+    dplyr::select("date", "value", "lab_site_index") |>
     trajectories_to_quantiles(
       timepoint_cols = "date",
       value_col = "value",
-      id_cols = "site_lab_name",
+      id_cols = "lab_site_index",
       quantile_level_name = "quantile",
       quantile_value_name = "value"
     ) |>
@@ -188,7 +202,7 @@ get_state_level_ww_quantiles <- function(ww_draws) {
       ww_draws |>
         dplyr::select(-"value", -"draw") |>
         dplyr::distinct(),
-      by = c("site_lab_name", "date")
+      by = c("lab_site_index", "date")
     ) |>
     dplyr::mutate(
       period = dplyr::case_when(
@@ -321,7 +335,8 @@ postprocess_successful_fit <- function(wwinference_fit_obj,
 
   ggsave_plot <- function(plot,
                           save_basename = NULL,
-                          ext = "png") {
+                          ext = "png",
+                          ...) {
     if (is.null(save_basename)) {
       save_basename <- deparse(substitute(plot))
     }
@@ -330,7 +345,8 @@ postprocess_successful_fit <- function(wwinference_fit_obj,
         save_basename,
         ext = ext
       ),
-      plot = plot
+      plot = plot,
+      ...
     )
   }
 
@@ -589,7 +605,9 @@ postprocess_successful_fit <- function(wwinference_fit_obj,
         ggtitle(glue::glue("{location} on {forecast_date}")) +
         theme_bw()
 
-      ggsave_plot(plot_ww_t)
+      ggsave_plot(
+        plot_ww_t,
+      )
     } else {
       plot_ww_t <- NULL
     }
