@@ -581,11 +581,16 @@ postprocess_successful_fit <- function(wwinference_fit_obj,
 
   if (ww_model) {
     message("Making wastewater plots...")
+    n_subpops <- dplyr::n_distinct(draws$subpop_name)
     plot_subpop_rt <- wwinference::get_plot_subpop_rt(
       draws$subpop_rt,
       forecast_date
     )
-    ggsave_plot(plot_subpop_rt)
+    ggsave_plot(plot_subpop_rt,
+      width = max(0.5 * n_subpops, 7),
+      height = max(0.5 * n_subpops, 7),
+      limitsize = FALSE
+    )
 
     if (!is.null(ww_draws)) {
       n_site_labs <- dplyr::n_distinct(ww_draws$lab_site_index)
@@ -597,7 +602,7 @@ postprocess_successful_fit <- function(wwinference_fit_obj,
 
       ggsave_plot(plot_ww_draws,
         width = max(0.5 * n_site_labs, 7),
-        heighty = max(0.5 * n_site_labs, 7),
+        height = max(0.5 * n_site_labs, 7),
         limitsize = FALSE
       )
     } else {
@@ -620,7 +625,7 @@ postprocess_successful_fit <- function(wwinference_fit_obj,
       ggsave_plot(
         plot_ww_t,
         width = max(0.5 * n_site_labs, 7),
-        heighty = max(0.5 * n_site_labs, 7),
+        height = max(0.5 * n_site_labs, 7),
         limitsize = FALSE
       )
     } else {
