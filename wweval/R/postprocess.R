@@ -717,7 +717,11 @@ eval_postprocess <- function(forecast_date,
 
   input_hosp_data <- load_object("input_hosp_data")
   last_hosp_data_date <- get_last_hosp_data_date(input_hosp_data)
-  last_hosp_eval_date <- forecast_date + lubridate::days(eval_horizon_days)
+  last_hosp_eval_date <- (
+    lubridate::ymd(forecast_date) +
+      lubridate::days(eval_horizon_days)
+  )
+
   eval_hosp_data <- get_input_hosp_data(
     forecast_date_i = eval_date,
     location_i = location,
