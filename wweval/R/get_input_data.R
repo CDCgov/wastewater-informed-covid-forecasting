@@ -107,9 +107,7 @@ get_input_ww_data <- function(forecast_date_i,
         "forecast_date" = !!forecast_date_i
       )
   } else {
-    ww_data_to_fit <- ww_data_preprocessed |>
-      dplyr::mutate(ww = exp(.data$log_genome_copies_per_ml)) |>
-      dplyr::rename("below_LOD" = "below_lod")
+    ww_data_to_fit <- ww_data_preprocessed
   }
 
   return(ww_data_to_fit)
