@@ -668,6 +668,8 @@ postprocess_successful_fit <- function(wwinference_fit_obj,
 #' raw output as serialized `.rds` files.
 #' @param max_eval_data_days Maximum number of days of data to pull
 #' when creating evaluation dataset. Default 365.
+#' @param eval_horizon_days Number of days after the forecast date
+#' to evaluate.
 #' @return NULL, invisibly, saving plots and tables to disk as
 #' side effects.
 #' @export

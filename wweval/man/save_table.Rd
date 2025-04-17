@@ -33,6 +33,9 @@ in YYYY-MM-DD}
 \item{location}{A string indicating the location (e.g. 2 letter abbreviation
 for the state)}
 }
+\value{
+\code{NULL}, invisibly.
+}
 \description{
 This helper function is a wrapper to save intermediate outputs
 running within the model fit loop as tsvs in the following file strucuture:
