@@ -54,7 +54,8 @@ get_input_ww_data <- function(forecast_date_i,
   ww_data_path <- file.path(ww_data_dir, paste0(date_to_pull, ".csv"))
   raw_nwss_data <- readr::read_csv(ww_data_path, show_col_types = FALSE)
 
-  # Use wweval functions to subset NWSS data and format for wwinference package
+  ## Use wweval functions to subset NWSS data and
+  ## format for wwinference package
   all_ww_data <- raw_nwss_data |>
     clean_and_filter_nwss_data()
   # Get the data corresponding to the scenario
@@ -110,8 +111,6 @@ get_input_ww_data <- function(forecast_date_i,
       dplyr::mutate(ww = exp(.data$log_genome_copies_per_ml)) |>
       dplyr::rename("below_LOD" = "below_lod")
   }
-
-
 
   return(ww_data_to_fit)
 }

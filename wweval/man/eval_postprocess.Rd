@@ -16,8 +16,7 @@ eval_postprocess(
   scenario_dir,
   output_dir,
   raw_output_dir,
-  max_eval_data_days = 365,
-  eval_horizon_days = 28
+  max_eval_data_days = 365
 )
 }
 \arguments{
@@ -51,9 +50,6 @@ raw output as serialized \code{.rds} files.}
 
 \item{max_eval_data_days}{Maximum number of days of data to pull
 when creating evaluation dataset. Default 365.}
-
-\item{eval_horizon_days}{Number of days after the forecast date
-to evaluate.}
 }
 \value{
 NULL, invisibly, saving plots and tables to disk as

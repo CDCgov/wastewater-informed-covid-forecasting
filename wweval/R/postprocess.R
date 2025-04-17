@@ -668,8 +668,6 @@ postprocess_successful_fit <- function(wwinference_fit_obj,
 #' raw output as serialized `.rds` files.
 #' @param max_eval_data_days Maximum number of days of data to pull
 #' when creating evaluation dataset. Default 365.
-#' @param eval_horizon_days Number of days after the forecast date
-#' to evaluate.
 #' @return NULL, invisibly, saving plots and tables to disk as
 #' side effects.
 #' @export
@@ -684,8 +682,7 @@ eval_postprocess <- function(forecast_date,
                              scenario_dir,
                              output_dir,
                              raw_output_dir,
-                             max_eval_data_days = 365,
-                             eval_horizon_days = 28) {
+                             max_eval_data_days = 365) {
   checkmate::assert_names(model, subset.of = c("ww", "hosp"))
   ww_model <- model == "ww"
   fit_obj_name <- glue::glue("{model}_fit_obj")
@@ -717,10 +714,6 @@ eval_postprocess <- function(forecast_date,
 
   input_hosp_data <- load_object("input_hosp_data")
   last_hosp_data_date <- get_last_hosp_data_date(input_hosp_data)
-  last_hosp_eval_date <- (
-    lubridate::ymd(forecast_date) +
-      lubridate::days(eval_horizon_days)
-  )
 
   eval_hosp_data <- get_input_hosp_data(
     forecast_date_i = eval_date,
@@ -749,7 +742,7 @@ eval_postprocess <- function(forecast_date,
       scenario_dir = scenario_dir,
       ww_data_dir = ww_data_dir,
       calibration_time = max_eval_data_days,
-      last_hosp_data_date = last_hosp_eval_date,
+      last_hosp_data_date = last_hosp_data_date,
       ww_data_mapping = "most recent",
       for_eval = TRUE
     )$result
