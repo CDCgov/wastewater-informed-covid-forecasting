@@ -225,7 +225,7 @@ get_state_level_ww_quantiles <- function(ww_draws) {
 #' @param location A string indicating the location (e.g. 2 letter abbreviation
 #' for the state)
 #'
-#' @return NULL
+#' @return `NULL`, invisibly.
 #' @export
 #'
 save_table <- function(data_to_save,
@@ -263,7 +263,8 @@ save_table <- function(data_to_save,
       file = fp
     )
   }
-  return(NULL)
+
+  invisible()
 }
 
 #' Postprocess a successful eval fitting job.
@@ -667,7 +668,8 @@ postprocess_successful_fit <- function(wwinference_fit_obj,
 #' raw output as serialized `.rds` files.
 #' @param max_eval_data_days Maximum number of days of data to pull
 #' when creating evaluation dataset. Default 365.
-#' @return NULL, saving plots and tables to disk as side effects.
+#' @return NULL, invisibly, saving plots and tables to disk as
+#' side effects.
 #' @export
 eval_postprocess <- function(forecast_date,
                              eval_date,
@@ -841,4 +843,6 @@ eval_postprocess <- function(forecast_date,
       location = location
     )
   }
+
+  invisible()
 }
