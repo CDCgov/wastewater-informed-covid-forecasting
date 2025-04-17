@@ -749,6 +749,12 @@ eval_postprocess <- function(forecast_date,
     )$result
 
     if (!is.null(eval_ww_data) && !is.null(input_ww_data)) {
+      message(glue::glue(
+        "Pulled eval wastewater data from ",
+        "{min(eval_ww_data$date)} to ",
+        "{max(eval_ww_data$date)}"
+      ))
+
       eval_ww_data <- eval_ww_data |>
         dplyr::filter(.data$date >= !!min(input_ww_data$date))
     }
