@@ -319,10 +319,10 @@ make container_build DOCKER_COMMAND=docker
 ```
 
 ### Get the container onto the container registry
-Now we can get our container into the registry by "`push`-ing" it. First we need to authenticate to the Github container registry. You will need a [Github Personal Access Token (classic)](https://docs.github.com/en/authentication/keeping-your-account-and-data-secure/managing-your-personal-access-tokens). Set one up and then follow the instructions [here to log in to `ghcr.io`](https://docs.github.com/en/packages/working-with-a-github-packages-registry/working-with-the-container-registry#authenticating-with-a-personal-access-token-classic). Github recommends storing it in an environment variable. Here and in the `Makefile`, we assume you've stored it in the environment variable `GH_PAT`:
+Now we can get our container into the registry by "`push`-ing" it. First we need to authenticate to the Github container registry. You will need a [Github Personal Access Token (classic)](https://docs.github.com/en/authentication/keeping-your-account-and-data-secure/managing-your-personal-access-tokens). Set one up and then follow the instructions [here to log in to `ghcr.io`](https://docs.github.com/en/packages/working-with-a-github-packages-registry/working-with-the-container-registry#authenticating-with-a-personal-access-token-classic). Github recommends storing it in an environment variable. Here and in the `Makefile`, we assume you've stored your token in the environment variable `GH_PAT` and your github username in the environment variable `GH_USERNAME`.
 
 ```bash
-echo $GH_PAT | docker login ghcr.io -u {your github username} --password-stdin
+echo $GH_PAT | docker login ghcr.io -u $GH_USERNAME --password-stdin
 ```
 
 The Makefile provides a shortcut:
