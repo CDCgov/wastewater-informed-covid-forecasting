@@ -238,7 +238,7 @@ python3 batch/setup_job.py input/config/eval/example_eval_config.yaml both my-de
 Note that if you run a manual `fit`-only job followed by a manual `postprocess`-only job, you will need to confirm manually that fitting tasks have finished before kicking off their associated postprocessing tasks. In general, only kick off a manual postprocessing job once the entire associated manual fitting job has completed.
 
 ### Creating a configuration file
-The [`src/setup_eval.R`][../src/setup_eval.R] script can help you write properly formatted evaluation configuration YAML files. Remember to mirror config versions between your local `input/config/eval` directory and the one in your input Azure Blob storage container.
+The [`src/setup_eval.R`](../src/setup_eval.R) script can help you write properly formatted evaluation configuration YAML files. Remember to mirror config versions between your local `input/config/eval` directory and the one in your input Azure Blob storage container.
 
 ### Uploading data
 The [walkthrough](#walkthrough-running-an-evaluation-job-on-azure-batch) uses data and configuration that are already in Azure Blob Storage. You can upload data to blob storage via the [Azure Storage Explorer](#azure-storage-explorer) GUI, but if you would like to work programmatically, we provide an `upload_data.py` script.
@@ -319,10 +319,10 @@ make container_build DOCKER_COMMAND=docker
 ```
 
 ### Get the container onto the container registry
-Now we can get our container into the registry by "`push`-ing" it. First we need to authenticate to the Github container registry. You will need a [Github Personal Access Token (classic)](https://docs.github.com/en/authentication/keeping-your-account-and-data-secure/managing-your-personal-access-tokens). Set one up and then follow the instructions [here to log in to `ghcr.io`](https://docs.github.com/en/packages/working-with-a-github-packages-registry/working-with-the-container-registry#authenticating-with-a-personal-access-token-classic). Github recommends storing it in an environment variable. Here and in the `Makefile`, we assume you've stored your token in the environment variable `GH_PAT` and your github username in the environment variable `GH_USERNAME`.
+Now we can get our container into the registry by "`push`-ing" it. First we need to authenticate to the Github container registry. You will need a [Github Personal Access Token (classic)](https://docs.github.com/en/authentication/keeping-your-account-and-data-secure/managing-your-personal-access-tokens). Set one up and then follow the instructions [here to log in to `ghcr.io`](https://docs.github.com/en/packages/working-with-a-github-packages-registry/working-with-the-container-registry#authenticating-with-a-personal-access-token-classic). Github recommends storing it in an environment variable. Here and in the `Makefile`, we assume you've stored your token in the environment variable `GH_TOKEN` and your github username in the environment variable `GH_USERNAME`.
 
 ```bash
-echo $GH_PAT | docker login ghcr.io -u $GH_USERNAME --password-stdin
+docker login ghcr.io -u $GH_USERNAME -p $GH_TOKEN
 ```
 
 The Makefile provides a shortcut:
