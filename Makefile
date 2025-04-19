@@ -69,7 +69,7 @@ acr_login:
 > $(ACR_LOGIN_COMMAND)
 
 ghcr_login:
-> echo $(GH_PAT) | $(CONTAINER_ENGINE) login ghcr.io -u $(GH_USERNAME) --password-stdin
+> $(CONTAINER_ENGINE) login ghcr.io -u $(GH_USERNAME) -p $(GH_TOKEN)
 
 
 #######################
