@@ -142,7 +142,7 @@ A job is a set of tasks. Each task (by default) gets handed to 1 "node" (virtual
 > [!NOTE]
 > Containers have a default working directory. Azure Batch tasks _don't_ default to starting in the container's own default working directory. In this tutorial, we _would_ like to start our tasks in the container's working directory. For that reason, `setup_job.py` contains [this line](https://github.com/cdcent/cfa-forecast-renewal-ww/blob/91080eaf42ad63f3b1de9e89c6221f58fa55a941/batch/setup_job.py#L70), which explicitly instructs Azure to use the container's default working directory.
 
-In our example, `setup_job.py` creates a bunch of tasks. All of them consist of running the `run_eval.R` script for a given model fitting or postprocessing problem. To see a detailed help message that lists all the arguments, run 
+In our example, `setup_job.py` creates a bunch of tasks. All of them consist of running the `run_eval.R` script for a given model fitting or postprocessing problem. To see a detailed help message that lists all the arguments, run
 ```bash
 Rscript run_eval.R --help
 ```
