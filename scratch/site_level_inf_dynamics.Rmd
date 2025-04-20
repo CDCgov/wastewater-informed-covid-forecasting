@@ -1117,7 +1117,6 @@ ggplot(ww_draws_w_data %>% filter(
 ```{r}
 ww_site_modifier_draws <- all_draws %>%
   spread_draws(ww_site_mod[site_index]) %>%
-  # sample_draws(ndraws = n_draws) %>%
   rename(value = ww_site_mod) %>%
   mutate(
     draw = `.draw`,
@@ -1190,7 +1189,6 @@ ggplot(growth_site) +
 
 ww_site_sigma_draws <- all_draws %>%
   spread_draws(sigma_ww_site[site_index]) %>%
-  # sample_draws(ndraws = n_draws) %>%
   rename(value = sigma_ww_site) %>%
   mutate(
     draw = row_number(),
