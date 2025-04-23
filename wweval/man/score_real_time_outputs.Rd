@@ -19,18 +19,20 @@ score_real_time_outputs(
 "crps" or "wis". Note, if using crps, will score draws from nowcast and
 forecast. If using wis, will score only the forecasts.}
 
-\item{real_time_output_dir}{A string indicating the upper level directory
-where the real-time outputs live locally}
+\item{real_time_output_dir}{A string indicating the upper
+level directory where the real-time outputs live locally}
 
 \item{table_of_run_ids}{A tibble containing the forecast date, run id,
 and date run for each of the production runs}
 
-\item{locations}{A vector of character strings indicating the locations to
+\item{locations}{A vector of character strings indicating
+the locations to
 pull, this should be all jurisdictions}
 
 \item{dates}{A vector of forecast dates to pull}
 
-\item{eval_data}{a tibble of hospital admissions evaluation data to be used
+\item{eval_data}{a tibble of hospital admissions evaluation
+data to be used
 for scoring.}
 
 \item{hosp_only}{boolean indicating if we should only pull the hospital

@@ -40,3 +40,34 @@ test_that(paste0(
     expect_true(fs::file_exists(expected_path_four))
   })
 })
+
+
+test_that("assert_needed_env_vars() works as expected", {
+  withr::with_envvar(c(
+    "TEST_ENV_VAR_ONE" = "a",
+    "TEST_ENV_VAR_TWO" = "b"
+  ), {
+    expect_no_warning(
+      assert_needed_env_vars(c(
+        "TEST_ENV_VAR_ONE",
+        "TEST_ENV_VAR_TWO"
+      ))
+    )
+    expect_error(
+      assert_needed_env_vars(
+        "THIS_SHOULD_BE_MISSING_UEFDJIREX"
+      ),
+      "Could not find required"
+    )
+    expect_error(
+      assert_needed_env_vars(
+        c(
+          "TEST_ENV_VAR_ONE",
+          "TEST_ENV_VAR_TWO",
+          "THIS_SHOULD_BE_MISSING_UEFDJIREX"
+        )
+      ),
+      "Could not find required"
+    )
+  })
+})

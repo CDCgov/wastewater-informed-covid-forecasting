@@ -70,7 +70,7 @@ Imports:
     soql,
     tibble,
     zoo,
-    cmdstanr (>= 0.7.1),
+    cmdstanr (>= 0.9.0),
     forcats,
     ggridges,
     cowplot,
@@ -78,9 +78,9 @@ Imports:
     RColorBrewer,
     zoltr,
     wwinference,
-    scoringutils (>= 1.2.2),
     fs,
-    checkmate
+    checkmate,
+    scoringutils
 Suggests:
     httr,
     sessioninfo,
@@ -95,6 +95,5 @@ RoxygenNote: 7.3.2
 Remotes:
     stan-dev/cmdstanr,
     wwinference=CDCgov/ww-inference-model@v0.1.1,
-    github::epiforecasts/scoringutils@v1.2.2
 LazyData: true
 Config/testthat/edition: 3

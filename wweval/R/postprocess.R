@@ -566,7 +566,7 @@ postprocess_successful_fit <- function(wwinference_fit_obj,
   )
   save_object(plot_hosp_draws)
 
-  plot_hosp_t <- make_fig2_hosp_t(
+  plot_hosp_t <- plot_model_hosp_t_comparison(
     hosp_quantiles = full_hosp_quantiles,
     loc_to_plot = location,
     date_to_plot = forecast_date
@@ -612,7 +612,7 @@ postprocess_successful_fit <- function(wwinference_fit_obj,
 
     if (!is.null(full_ww_quantiles)) {
       n_site_labs <- dplyr::n_distinct(full_ww_quantiles$lab_site_index)
-      plot_ww_t <- make_fig2_ct(
+      plot_ww_t <- plot_ww_conc_by_site(
         full_ww_quantiles,
         loc_to_plot = location,
         date_to_plot = forecast_date,

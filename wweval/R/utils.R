@@ -102,3 +102,33 @@ get_raw_output_suffix <- function(location,
     sep = "_"
   ))
 }
+
+#' Assert that needed environment variables are set
+#'
+#' @param needed_vars Vector of needed environment
+#' variables.
+#'
+#' @return `NULL`, invisibly on success or raise an error.
+#' @examples
+#'
+#' tryCatch(
+#'   assert_needed_env_vars(c(
+#'     "WWEVAL_EXAMPLE_ONE",
+#'     "WWEVAL_EXAMPLE_TWO"
+#'   )),
+#'   error = \(e) print(e)
+#' )
+#'
+#' @export
+assert_needed_env_vars <- function(needed_vars) {
+  vars <- Sys.getenv(needed_vars)
+  checkmate::assert_character(vars)
+  which_missing <- vars == ""
+  if (any(which_missing)) {
+    cli::cli_abort(c(
+      "Could not find required environment variables ",
+      "{names(vars)[which_missing]}"
+    ))
+  }
+  invisible()
+}

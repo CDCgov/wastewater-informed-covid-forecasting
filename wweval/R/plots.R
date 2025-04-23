@@ -162,7 +162,7 @@ get_plot_ww_data_comparison <- function(draws_w_data,
     scale_y_continuous(trans = "log10") +
     facet_wrap(~site_lab_name, scales = "free_y") +
     geom_point(
-      data = draws_w_data_subsetted |> filter(below_LOD == 1),
+      data = draws_w_data_subsetted |> filter(below_lod == 1),
       aes(x = date, y = calib_data), color = "red", size = 1.1
     ) +
     geom_point(
@@ -1365,26 +1365,32 @@ get_qq_plot <- function(scores,
   return(p)
 }
 
+#' Plot wastewater evaluation data
+#'
+#' @param eval_data Data frame of evaluation data
+#' @return The plot, as a ggplot object.
+#'
+#' @export
 get_plot_ww_data <- function(eval_data) {
   eval_data <- eval_data |>
     dplyr::mutate(
-      lab_site_name = glue::glue("Site: {site}, lab: {lab}")
+      lab_site_name = glue::glue("Site: {.data$site}, lab: {.data$lab}")
     )
   loc <- eval_data |>
-    dplyr::distinct(location) |>
+    dplyr::distinct(.data$location) |>
     dplyr::pull()
 
   p <- ggplot(eval_data) +
-    geom_point(aes(x = date, y = log(ww)), size = 0.5) +
-    geom_line(aes(x = date, y = log(ww)), size = 0.5) +
+    geom_point(aes(x = .data$date, y = .data$ww), size = 0.5) +
+    geom_line(aes(x = .data$date, y = .data$ww), size = 0.5) +
     geom_point(
-      data = eval_data |> dplyr::filter(flag_as_ww_outlier == 1),
-      aes(x = date, y = log(ww)),
+      data = eval_data |> dplyr::filter(.data$flag_as_ww_outlier == 1),
+      aes(x = .data$date, y = .data$ww),
       fill = "red", color = "red", size = 0.5
     ) +
     geom_point(
-      data = eval_data |> dplyr::filter(below_LOD == 1),
-      aes(x = date, y = log(ww)),
+      data = eval_data |> dplyr::filter(.data$below_lod == 1),
+      aes(x = .data$date, y = .data$ww),
       fill = "darkblue", color = "darkblue", size = 0.5
     ) +
     facet_wrap(~lab_site_name, scales = "free_y") +
@@ -1401,6 +1407,8 @@ get_plot_ww_data <- function(eval_data) {
         vjust = 0.5, hjust = 0.5
       )
     ) +
+    scale_x_date() +
+    scale_y_continuous(transform = "log10") +
     xlab("") +
     ylab("Log(genome copies per mL)") +
     ggtitle(glue::glue("Wastewater concentration data in {loc}"))

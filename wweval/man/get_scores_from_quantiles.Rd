@@ -16,7 +16,8 @@ only}
 running}
 
 \item{metrics}{Vector of scoring metrics to output, passed as the
-\code{metrics} argument to \code{\link[scoringutils:score]{scoringutils::score()}}. Default is NULL which will
+\code{metrics} argument to \code{\link[scoringutils:score]{scoringutils::score()}}.
+Default is NULL which will
 include all scoring metrics for quantiles by default, including
 \code{c("interval_score", "coverage", "dispersion", "bias")}.}
 }

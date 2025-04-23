@@ -77,8 +77,6 @@ write_eval_config <- function(locations, forecast_dates,
   hosp_data_dir <- file.path("input", "hosp_data", "vintage_datasets")
   population_data_path <- file.path("input", "locations.csv")
   baseline_score_table_dir <- file.path("output", "baseline_score")
-  # stan_models_dir <- system.file("stan", package = "cfaforecastrenewalww") #nolint
-  stan_models_dir <- file.path("cfaforecastrenewalww", "inst", "stan")
   init_dir <- file.path("input", "init_lists")
   output_dir <- file.path("output", "eval_latest")
   figure_dir <- file.path("output", "eval_latest", "plots")
@@ -87,7 +85,6 @@ write_eval_config <- function(locations, forecast_dates,
     "plots", "manuscript"
   )
   hub_subdir <- file.path("output", "eval_latest", "hub")
-  retro_rt_path <- file.path("input", "retro_Rt", "Rt_draws.parquet")
   score_subdir <- file.path("output", "eval_latest", "hub")
   # Proportion of forecast dates that a model must have submitted for to be
   # included in the Hub analysis
@@ -158,7 +155,29 @@ write_eval_config <- function(locations, forecast_dates,
     add_to_exclude
   )
 
-
+  # scoring metrics
+  metrics_quantiles <- c(
+    "wis",
+    "overprediction",
+    "underprediction",
+    "dispersion",
+    "bias",
+    "interval_coverage_50",
+    "interval_coverage_90",
+    "ae_median"
+  )
+  metrics_samples <- c(
+    "bias",
+    "dss",
+    "crps",
+    "overprediction",
+    "underprediction",
+    "dispersion",
+    "log_score",
+    "mad",
+    "ae_median",
+    "se_mean"
+  )
 
   config <- list(
     location_ww = df_ww |> dplyr::pull(location) |> as.vector(),
@@ -166,18 +185,18 @@ write_eval_config <- function(locations, forecast_dates,
     scenario = df_ww |> dplyr::pull(scenario) |> as.vector(),
     location_hosp = df_hosp |> dplyr::pull(location) |> as.vector(),
     forecast_date_hosp = df_hosp |> dplyr::pull(forecast_date) |> as.vector(),
+    metrics_samples = metrics_samples,
+    metrics_quantiles = metrics_quantiles,
     eval_date = eval_date,
     ww_data_dir = ww_data_dir,
     scenario_dir = scenario_dir,
     hosp_data_dir = hosp_data_dir,
-    stan_models_dir = stan_models_dir,
     baseline_score_table_dir = baseline_score_table_dir,
     output_dir = output_dir,
     hub_subdir = hub_subdir,
     benchmark_dir = benchmark_dir,
     overwrite_benchmark = overwrite_benchmark,
     wwinference_version = wwinference_version,
-    retro_rt_path = retro_rt_path,
     score_subdir = score_subdir,
     raw_output_dir = raw_output_dir,
     figure_dir = figure_dir,

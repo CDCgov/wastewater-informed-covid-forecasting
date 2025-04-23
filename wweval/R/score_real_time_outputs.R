@@ -3,14 +3,16 @@
 #' @param score_type A string indicating which score to generate, either
 #' "crps" or "wis". Note, if using crps, will score draws from nowcast and
 #' forecast. If using wis, will score only the forecasts.
-#' @param real_time_output_dir A string indicating the upper level directory
-#' where the real-time outputs live locally
+#' @param real_time_output_dir A string indicating the upper
+#' level directory where the real-time outputs live locally
 #' @param table_of_run_ids A tibble containing the forecast date, run id,
 #' and date run for each of the production runs
-#' @param locations A vector of character strings indicating the locations to
+#' @param locations A vector of character strings indicating
+#' the locations to
 #' pull, this should be all jurisdictions
 #' @param dates A vector of forecast dates to pull
-#' @param eval_data a tibble of hospital admissions evaluation data to be used
+#' @param eval_data a tibble of hospital admissions evaluation
+#' data to be used
 #' for scoring.
 #' @param hosp_only boolean indicating if we should only pull the hospital
 #' admissions model
@@ -37,9 +39,10 @@ score_real_time_outputs <- function(score_type,
   col_name <- ifelse(score_type == "crps", "draw", "quantile")
   for (i in seq_along(dates)) {
     date_to_pull <- dates[i]
-    metadata <- table_of_run_ids |> dplyr::filter(
-      forecast_date == date_to_pull
-    )
+    metadata <- table_of_run_ids |>
+      dplyr::filter(
+        .data$forecast_date == !!date_to_pull
+      )
     run_id <- metadata$ids
     date_run <- metadata$dates_run
     for (j in seq_along(locations)) {
@@ -134,49 +137,47 @@ score_real_time_outputs <- function(score_type,
           # Pass to scoring utils
           if (score_type == "crps") {
             forecasted_preds <- preds_w_eval |>
-              dplyr::rename(
-                sample = draw,
-                prediction = value,
-              ) |>
               dplyr::select(
-                location,
-                forecast_date,
-                date,
-                true_value,
-                prediction,
-                sample,
-                model,
-                failed_convergence
+                "location",
+                "forecast_date",
+                "date",
+                "value",
+                "true_value",
+                "draw",
+                "model",
+                "failed_convergence"
+              ) |>
+              scoringutils::as_forecast_sample(
+                sample_id = "draw",
+                predicted = "value",
+                observed = "true_value"
               )
           } else if (score_type == "wis") {
             forecasted_preds <- preds_w_eval |>
-              dplyr::rename(
-                prediction = value,
-              ) |>
               dplyr::select(
-                location,
-                forecast_date,
-                date,
-                true_value,
-                prediction,
-                quantile,
-                model,
-                failed_convergence
+                "location",
+                "forecast_date",
+                "date",
+                "true_value",
+                "prediction",
+                "quantile",
+                "model",
+                "failed_convergence"
               ) |>
-              dplyr::filter(
-                date > forecast_date
+              dplyr::filter(.data$date > .data$forecast_date) |>
+              scoringutils::as_forecast_quantile(
+                predicted = "value",
+                observed = "true_value",
+                quantile_level = "quantile"
               )
           }
           scores <- forecasted_preds |>
-            data.table::as.data.table() |>
             scoringutils::transform_forecasts(
               fun = scoringutils::log_shift,
-              offset = 1
+              offset = 1,
+              append = FALSE
             ) |>
-            scoringutils::check_forecasts() |>
-            scoringutils::score() |>
-            tibble::tibble() |>
-            dplyr::filter(scale == "log")
+            scoringutils::score()
         } else {
           scores <- c()
         }
