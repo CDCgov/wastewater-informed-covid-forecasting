@@ -8,7 +8,7 @@ get_state_level_ww_quantiles(ww_draws)
 }
 \arguments{
 \item{ww_draws}{a dataframe containing all the draws from the model estimated
-site-lab level cocnentrations}
+site-lab level concentrations}
 }
 \value{
 a dataframe containing the quantile value for the quantiles

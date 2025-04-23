@@ -134,49 +134,47 @@ score_real_time_outputs <- function(score_type,
           # Pass to scoring utils
           if (score_type == "crps") {
             forecasted_preds <- preds_w_eval |>
-              dplyr::rename(
-                sample = draw,
-                prediction = value,
-              ) |>
               dplyr::select(
-                location,
-                forecast_date,
-                date,
-                true_value,
-                prediction,
-                sample,
-                model,
-                failed_convergence
+                "location",
+                "forecast_date",
+                "date",
+                "value",
+                "true_value",
+                "draw",
+                "model",
+                "failed_convergence"
+              ) |>
+              scoringutils::as_forecast_sample(
+                sample_id = "draw",
+                predicted = "value",
+                observed = "true_value"
               )
           } else if (score_type == "wis") {
             forecasted_preds <- preds_w_eval |>
-              dplyr::rename(
-                prediction = value,
-              ) |>
               dplyr::select(
-                location,
-                forecast_date,
-                date,
-                true_value,
-                prediction,
-                quantile,
-                model,
-                failed_convergence
+                "location",
+                "forecast_date",
+                "date",
+                "true_value",
+                "prediction",
+                "quantile",
+                "model",
+                "failed_convergence"
               ) |>
-              dplyr::filter(
-                date > forecast_date
+              dplyr::filter(.data$date > .data$forecast_date) |>
+              scoringutils::as_forecast_quantile(
+                predicted = "value",
+                observed = "true_value",
+                quantile_level = "quantile"
               )
           }
           scores <- forecasted_preds |>
-            data.table::as.data.table() |>
             scoringutils::transform_forecasts(
               fun = scoringutils::log_shift,
-              offset = 1
+              offset = 1,
+              append = FALSE
             ) |>
-            scoringutils::check_forecasts() |>
-            scoringutils::score() |>
-            tibble::tibble() |>
-            dplyr::filter(scale == "log")
+            scoringutils::score()
         } else {
           scores <- c()
         }

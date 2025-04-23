@@ -27,34 +27,40 @@ get_full_scores <- function(draws,
     last_calib_date <- max(draws$date[!is.na(draws$calib_data)])
 
     forecasted_draws <- draws |>
-      filter(date > !!last_calib_date) |>
-      ungroup() |>
-      # Rename for scoring utils
-      rename(
-        sample = draw,
-        model = model_type,
-        true_value = eval_data,
-        prediction = value,
-      ) |>
-      select(
-        location,
-        forecast_date,
-        date,
-        true_value,
-        prediction,
-        sample,
-        model
+      dplyr::filter(.data$date > !!last_calib_date) |>
+      dplyr::select(
+        "model_type",
+        "location",
+        "forecast_date",
+        "date",
+        "value",
+        "eval_data",
+        "draw"
       )
-    scores <- forecasted_draws |>
-      data.table::as.data.table() |>
+    to_score <- forecasted_draws |>
+      scoringutils::as_forecast_sample(
+        predicted = "value",
+        observed = "eval_data",
+        sample_id = "draw"
+      ) |>
       scoringutils::transform_forecasts(
         fun = scoringutils::log_shift,
         offset = 1
-      ) |>
-      scoringutils::check_forecasts() |>
-      scoringutils::score(metrics = metrics) |>
-      mutate(
-        period = ifelse(date <= forecast_date, "nowcast", "forecast"),
+      )
+
+    if (is.null(metrics)) {
+      metrics <- scoringutils::get_metrics(to_score)
+    }
+
+    scores <- scoringutils::score(to_score,
+      metrics = metrics
+    ) |>
+      dplyr::mutate(
+        period =
+          ifelse(.data$date <= .data$forecast_date,
+            "nowcast",
+            "forecast"
+          ),
         scenario = !!scenario
       )
   }
@@ -75,7 +81,8 @@ get_full_scores <- function(draws,
 #' @param scenario a string indicating the wastewater data scenario we're
 #' running
 #' @param metrics Vector of scoring metrics to output, passed as the
-#' `metrics` argument to [scoringutils::score()]. Default is NULL which will
+#' `metrics` argument to [scoringutils::score()].
+#' Default is NULL which will
 #' include all scoring metrics for quantiles by default, including
 #' `c("interval_score", "coverage", "dispersion", "bias")`.
 #'
@@ -89,34 +96,39 @@ get_scores_from_quantiles <- function(quantiles,
     scores <- NULL
   } else {
     forecasted_quantiles <- quantiles |>
-      ungroup() |>
-      # Rename for scoring utils
-      rename(
-        model = model_type,
-        true_value = eval_data,
-        prediction = value,
-      ) |>
-      select(
-        location,
-        forecast_date,
-        date,
-        true_value,
-        prediction,
-        quantile,
-        model
+      dplyr::select(
+        "model_type",
+        "location",
+        "forecast_date",
+        "date",
+        "value",
+        "eval_data",
+        "quantile"
       )
 
-
-    scores <- forecasted_quantiles |>
-      data.table::as.data.table() |>
+    to_score <- forecasted_quantiles |>
+      scoringutils::as_forecast_quantile(
+        predicted = "value",
+        observed = "eval_data",
+        quantile_level = "quantile"
+      ) |>
       scoringutils::transform_forecasts(
         fun = scoringutils::log_shift,
         offset = 1
-      ) |>
-      scoringutils::check_forecasts() |>
-      scoringutils::score(metrics = metrics) |>
-      mutate(
-        period = ifelse(date <= forecast_date, "nowcast", "forecast"),
+      )
+
+    if (is.null(metrics)) {
+      metrics <- scoringutils::get_metrics(to_score)
+    }
+
+    scores <- scoringutils::score(to_score,
+      metrics = metrics
+    ) |>
+      dplyr::mutate(
+        period = ifelse(.data$date <= .data$forecast_date,
+          "nowcast",
+          "forecast"
+        ),
         scenario = !!scenario
       )
   }
@@ -329,110 +341,108 @@ score_hub_submissions <- function(model_name,
                                   submissions_path = "https://raw.githubusercontent.com/reichlab/covid19-forecast-hub/master/data-processed/", # nolint
                                   truth_data_path = "https://media.githubusercontent.com/media/reichlab/covid19-forecast-hub/master/data-truth/truth-Incident%20Hospitalizations.csv") { # nolint
 
-  truth_data <- truth_data <- readr::read_csv(truth_data_path)
+  truth_data <- truth_data <- readr::read_csv(truth_data_path,
+    show_col_types = FALSE
+  ) |>
+    dplyr::rename(
+      true_value = "value",
+      target_end_date = "date"
+    )
 
-  natural_scale_scores <- tibble::tibble()
-  log_scale_scores <- tibble::tibble()
-  missing_forecasts <- tibble::tibble()
-  for (i in seq_along(model_name)) {
-    for (j in seq_along(dates)) {
-      this_forecast_date <- dates[j]
-      this_model_name <- model_name[i]
-      if (isTRUE(pull_from_github)) {
-        quantiles <- tryCatch(
-          readr::read_csv(glue::glue(
-            "{submissions_path}{this_model_name}/{this_forecast_date}-{this_model_name}.csv"
-          )) |>
-            dplyr::filter(type == "quantile"),
-          error = function(e) NULL
-        )
-      } else {
-        quantiles <- readr::read_csv(
-          file.path(
-            hub_subdir, this_model_name,
-            glue::glue("{this_forecast_date}-{this_model_name}.csv")
-          )
-        )
-      }
+  to_score <- tidyr::crossing(
+    model_name = model_name,
+    forecast_date = dates
+  )
 
-      if (!is.null(quantiles)) {
-        quantiles_w_truth <- quantiles |>
-          dplyr::left_join(
-            truth_data |> dplyr::rename(
-              true_value = value
-            ),
-            by = c(
-              "target_end_date" = "date",
-              "location"
-            )
-          ) |>
-          dplyr::rename(
-            prediction = value
-          ) |>
-          dplyr::mutate(
-            model = this_model_name
-          )
-
-        # Filter locations if they are specified, otherwise leave them all in
-        if (!is.null(locations)) {
-          quantiles_w_truth <- quantiles_w_truth |>
-            dplyr::filter(location %in% loc_abbr_to_flusight_code(locations))
+  score_model_date <- function(model_name, forecast_date) {
+    if (isTRUE(pull_from_github)) {
+      gh_path <- glue::glue(
+        "{submissions_path}{model_name}/",
+        "{forecast_date}-{model_name}.csv"
+      )
+      quantiles <- tryCatch(
+        readr::read_csv(
+          gh_path,
+          show_col_types = FALSE
+        ) |>
+          dplyr::filter(type == "quantile"),
+        error = function(e) {
+          NULL
         }
+      )
+    } else {
+      quantiles <- readr::read_csv(
+        file.path(
+          hub_subdir, model_name,
+          glue::glue("{forecast_date}-{model_name}.csv")
+        ),
+        show_col_types = FALSE
+      )
+    }
 
-        # Pass to scoring utils, no summaries just daily, quantiled scores
-        these_natural_scale_scores <- quantiles_w_truth |>
-          scoringutils::score(metrics = NULL) |>
-          dplyr::mutate(horizon_days = as.integer(
-            lubridate::ymd(target_end_date) - lubridate::ymd(forecast_date)
-          )) |>
-          dplyr::mutate(
-            horizon_weeks =
-              ceiling(horizon_days / 7)
-          ) |>
-          dplyr::mutate(horizon = glue::glue("{horizon_weeks} week ahead")) |>
-          dplyr::select(-horizon_weeks, -horizon_days)
-
-        these_log_scores <- quantiles_w_truth |>
-          scoringutils::transform_forecasts(
-            fun = scoringutils::log_shift,
-            offset = 1
-          ) |>
-          scoringutils::score(metrics = NULL) |>
-          dplyr::mutate(horizon_days = as.integer(
-            lubridate::ymd(target_end_date) - lubridate::ymd(forecast_date)
-          )) |>
-          dplyr::mutate(
-            horizon_weeks =
-              ceiling(horizon_days / 7)
-          ) |>
-          dplyr::mutate(horizon = glue::glue("{horizon_weeks} week ahead")) |>
-          dplyr::select(-horizon_weeks, -horizon_days)
-
-
-        log_scale_scores <- dplyr::bind_rows(log_scale_scores, these_log_scores)
-        natural_scale_scores <- dplyr::bind_rows(
-          natural_scale_scores,
-          these_natural_scale_scores
+    if (is.null(quantiles)) {
+      scores <- tibble(
+        model = model_name,
+        forecast_date = lubridate::ymd(forecast_date),
+        scale = "missing"
+      )
+    } else {
+      quantiles_w_truth <- quantiles |>
+        dplyr::rename(prediction = value) |>
+        dplyr::mutate(model = !!model_name) |>
+        dplyr::inner_join(truth_data,
+          by = c(
+            "target_end_date",
+            "location"
+          )
         )
-      } else { # end if statement for quantiles empty
-        these_missing_forecasts <- tibble(
-          model = this_model_name,
-          forecast_date = this_forecast_date
-        )
-        missing_forecasts <- dplyr::bind_rows(
-          missing_forecasts,
-          these_missing_forecasts
-        )
+
+      ## Filter locations if they are specified,
+      ## otherwise leave them all in
+      if (!is.null(locations)) {
+        quantiles_w_truth <- quantiles_w_truth |>
+          dplyr::filter(
+            .data$location %in%
+              loc_abbr_to_flusight_code(!!locations)
+          )
       }
-    } # end loop forecast dates
-  } # end loop model name
-  log_scale_scores <- log_scale_scores |>
-    dplyr::filter(scale == "log")
+
+      # Pass to scoringutils, no summaries just daily, quantiled scores
+      scores <- quantiles_w_truth |>
+        scoringutils::as_forecast_quantile(
+          predicted = "prediction",
+          observed = "true_value",
+          quantile_level = "quantile"
+        ) |>
+        scoringutils::transform_forecasts(
+          fun = scoringutils::log_shift,
+          offset = 1
+        ) |>
+        scoringutils::score() |>
+        dplyr::mutate(horizon_days = as.integer(
+          lubridate::ymd(.data$target_end_date) -
+            lubridate::ymd(.data$forecast_date)
+        )) |>
+        dplyr::mutate(
+          horizon_weeks = .data$horizon_days %/% 7 + 1,
+          horizon = glue::glue("{horizon_weeks} week ahead")
+        ) |>
+        dplyr::select(-"horizon_weeks", -"horizon_days")
+    }
+
+    return(scores)
+  }
+
+  all_scores <- purrr::pmap_df(to_score, score_model_date)
 
   scores_list <- list(
-    natural_scale_scores = natural_scale_scores,
-    log_scale_scores = log_scale_scores,
-    missing_forecasts = missing_forecasts
+    natural_scale_scores = all_scores |>
+      dplyr::filter(.data$scale == "natural"),
+    log_scale_scores = all_scores |>
+      dplyr::filter(.data$scale == "log"),
+    missing_forecasts = all_scores |>
+      dplyr::filter(.data$scale == "missing") |>
+      dplyr::select("model", "forecast_date")
   )
   return(scores_list)
 }
