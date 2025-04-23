@@ -4,16 +4,77 @@
 \alias{eval_fit}
 \title{Fit model for evaluation}
 \usage{
-eval_fit(config_index, eval_config_path, params_path, model)
+eval_fit(
+  forecast_date,
+  location,
+  model,
+  scenario,
+  hosp_data_dir,
+  ww_data_dir,
+  ww_data_mapping,
+  scenario_dir,
+  calibration_time,
+  forecast_horizon,
+  params_path,
+  raw_output_dir,
+  seed,
+  iter_sampling,
+  n_chains,
+  adapt_delta,
+  max_treedepth,
+  table_of_exclusions = NULL
+)
 }
 \arguments{
-\item{config_index}{Index of eval_config to evaluate}
+\item{forecast_date}{As-of date for the forecast.}
 
-\item{eval_config_path}{Path to eval_config (created with \code{write_eval_config})}
-
-\item{params_path}{Path to params.toml}
+\item{location}{Location to forecast.}
 
 \item{model}{Model to fit. One of \code{"ww"} and \code{"hosp"}}
+
+\item{scenario}{Wastewater data availability scenario to analyze.}
+
+\item{hosp_data_dir}{Path to a directory containing vintaged hospital
+admissions data in date-stamped .csv files.}
+
+\item{ww_data_dir}{Path to a directory containing vintaged wastewater
+data in date-stamped .csv files.}
+
+\item{ww_data_mapping}{String associating forecast dates to wastewater
+vintage dates. Passed to \code{\link[=date_of_ww_data]{date_of_ww_data()}}.}
+
+\item{scenario_dir}{Path to a directory containing .csv files that
+define wastewater data availability scenarios.}
+
+\item{calibration_time}{Days of prior admissions and wastewater
+data to which to fit the model relative to the \code{forecast_date}.}
+
+\item{forecast_horizon}{Days forward to forecast relative to the
+\code{forecast_date}.}
+
+\item{params_path}{Path to a params.toml file that gives values for
+prior hyperparameters.}
+
+\item{raw_output_dir}{Path to a directory in which to save
+raw output as serialized \code{.rds} files.}
+
+\item{seed}{Seed for Stan's pseudorandom number generator.}
+
+\item{iter_sampling}{Number of samples to draw per MCMC chain.}
+
+\item{n_chains}{Number of MCMC chains to run.}
+
+\item{adapt_delta}{Target acceptance probability for the No-U-Turn
+sampler adaptation phase.}
+
+\item{max_treedepth}{Maximum tree depth for the No-U-Turn sampler.}
+
+\item{table_of_exclusions}{Table of outlying hospital admissions
+datapoints to exclude. If \code{NULL}, exclude nothing. Default \code{NULL}.}
+}
+\value{
+NULL, saving the pre-processed data and model fitting
+output to disk as side effects.
 }
 \description{
 Fit model for evaluation

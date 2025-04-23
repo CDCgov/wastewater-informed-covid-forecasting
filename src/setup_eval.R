@@ -18,7 +18,7 @@ write_eval_config(
     as.character(
       seq(
         from = lubridate::ymd("2023-10-16"),
-        to = lubridate::ymd("2024-03-11"),
+        to = lubridate::ymd("2024-04-29"),
         by = "week"
       )
     ),
@@ -28,10 +28,10 @@ write_eval_config(
   config_dir = file.path("input", "config", "eval"),
   benchmark_dir = file.path("output", "benchmarking"),
   scenario_dir = file.path("input", "config", "eval", "scenarios"),
-  eval_date = "2024-04-29",
+  eval_date = "2025-03-10",
   overwrite_summary_table = FALSE, # Set as TRUE if trying to get a baseline
   # score for all locations one forecast date
-  overwrite_benchmark = TRUE, # Set as TRUE if want to save outputs of
+  overwrite_benchmark = FALSE, # Set as TRUE if want to save outputs of
 
   # benchmarking in directory
   wwinference_version = "v0.1.1"

@@ -18,6 +18,7 @@ def main(
     exclude_ww_model: bool,
     container_image_name: str = "renewalww",
     container_image_version: str = "latest",
+    locations_only: list[str] = None,
 ) -> None:
     """
     Create an Azure batch evaluation job according to the given
@@ -57,6 +58,13 @@ def main(
     container_image_version
         Version of the container to use. Default 'latest'.
 
+    locations_only
+        Locations to include in the job, as a list of strings
+        containing USPS two-letter codes to include.
+        Useful for troubleshooting or for rerunning.
+        If not provided, use all locations specified
+        in the config.
+
     Returns
     -------
     None
@@ -87,9 +95,7 @@ def main(
             print(f"Job {job_id} already exists.")
 
     container_image = (
-        f"{creds.azure_container_registry_account}."
-        f"{creds.azure_container_registry_domain}/"
-        f"{container_image_name}:{container_image_version}"
+        f"ghcr.io/cdcgov/{container_image_name}:{container_image_version}"
     )
     container_settings = get_container_settings(
         container_image,
@@ -115,10 +121,8 @@ def main(
     ]:
         eval_spec[key] = ensure_listlike(eval_spec[key])
     log_dir = Path("output", "logs")
-    config_name = eval_spec["name_of_config"]
 
     def add_task(
-        R_config_index: int,
         location: str,
         forecast_date: str,
         scenario: str,
@@ -141,13 +145,28 @@ def main(
             "/bin/sh -c '"
             f"mkdir -p {log_dir}; "
             f"Rscript run_eval.R "
-            f"{R_config_index} "
-            f"input/config/eval/{config_name}.yaml "
-            "input/params.toml "
-            f"{model} "
-            f"{task_type}"
-            f" > {log_dir}/{task_id}-stdout.txt "
-            f" 2> {log_dir}/{task_id}-stderr.txt"
+            f"--forecast-date {forecast_date} "
+            f"--eval-date {eval_spec['eval_date']} "
+            f"--location {location} "
+            f"--model {model} "
+            f"--scenario {scenario} "
+            f"--hosp-data-dir {eval_spec['hosp_data_dir']} "
+            f"--ww-data-dir {eval_spec['ww_data_dir']} "
+            f'--ww-data-mapping "{eval_spec["ww_data_mapping"]}" '
+            f"--scenario-dir {eval_spec['scenario_dir']} "
+            f"--calibration-time {eval_spec['calibration_time']} "
+            f"--forecast-horizon {eval_spec['forecast_time']} "
+            f"--params-path input/params.toml "
+            f"--output-dir {eval_spec['output_dir']} "
+            f"--raw-output-dir {eval_spec['raw_output_dir']} "
+            f"--seed {eval_spec['seed']} "
+            f"--iter-sampling {eval_spec['iter_sampling']} "
+            f"--n-chains {eval_spec['n_chains']} "
+            f"--adapt-delta {eval_spec['adapt_delta']} "
+            f"--max-treedepth {eval_spec['max_treedepth']} "
+            f"--task-type {task_type} "
+            f"> {log_dir}/{task_id}-stdout.txt "
+            f"2> {log_dir}/{task_id}-stderr.txt"
             "'"
         )
         task = get_task_config(
@@ -166,22 +185,20 @@ def main(
         else ensure_listlike(job_type)
     )
     for model, task_type in itertools.product(to_run, task_types):
-        for i_row, (loc, f_date, scen) in enumerate(
-            zip(
-                eval_spec[f"location_{model}"],
-                eval_spec[f"forecast_date_{model}"],
-                eval_spec["scenario"],
-            )
+        for loc, f_date, scen in zip(
+            eval_spec[f"location_{model}"],
+            eval_spec[f"forecast_date_{model}"],
+            eval_spec["scenario"],
         ):
-            add_task(
-                R_config_index=i_row + 1,  # R is 1-indexed, Python 0-indexed
-                location=loc,
-                forecast_date=f_date,
-                scenario=scen if model == "ww" else "no_wastewater",
-                model=model,
-                task_type=task_type,
-                uses_task_dependencies=uses_deps,
-            )
+            if locations_only is None or loc in locations_only:
+                add_task(
+                    location=loc,
+                    forecast_date=f_date,
+                    scenario=scen if model == "ww" else "no_wastewater",
+                    model=model,
+                    task_type=task_type,
+                    uses_task_dependencies=uses_deps,
+                )
             pass
         pass
     return None
@@ -218,6 +235,18 @@ if __name__ == "__main__":
     )
 
     parser.add_argument(
+        "--locations-only",
+        type=str,
+        help=(
+            "Two-letter USPS location abbreviations to "
+            "include in the job, as a whitespace-separated "
+            "string. Useful for troubleshooting or for rerunning. "
+            "If not provided, use all locations specified "
+            "in the config."
+        ),
+    )
+
+    parser.add_argument(
         "--container-image-name",
         type=str,
         help="Name of the container to use for the job.",
@@ -236,6 +265,7 @@ if __name__ == "__main__":
         action=argparse.BooleanOptionalAction,
         help="Exclude the wastewater model from fitting?",
     )
-    parsed = vars(parser.parse_args())
-
-    main(**parsed)
+    parsed = parser.parse_args()
+    if parsed.locations_only is not None:
+        parsed.locations_only = parsed.locations_only.split()
+    main(**vars(parsed))

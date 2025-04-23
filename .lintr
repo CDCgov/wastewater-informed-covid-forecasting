@@ -1,7 +1,7 @@
 linters: linters_with_defaults(
     object_usage_linter = NULL,
     line_length_linter(length = 100),
-    cyclocomp_linter = NULL
+    return_linter = NULL
   )
 exclusions: list(
     ".Rprofile"

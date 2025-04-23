@@ -142,35 +142,31 @@ A job is a set of tasks. Each task (by default) gets handed to 1 "node" (virtual
 > [!NOTE]
 > Containers have a default working directory. Azure Batch tasks _don't_ default to starting in the container's own default working directory. In this tutorial, we _would_ like to start our tasks in the container's working directory. For that reason, `setup_job.py` contains [this line](https://github.com/cdcent/cfa-forecast-renewal-ww/blob/91080eaf42ad63f3b1de9e89c6221f58fa55a941/batch/setup_job.py#L70), which explicitly instructs Azure to use the container's default working directory.
 
-In our example, `setup_job.py` creates a bunch of tasks. All of them consist of running the following command for different values of `{config_index}` (an integer), `{model}` (one of `ww` and `hosp`),  `{task_type}` (one of `fit` and `postprocess`).
-```
-Rscript run_eval.R {config_index} input/config/eval/example_eval_config.yaml input/params.toml {model} {task_type}
-```
-
-Invoking the command above performs either model fitting or model postprocessing for one of the forecasting problems specified in `example_eval_config.yaml`. A "forecasting problem" here means a forecast for a given location and date. Each forecasting problem has a corresponding `config_index` in the evaluation configuration `.yaml` file. For example, this command runs model fitting with the wastewater model for the 3rd entry in `example_eval_config.yaml`:
-```
-Rscript run_eval.R 3 input/config/eval/example_eval_config.yaml input/params.toml ww fit
-```
-This command runs model post-processing with the hospital admissions-only model for the 6th entry in the config:
-```
-Rscript pipeline/run_eval.R 6 input/config/eval/example_eval_config.yaml input/params.toml hosp postprocess
+In our example, `setup_job.py` creates a bunch of tasks. All of them consist of running the `run_eval.R` script for a given model fitting or postprocessing problem. To see a detailed help message that lists all the arguments, run
+```bash
+Rscript run_eval.R --help
 ```
 
-The file [`input/params.toml`][../input/params.toml] specifies hyperparameters for priors and other model configuration that is shared across individual forecasting problems. It is tracked in this repo, so you should already have a copy.
+Here, we give a few examples. This command runs model fitting with the wastewater model for Ohio on forecast data 2023-10-23:
+```
+Rscript run_eval.R --forecast-date 2023-10-23 --eval-date 2025-03-10 --location OH --model ww --scenario status_quo --hosp-data-dir input/hosp_data/vintage_datasets --ww-data-dir input/ww_data/monday_datasets --ww-data-mapping "Monday: Monday, Wednesday: Monday" --scenario-dir input/config/eval/scenarios --calibration-time 90.0 --forecast-horizon 28.0 --params-path input/params.toml --output-dir output/eval_latest --raw-output-dir output/eval_latest/raw_output --seed 123.0 --iter-sampling 500.0 --n-chains 4.0 --adapt-delta 0.95 --max-treedepth 12.0 --task-type fit
+```
+This command runs model post-processing with the hospital admissions-only model for Arizona with forecast date 2023-10-16:
+```
+Rscript run_eval.R --forecast-date 2023-10-16 --eval-date 2025-03-10 --location AZ --model hosp --scenario no_wastewater --hosp-data-dir input/hosp_data/vintage_datasets --ww-data-dir input/ww_data/monday_datasets --ww-data-mapping "Monday: Monday, Wednesday: Monday" --scenario-dir input/config/eval/scenarios --calibration-time 90.0 --forecast-horizon 28.0 --params-path input/params.toml --output-dir output/eval_latest --raw-output-dir output/eval_latest/raw_output --task-type postprocess
+```
 
-To save you writing this all out by hand, `setup_job.py` loops over all the values of `{config_index}` in `input/config/eval/example_eval_config.yaml`, creating tasks for each one.
+The file [`input/params.toml`](../input/params.toml) specifies hyperparameters for priors and other model configuration that is shared across individual forecasting problems. It is tracked in this repo, so you should already have a copy.
 
-By default, it creates a set of model fitting tasks and their associated postprocessing tasks for all entries in the specified config file.
+To save you writing this all out by hand for each forecasting problem, `setup_job.py` loops over all the forecast problems in `input/config/eval/example_eval_config.yaml`, creating tasks for each one.
 
+By default, it creates a set of model fitting tasks and their associated postprocessing tasks for all entries in the specified config file. It can be configured to set up only fitting jobs, only postprocessing jobs, or only jobs for certian locations. Running `python3 batch/setup_job.py --help` displays a full help message.
 
 #### Model fitting and postprocessing
 Let's run `setup_job.py` to create a model fitting and postprocessing job. We'll name our job `my-demo-job` and have it run on the `wastewater-demo-pool` we just created. We'll use our local copy of the example configuration file (`example_eval_config.yaml`) and the corresponding copy of it Blob storage container `wastewater-input`.
 
-> [!CAUTION]
-> Make sure your local and remote config files are identical. Otherwise, the pipeline may error or behave unexpectedly. We hope to deduplicate the configs in a future refactor.
-
 ```bash
-python3 batch/setup_job.py input/config/eval/example_eval_config.yaml both my-demo-job wastewater-demo-pool
+python3 batch/setup_job.py input/config/eval/example_eval_config.yaml my-demo-job wastewater-demo-pool
 ```
 
 This should create a job named `my-demo-job` consisting of tasks that are named by forecast dates, locations, scenarios and task type. (either `fit` or `postprocess`). Confirm that this has happened by looking for the job and its tasks in the Azure Batch Explorer or in the Batch section of the Azure web portal.
@@ -189,8 +185,10 @@ This section explains how to customize and configure the pipeline.
 ### Command line arguments to `setup_job.py`
 `setup_job.py` takes a number of command line arguments, as follows:
 
-```
-usage: setup_job.py [-h] [--job-type JOB_TYPE] [--container-image-name CONTAINER_IMAGE_NAME]
+```bash
+usage: setup_job.py [-h] [--job-type JOB_TYPE]
+                    [--locations-only LOCATIONS_ONLY]
+                    [--container-image-name CONTAINER_IMAGE_NAME]
                     [--container-image-version CONTAINER_IMAGE_VERSION]
                     [--exclude-ww-model | --no-exclude-ww-model]
                     eval_config_file job_id pool_id
@@ -204,16 +202,25 @@ positional arguments:
 
 options:
   -h, --help            show this help message and exit
-  --job-type JOB_TYPE   Type(s) of job to run (`fit`, `postprocess`, or `both`) (default: both)
+  --job-type JOB_TYPE   Type(s) of job to run (`fit`, `postprocess`, or
+                        `both`) (default: both)
+  --locations-only LOCATIONS_ONLY
+                        Two-letter USPS location abbreviations to include in
+                        the job, as a whitespace-separated string. Useful for
+                        troubleshooting or for rerunning. If not provided, use
+                        all locations specified in the config. (default: None)
   --container-image-name CONTAINER_IMAGE_NAME
-                        Name of the container to use for the job. (default: renewalww)
+                        Name of the container to use for the job. (default:
+                        renewalww)
   --container-image-version CONTAINER_IMAGE_VERSION
-                        Version of the container to use for the job. (default: latest)
+                        Version of the container to use for the job. (default:
+                        latest)
   --exclude-ww-model, --no-exclude-ww-model
-                        Exclude the wastewater model from fitting? (default: None)
+                        Exclude the wastewater model from fitting? (default:
+                        None)
 ```
 
-As the above suggests, you can always view this help message by running
+As the message suggests, you can view this help message by running
 
 ```bash
 python setup_job.py -h
@@ -226,13 +233,13 @@ The default values of `--container-image-name` and `--container-image-version` a
 The default `--job-type`, `both`, means running fitting followed by postprocessing tasks. We could override it to set up a fitting-only job:
 
 ```bash
-python3 batch/setup_job.py input/config/eval/example_eval_config.yaml both my-demo-fit-job wastewater-demo-pool --job-type fit
+python3 batch/setup_job.py input/config/eval/example_eval_config.yaml my-demo-fit-job wastewater-demo-pool --job-type fit
 ```
 
 or a manual postprocessing-only job:
 
 ```bash
-python3 batch/setup_job.py input/config/eval/example_eval_config.yaml both my-demo-postprocess-job wastewater-demo-pool --job-type postprocess
+python3 batch/setup_job.py input/config/eval/example_eval_config.yaml my-demo-postprocess-job wastewater-demo-pool --job-type postprocess
 ```
 
 Note that if you run a manual `fit`-only job followed by a manual `postprocess`-only job, you will need to confirm manually that fitting tasks have finished before kicking off their associated postprocessing tasks. In general, only kick off a manual postprocessing job once the entire associated manual fitting job has completed.
