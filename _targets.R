@@ -113,7 +113,7 @@ combined_targets <- list(
       locations = eval_config$location_ww,
       eval_output_subdir = eval_config$output_dir,
       model_type = "ww"
-    ) |> scoringutils:::as_scores(metrics = eval_config$metrics_samples)
+    ) |> scoringutils:::as_scores(metrics = wweval::metrics_samples)
   ),
   tar_target(
     name = all_hosp_scores,
@@ -124,7 +124,7 @@ combined_targets <- list(
       locations = eval_config$location_hosp,
       eval_output_subdir = eval_config$output_dir,
       model_type = "hosp"
-    ) |> scoringutils:::as_scores(metrics = eval_config$metrics_samples)
+    ) |> scoringutils:::as_scores(metrics = wweval::metrics_samples)
   ),
   ## Flags------------------------------------------------------------------
   tar_target(
@@ -200,7 +200,7 @@ combined_targets <- list(
       locations = eval_config$location_ww,
       eval_output_subdir = eval_config$output_dir,
       model_type = "ww"
-    ) |> scoringutils:::as_scores(metrics = eval_config$metrics_quantiles)
+    ) |> scoringutils:::as_scores(metrics = wweval::metrics_quantiles)
   ),
   tar_target(
     name = all_hosp_scores_quantiles,
@@ -211,7 +211,7 @@ combined_targets <- list(
       locations = eval_config$location_hosp,
       eval_output_subdir = eval_config$output_dir,
       model_type = "hosp"
-    ) |> scoringutils:::as_scores(metrics = eval_config$metrics_quantiles)
+    ) |> scoringutils:::as_scores(metrics = wweval::metrics_quantiles)
   ),
   ## Quantiles ----------------------------------------------------------------
   tar_target(

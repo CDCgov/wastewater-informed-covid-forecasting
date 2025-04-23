@@ -643,7 +643,10 @@ postprocess_successful_fit <- function(wwinference_fit_obj,
   ggsave_plot(plot_state_rt)
 
   message("Scoring admissions forecasts...")
-  hosp_scores <- get_full_scores(hosp_draws, scenario)
+  hosp_scores <- score_samples(
+    hosp_draws,
+    scenario
+  )
   save_object(hosp_scores)
   save_table(
     data_to_save = hosp_scores,
@@ -654,7 +657,11 @@ postprocess_successful_fit <- function(wwinference_fit_obj,
     model_type = model,
     location = location
   )
-  hosp_scores_quantiles <- get_scores_from_quantiles(hosp_quantiles, scenario)
+  hosp_scores_quantiles <- score_quantiles(
+    hosp_quantiles,
+    scenario,
+    metrics = metrics_quantiles
+  )
   save_object(hosp_scores_quantiles)
   save_table(
     data_to_save = hosp_scores_quantiles,

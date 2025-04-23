@@ -1,4 +1,16 @@
-#' Get the scores for ever day for a particular location and forecast date
+#' Metrics to use for quantile scores
+#' @export
+quantile_metrics <- scoringutils::get_metrics(
+  scoringutils::example_quantile
+)
+
+#' Metrics to use for quantile scores
+#' @export
+sample_metrics <- scoringutils::get_metrics(
+  scoringutils::example_sample_discrete
+)
+
+#' Get the scores for every day for a particular location and forecast date
 #'
 #' @description
 #' Uses scoringutils to transform data and predictions using a log transform
@@ -10,16 +22,15 @@
 #' @param scenario a string indicating the wastewater data scenario we're
 #' running
 #' @param metrics Vector of scoring metrics to output, passed as the
-#' `metrics` argument to [scoringutils::score()]. Default is NULL,
-#' which returns all options for samples including:
-#' `c("crps", "dss", "bias", "mad", "ae_median", "se_mean")`.
+#' `metrics` argument to [scoringutils::score()]. Default
+#' [sample_metrics]
 #'
 #' @return a dataframe containing a score for each day in the nowcast
 #' and forecast period
 #' @export
-get_full_scores <- function(draws,
-                            scenario,
-                            metrics = NULL) {
+score_samples <- function(draws,
+                          scenario,
+                          metrics = sample_metrics) {
   if (is.null(draws)) {
     scores <- NULL
   } else {
@@ -81,17 +92,15 @@ get_full_scores <- function(draws,
 #' @param scenario a string indicating the wastewater data scenario we're
 #' running
 #' @param metrics Vector of scoring metrics to output, passed as the
-#' `metrics` argument to [scoringutils::score()].
-#' Default is NULL which will
-#' include all scoring metrics for quantiles by default, including
-#' `c("interval_score", "coverage", "dispersion", "bias")`.
+#' `metrics` argument to [scoringutils::score()]. Default
+#' [quantile_metrics]
 #'
 #' @return a dataframe containing a score for each day in the nowcast
 #' and forecast period
 #' @export
-get_scores_from_quantiles <- function(quantiles,
-                                      scenario,
-                                      metrics = NULL) {
+score_quantiles <- function(quantiles,
+                            scenario,
+                            metrics = quantile_metrics) {
   if (is.null(quantiles)) {
     scores <- NULL
   } else {
