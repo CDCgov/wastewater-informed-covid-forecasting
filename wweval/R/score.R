@@ -416,7 +416,7 @@ score_hub_submissions <- function(model_name,
         )
     }
 
-    if (nrow(quantiles_with_truth) > 0) {
+    if (nrow(quantiles_w_truth) > 0) {
       scores <- quantiles_w_truth |>
         scoringutils::as_forecast_quantile(
           predicted = "prediction",
