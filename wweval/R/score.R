@@ -393,33 +393,30 @@ score_hub_submissions <- function(model_name,
     }
 
     if (is.null(quantiles)) {
-      scores <- tibble(
-        model = model_name,
-        forecast_date = lubridate::ymd(forecast_date),
-        scale = "missing"
-      )
+      quantiles_w_truth <- tibble::tibble()
     } else {
       quantiles_w_truth <- quantiles |>
         dplyr::rename(prediction = value) |>
         dplyr::mutate(model = !!model_name) |>
-        dplyr::left_join(truth_data,
+        dplyr::inner_join(truth_data,
           by = c(
             "target_end_date",
             "location"
           )
         )
+    }
 
-      ## Filter locations if they are specified,
-      ## otherwise leave them all in
-      if (!is.null(locations)) {
-        quantiles_w_truth <- quantiles_w_truth |>
-          dplyr::filter(
-            .data$location %in%
-              loc_abbr_to_flusight_code(!!locations)
-          )
-      }
+    ## Filter locations if they are specified,
+    ## otherwise leave them all in
+    if (!is.null(locations)) {
+      quantiles_w_truth <- quantiles_w_truth |>
+        dplyr::filter(
+          .data$location %in%
+            loc_abbr_to_flusight_code(!!locations)
+        )
+    }
 
-      # Pass to scoringutils, no summaries just daily, quantiled scores
+    if (nrow(quantiles_with_truth) > 0) {
       scores <- quantiles_w_truth |>
         scoringutils::as_forecast_quantile(
           predicted = "prediction",
@@ -440,6 +437,12 @@ score_hub_submissions <- function(model_name,
           horizon = glue::glue("{horizon_weeks} week ahead")
         ) |>
         dplyr::select(-"horizon_weeks", -"horizon_days")
+    } else {
+      scores <- tibble(
+        model = model_name,
+        forecast_date = lubridate::ymd(forecast_date),
+        scale = "missing"
+      )
     }
 
     return(scores)
