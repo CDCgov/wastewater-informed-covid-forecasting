@@ -479,8 +479,8 @@ score_hub_submissions <- function(model_name,
 #' @param eval_data a tibble of hospital admissions evaluation
 #' data to be used
 #' for scoring.
-#' @param hosp_only boolean indicating if we should only pull the hospital
-#' admissions model
+#' @param model_types Character vector of model types to score.
+#' One or both of `"ww"` and `"hosp"`. Default both: `c("ww", "hosp")`
 #'
 #' @return A large tibble containing crps scores for every location and
 #' forecast date, conditioned on the presence of wastewater and model
@@ -490,169 +490,152 @@ score_real_time_outputs <- function(score_type,
                                     real_time_output_dir,
                                     table_of_run_ids,
                                     locations,
-                                    dates,
                                     eval_data,
-                                    hosp_only = FALSE) {
-  if (isTRUE(hosp_only)) {
-    model_types <- c("hosp")
-  } else {
-    model_types <- c("ww", "hosp")
-  }
-  all_scores <- c()
+                                    model_types = c("ww", "hosp")) {
+  checkmate::assert_scalar(score_type)
+  checkmate::asert_names(score_type, subset.of = c("wis", "crps"))
+  model_types <- unique(model_types)
+  checkmate::assert_names(model_types, subset.of = c("ww", "hosp"))
 
-  data_type <- ifelse(score_type == "crps", "draws", "quantiles")
-  col_name <- ifelse(score_type == "crps", "draw", "quantile")
-  for (i in seq_along(dates)) {
-    date_to_pull <- dates[i]
+  model_long_names <- c(
+    "ww" = "site-level infection dynamics",
+    "hosp" = "hospital admissions only"
+  )
+  data_type <- c(
+    "crps" = "draws",
+    "wis" = "quantiles"
+  )[[score_type]]
+
+  col_name <- c(
+    "crps" = "draw",
+    "wis" = "quantile"
+  )[[score_type]]
+
+  to_score <- tidyr::crossing(
+    forecast_date = table_of_run_ids$forecast_date,
+    location = locations,
+    model_type = model_types
+  )
+
+  get_forecasts <- function(forecast_date,
+                            location,
+                            model_type) {
+    these_preds <- NULL
     metadata <- table_of_run_ids |>
       dplyr::filter(
-        .data$forecast_date == !!date_to_pull
+        .data$forecast_date == !!forecast_date
       )
     run_id <- metadata$ids
     date_run <- metadata$dates_run
-    for (j in seq_along(locations)) {
-      for (m in seq_along(model_types)) {
-        model_long <- ifelse(model_types[m] == "ww",
-          "site-level infection dynamics",
-          "hospital admissions only"
+
+    if (forecast_date %in% c("2024-02-05", "2024-02-12")) {
+      # older file structure
+      fp <- file.path(
+        real_time_output_dir,
+        glue::glue("output_{date_to_pull}"),
+        "raw",
+        location,
+        data_type,
+        forecast_date,
+        glue::glue("run-on-{date_run}-{run_id}-{data_type}.parquet")
+      )
+      ## older structure did not have flags
+      any_flags <- FALSE
+    } else {
+      # main newer file structure
+      dir <- file.path(
+        real_time_output_dir,
+        forecast_date,
+        glue::glue("run-on-{date_run}-{run_id}"),
+        "raw",
+        location,
+        model_long
+      )
+
+      if (file.exists(file.path(dir, glue::glue("{data_type}.parquet")))) {
+        this_flags <- readr::read_csv(file.path(dir, "diagnostics.csv"))
+        any_flags <- any(this_flags$value[20:23] == TRUE)
+      }
+    } # end ifelse for file structures
+
+    if (file.exists(fp)) {
+      these_preds <- arrow::read_parquet(fp) |>
+        dplyr::filter(
+          .data$name == "pred_hosp",
+          .data$period != "calibration"
+        ) |>
+        dplyr::select(
+          "forecast_date",
+          "date",
+          "location",
+          "value",
+          !!col_name
+        ) |>
+        dplyr::mutate(
+          model = !!model_type,
+          failed_convergence = !!any_flags
         )
-        if (date_to_pull %in% c("2024-02-05", "2024-02-12")) {
-          # Assume the old  file structure
-          fp <- file.path(
-            real_time_output_dir,
-            glue::glue("output_{date_to_pull}"),
-            "raw",
-            locations[j],
-            model_long,
-            data_type,
-            date_to_pull,
-            glue::glue("run-on-{date_run}-{run_id}-{data_type}.parquet")
-          )
-          if (file.exists(fp)) {
-            # The diagnostics are not flags here, just values.
-            any_flags <- FALSE
+    }
+    return(these_preds)
+  }
 
-            these_preds <- arrow::read_parquet(fp) |>
-              dplyr::filter(
-                name == "pred_hosp",
-                period != "calibration"
-              ) |>
-              dplyr::select(
-                forecast_date,
-                date,
-                location,
-                value,
-                !!col_name
-              ) |>
-              dplyr::mutate(
-                model = model_types[m],
-                failed_convergence = any_flags
-              )
-          } else {
-            these_preds <- c()
-          }
-        } else {
-          # Assume the main newer file structure
-          dir <- file.path(
-            real_time_output_dir,
-            date_to_pull,
-            glue::glue("run-on-{date_run}-{run_id}"),
-            "raw",
-            locations[j],
-            model_long
-          )
+  score_problem <- function(forecast_date,
+                            location,
+                            model_type) {
+    forecasts <- get_forecasts(
+      forecast_date,
+      location,
+      model_type
+    )
 
-          if (file.exists(file.path(dir, glue::glue("{data_type}.parquet")))) {
-            this_flags <- readr::read_csv(file.path(dir, "diagnostics.csv"))
-            any_flags <- any(this_flags$value[20:23] == TRUE)
-
-            these_preds <- arrow::read_parquet(
-              file.path(dir, glue::glue("{data_type}.parquet"))
-            ) |>
-              dplyr::filter(
-                name == "pred_hosp",
-                period != "calibration"
-              ) |>
-              dplyr::select(
-                forecast_date,
-                date,
-                location,
-                value,
-                !!col_name
-              ) |>
-              dplyr::mutate(
-                model = model_types[m],
-                failed_convergence = any_flags
-              )
-          } else {
-            these_preds <- c()
-          }
-        } # end ifelse for file structures
-
-        ## Score the draws
-        scores <- NULL
-        if (!is.null(these_preds)) {
-          preds_w_eval <- these_preds |>
-            dplyr::inner_join(
-              eval_data |>
-                dplyr::select(-pop) |>
-                dplyr::rename(true_value = daily_hosp_admits),
-              by = c("location", "date")
-            )
-
-          if (score_type == "crps") {
-            forecasted_preds <- preds_w_eval |>
-              dplyr::select(
-                "location",
-                "forecast_date",
-                "date",
-                "value",
-                "true_value",
-                "draw",
-                "model",
-                "failed_convergence"
-              ) |>
-              scoringutils::as_forecast_sample(
-                sample_id = "draw",
-                predicted = "value",
-                observed = "true_value"
-              )
-          } else if (score_type == "wis") {
-            forecasted_preds <- preds_w_eval |>
-              dplyr::select(
-                "location",
-                "forecast_date",
-                "date",
-                "value",
-                "true_value",
-                "quantile",
-                "model",
-                "failed_convergence"
-              ) |>
-              dplyr::filter(.data$date > .data$forecast_date) |>
-              scoringutils::as_forecast_quantile(
-                predicted = "value",
-                observed = "true_value",
-                quantile_level = "quantile"
-              )
-          }
-          if (nrow(forecasted_preds) > 0) {
-            scores <- forecasted_preds |>
-              scoringutils::transform_forecasts(
-                fun = scoringutils::log_shift,
-                offset = 1,
-                append = FALSE
-              ) |>
-              scoringutils::score()
-          }
-        }
-
-        all_scores <- dplyr::bind_rows(
-          all_scores,
-          scores
+    ## Score the draws
+    scores <- NULL
+    if (!is.null(forecasts)) {
+      preds_w_eval <- forecasts |>
+        dplyr::inner_join(
+          eval_data |>
+            dplyr::select(-"pop") |>
+            dplyr::rename(true_value = "daily_hosp_admits"),
+          by = c("location", "date")
+        ) |>
+        dplyr::select(
+          "location",
+          "forecast_date",
+          "date",
+          "value",
+          "true_value",
+          "draw",
+          "model",
+          "failed_convergence"
         )
-      } # end loop around model types
-    } # end loop around locs
+      if (score_type == "crps") {
+        forecasted_preds <- preds_w_eval |>
+          scoringutils::as_forecast_sample(
+            sample_id = "draw",
+            predicted = "value",
+            observed = "true_value"
+          )
+      } else if (score_type == "wis") {
+        forecasted_preds <- preds_w_eval |>
+          dplyr::filter(.data$date > .data$forecast_date) |>
+          scoringutils::as_forecast_quantile(
+            predicted = "value",
+            observed = "true_value",
+            quantile_level = "quantile"
+          )
+      }
+      if (nrow(forecasted_preds) > 0) {
+        scores <- forecasted_preds |>
+          scoringutils::transform_forecasts(
+            fun = scoringutils::log_shift,
+            offset = 1,
+            append = FALSE
+          ) |>
+          scoringutils::score()
+      }
+
+      return(scores)
+    }
   } # end loop around forecast dates
 
 
