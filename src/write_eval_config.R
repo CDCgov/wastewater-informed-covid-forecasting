@@ -140,12 +140,14 @@ write_eval_config <- function(locations, forecast_dates,
       "bb0b4",
       "a6e67",
       "f86b2",
-      "8150f"
+      "8150f",
+      "235d1",
+      "6aa44"
     ),
     forecast_date = seq(
       from =
         lubridate::ymd("2024-02-05"),
-      to = lubridate::ymd("2024-03-11"),
+      to = lubridate::ymd("2024-03-25"),
       by = "week"
     ) |> as.character(),
     dates_run = c(
@@ -154,7 +156,9 @@ write_eval_config <- function(locations, forecast_dates,
       "2024-02-18",
       "2024-02-25",
       "2024-03-02",
-      "2024-03-09"
+      "2024-03-09",
+      "2024-03-16",
+      "2024-03-23"
     )
   )
 

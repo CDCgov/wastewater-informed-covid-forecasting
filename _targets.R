@@ -1174,7 +1174,7 @@ real_time_rel_targets <- list(
       locations = unique(eval_config$location_ww),
       dates = as.character(seq(
         from = lubridate::ymd("2024-02-05"),
-        to = lubridate::ymd("2024-03-11"),
+        to = lubridate::ymd("2024-03-25"),
         by = "week"
       )),
       eval_data = eval_hosp_data,

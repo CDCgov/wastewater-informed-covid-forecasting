@@ -589,17 +589,17 @@ score_real_time_outputs <- function(score_type,
           }
         } # end ifelse for file structures
 
-        # Score the draws
+        ## Score the draws
+        scores <- NULL
         if (!is.null(these_preds)) {
           preds_w_eval <- these_preds |>
-            dplyr::left_join(
+            dplyr::inner_join(
               eval_data |>
                 dplyr::select(-pop) |>
                 dplyr::rename(true_value = daily_hosp_admits),
               by = c("location", "date")
             )
 
-          # Pass to scoring utils
           if (score_type == "crps") {
             forecasted_preds <- preds_w_eval |>
               dplyr::select(
@@ -623,8 +623,8 @@ score_real_time_outputs <- function(score_type,
                 "location",
                 "forecast_date",
                 "date",
+                "value",
                 "true_value",
-                "prediction",
                 "quantile",
                 "model",
                 "failed_convergence"
@@ -636,17 +636,16 @@ score_real_time_outputs <- function(score_type,
                 quantile_level = "quantile"
               )
           }
-          scores <- forecasted_preds |>
-            scoringutils::transform_forecasts(
-              fun = scoringutils::log_shift,
-              offset = 1,
-              append = FALSE
-            ) |>
-            scoringutils::score()
-        } else {
-          scores <- c()
+          if (nrow(forecasted_preds) > 0) {
+            scores <- forecasted_preds |>
+              scoringutils::transform_forecasts(
+                fun = scoringutils::log_shift,
+                offset = 1,
+                append = FALSE
+              ) |>
+              scoringutils::score()
+          }
         }
-
 
         all_scores <- dplyr::bind_rows(
           all_scores,
