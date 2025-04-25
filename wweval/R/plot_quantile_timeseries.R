@@ -162,7 +162,6 @@ plot_ww_conc_by_site <- function(ww_quantiles,
   )
 
   quantiles_wide <- ww |>
-    dplyr::mutate(log_conc = log(value)) |>
     dplyr::filter(quantile %in% c(0.025, 0.25, 0.5, 0.75, 0.975)) |>
     tidyr::pivot_wider(
       id_cols = c(
@@ -178,7 +177,7 @@ plot_ww_conc_by_site <- function(ww_quantiles,
         "flag_as_ww_outlier"
       ),
       names_from = quantile,
-      values_from = log_conc
+      values_from = value
     ) |>
     dplyr::mutate(
       model = "ww",
