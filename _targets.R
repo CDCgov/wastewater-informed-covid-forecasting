@@ -85,7 +85,7 @@ upstream_targets <- list(
   ),
   tar_target(
     name = save_pdf_of_ww_data,
-    command = ggsave(
+    command = ggplot2::ggsave(
       filename = file.path(
         eval_config$figure_dir,
         glue::glue("eval_ww_data.pdf")
@@ -113,7 +113,7 @@ combined_targets <- list(
       locations = eval_config$location_ww,
       eval_output_subdir = eval_config$output_dir,
       model_type = "ww"
-    ) |> scoringutils:::as_scores(metrics = wweval::metrics_samples)
+    ) |> scoringutils:::as_scores(metrics = wweval::sample_metrics)
   ),
   tar_target(
     name = all_hosp_scores,
@@ -124,7 +124,7 @@ combined_targets <- list(
       locations = eval_config$location_hosp,
       eval_output_subdir = eval_config$output_dir,
       model_type = "hosp"
-    ) |> scoringutils:::as_scores(metrics = wweval::metrics_samples)
+    ) |> scoringutils:::as_scores(metrics = wweval::sample_metrics)
   ),
   ## Flags------------------------------------------------------------------
   tar_target(
@@ -200,7 +200,7 @@ combined_targets <- list(
       locations = eval_config$location_ww,
       eval_output_subdir = eval_config$output_dir,
       model_type = "ww"
-    ) |> scoringutils:::as_scores(metrics = wweval::metrics_quantiles)
+    ) |> scoringutils:::as_scores(metrics = wweval::quantile_metrics)
   ),
   tar_target(
     name = all_hosp_scores_quantiles,
@@ -211,7 +211,7 @@ combined_targets <- list(
       locations = eval_config$location_hosp,
       eval_output_subdir = eval_config$output_dir,
       model_type = "hosp"
-    ) |> scoringutils:::as_scores(metrics = wweval::metrics_quantiles)
+    ) |> scoringutils:::as_scores(metrics = wweval::quantile_metrics)
   ),
   ## Quantiles ----------------------------------------------------------------
   tar_target(
