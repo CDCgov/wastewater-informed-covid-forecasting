@@ -133,13 +133,30 @@ write_eval_config <- function(locations, forecast_dates,
     unique()
 
   real_time_output_dir <- file.path("output", "real_time_outputs")
-  path_to_table_of_run_ids <- file.path("output", "real_time_outputs", "table_of_run_ids.rds")
-  if (file.exists(path_to_table_of_run_ids)) {
-    table_of_run_ids <- readRDS(path_to_table_of_run_ids)
-    table_of_run_ids$forecast_date <- as.character(table_of_run_ids$forecast_date)
-  } else {
-    table_of_run_ids <- NULL
-  }
+  table_of_run_ids <- tibble::tibble(
+    ids = c(
+      "b84a4",
+      "5ebc5",
+      "bb0b4",
+      "a6e67",
+      "f86b2",
+      "8150f"
+    ),
+    forecast_date = seq(
+      from =
+        lubridate::ymd("2024-02-05"),
+      to = lubridate::ymd("2024-03-11"),
+      by = "week"
+    ) |> as.character(),
+    dates_run = c(
+      "2024-02-05",
+      "2024-02-12",
+      "2024-02-18",
+      "2024-02-25",
+      "2024-03-02",
+      "2024-03-09"
+    )
+  )
 
   # These come from the yaml files we saved in the forecast folders,
   # documentation which location-forecast dates we chose to use the hospital
