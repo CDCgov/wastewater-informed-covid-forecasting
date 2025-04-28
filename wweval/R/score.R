@@ -612,6 +612,10 @@ score_real_time_outputs <- function(score_type,
     "wis" = "quantiles",
     "crps" = "draws"
   )[[score_type]]
+  ## remove trailing s from output type, col name is singular
+  output_id_col <- stringr::str_sub(forecast_output_type,
+    end = -2
+  )
 
   score_problem <- function(forecast_date,
                             location,
@@ -641,7 +645,7 @@ score_real_time_outputs <- function(score_type,
           "date",
           "value",
           "true_value",
-          "draw",
+          !!output_id_col,
           "model",
           "failed_convergence"
         )
