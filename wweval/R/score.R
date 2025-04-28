@@ -604,7 +604,7 @@ score_real_time_outputs <- function(score_type,
                                     eval_data,
                                     model_types = c("ww", "hosp")) {
   checkmate::assert_scalar(score_type)
-  checkmate::asert_names(score_type, subset.of = c("wis", "crps"))
+  checkmate::assert_names(score_type, subset.of = c("wis", "crps"))
   model_types <- unique(model_types)
   checkmate::assert_names(model_types, subset.of = c("ww", "hosp"))
 
