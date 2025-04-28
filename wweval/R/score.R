@@ -463,6 +463,117 @@ score_hub_submissions <- function(model_name,
 }
 
 
+#' Load a real-time forecast
+#'
+#' Loads a forecast for a single location, date,
+#' model type, and run.
+#'
+#' @param output_dir Output directory containing real-time
+#' forecasts.
+#' @param forecast_date Forecast date, as a string.
+#' @param location Forecast location, as a string.
+#' @param model_type Model type, as a string. One of
+#' `"hosp"` or `"ww"`.
+#' @param forecast_output_type Type of forecast output to pull.
+#' One of `"quantiles"` o `"draws"`.
+#' @param table_of_run_ids Table mapping forecast dates
+#' to chosen run unique ids and run dates.
+#' @return The forecast, as a tibble.
+#'
+#' @export
+load_real_time_forecast <- function(output_dir,
+                                    forecast_date,
+                                    location,
+                                    model_type,
+                                    forecast_output_type,
+                                    table_of_run_ids) {
+  checkmate::assert_scalar(model_type)
+  checkmate::assert_names(model_type, subset.of = c("ww", "hosp"))
+  checkmate::assert_scalar(forecast_output_type)
+  checkmate::assert_names(forecast_output_type,
+    subset.of = c("quantiles", "draws")
+  )
+  ## remove trailing s from output type, col name is singular
+  output_id_col <- stringr::str_sub(forecast_output_type,
+    end = -2
+  )
+
+  metadata <- table_of_run_ids |>
+    dplyr::filter(.data$forecast_date == !!forecast_date)
+  run_id <- metadata$ids
+  date_run <- metadata$dates_run
+  model_long <- c(
+    "ww" = "site-level infection dynamics",
+    "hosp" = "hospital admissions only"
+  )[[model_type]]
+
+  if (forecast_date %in% c("2024-02-05", "2024-02-12")) {
+    ## older file structure
+    dir <- fs::path(
+      output_dir,
+      glue::glue("output_{date_to_pull}"),
+      "raw",
+      location,
+      forecast_output_type,
+      forecast_date
+    )
+    filename <- glue::glue(
+      "run-on-{date_run}-{run_id}-",
+      "{forecast_output_type}"
+    )
+    ## older structure did not have flags
+    any_flags <- FALSE
+  } else {
+    ## main newer file structure
+    dir <- fs::path(
+      output_dir,
+      forecast_date,
+      glue::glue("run-on-{date_run}-{run_id}"),
+      "raw",
+      location,
+      model_long
+    )
+    filename <- forecast_output_type
+
+    diagnostics <- fs::path(dir, "diagnostics", ext = "csv")
+
+    if (fs::file_exists(diagnostics)) {
+      flag_table <- readr::read_csv(diagnostics)
+      any_flags <- any(flag_table$value[20:23] == TRUE)
+    }
+  }
+
+  forecast_path <- fs::path(dir,
+    filename,
+    ext = "parquet"
+  )
+
+  forecast <- NULL
+
+  if (fs::file_exists(forecast_path)) {
+    forecast <- arrow::read_parquet(forecast_path) |>
+      dplyr::filter(
+        .data$name == "pred_hosp",
+        .data$period != "calibration"
+      ) |>
+      dplyr::select(
+        "forecast_date",
+        "date",
+        "location",
+        "value",
+        !!output_id_col
+      ) |>
+      dplyr::mutate(
+        model = !!model_type,
+        failed_convergence = !!any_flags
+      )
+  }
+
+  return(forecast)
+}
+
+
+
 #' Load in and score the real-time outputs
 #'
 #' @param score_type A string indicating which score to generate, either
@@ -497,99 +608,19 @@ score_real_time_outputs <- function(score_type,
   model_types <- unique(model_types)
   checkmate::assert_names(model_types, subset.of = c("ww", "hosp"))
 
-  model_long_names <- c(
-    "ww" = "site-level infection dynamics",
-    "hosp" = "hospital admissions only"
-  )
-  data_type <- c(
-    "crps" = "draws",
-    "wis" = "quantiles"
-  )[[score_type]]
-
-  col_name <- c(
-    "crps" = "draw",
-    "wis" = "quantile"
-  )[[score_type]]
-
-  to_score <- tidyr::crossing(
-    forecast_date = table_of_run_ids$forecast_date,
-    location = locations,
-    model_type = model_types
-  )
-
-  get_forecasts <- function(forecast_date,
-                            location,
-                            model_type) {
-    these_preds <- NULL
-    metadata <- table_of_run_ids |>
-      dplyr::filter(
-        .data$forecast_date == !!forecast_date
-      )
-    run_id <- metadata$ids
-    date_run <- metadata$dates_run
-
-    if (forecast_date %in% c("2024-02-05", "2024-02-12")) {
-      # older file structure
-      fp <- file.path(
-        real_time_output_dir,
-        glue::glue("output_{date_to_pull}"),
-        "raw",
-        location,
-        data_type,
-        forecast_date,
-        glue::glue("run-on-{date_run}-{run_id}-{data_type}.parquet")
-      )
-      ## older structure did not have flags
-      any_flags <- FALSE
-    } else {
-      # main newer file structure
-      dir <- file.path(
-        real_time_output_dir,
-        forecast_date,
-        glue::glue("run-on-{date_run}-{run_id}"),
-        "raw",
-        location,
-        model_long
-      )
-
-      if (file.exists(file.path(dir, glue::glue("{data_type}.parquet")))) {
-        this_flags <- readr::read_csv(file.path(dir, "diagnostics.csv"))
-        any_flags <- any(this_flags$value[20:23] == TRUE)
-      }
-    } # end ifelse for file structures
-
-    if (file.exists(fp)) {
-      these_preds <- arrow::read_parquet(fp) |>
-        dplyr::filter(
-          .data$name == "pred_hosp",
-          .data$period != "calibration"
-        ) |>
-        dplyr::select(
-          "forecast_date",
-          "date",
-          "location",
-          "value",
-          !!col_name
-        ) |>
-        dplyr::mutate(
-          model = !!model_type,
-          failed_convergence = !!any_flags
-        )
-    }
-    return(these_preds)
-  }
-
   score_problem <- function(forecast_date,
                             location,
                             model_type) {
-    forecasts <- get_forecasts(
+    scores <- NULL
+
+    forecast <- load_real_time_forecast(
+      real_time_output_dir,
       forecast_date,
       location,
-      model_type
+      model_type,
+      table_of_run_ids
     )
 
-    ## Score the draws
-    scores <- NULL
     if (!is.null(forecasts)) {
       preds_w_eval <- forecasts |>
         dplyr::inner_join(
@@ -609,14 +640,14 @@ score_real_time_outputs <- function(score_type,
           "failed_convergence"
         )
       if (score_type == "crps") {
-        forecasted_preds <- preds_w_eval |>
+        for_scoring <- preds_w_eval |>
           scoringutils::as_forecast_sample(
             sample_id = "draw",
             predicted = "value",
             observed = "true_value"
           )
       } else if (score_type == "wis") {
-        forecasted_preds <- preds_w_eval |>
+        for_scoring <- preds_w_eval |>
           dplyr::filter(.data$date > .data$forecast_date) |>
           scoringutils::as_forecast_quantile(
             predicted = "value",
@@ -624,8 +655,8 @@ score_real_time_outputs <- function(score_type,
             quantile_level = "quantile"
           )
       }
-      if (nrow(forecasted_preds) > 0) {
-        scores <- forecasted_preds |>
+      if (nrow(for_scoring) > 0) {
+        scores <- for_scoring |>
           scoringutils::transform_forecasts(
             fun = scoringutils::log_shift,
             offset = 1,
@@ -633,13 +664,19 @@ score_real_time_outputs <- function(score_type,
           ) |>
           scoringutils::score()
       }
-
-      return(scores)
     }
-  } # end loop around forecast dates
+
+    return(scores)
+  }
 
 
-  return(all_scores)
+  to_score <- tidyr::crossing(
+    forecast_date = table_of_run_ids$forecast_date,
+    location = locations,
+    model_type = model_types
+  )
+
+  return(purrr::pmap_df(to_score, score_problem))
 }
 
 #' Format the hosp only real time scores for comparison to the other real

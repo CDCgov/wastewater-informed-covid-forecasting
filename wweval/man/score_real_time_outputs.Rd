@@ -9,9 +9,8 @@ score_real_time_outputs(
   real_time_output_dir,
   table_of_run_ids,
   locations,
-  dates,
   eval_data,
-  hosp_only = FALSE
+  model_types = c("ww", "hosp")
 )
 }
 \arguments{
@@ -29,14 +28,14 @@ and date run for each of the production runs}
 the locations to
 pull, this should be all jurisdictions}
 
-\item{dates}{A vector of forecast dates to pull}
-
 \item{eval_data}{a tibble of hospital admissions evaluation
 data to be used
 for scoring.}
 
-\item{hosp_only}{boolean indicating if we should only pull the hospital
-admissions model}
+\item{model_types}{Character vector of model types to score.
+One or both of \code{"ww"} and \code{"hosp"}. Default both: \code{c("ww", "hosp")}}
+
+\item{dates}{A vector of forecast dates to pull}
 }
 \value{
 A large tibble containing crps scores for every location and
