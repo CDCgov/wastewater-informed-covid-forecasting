@@ -511,7 +511,7 @@ load_real_time_forecast <- function(output_dir,
     ## older file structure
     dir <- fs::path(
       output_dir,
-      glue::glue("output_{date_to_pull}"),
+      glue::glue("output_{forecast_date}"),
       "raw",
       location,
       forecast_output_type,
@@ -608,6 +608,11 @@ score_real_time_outputs <- function(score_type,
   model_types <- unique(model_types)
   checkmate::assert_names(model_types, subset.of = c("ww", "hosp"))
 
+  forecast_output_type <- c(
+    "wis" = "quantiles",
+    "crps" = "draws"
+  )[[score_type]]
+
   score_problem <- function(forecast_date,
                             location,
                             model_type) {
@@ -618,6 +623,7 @@ score_real_time_outputs <- function(score_type,
       forecast_date,
       location,
       model_type,
+      forecast_output_type,
       table_of_run_ids
     )
 

@@ -1157,12 +1157,8 @@ real_time_rel_targets <- list(
       real_time_output_dir = eval_config$real_time_output_dir,
       table_of_run_ids = as.data.frame(eval_config$table_of_run_ids),
       locations = unique(eval_config$location_ww),
-      dates = as.character(seq(
-        from = lubridate::ymd("2024-02-05"),
-        to = lubridate::ymd("2024-03-11"),
-        by = "week"
-      )),
-      eval_data = eval_hosp_data
+      eval_data = eval_hosp_data,
+      model_types = c("ww", "hosp")
     )
   ),
   tar_target(
@@ -1172,13 +1168,8 @@ real_time_rel_targets <- list(
       real_time_output_dir = eval_config$real_time_output_dir,
       table_of_run_ids = as.data.frame(eval_config$table_of_run_ids),
       locations = unique(eval_config$location_ww),
-      dates = as.character(seq(
-        from = lubridate::ymd("2024-02-05"),
-        to = lubridate::ymd("2024-03-25"),
-        by = "week"
-      )),
       eval_data = eval_hosp_data,
-      hosp_only = TRUE
+      model_types = "hosp"
     )
   ),
   tar_target(
