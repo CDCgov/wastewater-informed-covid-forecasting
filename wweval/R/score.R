@@ -627,8 +627,8 @@ score_real_time_outputs <- function(score_type,
       table_of_run_ids
     )
 
-    if (!is.null(forecasts)) {
-      preds_w_eval <- forecasts |>
+    if (!is.null(forecast)) {
+      preds_w_eval <- forecast |>
         dplyr::inner_join(
           eval_data |>
             dplyr::select(-"pop") |>
