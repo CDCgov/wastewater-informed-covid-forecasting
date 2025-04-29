@@ -25,9 +25,9 @@ get_diagnostic_flags <- function(stan_fit_object,
                                  divergences_tolerance = 0.01,
                                  p_high_rhat_tolerance = 0.05,
                                  max_tree_depth_tol = 0.01) {
+  meta <- stan_fit_object$metadata()
+  n_draws <- meta$iter_sampling * meta$num_chains
   diagnostic_summary <- stan_fit_object$diagnostic_summary(quiet = TRUE)
-  n_draws <- posterior::ndraws(diagnostic_summary)
-
   # Summary is a large dataframe with diagnostics for each parameters
   summary <- stan_fit_object$summary()
 
