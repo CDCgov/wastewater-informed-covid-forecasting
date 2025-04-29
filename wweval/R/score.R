@@ -573,22 +573,19 @@ load_real_time_forecast <- function(output_dir,
 
       stanfit <- cmdstanr::as_cmdstan_fit(stan_csvs)
 
-      flag_tab <- get_diagnostic_flags(stanfit)
+      flags <- get_diagnostic_flags(stanfit)
     } else if (fs::file_exists(diagnostic_file)) {
-      flag_tab <- readr::read_csv(diagnostic_file)
+      flag_tab <- readr::read_csv(diagnostic_file) |>
+        clean_flag_df()
+      checkmate::assert_names(flag_tabs$diagnostic,
+        must.include = flags_to_check
+      )
+      flags <- flag_tab |>
+        dplyr::filter(.data$diagnostic %in% !!flags_to_check) |>
+        dplyr::pull(.data$value)
     } else {
       cli::cli_abort("Missing diagnostics file.")
     }
-
-    flag_tab <- clean_flag_df(flag_tab)
-    checkmate::assert_names(flag_tabs$diagnostic,
-      must.include = flags_to_check
-    )
-
-    flags <- flag_tab |>
-      dplyr::filter(.data$diagnostic %in% !!flags_to_check) |>
-      dplyr::pull(.data$value)
-
     any_flags <- any(flags == TRUE)
   }
 
