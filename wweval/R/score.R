@@ -571,7 +571,7 @@ load_real_time_forecast <- function(output_dir,
       ## (see https://github.com/CDCgov/wastewater-informed-covid-forecasting/blob/06d13e0b4f4cd4fbd0334ea22341b800c504abc9/cfaforecastrenewalww/R/process_model_outputs.R#L468-L473)  # nolint
       ## so we can just use that function.
 
-      stanfit <- cmdstan::as_cmdstan_fit(stan_csvs)
+      stanfit <- cmdstanr::as_cmdstan_fit(stan_csvs)
 
       flag_tab <- get_diagnostic_flags(stanfit)
     } else if (fs::file_exists(diagnostic_file)) {
