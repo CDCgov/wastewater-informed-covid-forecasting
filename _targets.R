@@ -1865,6 +1865,5 @@ list(
   hub_targets,
   hub_comparison_plots,
   supp_targets,
-  benchmarks,
   real_time_rel_targets
 )
