@@ -559,30 +559,37 @@ load_real_time_forecast <- function(output_dir,
     filename <- forecast_output_type
 
     diagnostic_file <- fs::path(dir, "diagnostics", ext = "csv")
+    stan_csvs <- fs::dir_ls(fs::path(dir, "stan_objects"),
+      type = "file",
+      glob = "*.csv"
+    )
+
     if (forecast_date == "2024-02-19") {
       ## diagnostic flags were not computed on 2024-02-19,
       ## need to compute manually. Subsequent flag computation
-      ## used the same flag thresholds as get_diagnostic_flags
+      ## used the same flag thresholds as get_diagnostic_flags()
       ## (see https://github.com/CDCgov/wastewater-informed-covid-forecasting/blob/06d13e0b4f4cd4fbd0334ea22341b800c504abc9/cfaforecastrenewalww/R/process_model_outputs.R#L468-L473)  # nolint
       ## so we can just use that function.
 
-      cli::cli_abort("Not implemented")
+      stanfit <- cmdstan::as_cmdstan_fit(stan_csvs)
+
+      flag_tab <- get_diagnostic_flags(stanfit)
     } else if (fs::file_exists(diagnostic_file)) {
-      flag_tab <- readr::read_csv(diagnostic_file) |>
-        clean_flags()
-
-      checkmate::assert_names(flag_tabs$diagnostic,
-        must.include = flags_to_check
-      )
-
-      flags <- flag_tab |>
-        dplyr::filter(.data$diagnostic %in% !!flags_to_check) |>
-        dplyr::pull(.data$value)
-
-      any_flags <- any(flags == TRUE)
+      flag_tab <- readr::read_csv(diagnostic_file)
     } else {
       cli::cli_abort("Missing diagnostics file.")
     }
+
+    flag_tab <- clean_flags(flag_tab)
+    checkmate::assert_names(flag_tabs$diagnostic,
+      must.include = flags_to_check
+    )
+
+    flags <- flag_tab |>
+      dplyr::filter(.data$diagnostic %in% !!flags_to_check) |>
+      dplyr::pull(.data$value)
+
+    any_flags <- any(flags == TRUE)
   }
 
   forecast_path <- fs::path(dir,

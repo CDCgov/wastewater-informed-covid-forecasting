@@ -364,11 +364,8 @@ postprocess_successful_fit <- function(wwinference_fit_obj,
     save_basename = glue::glue("{model}_diagnostic_summary")
   )
 
-  metadata <- stan_fit_obj$metadata()
   raw_flags <- get_diagnostic_flags(
-    stan_fit_obj,
-    metadata$num_chains,
-    metadata$iter_sampling
+    stan_fit_obj
   )
   save_object(raw_flags)
 
