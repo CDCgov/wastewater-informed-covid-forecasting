@@ -530,14 +530,14 @@ get_plot_bias_over_time <- function(scores,
     width = 10, height = 5,
     filename = file.path(
       fig_file_dir,
-      glue::glue("sfig_bias_over_time_{fig_subscript}.svg")
+      glue::glue("fig_bias_over_time_{fig_subscript}.svg")
     )
   )
   ggsave(p,
     width = 10, height = 5,
     filename = file.path(
       fig_file_dir,
-      glue::glue("sfig_bias_over_time_{fig_subscript}.png")
+      glue::glue("fig_bias_over_time_{fig_subscript}.png")
     )
   )
 
@@ -586,14 +586,14 @@ get_plot_score_by_horizon_t <- function(scores,
     width = 10, height = 10,
     filename = file.path(
       fig_file_dir,
-      glue::glue("sfig_{score_type}_over_time_by_horizon.svg")
+      glue::glue("fig_{score_type}_over_time_by_horizon.svg")
     )
   )
   ggsave(p,
     width = 10, height = 10,
     filename = file.path(
       fig_file_dir,
-      glue::glue("sfig_{score_type}_over_time_by_horizon.png")
+      glue::glue("fig_{score_type}_over_time_by_horizon.png")
     )
   )
   return(p)
@@ -821,14 +821,14 @@ get_plot_sites_vs_performance <- function(scores,
   ggsave(p_n_sites,
     filename = file.path(
       fig_file_dir,
-      glue::glue("sfig_n_sites_vs_crps.png")
+      glue::glue("fig_n_sites_vs_crps.png")
     )
   )
 
   ggsave(p_coverage,
     filename = file.path(
       fig_file_dir,
-      glue::glue("sfig_pop_coverage_vs_crps.png")
+      glue::glue("fig_pop_coverage_vs_crps.png")
     )
   )
 
@@ -880,22 +880,23 @@ get_plot_hub_perf_heatmap <- function(scores,
     width = 10, height = 6,
     filename = file.path(
       fig_file_dir,
-      glue::glue("sfig_heatmap_wis.png")
+      glue::glue("fig_heatmap_wis.png")
     )
   )
   return(p)
 }
 
-#' Plot a heatmap of the avg forecast performance by locations and forecast date
-#' for the head-to-head comparison
+#' Plot a heatmap of the avg forecast performance by locations and
+#' forecast date for the head-to-head comparison
 #'
-#' @param scores A tibble of daily scores by forecast date, location, and model
-#' @param fig_file_dir A string indicating the directory to save the figures in
+#' @param scores A tibble of daily scores by forecast date, location,
+#' and model
+#' @param fig_file_dir A string indicating the directory to save
+#' the figures in
 #'
 #' @return a ggplot object
 #' @export
-get_plot_comb_perf_heatmap <- function(scores,
-                                       fig_file_dir) {
+get_plot_comb_perf_heatmap <- function(scores) {
   scores_summary <- scores |>
     dplyr::group_by(forecast_date, location, model) |>
     dplyr::summarise(avg_crps = mean(crps))
@@ -929,7 +930,7 @@ get_plot_comb_perf_heatmap <- function(scores,
     width = 10, height = 6,
     filename = file.path(
       fig_file_dir,
-      glue::glue("sfig_heatmap_crps.png")
+      glue::glue("fig_heatmap_crps.png")
     )
   )
   return(p)
@@ -1032,7 +1033,7 @@ get_heatmap_metadata <- function(metadata,
   ggsave(p,
     filename = file.path(
       fig_file_dir,
-      glue::glue("sfig_heatmap_metadata.png")
+      glue::glue("fig_heatmap_metadata.png")
     )
   )
 
@@ -1133,7 +1134,7 @@ get_heatmap_metadata_hub <- function(metadata,
     height = 7, width = 12,
     filename = file.path(
       fig_file_dir,
-      glue::glue("sfig_heatmap_hub_metadata_{analysis_type}.png")
+      glue::glue("fig_heatmap_hub_metadata_{analysis_type}.png")
     )
   )
 }

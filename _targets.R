@@ -42,6 +42,11 @@ upstream_targets <- list(
       tibble::as_tibble()
   ),
   tar_target(
+    name = "fig_output_dir",
+    command = fs::dir_create(eval_config$figure_dir),
+    format = "file"
+  ),
+  tar_target(
     name = eval_hosp_data,
     command = get_input_hosp_data(
       forecast_date_i = eval_config$eval_date,
@@ -87,7 +92,7 @@ upstream_targets <- list(
     name = save_pdf_of_ww_data,
     command = ggplot2::ggsave(
       filename = file.path(
-        eval_config$figure_dir,
+        fig_output_dir,
         glue::glue("eval_ww_data.pdf")
       ),
       plot = gridExtra::marrangeGrob(plot_ww_eval_data, nrow = 1, ncol = 1),
@@ -435,7 +440,7 @@ manuscript_figures <- list(
     )
   ),
   tar_target(
-    name = sfig_heatmap_metadata_comp,
+    name = plot_heatmap_metadata_comp,
     command = get_heatmap_metadata(
       granular_ww_metadata_used,
       type_of_analysis = "retro_comparison",
@@ -443,7 +448,7 @@ manuscript_figures <- list(
     )
   ),
   tar_target(
-    name = sfig_heatmap_metadata_hub_retro,
+    name = plot_heatmap_metadata_hub_retro,
     command = get_heatmap_metadata_hub(
       granular_ww_metadata_used,
       fig_file_dir = eval_config$ms_fig_dir,
@@ -451,7 +456,7 @@ manuscript_figures <- list(
     )
   ),
   tar_target(
-    name = sfig_heatmap_metadata_hub_rt,
+    name = plot_heatmap_metadata_hub_rt,
     command = get_heatmap_metadata_hub(
       granular_ww_metadata_used,
       fig_file_dir = eval_config$ms_fig_dir,
@@ -659,7 +664,7 @@ manuscript_figures <- list(
   # This is supplementary but useful alongside
   # the forecasts I think
   tar_target(
-    name = sfig3_interval_coverage1,
+    name = plot3_interval_coverage1,
     command = make_plot_coverage_range(
       scores_quantiles_filtered |>
         dplyr::filter(location == locs_to_plot[1]),
@@ -667,7 +672,7 @@ manuscript_figures <- list(
     )
   ),
   tar_target(
-    name = sfig3_qq_plot1,
+    name = plot3_qq_plot1,
     command = make_qq_plot_overall(
       scores_quantiles_filtered |>
         dplyr::filter(location == locs_to_plot[1])
@@ -741,7 +746,7 @@ manuscript_figures <- list(
   ),
   # Supplementary
   tar_target(
-    name = sfig3_interval_coverage2,
+    name = plot3_interval_coverage2,
     command = make_plot_coverage_range(
       scores_quantiles_filtered |>
         dplyr::filter(location == locs_to_plot[2]),
@@ -749,7 +754,7 @@ manuscript_figures <- list(
     )
   ),
   tar_target(
-    name = sfig3_qq_plot2,
+    name = plot3_qq_plot2,
     command = make_qq_plot_overall(
       scores_quantiles_filtered |>
         dplyr::filter(location == locs_to_plot[2])
@@ -822,7 +827,7 @@ manuscript_figures <- list(
   ),
   # Supplement to fig 3
   tar_target(
-    name = sfig3_interval_coverage3,
+    name = plot3_interval_coverage3,
     command = make_plot_coverage_range(
       scores_quantiles_filtered |>
         dplyr::filter(location == locs_to_plot[3]),
@@ -830,7 +835,7 @@ manuscript_figures <- list(
     )
   ),
   tar_target(
-    name = sfig3_qq_plot3,
+    name = plot3_qq_plot3,
     command = make_qq_plot_overall(
       scores_quantiles_filtered |>
         dplyr::filter(location == locs_to_plot[3])
@@ -1091,7 +1096,7 @@ scenario_targets <- list(
     command = get_plot_scores_w_data(
       grouped_submission_scores,
       eval_hosp_data,
-      figure_file_path = eval_config$figure_dir,
+      figure_file_path = fig_output_dir,
       score_metric = "crps"
     ),
     pattern = map(grouped_submission_scores),
@@ -1126,7 +1131,7 @@ scenario_targets <- list(
     command = get_plot_quantile_comparison(
       all_hosp_quantiles,
       eval_hosp_data,
-      figure_file_path = eval_config$figure_dir,
+      figure_file_path = fig_output_dir,
       days_to_show_forecast = 7
     ),
     pattern = map(all_hosp_quantiles),
@@ -1136,14 +1141,14 @@ scenario_targets <- list(
     name = box_plot_by_date_and_scenario,
     command = get_box_plot(
       mock_submission_scores,
-      figure_file_path = eval_config$figure_dir
+      figure_file_path = fig_output_dir
     )
   ),
   tar_target(
     name = bar_chart_n_improved,
     command = get_n_states_improved_plot(
       mock_submission_scores,
-      figure_file_path = eval_config$figure_dir
+      figure_file_path = fig_output_dir
     )
   )
 )
@@ -1602,7 +1607,7 @@ hub_comparison_plots <- list(
     )
   ),
   tar_target(
-    name = sfig5_plot_wis_t_all_time,
+    name = plot5_plot_wis_t_all_time,
     command = make_fig5_average_wis(
       all_scores = summarized_scores_oct_mar,
       models_to_show = unique(combine_scores_oct_mar$model),
@@ -1736,44 +1741,43 @@ hub_comparison_plots <- list(
 )
 
 
-# Supplement ----------------------------------------------------------
-# Make some tables with summary stats to include in results
-supp_targets <- list(
-  tar_target(sfig_hub_perf_heatmap,
+# Miscellaneous additional figures
+additional_figures <- list(
+  tar_target(plot_hub_perf_heatmap,
     command = get_plot_hub_perf_heatmap(
       scores = summarized_scores_oct_mar,
       fig_file_dir = eval_config$ms_fig_dir
     )
   ),
-  tar_target(sfig_comb_perf_heatmap,
+  tar_target(plot_comb_perf_heatmap,
     command = get_plot_comb_perf_heatmap(
       scores = scores_filtered,
       fig_file_dir = eval_config$ms_fig_dir
     )
   ),
   tar_target(
-    name = sfig_bias_over_time_comparison,
+    name = plot_bias_over_time_comparison,
     command = get_plot_bias_over_time(scores_filtered,
       fig_subscript = "comp",
       fig_file_dir = eval_config$ms_fig_dir
     )
   ),
   tar_target(
-    name = sfig_bias_over_time_Hub,
+    name = plot_bias_over_time_Hub,
     command = get_plot_bias_over_time(combine_scores_oct_mar,
       fig_subscript = "Hub",
       fig_file_dir = eval_config$ms_fig_dir
     )
   ),
   tar_target(
-    name = sfig_crps_over_time_comp,
+    name = plot_crps_over_time_comp,
     command = get_plot_score_by_horizon_t(scores_filtered,
       score_type = "crps",
       fig_file_dir = eval_config$ms_fig_dir
     )
   ),
   tar_target(
-    name = sfig_n_sites_vs_performance,
+    name = plot_n_sites_vs_performance,
     command = get_plot_sites_vs_performance(
       scores_filtered,
       granular_ww_metadata_used,
@@ -1781,9 +1785,10 @@ supp_targets <- list(
     )
   ),
   tar_target(
-    name = sfig_wis_over_time_Hub,
-    command = get_plot_score_by_horizon_t(combine_scores_oct_mar,
-      score_type = "interval_score",
+    name = plot_wis_over_time_hub,
+    command = get_plot_score_by_horizon_t(
+      combine_scores_oct_mar,
+      score_type = "wis",
       fig_file_dir = eval_config$ms_fig_dir
     )
   ),
@@ -1864,6 +1869,6 @@ list(
   scenario_targets,
   hub_targets,
   hub_comparison_plots,
-  supp_targets,
+  additional_figures,
   real_time_rel_targets
 )
