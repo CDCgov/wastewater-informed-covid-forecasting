@@ -5,7 +5,7 @@
 \title{Plot a heatmap of the avg forecast performance by locations and
 forecast date for the head-to-head comparison}
 \usage{
-get_plot_comb_perf_heatmap(scores)
+get_plot_comb_perf_heatmap(scores, fig_file_dir)
 }
 \arguments{
 \item{scores}{A tibble of daily scores by forecast date, location,
