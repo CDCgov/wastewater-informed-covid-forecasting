@@ -563,7 +563,7 @@ load_real_time_forecast <- function(output_dir,
       ## diagnostic flags were not computed on 2024-02-19,
       ## need to compute manually. Subsequent flag computation
       ## used the same flag thresholds as get_diagnostic_flags
-      ## (see <link>)
+      ## (see https://github.com/CDCgov/wastewater-informed-covid-forecasting/blob/06d13e0b4f4cd4fbd0334ea22341b800c504abc9/cfaforecastrenewalww/R/process_model_outputs.R#L468-L473)  # nolint
       ## so we can just use that function.
 
       cli::cli_abort("Not implemented")
