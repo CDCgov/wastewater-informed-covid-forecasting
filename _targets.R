@@ -444,14 +444,14 @@ manuscript_figures <- list(
     command = get_heatmap_metadata(
       granular_ww_metadata_used,
       type_of_analysis = "retro_comparison",
-      fig_file_dir = eval_config$ms_fig_dir
+      fig_file_dir = fig_output_dir
     )
   ),
   tar_target(
     name = plot_heatmap_metadata_hub_retro,
     command = get_heatmap_metadata_hub(
       granular_ww_metadata_used,
-      fig_file_dir = eval_config$ms_fig_dir,
+      fig_file_dir = fig_output_dir,
       analysis_type = "retro"
     )
   ),
@@ -459,7 +459,7 @@ manuscript_figures <- list(
     name = plot_heatmap_metadata_hub_rt,
     command = get_heatmap_metadata_hub(
       granular_ww_metadata_used,
-      fig_file_dir = eval_config$ms_fig_dir,
+      fig_file_dir = fig_output_dir,
       analysis_type = "real_time"
     )
   ),
@@ -577,7 +577,7 @@ manuscript_figures <- list(
     command = get_summary_table_fig3(
       scores_filtered,
       locs_to_plot,
-      fig_file_dir = eval_config$ms_fig_dir
+      fig_file_dir = fig_output_dir
     )
   ),
   tar_target(
@@ -867,7 +867,7 @@ manuscript_figures <- list(
       fig3_crps_underlay_nowcast3 = fig3_crps_underlay_nowcast3,
       fig3_crps_underlay_1wk3 = fig3_crps_underlay_1wk3,
       fig3_crps_underlay_4wks3 = fig3_crps_underlay_4wks3,
-      fig_file_dir = eval_config$ms_fig_dir
+      fig_file_dir = fig_output_dir
     )
   ),
 
@@ -896,14 +896,14 @@ manuscript_figures <- list(
   tar_target(fig4_rel_crps_heatmap,
     command = get_plot_rel_crps_heatmap(
       scores = scores_filtered,
-      fig_file_dir = eval_config$ms_fig_dir
+      fig_file_dir = fig_output_dir
     )
   ),
   tar_target(
     name = fig4_rel_crps_hist,
     command = get_plot_rel_crps_distrib(
       scores = scores_filtered,
-      fig_file_dir = eval_config$ms_fig_dir
+      fig_file_dir = fig_output_dir
     )
   ),
   tar_target(
@@ -943,7 +943,7 @@ manuscript_figures <- list(
     name = fig4_rel_crps_overall,
     command = make_fig4_rel_crps_overall(
       scores_filtered,
-      fig_file_dir = eval_config$ms_fig_dir,
+      fig_file_dir = fig_output_dir,
       write_files = TRUE
     )
   ),
@@ -952,7 +952,7 @@ manuscript_figures <- list(
     command = make_qq_plot_overall(
       scores_quantiles_filtered,
       time_period = "retro_all_time",
-      fig_file_dir = eval_config$ms_fig_dir,
+      fig_file_dir = fig_output_dir,
       write_files = TRUE
     )
   ),
@@ -962,7 +962,7 @@ manuscript_figures <- list(
       scores_quantiles_filtered,
       ranges = c(30, 60, 90),
       time_period = "retro_all_time",
-      fig_file_dir = eval_config$ms_fig_dir,
+      fig_file_dir = fig_output_dir,
       write_files = TRUE
     )
   ),
@@ -977,7 +977,7 @@ manuscript_figures <- list(
       fig4_rel_crps_over_time = fig4_rel_crps_over_time,
       fig4_rel_crps_by_location = fig4_rel_crps_by_location,
       time_period = "all_time",
-      fig_file_dir = eval_config$ms_fig_dir
+      fig_file_dir = fig_output_dir
     )
   )
 )
@@ -1417,7 +1417,7 @@ hub_comparison_plots <- list(
     command = make_fig5_table_and_plot(
       combine_scores_oct_mar,
       time_period = "Oct-Mar",
-      fig_file_dir = eval_config$ms_fig_dir
+      fig_file_dir = fig_output_dir
     )
   ),
   tar_target(
@@ -1429,7 +1429,7 @@ hub_comparison_plots <- list(
           "cfa-wwrenewal(retro)"
         )),
       time_period = "Feb-Mar",
-      fig_file_dir = eval_config$ms_fig_dir
+      fig_file_dir = fig_output_dir
     )
   ),
   tar_target(
@@ -1550,7 +1550,7 @@ hub_comparison_plots <- list(
     command = make_qq_plot_overall(
       real_time_wis_both_models,
       time_period = "real_time",
-      fig_file_dir = eval_config$ms_fig_dir,
+      fig_file_dir = fig_output_dir,
       write_files = TRUE
     )
   ),
@@ -1569,7 +1569,7 @@ hub_comparison_plots <- list(
         ),
       ranges = c(30, 60, 90),
       time_period = "real_time",
-      fig_file_dir = eval_config$ms_fig_dir,
+      fig_file_dir = fig_output_dir,
       write_files = TRUE
     )
   ),
@@ -1584,7 +1584,7 @@ hub_comparison_plots <- list(
       fig4_rel_crps_over_time = fig4_rel_wis_over_time,
       fig4_rel_crps_by_location = fig4_rel_wis_by_location,
       time_period = "real_time",
-      fig_file_dir = eval_config$ms_fig_dir
+      fig_file_dir = fig_output_dir
     )
   ),
 
@@ -1612,7 +1612,7 @@ hub_comparison_plots <- list(
       all_scores = summarized_scores_oct_mar,
       models_to_show = unique(combine_scores_oct_mar$model),
       time_period = "Oct 2023-Mar 2024",
-      fig_file_dir = eval_config$ms_fig_dir
+      fig_file_dir = fig_output_dir
     )
   ),
   tar_target(
@@ -1696,7 +1696,7 @@ hub_comparison_plots <- list(
       models_to_show = models_to_plot,
       time_period = "Feb-Mar 2024",
       tp_fp = "rt",
-      fig_file_dir = eval_config$ms_fig_dir
+      fig_file_dir = fig_output_dir
     )
   ),
   tar_target(
@@ -1714,7 +1714,7 @@ hub_comparison_plots <- list(
       models_to_show = models_to_plot,
       time_period = "Oct 2023-Mar 2024",
       tp_fp = "at",
-      fig_file_dir = eval_config$ms_fig_dir
+      fig_file_dir = fig_output_dir
     )
   ),
   tar_target(
@@ -1735,7 +1735,7 @@ hub_comparison_plots <- list(
       fig5_qq_plot_all_time = fig5_qq_plot_all_time,
       fig5_qq_plot_feb_mar = fig5_qq_plot_feb_mar,
       fig5_real_time_bar_chart = fig5_real_time_bar_chart,
-      fig_file_dir = eval_config$ms_fig_dir
+      fig_file_dir = fig_output_dir
     )
   )
 )
@@ -1746,34 +1746,34 @@ additional_figures <- list(
   tar_target(plot_hub_perf_heatmap,
     command = get_plot_hub_perf_heatmap(
       scores = summarized_scores_oct_mar,
-      fig_file_dir = eval_config$ms_fig_dir
+      fig_file_dir = fig_output_dir
     )
   ),
   tar_target(plot_comb_perf_heatmap,
     command = get_plot_comb_perf_heatmap(
       scores = scores_filtered,
-      fig_file_dir = eval_config$ms_fig_dir
+      fig_file_dir = fig_output_dir
     )
   ),
   tar_target(
     name = plot_bias_over_time_comparison,
     command = get_plot_bias_over_time(scores_filtered,
       fig_subscript = "comp",
-      fig_file_dir = eval_config$ms_fig_dir
+      fig_file_dir = fig_output_dir
     )
   ),
   tar_target(
     name = plot_bias_over_time_Hub,
     command = get_plot_bias_over_time(combine_scores_oct_mar,
       fig_subscript = "Hub",
-      fig_file_dir = eval_config$ms_fig_dir
+      fig_file_dir = fig_output_dir
     )
   ),
   tar_target(
     name = plot_crps_over_time_comp,
     command = get_plot_score_by_horizon_t(scores_filtered,
       score_type = "crps",
-      fig_file_dir = eval_config$ms_fig_dir
+      fig_file_dir = fig_output_dir
     )
   ),
   tar_target(
@@ -1781,7 +1781,7 @@ additional_figures <- list(
     command = get_plot_sites_vs_performance(
       scores_filtered,
       granular_ww_metadata_used,
-      fig_file_dir = eval_config$ms_fig_dir
+      fig_file_dir = fig_output_dir
     )
   ),
   tar_target(
@@ -1789,7 +1789,7 @@ additional_figures <- list(
     command = get_plot_score_by_horizon_t(
       combine_scores_oct_mar,
       score_type = "wis",
-      fig_file_dir = eval_config$ms_fig_dir
+      fig_file_dir = fig_output_dir
     )
   ),
   tar_target(

@@ -896,7 +896,8 @@ get_plot_hub_perf_heatmap <- function(scores,
 #'
 #' @return a ggplot object
 #' @export
-get_plot_comb_perf_heatmap <- function(scores) {
+get_plot_comb_perf_heatmap <- function(scores,
+                                       fig_file_dir) {
   scores_summary <- scores |>
     dplyr::group_by(forecast_date, location, model) |>
     dplyr::summarise(avg_crps = mean(crps))
