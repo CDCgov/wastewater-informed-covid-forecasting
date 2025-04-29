@@ -1106,7 +1106,7 @@ scenario_targets <- list(
   ),
   tar_target(
     name = final_plot,
-    command = get_plot_final_scores(final_summary_scores,
+    command = plot_scores_by_scenario(final_summary_scores,
       score_metric = "crps"
     ),
     deployment = "main"

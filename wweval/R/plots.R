@@ -507,12 +507,24 @@ get_plot_ww_comparison <- function(ww_quantiles,
   return(p)
 }
 
-
-get_plot_final_scores <- function(final_scores,
-                                  score_metric = "crps") {
-  p <- ggplot(final_scores) +
-    geom_bar(aes(x = scenario, y = .data[[score_metric]], fill = scenario),
-      position = "dodge", stat = "identity"
+#' Barplot of scores by scenario
+#'
+#' @param scenario_scores data frame of scenario scores to plot.
+#' @param score_metric Metric to plot. Must be a column name in
+#' `scenario_scores`. Default `"crps"`.
+#' @return The plot, as a ggplot object.
+#' @export
+plot_scores_by_scenario <- function(scenario_scores,
+                                    score_metric = "crps") {
+  p <- ggplot(scenario_scores) +
+    geom_bar(
+      aes(
+        x = .data$scenario,
+        y = .data[[score_metric]],
+        fill = .data$scenario
+      ),
+      position = "dodge",
+      stat = "identity"
     ) +
     theme_bw() +
     ylab(glue::glue("{score_metric} across forecast dates and locations"))
