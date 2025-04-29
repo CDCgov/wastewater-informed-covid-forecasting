@@ -463,6 +463,22 @@ score_hub_submissions <- function(model_name,
 }
 
 
+#' Clean flags from a real-time forecast
+#'
+#' Fixes typos and computes needed quantities if absent
+#'
+#' @param df Dataframe of flags
+#' @return A cleaned version of the data frame,
+#' with flag names corrected.
+clean_flag_df <- function(df) {
+  df <- df |>
+    dplyr::mutate(
+      diagnostic = dplyr::recode(.data$diagnostic, "flag_low_embfi" = "flag_low_ebfmi")
+    )
+
+  return(df)
+}
+
 #' Load a real-time forecast
 #'
 #' Loads a forecast for a single location, date,
@@ -496,6 +512,13 @@ load_real_time_forecast <- function(output_dir,
   ## remove trailing s from output type, col name is singular
   output_id_col <- stringr::str_sub(forecast_output_type,
     end = -2
+  )
+
+  flags_to_check <- c(
+    "flag_low_ebfmi",
+    "flag_too_many_divergences",
+    "flag_high_rhat",
+    "flag_high_max_treedepth"
   )
 
   metadata <- table_of_run_ids |>
@@ -535,11 +558,30 @@ load_real_time_forecast <- function(output_dir,
     )
     filename <- forecast_output_type
 
-    diagnostics <- fs::path(dir, "diagnostics", ext = "csv")
+    diagnostic_file <- fs::path(dir, "diagnostics", ext = "csv")
+    if (forecast_date == "2024-02-19") {
+      ## diagnostic flags were not computed on 2024-02-19,
+      ## need to compute manually. Subsequent flag computation
+      ## used the same flag thresholds as get_diagnostic_flags
+      ## (see <link>)
+      ## so we can just use that function.
 
-    if (fs::file_exists(diagnostics)) {
-      flag_table <- readr::read_csv(diagnostics)
-      any_flags <- any(flag_table$value[20:23] == TRUE)
+      cli::cli_abort("Not implemented")
+    } else if (fs::file_exists(diagnostic_file)) {
+      flag_tab <- readr::read_csv(diagnostic_file) |>
+        clean_flags()
+
+      checkmate::assert_names(flag_tabs$diagnostic,
+        must.include = flags_to_check
+      )
+
+      flags <- flag_tab |>
+        dplyr::filter(.data$diagnostic %in% !!flags_to_check) |>
+        dplyr::pull(.data$value)
+
+      any_flags <- any(flags == TRUE)
+    } else {
+      cli::cli_abort("Missing diagnostics file.")
     }
   }
 
@@ -649,6 +691,7 @@ score_real_time_outputs <- function(score_type,
           "model",
           "failed_convergence"
         )
+
       if (score_type == "crps") {
         for_scoring <- preds_w_eval |>
           scoringutils::as_forecast_sample(

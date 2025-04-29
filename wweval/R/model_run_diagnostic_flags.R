@@ -25,7 +25,7 @@
 get_diagnostic_flags <- function(stan_fit_object,
                                  n_chains,
                                  iter_sampling,
-                                 ebmfi_tolerance = 0.2,
+                                 ebfmi_tolerance = 0.2,
                                  divergences_tolerance = 0.01,
                                  p_high_rhat_tolerance = 0.05,
                                  max_tree_depth_tol = 0.01) {
@@ -35,7 +35,7 @@ get_diagnostic_flags <- function(stan_fit_object,
   # Summary is a large dataframe with diagnostics for each parameters
   summary <- stan_fit_object$summary()
 
-  flag_low_embfi <- mean(diagnostic_summary$ebfmi) <= ebmfi_tolerance
+  flag_low_ebfmi <- mean(diagnostic_summary$ebfmi) <= ebfmi_tolerance
   max_n_divergences <- n_chains * iter_sampling * divergences_tolerance
   flag_too_many_divergences <- any(diagnostic_summary$num_divergent >= max_n_divergences)
   p_high_rhat <- as.numeric(mean(summary[, "rhat"]$rhat > 1.05, na.rm = TRUE))
@@ -47,7 +47,7 @@ get_diagnostic_flags <- function(stan_fit_object,
     flag_high_max_treedepth,
     flag_too_many_divergences,
     flag_high_rhat,
-    flag_low_embfi
+    flag_low_ebfmi
   )
   return(flag_df)
 }
