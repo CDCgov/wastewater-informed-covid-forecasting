@@ -113,7 +113,7 @@ combined_targets <- list(
       locations = eval_config$location_ww,
       eval_output_subdir = eval_config$output_dir,
       model_type = "ww"
-    ) |> scoringutils:::as_scores(metrics = wweval::sample_metrics)
+    ) |> scoringutils:::as_scores(metrics = names(wweval::sample_metrics))
   ),
   tar_target(
     name = all_hosp_scores,
@@ -124,7 +124,7 @@ combined_targets <- list(
       locations = eval_config$location_hosp,
       eval_output_subdir = eval_config$output_dir,
       model_type = "hosp"
-    ) |> scoringutils:::as_scores(metrics = wweval::sample_metrics)
+    ) |> scoringutils:::as_scores(metrics = names(wweval::sample_metrics))
   ),
   ## Flags------------------------------------------------------------------
   tar_target(
@@ -200,7 +200,7 @@ combined_targets <- list(
       locations = eval_config$location_ww,
       eval_output_subdir = eval_config$output_dir,
       model_type = "ww"
-    ) |> scoringutils:::as_scores(metrics = wweval::quantile_metrics)
+    ) |> scoringutils:::as_scores(metrics = names(wweval::quantile_metrics))
   ),
   tar_target(
     name = all_hosp_scores_quantiles,
@@ -211,7 +211,7 @@ combined_targets <- list(
       locations = eval_config$location_hosp,
       eval_output_subdir = eval_config$output_dir,
       model_type = "hosp"
-    ) |> scoringutils:::as_scores(metrics = wweval::quantile_metrics)
+    ) |> scoringutils:::as_scores(metrics = names(wweval::quantile_metrics))
   ),
   ## Quantiles ----------------------------------------------------------------
   tar_target(
@@ -982,9 +982,7 @@ manuscript_figures <- list(
 scenario_targets <- list(
   tar_target(
     name = all_raw_scores,
-    command = data.table::as.data.table(
-      dplyr::bind_rows(all_hosp_scores, all_ww_scores)
-    )
+    command = dplyr::bind_rows(all_hosp_scores, all_ww_scores)
   ),
   tar_target(
     name = all_raw_scores_quantiles,
@@ -1026,11 +1024,13 @@ scenario_targets <- list(
   ## Submitted scores-----------------------------------------
   tar_target(
     name = mock_submission_scores,
-    command = create_mock_submission_scores(all_raw_scores)
+    command = create_mock_submission_scores(all_raw_scores) |>
+      scoringutils:::as_scores(metrics = names(wweval::sample_metrics))
   ),
   tar_target(
     name = mock_submission_scores_quantiles,
-    command = create_mock_submission_scores(all_raw_scores_quantiles)
+    command = create_mock_submission_scores(all_raw_scores_quantiles) |>
+      scoringutils:::as_scores(metrics = names(wweval::quantile_metrics))
   ),
   tar_target(
     name = summarized_scores,
@@ -1735,38 +1735,6 @@ hub_comparison_plots <- list(
   )
 )
 
-# Benchmarking----------------------------------------------------------
-benchmarks <- list(
-  tar_target(
-    name = benchmark_table_full_run,
-    command = benchmark_performance(
-      ww_scores = all_ww_scores,
-      hosp_scores = all_hosp_scores,
-      benchmark_dir = eval_config$benchmark_dir,
-      benchmark_scope = "all_forecasts",
-      wwinference_version = eval_config$wwinference_version,
-      overwrite_benchmark = eval_config$overwrite_benchmark
-    )
-  ),
-  tar_target(
-    name = plot_benchmark_by_loc,
-    command = plot_benchmarks(
-      grouping_var = "location",
-      benchmark_scope = "all_forecasts",
-      benchmark_dir = eval_config$benchmark_dir,
-      scores_list = benchmark_table_full_run
-    )
-  ),
-  tar_target(
-    name = plot_benchmark_by_forecast_date,
-    command = plot_benchmarks(
-      grouping_var = "forecast_date",
-      benchmark_scope = "all_forecasts",
-      benchmark_dir = eval_config$benchmark_dir,
-      scores_list = benchmark_table_full_run
-    )
-  )
-)
 
 # Supplement ----------------------------------------------------------
 # Make some tables with summary stats to include in results
