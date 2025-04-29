@@ -580,7 +580,7 @@ load_real_time_forecast <- function(output_dir,
       cli::cli_abort("Missing diagnostics file.")
     }
 
-    flag_tab <- clean_flags(flag_tab)
+    flag_tab <- clean_flag_df(flag_tab)
     checkmate::assert_names(flag_tabs$diagnostic,
       must.include = flags_to_check
     )
