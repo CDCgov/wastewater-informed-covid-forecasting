@@ -1386,8 +1386,10 @@ get_qq_plot <- function(scores,
 get_plot_ww_data <- function(eval_data) {
   eval_data <- eval_data |>
     dplyr::mutate(
-      lab_site_name = glue::glue("Site: {.data$site}, lab: {.data$lab}")
+      lab_site_name = glue::glue("Site: {.data$site}, lab: {.data$lab}"),
+      ww = exp(.data$log_genome_copies_per_ml)
     )
+
   loc <- eval_data |>
     dplyr::distinct(.data$location) |>
     dplyr::pull()
@@ -1398,7 +1400,9 @@ get_plot_ww_data <- function(eval_data) {
     geom_point(
       data = eval_data |> dplyr::filter(.data$flag_as_ww_outlier == 1),
       aes(x = .data$date, y = .data$ww),
-      fill = "red", color = "red", size = 0.5
+      fill = "red",
+      color = "red",
+      size = 0.5
     ) +
     geom_point(
       data = eval_data |> dplyr::filter(.data$below_lod == 1),
