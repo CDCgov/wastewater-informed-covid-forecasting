@@ -42,28 +42,28 @@ upstream_targets <- list(
       tibble::as_tibble()
   ),
   tar_target(
-    name = "first_scored_forecast_date",
+    name = first_scored_forecast_date,
     command = lubridate::ymd("2023-10-16")
   ),
   tar_target(
-    name = "last_scored_forecast_date",
+    name = last_scored_forecast_date,
     command = lubridate::ymd("2024-03-25")
   ),
   tar_target(
-    name = "first_real_time_forecast_date",
+    name = first_real_time_forecast_date,
     command = lubridate::ymd("2024-02-05")
   ),
   tar_target(
-    name = "last_real_time_forecast_date",
+    name = last_real_time_forecast_date,
     command = lubridate::ymd("2024-04-29")
   ),
   tar_target(
-    name = "fig_output_dir",
+    name = fig_output_dir,
     command = fs::dir_create(eval_config$figure_dir),
     format = "file"
   ),
   tar_target(
-    name = "scored_forecast_dates",
+    name = scored_forecast_dates,
     command = unique(eval_config$forecast_date_hosp) |>
       purrr::discard(\(x) {
         (as.Date(x) < first_scored_forecast_date) |
@@ -71,7 +71,7 @@ upstream_targets <- list(
       })
   ),
   tar_target(
-    name = "scored_real_time_forecast_dates",
+    name = scored_real_time_forecast_dates,
     command = scored_forecast_dates |>
       purrr::discard(\(x) {
         (as.Date(x) < first_real_time_forecast_date) |
@@ -1406,7 +1406,7 @@ hub_targets <- list(
       cfa_hosp_real_time_scores,
       dplyr::filter(
         combine_scores_oct_mar,
-        .data$forecast_date >= !!first_real_time_forecast_date
+        .data$forecast_date >= first_real_time_forecast_date
       )
     )
   ),
@@ -1862,7 +1862,7 @@ additional_figures <- list(
       ww_quants_feb_OH_IL,
       loc_to_plot = "IL",
       max_n_site_labs_to_show = 12,
-      date_to_plot = "2024-02-12",
+      date_to_plot = "2024-02-12"
     )
   )
 )
