@@ -42,9 +42,41 @@ upstream_targets <- list(
       tibble::as_tibble()
   ),
   tar_target(
+    name = "first_scored_forecast_date",
+    command = lubridate::ymd("2023-10-16")
+  ),
+  tar_target(
+    name = "last_scored_forecast_date",
+    command = lubridate::ymd("2024-03-25")
+  ),
+  tar_target(
+    name = "first_real_time_forecast_date",
+    command = lubridate::ymd("2024-02-05")
+  ),
+  tar_target(
+    name = "last_real_time_forecast_date",
+    command = lubridate::ymd("2024-04-29")
+  ),
+  tar_target(
     name = "fig_output_dir",
     command = fs::dir_create(eval_config$figure_dir),
     format = "file"
+  ),
+  tar_target(
+    name = "scored_forecast_dates",
+    command = unique(eval_config$forecast_date_hosp) |>
+      purrr::discard(\(x) {
+        (as.Date(x) < first_scored_forecast_date) |
+          (as.Date(x) > last_scored_forecast_date)
+      })
+  ),
+  tar_target(
+    name = "scored_real_time_forecast_dates",
+    command = scored_forecast_dates |>
+      purrr::discard(\(x) {
+        (as.Date(x) < first_real_time_forecast_date) |
+          (as.Date(x) > last_real_time_forecast_date)
+      })
   ),
   tar_target(
     name = eval_hosp_data,
@@ -97,7 +129,8 @@ upstream_targets <- list(
       ),
       plot = gridExtra::marrangeGrob(plot_ww_eval_data, nrow = 1, ncol = 1),
       width = 8.5, height = 11, create.dir = TRUE
-    )
+    ),
+    format = "file"
   )
 )
 
@@ -1248,13 +1281,7 @@ hub_targets <- list(
     command = create_hub_submissions(
       filtered_ww_hosp_quantiles,
       all_hosp_model_quantiles,
-      forecast_dates = seq(
-        from = lubridate::ymd(
-          min(eval_config$forecast_date_hosp)
-        ),
-        to = lubridate::ymd(max(eval_config$forecast_date_hosp)),
-        by = "week"
-      ),
+      forecast_dates = scored_forecast_dates,
       hub_subdir = eval_config$hub_subdir,
       model_name = "cfa-wwrenewal"
     )
@@ -1264,13 +1291,7 @@ hub_targets <- list(
     command = create_hub_submissions(
       all_hosp_model_quantiles,
       all_hosp_model_quantiles,
-      forecast_dates = seq(
-        from = lubridate::ymd(
-          min(eval_config$forecast_date_hosp)
-        ),
-        to = lubridate::ymd(max(eval_config$forecast_date_hosp)),
-        by = "week"
-      ),
+      forecast_dates = scored_forecast_dates,
       hub_subdir = eval_config$hub_subdir,
       model_name = "cfa-hosponlyrenewal"
     )
@@ -1282,13 +1303,7 @@ hub_targets <- list(
       prop_dates_for_incl_hub = eval_config$prop_dates_for_incl_hub,
       prop_locs_for_incl_hub = eval_config$prop_locs_for_incl_hub,
       locations = unique(eval_config$location_hosp),
-      forecast_dates = seq(
-        from = lubridate::ymd(
-          min(eval_config$forecast_date_hosp)
-        ),
-        to = lubridate::ymd(max(eval_config$forecast_date_hosp)),
-        by = "week"
-      )
+      forecast_dates = scored_forecast_dates
     )
   ),
   # Write a function that will get hub scores + all the metadata
@@ -1300,13 +1315,7 @@ hub_targets <- list(
       model_name = c("cfa-wwrenewal", "cfa-hosponlyrenewal"),
       hub_subdir = eval_config$hub_subdir,
       pull_from_github = FALSE,
-      dates = seq(
-        from = lubridate::ymd(
-          min(eval_config$forecast_date_hosp)
-        ),
-        to = lubridate::ymd(max(eval_config$forecast_date_hosp)),
-        by = "week"
-      ) # Ensure that local retrospective hub submission files have been made
+      dates = scored_forecast_dates
     ) |> with_dependencies(
       metadata_hub_submissions,
       metadata_hosp_hub_submissions
@@ -1317,13 +1326,7 @@ hub_targets <- list(
     command = score_hub_submissions(
       model_name = covidhub_models_to_score,
       pull_from_github = TRUE,
-      dates = seq(
-        from = lubridate::ymd(
-          min(eval_config$forecast_date_hosp)
-        ),
-        to = lubridate::ymd(max(eval_config$forecast_date_hosp)),
-        by = "week"
-      )
+      dates = scored_forecast_dates
     )
   ),
   tar_target(
@@ -1337,17 +1340,16 @@ hub_targets <- list(
   tar_target(
     name = combine_scores_oct_mar_full,
     command = combine_scores_oct_mar_raw |> dplyr::mutate(
-      model = dplyr::case_when(
-        model == "cfa-wwrenewal" ~ "cfa-wwrenewal(retro)",
-        model == "cfa-hosponlyrenewal" ~ "cfa-hosponlyrenewal(retro)",
-        TRUE ~ model
+      model = dplyr::recode(model,
+        "cfa-wwrenewal(retro)" = "cfa-wwrenewal",
+        "cfa-hosponlyrenewal(retro)" = "cfa-hosponlyrenewal"
       )
     )
   ),
   tar_target(
     name = hosp_quantiles_filtered_grouped,
     command = hosp_quantiles_filtered |>
-      group_by(forecast_date, location) |>
+      dplyr::group_by(.data$forecast_date, .data$location) |>
       targets::tar_group(),
     iteration = "group"
   ),
@@ -1369,20 +1371,15 @@ hub_targets <- list(
     command = readr::write_csv(
       combine_scores_oct_mar,
       file.path(eval_config$score_subdir, "scores_oct_mar.csv")
-    )
+    ),
+    format = "file"
   ),
   tar_target(
     name = scores_list_cfa_ww_real_time,
     command = score_hub_submissions(
       model_name = "cfa-wwrenewal",
       pull_from_github = TRUE,
-      dates = seq(
-        from = lubridate::ymd(
-          "2024-02-05"
-        ),
-        to = lubridate::ymd(max(eval_config$forecast_date_hosp)),
-        by = "week"
-      )
+      dates = scored_real_time_forecast_dates
     )
   ),
   tar_target(
@@ -1407,8 +1404,9 @@ hub_targets <- list(
     command = dplyr::bind_rows(
       cfa_real_time_scores,
       cfa_hosp_real_time_scores,
-      combine_scores_oct_mar |> dplyr::filter(
-        forecast_date >= lubridate::ymd("2024-02-05")
+      dplyr::filter(
+        combine_scores_oct_mar,
+        .data$forecast_date >= !!first_real_time_forecast_date
       )
     )
   ),
@@ -1417,7 +1415,8 @@ hub_targets <- list(
     command = readr::write_csv(
       combine_scores_feb_mar,
       file.path(eval_config$score_subdir, "scores_feb_mar.csv")
-    )
+    ),
+    format = "file"
   )
 )
 ## Hub comparison  ------------------------------------------------------

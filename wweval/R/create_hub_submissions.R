@@ -42,20 +42,20 @@ create_hub_submissions <- function(hosp_quantiles_ww,
                                    scenario = "status_quo",
                                    save_files = TRUE) {
   hosp_quantiles_ww <- hosp_quantiles_ww |>
-    dplyr::filter(scenario == {{ scenario }})
+    dplyr::filter(scenario == !!scenario)
   metadata_df <- data.frame()
   for (i in seq_along(forecast_dates)) {
     forecast_date <- forecast_dates[i]
     first_target_date <- forecast_date + lubridate::days(1)
     ww_quantiles <- hosp_quantiles_ww |>
       dplyr::filter(
-        forecast_date == !!forecast_date,
-        date >= !!first_target_date
+        .data$forecast_date == !!forecast_date,
+        .data$date >= !!first_target_date
       )
     hosp_quantiles <- hosp_quantiles_hosp |>
       dplyr::filter(
-        forecast_date == !!forecast_date,
-        date >= !!first_target_date
+        .data$forecast_date == !!forecast_date,
+        .data$date >= !!first_target_date
       )
 
     all_locs <- unique(hosp_quantiles$location)
