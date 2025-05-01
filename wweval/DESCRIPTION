@@ -80,7 +80,8 @@ Imports:
     wwinference,
     fs,
     checkmate,
-    scoringutils
+    scoringutils,
+    svglite
 Suggests:
     httr,
     sessioninfo,

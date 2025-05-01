@@ -94,6 +94,7 @@ get_ind_forecast_score <- function(scores,
 #' @return a ggplot object containing violin plots comparing the distribution
 #' of crps scores across forecast dates for a single location, grouped by
 #' horizon and colored by model
+#' @export
 make_fig3_single_loc_comp <- function(scores,
                                       loc_to_plot,
                                       horizons_to_show = c(

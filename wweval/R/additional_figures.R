@@ -1,6 +1,13 @@
+#' Got a plot of forecasts and scores for a single
+#' location and date
+#'
+#' @param scores_single_loc_date Scores for a single location
+#' and data, as the output of [scoringutils::score()].
+#' @param eval_output_subdir Subdirectory in which to save the plot.
+#'
+#' @export
 get_plot_scores_and_forecasts <- function(scores_single_loc_date,
-                                          eval_output_subdir,
-                                          n_calib_days = 10) {
+                                          eval_output_subdir) {
   this_location <- unique(scores_single_loc_date$location)
 
   this_forecast_date <- unique(scores_single_loc_date$forecast_date)
