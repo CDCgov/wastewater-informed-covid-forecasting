@@ -36,7 +36,7 @@ check_package_is_installed <- function(pkg_name) {
 #'
 #' @return the first argument
 #'
-#' @noRd
+#' @export
 with_dependencies <- function(x, ...) {
   x
 }
