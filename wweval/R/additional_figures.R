@@ -143,13 +143,15 @@ get_plot_scores_and_forecasts <- function(scores_single_loc_date,
       labs(color = "Model", fill = "Model") +
       ggtitle(glue::glue("{this_forecast_date} in {this_location}"))
 
-    fig <- p_forecasts + p_scores_t + p_scores_avg +
-      patchwork::plot_layout(
-        guides = "collect",
-        nrow = 3, ncol = 1,
-        axes = "collect",
-        widths = c(1, 1.5)
-      ) & theme(
+    fig <- patchwork::wrap_plots(
+      p_forecasts,
+      p_scores_t,
+      p_scores_avg,
+      guides = "collect",
+      nrow = 3, ncol = 1,
+      axes = "collect",
+      widths = c(1, 1.5)
+    ) & theme(
       legend.position = "top",
       legend.justification = "left"
     )
@@ -458,13 +460,17 @@ get_plot_wis_t <- function(hosp_quantiles,
     xlab(NULL) +
     ylab("WIS")
 
-  fig <- p_forecasts + p_hub_forecasts + scores_t + scores_bar +
-    patchwork::plot_layout(
-      guides = "collect",
-      nrow = 4, ncol = 1,
-      axes = "collect",
-      widths = c(1, 1.5)
-    ) & theme(
+  fig <- patchwork::wrap_plots(
+    p_forecasts,
+    p_hub_forecasts,
+    scores_t,
+    scores_bar,
+    guides = "collect",
+    nrow = 4,
+    ncol = 1,
+    axes = "collect",
+    widths = c(1, 1.5)
+  ) & theme(
     legend.position = "top",
     legend.justification = "left"
   )
