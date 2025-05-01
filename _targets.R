@@ -620,8 +620,8 @@ manuscript_figures <- list(
 
   ## Fig: Example 3 locs, all forecast dates------------------------------
   tar_target(
-    name = summary_table_crps,
-    command = get_summary_table_fig3(
+    name = three_location_crps_figure,
+    command = multi_location_crps_figure(
       scores_filtered,
       locs_to_plot,
       fig_file_dir = fig_output_dir
@@ -1372,10 +1372,14 @@ hub_targets <- list(
   ),
   tar_target(
     name = save_scores_oct_mar,
-    command = readr::write_csv(
-      combine_scores_oct_mar,
-      file.path(eval_config$score_subdir, "scores_oct_mar.csv")
-    ),
+    command = {
+      fp <- fs::path(eval_config$score_subdir,
+        "scores_oct_mar",
+        ext = "csv"
+      )
+      readr::write_csv(fp, combine_scores_oct_mar)
+      fp
+    },
     format = "file"
   ),
   tar_target(

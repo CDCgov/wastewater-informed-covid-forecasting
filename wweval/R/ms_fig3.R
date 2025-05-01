@@ -1,14 +1,15 @@
-#' Get a summary of a single states crps
+#' Generate a bar plots of CRPS for each model in different locations
 #'
 #' @param scores tibble of crps scores by location, forecast date, model,
 #' horizon day
 #' @param locs_to_plot the locations we want summaries for
 #' @param fig_file_dir string indicating directory to save fig in
 #'
-#' @return a table with mean crps for each model and the relative crps
-get_summary_table_fig3 <- function(scores,
-                                   locs_to_plot,
-                                   fig_file_dir) {
+#' @return Figure showing CRPS for multiple locations.
+#' @export
+multi_location_crps_figure <- function(scores,
+                                       locs_to_plot,
+                                       fig_file_dir) {
   scores_locs_long <- scores |>
     dplyr::filter(
       location %in% locs_to_plot
@@ -45,14 +46,11 @@ get_summary_table_fig3 <- function(scores,
     ylab("Mean CRPS")
 
   ggsave(p,
-    filename = file.path(fig_file_dir, "sfig_bar_chart_mean_crps_3_locs.png"),
+    filename = file.path(fig_file_dir, "plot_multi_location_crps.png"),
     width = 7, height = 4
   )
 
-
-
-
-  return(scores_locs)
+  return(p)
 }
 
 #' Get an individual forecast score summary for a particular
