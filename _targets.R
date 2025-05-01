@@ -65,17 +65,18 @@ upstream_targets <- list(
   tar_target(
     name = scored_forecast_dates,
     command = unique(eval_config$forecast_date_hosp) |>
+      lubridate::ymd() |>
       purrr::discard(\(x) {
-        (as.Date(x) < first_scored_forecast_date) |
-          (as.Date(x) > last_scored_forecast_date)
+        (x < first_scored_forecast_date) |
+          (x > last_scored_forecast_date)
       })
   ),
   tar_target(
     name = scored_real_time_forecast_dates,
     command = scored_forecast_dates |>
       purrr::discard(\(x) {
-        (as.Date(x) < first_real_time_forecast_date) |
-          (as.Date(x) > last_real_time_forecast_date)
+        (x < first_real_time_forecast_date) |
+          (x > last_real_time_forecast_date)
       })
   ),
   tar_target(
