@@ -622,20 +622,22 @@ get_plot_score_by_horizon_t <- function(scores,
 #' @export
 get_avg_scores_model_horizon <- function(scores,
                                          score_type) {
-  avg_scores <- scores |>
-    dplyr::filter(
-      !is.na(horizon)
-    ) |>
-    # hack, will fix upstream
-    bind_rows(
-      scores |>
-        dplyr::mutate(horizon = "overall")
-    ) |>
-    dplyr::group_by(model, horizon) |>
+  ## append additional set of rows to summarize
+  ## across all horizons
+  to_agg <- dplyr::bind_rows(
+    scores,
+    dplyr::mutate(scores, horizon = "overall")
+  )
+
+  avg_scores <- to_agg |>
+    dplyr::group_by(.data$model, .data$horizon) |>
     dplyr::summarize(
-      avg_score = mean(!!sym({{ score_type }}))
+      avg_score = mean(.data[[score_type]])
     ) |>
-    tidyr::pivot_wider(names_from = model, values_from = avg_score)
+    tidyr::pivot_wider(
+      names_from = "model",
+      values_from = "avg_score"
+    )
 
   return(avg_scores)
 }
