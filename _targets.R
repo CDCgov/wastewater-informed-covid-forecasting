@@ -108,7 +108,7 @@ upstream_targets <- list(
   tar_target(
     name = grouped_eval_ww_data,
     command = eval_ww_data |>
-      dplyr::group_by(location) |>
+      dplyr::group_by(.data$location) |>
       targets::tar_group(),
     iteration = "group"
   ),
@@ -452,7 +452,10 @@ manuscript_figures <- list(
   tar_target(
     name = scores_filtered_grouped,
     command = scores_filtered |>
-      group_by(forecast_date, location) |>
+      dplyr::group_by(
+        .data$forecast_date,
+        .data$location
+      ) |>
       targets::tar_group(),
     iteration = "group"
   ),
@@ -1058,13 +1061,13 @@ scenario_targets <- list(
         "location"
       )
     ) |>
-      dplyr::group_by(location) |>
+      dplyr::group_by(.data$location) |>
       targets::tar_group()
   ),
   tar_target(
     name = grouped_all_raw_scores,
     command = all_raw_scores |>
-      dplyr::group_by(location) |>
+      dplyr::group_by(.data$location) |>
       targets::tar_group(),
     iteration = "group"
   ),
@@ -1090,13 +1093,13 @@ scenario_targets <- list(
         "location"
       )
     ) |>
-      dplyr::group_by(location) |>
+      dplyr::group_by(.data$location) |>
       targets::tar_group()
   ),
   tar_target(
     name = grouped_submission_scores,
     command = mock_submission_scores |>
-      dplyr::group_by(location) |>
+      dplyr::group_by(.data$location) |>
       targets::tar_group(),
     iteration = "group"
   ),
@@ -1165,7 +1168,7 @@ scenario_targets <- list(
       all_hosp_model_quantiles,
       all_ww_hosp_quantiles
     ) |>
-      dplyr::group_by(location) |>
+      dplyr::group_by(.data$location) |>
       targets::tar_group(),
     iteration = "group"
   ),
@@ -1511,8 +1514,8 @@ hub_comparison_plots <- list(
     name = bias_summary,
     command = wis_scores_rt_summarized |>
       dplyr::filter(scale == "log") |>
-      dplyr::group_by(model) |>
-      dplyr::summarize(avg_bias = mean(bias))
+      dplyr::group_by(.data$model) |>
+      dplyr::summarize(avg_bias = mean(.data$bias))
   ),
   tar_target(
     name = fig4_rel_wis_heatmap,
