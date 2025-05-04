@@ -864,3 +864,12 @@ combine_hub_and_local_wis <- function(
   )
   return(real_time_wis_both_models)
 }
+
+with_null_model_row <- function(score_dt,
+                                placeholder_name = "..NULL_PLACEHOLDER") {
+  row <- score_dt[NA]
+  row$model <- placeholder_name
+  return(scoringutils:::as_scores(rbind(score_dt, row),
+    metrics = scoringutils::get_metrics(score_dt)
+  ))
+}

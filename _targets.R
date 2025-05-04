@@ -1254,17 +1254,14 @@ real_time_rel_targets <- list(
       dplyr::mutate(rel_wis = ww / hosp)
   ),
   tar_target(
-    name = rel_mean_wis_rt_locs,
+    name = rel_mean_wis_real_time_locs,
     command = real_time_wis_both_models |>
       dplyr::filter(location %in% c("TX", "FL", "IL", "MI")) |>
-      data.table::as.data.table() |>
-      scoringutils::summarise_scores(by = c("model", "location")) |>
-      dplyr::select(model, interval_score, location) |>
-      tidyr::pivot_wider(
-        names_from = model,
-        values_from = interval_score
+      forecasttools::summarise_scores_with_baseline(
+        baseline = "hosp",
+        by = c("model", "location")
       ) |>
-      dplyr::mutate(rel_wis = ww / hosp)
+      dplyr::rename(rel_wis = "model_scores_ratio")
   )
 )
 
@@ -1430,33 +1427,45 @@ hub_targets <- list(
 ## Hub comparison  ------------------------------------------------------
 hub_comparison_plots <- list(
   tar_target(
-    name = fig5_summary_table,
-    command = make_fig5_table_and_plot(
+    name = hub_average_score_table_all_time,
+    command = hub_average_score_table(
       combine_scores_oct_mar,
-      time_period = "Oct-Mar",
-      fig_file_dir = fig_output_dir
     )
   ),
   tar_target(
-    name = fig5_summary_table_Feb_Mar,
-    command = make_fig5_table_and_plot(
+    name = hub_average_score_table_real_time,
+    command = hub_average_score_table(
       combine_scores_feb_mar |>
         dplyr::filter(!model %in% c(
           "cfa-hosponlyrenewal(retro)",
           "cfa-wwrenewal(retro)"
-        )),
-      time_period = "Feb-Mar",
-      fig_file_dir = fig_output_dir
+        ))
     )
   ),
   tar_target(
-    name = summarized_scores_oct_mar,
+    name = hub_barplot_avg_wis_all_time,
+    command = barplot_avg_wis(
+      hub_average_score_table_all_time,
+      "Oct-Mar",
+      fig_output_dir
+    )
+  ),
+  tar_target(
+    name = hub_barplot_avg_wis_real_time,
+    command = barplot_avg_wis(
+      hub_average_score_table_real_time,
+      "Feb-Mar",
+      fig_output_dir
+    )
+  ),
+  tar_target(
+    name = summarized_scores_all_time,
     command = combine_scores_oct_mar |>
       data.table::as.data.table() |>
       scoringutils::summarise_scores()
   ),
   tar_target(
-    name = summarized_scores_feb_mar,
+    name = summarized_scores_real_time,
     command = combine_scores_feb_mar |>
       data.table::as.data.table() |>
       scoringutils::summarise_scores()
@@ -1479,53 +1488,16 @@ hub_comparison_plots <- list(
       "cfa-hosponlyrenewal(retro)"
     )
   ),
-  ## Fig: Real-time Hub comparison ------------------------------------------
-  # This will be the real-time density of relative CRPS compared
-  # to covidhub baseline (will need to get the summary stats for this too)
   tar_target(
-    name = fig5_density_real_time,
-    command = make_fig5_density(
-      all_scores = summarized_scores_feb_mar |>
-        dplyr::filter(!model %in% c(
-          "cfa-wwrenewal(retro)",
-          "cfa-hosponlyrenewal(retro)"
-        )),
-      models_to_show = models_to_plot,
-      analysis_type = "Real-time",
-    )
-  ),
-  # This will be the average WIS across forecast dates for the real-time
-  # scores
-  tar_target(
-    name = fig5_plot_wis_t_real_time,
-    command = make_fig5_average_wis(
-      all_scores = summarized_scores_feb_mar |>
-        dplyr::filter(!model %in% c(
-          "cfa-wwrenewal(retro)",
-          "cfa-hosponlyrenewal(retro)"
-        )),
-      models_to_show = models_to_plot,
-      time_period = "Feb-Mar 2024"
-    )
-  ),
-  ## Fig:Real-time relative-----------------------------------------
-  tar_target(
-    name = wis_scores_rt_summarized,
+    name = wis_summary_cfa_models_real_time,
     command = real_time_wis_both_models |>
       data.table::as.data.table() |>
       scoringutils::summarise_scores()
   ),
   tar_target(
-    name = bias_summary,
-    command = wis_scores_rt_summarized |>
-      dplyr::filter(scale == "log") |>
-      dplyr::group_by(.data$model) |>
-      dplyr::summarize(avg_bias = mean(.data$bias))
-  ),
-  tar_target(
     name = fig4_rel_wis_heatmap,
     command = make_fig4_heatmap_rel_wis(
-      wis_scores = wis_scores_rt_summarized,
+      wis_scores = wis_summary_cfa_models_real_time,
       time_period = "Feb-Mar 2024",
       analysis_type = "Real-time"
     )
@@ -1533,7 +1505,7 @@ hub_comparison_plots <- list(
   tar_target(
     name = fig4_rel_wis_hist,
     command = get_plot_rel_wis_distrib(
-      wis_scores = wis_scores_rt_summarized
+      wis_scores = wis_summary_cfa_models_real_time
     )
   ),
   tar_target(
@@ -1547,19 +1519,19 @@ hub_comparison_plots <- list(
   tar_target(
     name = fig4_avg_wis,
     command = make_fig4_avg_wis_over_time(
-      wis_scores_rt_summarized
+      wis_summary_cfa_models_real_time
     )
   ),
   tar_target(
     name = fig4_rel_wis_over_time,
     command = make_fig4_rel_wis_over_time(
-      wis_scores_rt_summarized
+      wis_summary_cfa_models_real_time
     )
   ),
   tar_target(
     name = fig4_rel_wis_by_location,
     command = make_fig4_rel_wis_by_location(
-      wis_scores_rt_summarized
+      wis_summary_cfa_models_real_time
     )
   ),
   tar_target(
@@ -1604,47 +1576,49 @@ hub_comparison_plots <- list(
       fig_file_dir = fig_output_dir
     )
   ),
-
-
-  ## Fig: Retrospective Hub comparison-------------------------------------------
   tar_target(
-    name = fig5_density_all_time,
-    command = make_fig5_density(
-      all_scores = summarized_scores_oct_mar,
-      models_to_show = models_to_plot,
-      analysis_type = "Retrospective",
+    name = hub_hist_rwis_all_time,
+    command = plot_relative_wis_histogram(
+      raw_scores = summarized_scores_oct_mar,
+      models_to_show = models_to_plot
     )
   ),
   tar_target(
-    name = fig5_plot_wis_t_all_time,
-    command = make_fig5_average_wis(
+    name = hub_hist_rwis_real_time,
+    command = relative_wis_histogram(
+      raw_scores = summarized_scores_feb_mar |>
+        dplyr::filter(
+          !.data$model %in% c(
+            "cfa-wwrenewal(retro)",
+            "cfa-hosponlyrenewal(retro)"
+          )
+        ),
+      models_to_show = models_to_plot
+    )
+  ),
+  tar_target(
+    name = hub_wis_t_all_time,
+    command = plot_wis_t(
       all_scores = summarized_scores_oct_mar,
       models_to_show = models_to_plot,
       time_period = "Oct 2023-Mar 2024"
     )
   ),
   tar_target(
-    name = plot5_plot_wis_t_all_time,
-    command = make_fig5_average_wis(
-      all_scores = summarized_scores_oct_mar,
-      models_to_show = unique(combine_scores_oct_mar$model),
-      time_period = "Oct 2023-Mar 2024",
-      fig_file_dir = fig_output_dir
-    )
-  ),
-  tar_target(
-    name = fig5_overall_performance,
-    command = make_fig5_hub_performance(
-      all_scores = summarized_scores_oct_mar,
-      cfa_real_time_scores = summarized_scores_cfa_real_time,
+    name = hub_wis_t_real_time,
+    command = plot_wis_t(
+      all_scores = summarized_scores_feb_mar |>
+        dplyr::filter(!model %in% c(
+          "cfa-wwrenewal(retro)",
+          "cfa-hosponlyrenewal(retro)"
+        )),
       models_to_show = models_to_plot,
-      all_time_period = "Oct 2023-Mar 2024",
-      real_time_period = "Feb 2024-Mar 2024",
+      time_period = "Feb-Mar 2024"
     )
   ),
   tar_target(
-    name = fig5_heatmap_rel_wis_all_time,
-    command = make_fig5_heatmap_relative_wis(
+    name = hub_heatmap_rel_wis_all_time,
+    command = plot_heatmap_relative_wis(
       scores = summarized_scores_oct_mar,
       models_to_show = models_to_plot,
       time_period = "Oct 2023-Mar 2024",
@@ -1652,8 +1626,8 @@ hub_comparison_plots <- list(
     )
   ),
   tar_target(
-    name = fig5_heatmap_rel_wis_feb_mar,
-    command = make_fig5_heatmap_relative_wis(
+    name = hub_heatmap_rel_wis_real_time,
+    command = plot_heatmap_relative_wis(
       scores = summarized_scores_feb_mar |>
         dplyr::filter(!model %in% c(
           "cfa-wwrenewal(retro)",
@@ -1665,16 +1639,16 @@ hub_comparison_plots <- list(
     )
   ),
   tar_target(
-    name = fig5_qq_plot_all_time,
-    command = make_fig5_qq_plot(
+    name = hub_qq_plot_all_time,
+    command = qq_plot_by_model(
       scores = combine_scores_oct_mar,
       models_to_show = models_to_plot,
       time_period = "Oct 2023-Mar 2024"
     )
   ),
   tar_target(
-    name = fig5_qq_plot_feb_mar,
-    command = make_fig5_qq_plot(
+    name = hub_qq_plot_real_time,
+    command = qq_plot_by_model(
       scores = combine_scores_feb_mar |>
         dplyr::filter(!model %in% c(
           "cfa-wwrenewal(retro)",
@@ -1685,15 +1659,15 @@ hub_comparison_plots <- list(
     )
   ),
   tar_target(
-    name = fig5_all_time_bar_chart,
-    make_fig5_bar_chart(
+    name = hub_barplot_wis_all_time,
+    wis_barplot(
       combine_scores_oct_mar,
       time_period = "Oct-Mar"
     )
   ),
   tar_target(
-    name = fig5_real_time_bar_chart,
-    make_fig5_bar_chart(
+    name = hub_barplot_wis_real_time,
+    wis_barplot(
       combine_scores_feb_mar |>
         dplyr::filter(!model %in% c(
           "cfa-wwrenewal(retro)",
@@ -1702,9 +1676,50 @@ hub_comparison_plots <- list(
       time_period = "Oct-Mar"
     )
   ),
+  tar_twarget(
+    name = hub_wis_t_all_time_all_models,
+    command = plot_wis_t(
+      all_scores = summarized_scores_oct_mar,
+      models_to_show = unique(combine_scores_oct_mar$model),
+      time_period = "Oct 2023-Mar 2024",
+      fig_file_dir = fig_output_dir
+    )
+  ),
   tar_target(
-    name = fig5_std_rank_feb_mar,
-    command = make_fig5_density_rank(
+    name = hub_performance_by_period,
+    command = plot_hub_performance_by_period(
+      all_scores = summarized_scores_oct_mar,
+      cfa_real_time_scores = summarized_scores_cfa_real_time,
+      models_to_show = models_to_plot,
+      all_time_period = "Oct 2023-Mar 2024",
+      real_time_period = "Feb 2024-Mar 2024",
+    )
+  ),
+  tar_target(
+    name = std_rank_summary_table_all_time,
+    command = summarize_std_rank(summarized_scores_oct_mar)
+  ),
+  tar_target(
+    name = std_rank_summary_table_real_time,
+    command = summarize_std_rank(summarized_scores_feb_mar |>
+      dplyr::filter(!model %in% c(
+        "cfa-wwrenewal(retro)",
+        "cfa-hosponlyrenewal(retro)"
+      )))
+  ),
+  tar_target(
+    name = std_rank_plot_all_time,
+    command = density_plot_std_rank(
+      scores = summarized_scores_oct_mar,
+      models_to_show = models_to_plot,
+      time_period = "Oct 2023-Mar 2024",
+      tp_fp = "at",
+      fig_file_dir = fig_output_dir
+    )
+  ),
+  tar_target(
+    name = std_rank_plot_real_time,
+    command = density_plot_std_rank(
       scores = summarized_scores_feb_mar |>
         dplyr::filter(!model %in% c(
           "cfa-wwrenewal(retro)",
@@ -1717,41 +1732,26 @@ hub_comparison_plots <- list(
     )
   ),
   tar_target(
-    name = std_rank_summary_table_rt,
-    command = summarize_std_rank(summarized_scores_feb_mar |>
-      dplyr::filter(!model %in% c(
-        "cfa-wwrenewal(retro)",
-        "cfa-hosponlyrenewal(retro)"
-      )))
-  ),
-  tar_target(
-    name = fig5_std_rank_all_time,
-    command = make_fig5_density_rank(
-      scores = summarized_scores_oct_mar,
-      models_to_show = models_to_plot,
-      time_period = "Oct 2023-Mar 2024",
-      tp_fp = "at",
+    name = hub_comparison_figure_all_time,
+    command = compose_and_save_hub_figure(
+      plot_wis_t = hub_wis_t_all_time,
+      hist_rwis = hub_hist_rwis_all_time,
+      barplot_wis = hub_barplot_wis_all_time,
+      heatmap_rel_wis = hub_heatmap_rel_wis_all_time,
+      qq_plot = hub_qq_plot_all_time,
+      figure_name = "hub_comparison_figure_all_time",
       fig_file_dir = fig_output_dir
     )
   ),
   tar_target(
-    name = std_rank_summary_table_at,
-    command = summarize_std_rank(summarized_scores_oct_mar)
-  ),
-  ### Fig Real-time and retro Hub combined---------------------------------------------------
-  tar_target(
-    name = fig5,
-    command = make_fig5(
-      fig5_plot_wis_t_real_time = fig5_plot_wis_t_real_time,
-      fig5_density_real_time = fig5_density_real_time,
-      fig5_density_all_time = fig5_density_all_time,
-      fig5_plot_wis_t_all_time = fig5_plot_wis_t_all_time,
-      fig5_all_time_bar_chart = fig5_all_time_bar_chart,
-      fig5_heatmap_rel_wis_all_time = fig5_heatmap_rel_wis_all_time,
-      fig5_heatmap_rel_wis_feb_mar = fig5_heatmap_rel_wis_feb_mar,
-      fig5_qq_plot_all_time = fig5_qq_plot_all_time,
-      fig5_qq_plot_feb_mar = fig5_qq_plot_feb_mar,
-      fig5_real_time_bar_chart = fig5_real_time_bar_chart,
+    name = hub_comparison_figure_real_time,
+    command = compose_and_save_hub_figure(
+      plot_wis_t = hub_wis_t_real_time,
+      hist_rwis = hub_hist_rwis_real_time,
+      barplot_wis = hub_barplot_wis_real_time,
+      heatmap_rel_wis = hub_heatmap_rel_wis_real_time,
+      qq_plot = hub_qq_plot_real_time,
+      figure_name = "hub_comparison_figure_real_time",
       fig_file_dir = fig_output_dir
     )
   )
@@ -1838,9 +1838,9 @@ additional_figures <- list(
     )
   ),
   tar_target(
-    name = comp_stats_rt,
+    name = comp_stats_real_time,
     command = get_stats_imp_forecasts_wis(
-      scores = wis_scores_rt_summarized,
+      scores = wis_summary_cfa_models_real_time,
       threshold = 1.1
     )
   ),

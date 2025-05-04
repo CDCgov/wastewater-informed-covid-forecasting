@@ -1,30 +1,47 @@
 #' Make summary table of WIS scores in Hub models overall
 #'
 #' @param scores quantile based scores from the hub
-#' @param time_period string indicating which time period to make the plot for
-#' @param fig_file_dir directory to save figure
-#'
-#' @return A table with the average scores of each model over the time period
+#' @return A table with the average scores of each model,
+#' where model is an ordered factor.
 #' @export
-make_fig5_table_and_plot <- function(scores,
-                                     time_period,
-                                     fig_file_dir) {
-  # Overall avg wis, bias, absolute error etc
-  hub_scores_overall <- scores |>
-    dplyr::group_by(model) |>
+hub_average_score_table <- function(scores) {
+  avg_scores <- scores |>
+    dplyr::group_by(.data$model) |>
     dplyr::summarise(
-      avg_wis = mean(interval_score),
-      avg_bias = mean(bias),
-      avg_ae = mean(ae_median)
+      avg_wis = mean(.data$wis),
+      avg_bias = mean(.data$bias),
+      avg_ae = mean(.data$ae_median)
     ) |>
-    dplyr::mutate(model = factor(model,
-      levels = as.character(model)[order(avg_wis)]
-    ))
+    dplyr::mutate(model = factor(.data$model,
+      levels = as.character(.data$model)[order(.data$avg_wis)]
+    )) |>
+    dplyr::arrange(.data$model)
 
+  return(avg_scores)
+}
+
+#' Plot average WIS as a barplot.
+#'
+#' @param average_scores Scores for models, with
+#' `avg_wis` and `model` columns.
+#' @param time_period string indicating the time period covered,
+#' for labeling the plot.
+#' @param fig_file_dir directory to save figure
+#' @return The figure, also saving it to disk as a side effect.
+#' @export
+barplot_avg_wis <- function(average_scores,
+                            time_period,
+                            fig_file_dir) {
   colors <- plot_components()
-  p <- ggplot(hub_scores_overall) +
-    geom_bar(aes(x = model, y = avg_wis, fill = model),
-      stat = "identity", position = "dodge"
+  p <- ggplot(average_scores) +
+    geom_bar(
+      aes(
+        x = .data$model,
+        y = .data$avg_wis,
+        fill = .data$ model
+      ),
+      stat = "identity",
+      position = "dodge"
     ) +
     get_plot_theme(
       x_axis_dates = TRUE,
@@ -34,17 +51,19 @@ make_fig5_table_and_plot <- function(scores,
     scale_fill_manual(values = colors$model_colors) +
     xlab("") +
     ylab("Average WIS") +
-    ggtitle(glue::glue("Average WIS across forecast dates and locations from {time_period} 2024")) # nolint
+    ggtitle(glue::glue(
+      "Average WIS across forecast dates ",
+      "and locations from {time_period} 2024"
+    ))
 
   ggsave(p,
     filename = file.path(
       fig_file_dir,
-      glue::glue("sfig_bar_chart_{time_period}.png")
+      glue::glue("fig_hub_avg_wis_{time_period}.png")
     )
   )
 
-
-  return(hub_scores_overall)
+  return(p)
 }
 
 #' Make plot of WIS scores in Hub models overall
@@ -54,24 +73,25 @@ make_fig5_table_and_plot <- function(scores,
 #'
 #' @return A plot ordered by average wis over the time period
 #' @export
-make_fig5_bar_chart <- function(scores,
-                                time_period) {
-  # Overall avg wis, bias, absolute error etc
-  hub_scores_overall <- scores |>
-    dplyr::group_by(model) |>
-    dplyr::summarise(
-      avg_wis = mean(interval_score),
-      avg_bias = mean(bias),
-      avg_ae = mean(ae_median)
-    ) |>
-    dplyr::mutate(model = factor(model,
-      levels = as.character(model)[order(avg_wis)]
+wis_barplot <- function(scores,
+                        time_period) {
+  scores <- scores |>
+    dplyr::arrange(.data$wis) |>
+    dplyr::mutate(model = factor(.data$model,
+      levels = unique(.data$model),
+      ordered = TRUE
     ))
 
   colors <- plot_components()
-  p <- ggplot(hub_scores_overall) +
-    geom_bar(aes(x = model, y = avg_wis, fill = model),
-      stat = "identity", position = "dodge",
+  p <- ggplot(scores) +
+    geom_bar(
+      aes(
+        x = .data$model,
+        y = .data$wis,
+        fill = .data$model
+      ),
+      stat = "identity",
+      position = "dodge",
       show.legend = FALSE
     ) +
     get_plot_theme(
@@ -82,7 +102,6 @@ make_fig5_bar_chart <- function(scores,
     scale_fill_manual(values = colors$model_colors) +
     xlab("") +
     ylab("Average WIS")
-
 
   return(p)
 }
@@ -111,18 +130,13 @@ make_fig5_bar_chart <- function(scores,
 #' real-time cfa model from Feb - Mar and the retrospective CFA model over
 #' all time points
 #' @export
-#'
-make_fig5_average_wis <- function(all_scores,
-                                  cfa_real_time_scores = c(),
-                                  models_to_show,
-                                  time_period,
-                                  horizon_time_in_weeks = NULL,
-                                  fig_file_dir = NULL) {
+plot_wis_t <- function(all_scores,
+                       models_to_show,
+                       time_period,
+                       horizon_time_in_weeks = NULL,
+                       fig_file_dir = NULL) {
   subset_model_scores <- all_scores |>
     dplyr::filter(model %in% !!models_to_show)
-
-  scores <- dplyr::bind_rows(subset_model_scores, cfa_real_time_scores)
-
 
   if (!is.null(horizon_time_in_weeks)) {
     scores_by_forecast_date <- scores |>
@@ -218,14 +232,14 @@ make_fig5_average_wis <- function(all_scores,
 #' full distribution
 #' @export
 #'
-make_fig5_hub_performance <- function(all_scores,
-                                      cfa_real_time_scores,
-                                      figure_file_path,
-                                      all_time_period,
-                                      real_time_period,
-                                      models_to_show,
-                                      summarize_across_horizon = FALSE,
-                                      baseline_model = "COVIDhub-4_week_ensemble") {
+plot_hub_performance_by_period <- function(all_scores,
+                                           cfa_real_time_scores,
+                                           figure_file_path,
+                                           all_time_period,
+                                           real_time_period,
+                                           models_to_show,
+                                           summarize_across_horizon = FALSE,
+                                           baseline_model = "COVIDhub-4_week_ensemble") {
   subset_scores <- all_scores |>
     dplyr::filter(model %in% !!models_to_show)
 
@@ -333,35 +347,26 @@ make_fig5_hub_performance <- function(all_scores,
   return(p)
 }
 
-make_fig5_density <- function(all_scores,
-                              analysis_type,
-                              models_to_show,
-                              baseline_model = "COVIDhub-4_week_ensemble") {
-  subset_scores <- all_scores |>
-    dplyr::filter(model %in% !!models_to_show)
-
-  baseline_scores <- subset_scores |>
-    dplyr::filter(model == {{ baseline_model }}) |>
-    dplyr::select(
-      location, forecast_date, target_end_date,
-      horizon, interval_score
+#' Plot a histogram of individual forecast relative WIS values
+#'
+#' @param raw_scores Table of raw scores to plot.
+#' @param models_to_show Character vector of models to plot.
+#' @export
+relative_wis_histogram <- function(raw_scores,
+                                   models_to_show,
+                                   baseline_model =
+                                     "COVIDhub-4_week_ensemble") {
+  scores <- raw_scores |>
+    dplyr::filter(.data$model %in% !!models_to_show) |>
+    forecasttools::summarise_scores_with_baseline(
+      baseline = baseline_model,
+      by = c(
+        "forecast_date",
+        "location"
+      )
     ) |>
-    dplyr::group_by(location, forecast_date) |>
-    dplyr::summarize(mean_baseline_score = mean(interval_score))
-
-  scores_final <- subset_scores |>
-    dplyr::group_by(
-      forecast_date, location, model
-    ) |>
-    dplyr::summarize(mean_wis = mean(interval_score)) |>
-    dplyr::left_join(baseline_scores, by = c(
-      "forecast_date", "location"
-    )) |>
-    dplyr::mutate(relative_wis = mean_wis / mean_baseline_score) |>
-    dplyr::filter(
-      model != {{ baseline_model }},
-      !is.na(relative_wis)
-    )
+    dplyr::filter(.data$model != !!baseline_model) |>
+    dplyr::rename(relative_wis = "mean_scores_ratio")
 
 
   colors <- plot_components()
@@ -369,7 +374,8 @@ make_fig5_density <- function(all_scores,
   p <- ggplot(scores_final) +
     tidybayes::stat_histinterval(
       aes(
-        x = model, y = relative_wis,
+        x = .data$model,
+        y = .data$relative_wis,
         fill = model
       ),
       point_interval = "mean_qi",
@@ -399,8 +405,6 @@ make_fig5_density <- function(all_scores,
     ) +
     ylab(glue::glue("Relative WIS compared to \n {baseline_model}"))
 
-
-
   return(p)
 }
 
@@ -419,10 +423,10 @@ make_fig5_density <- function(all_scores,
 #' and fill by relative WIS score across forecast dates and horizons
 #' @export
 #'
-make_fig5_heatmap_relative_wis <- function(scores,
-                                           time_period,
-                                           models_to_show,
-                                           baseline_model = "COVIDhub-4_week_ensemble") {
+plot_heatmap_relative_wis <- function(scores,
+                                      time_period,
+                                      models_to_show,
+                                      baseline_model = "COVIDhub-4_week_ensemble") {
   summarized_scores <- scores |>
     data.table::as.data.table() |>
     scoringutils::summarise_scores(
@@ -488,10 +492,9 @@ make_fig5_heatmap_relative_wis <- function(scores,
 #' @return a ggplot object containing a plot of the proportion of data within
 #' each interval for each model.
 #' @export
-
-make_fig5_qq_plot <- function(scores,
-                              models_to_show,
-                              time_period) {
+qq_plot_by_model <- function(scores,
+                             models_to_show,
+                             time_period) {
   subset_scores <- scores |>
     dplyr::filter(model %in% !!models_to_show)
 
@@ -642,47 +645,42 @@ summarize_std_rank <- function(scores) {
 
 
 
-#' Make Fig 5
+#' Make a figure showing comparisons to Hub models across
+#' the entire season and from February onward.
 #'
-#' @param fig5_plot_wis_t_real_time average wis over time across locations for
-#' each model in real-time (feb-mar)
-#' @param fig5_density_real_time density plot of relative performance
+#' @param plot_wis_t average wis over time
+#' across locations for ach model in real-time (feb-mar)
+#' @param hist_rwis Histogram of relative WIS
 #' across location, forecast_date, day, and model
-#' @param fig5_plot_wis_t_all_time average wis over time across locations for
-#' each model in real-time (feb-mar)
-#' @param fig5_density_all_time density plot of relative performance
-#' across location, forecast_date, day, and model
-#' @param fig5_all_time_bar_chart bar chart in order of average WIS
-#' @param fig5_real_time_bar_chart bar chart in order of average WIS
-#' @param fig5_heatmap_rel_wis_all_time heatmap comparing WIS across
-#' forecast dates for each location for all time
-#' @param fig5_heatmap_rel_wis_feb_mar heatmap comparing WIS across
-#' forecast dates for each location for the real-time period (Feb-Mar)
-#' @param fig5_qq_plot_all_time qq plot comparing model coverage for all time
-#' @param fig5_qq_plot_feb_mar qq plot comparing model coverage for the
-#' real-time period (Feb-Mar)
-#' @param fig_file_dir Path to save figures
+#' @param barplot_wis bar chart in order of average WIS
+#' @param heatmap_rel_wis heatmap comparing WIS across
+#' forecast dates for each location.
+#' @param qq_plot qq plot comparing model coverage
+#' @param figure_name Filename for the figure, without the extension.
+#' @param fig_file_dir Directory in which to save figures
 #'
-#' @return a ggplot object containing all the figures combined
+#' @return a patchwork object containing all the figures combined. As a
+#' side effect, saves the figure to disk both as a png and as an svg.
 #' @export
 #'
-make_fig5 <- function(fig5_plot_wis_t_real_time,
-                      fig5_density_real_time,
-                      fig5_plot_wis_t_all_time,
-                      fig5_density_all_time,
-                      fig5_heatmap_rel_wis_all_time,
-                      fig5_heatmap_rel_wis_feb_mar,
-                      fig5_qq_plot_all_time,
-                      fig5_qq_plot_feb_mar,
-                      fig5_real_time_bar_chart,
-                      fig5_all_time_bar_chart,
-                      fig_file_dir) {
+compose_and_save_hub_figure <- function(plot_wis_t,
+                                        hist_rwis,
+                                        barplot_wis,
+                                        heatmap_rel_wis,
+                                        qq_plot,
+                                        figure_name,
+                                        fig_file_dir) {
   layout <- "
 AABBBB
 CCDDEE
 "
-  fig5_rt <- fig5_density_real_time + fig5_plot_wis_t_real_time +
-    fig5_heatmap_rel_wis_feb_mar + fig5_qq_plot_feb_mar + fig5_real_time_bar_chart +
+  composed_fig <- patchwork::wrap_plots(
+    hist_rwis,
+    plot_wis_t,
+    heatmap_rel_wis,
+    qq_plot,
+    barplot_wis
+  ) +
     patchwork::plot_layout(
       design = layout,
       axes = "collect",
@@ -693,41 +691,21 @@ CCDDEE
   # legend.justification = "left" #nolint
   # ) #+ plot_annotation(tag_levels = "A") #nolint, not working
 
-  fs::dir_create(fig_file_dir)
 
-  ggsave(fig5_rt,
-    filename = file.path(fig_file_dir, "fig5_rt.png"),
+  ggsave(composed_fig,
+    filename = fs::path(fig_file_dir,
+      figure_name,
+      ext = "png"
+    ),
+    width = 12, height = 10
+  )
+  ggsave(composed_fig,
+    filename = fs::path(fig_file_dir,
+      figure_name,
+      ext = "svg"
+    ),
     width = 12, height = 10
   )
 
-  ggsave(fig5_rt,
-    filename = file.path(fig_file_dir, "fig5.svg"),
-    width = 12, height = 10
-  )
-
-
-  fig5_at <- fig5_density_all_time + fig5_plot_wis_t_all_time +
-    fig5_heatmap_rel_wis_all_time + fig5_qq_plot_all_time + fig5_all_time_bar_chart +
-    patchwork::plot_layout(
-      design = layout,
-      axes = "collect",
-      guides = "collect"
-    ) & theme(
-    legend.position = "bottom"
-  )
-  # legend.justification = "left" #nolint
-  # ) #+ plot_annotation(tag_levels = "A") #nolint, not working
-
-  fs::dir_create(fig_file_dir)
-
-  ggsave(fig5_at,
-    filename = file.path(fig_file_dir, "fig5_at.png"),
-    width = 12, height = 10
-  )
-
-  ggsave(fig5_at,
-    filename = file.path(fig_file_dir, "fig5_at.svg"),
-    width = 12, height = 10
-  )
-  return(fig5_rt)
+  return(composed_fig)
 }
