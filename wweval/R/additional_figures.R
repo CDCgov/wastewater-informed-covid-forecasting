@@ -811,10 +811,14 @@ get_stats_imp_forecasts_wis <- function(scores,
   return(stats)
 }
 
-
-
-
-
+#' Make a scatterplot comparing number of wastewater
+#' sites to model performance.
+#'
+#' @param scores data frame of scores
+#' @param ww_metadata data frame of wastewater metadata.
+#' @param fig_file_dir directory in which to save the figure.
+#' @return The figure, saving it to disk as a side effect.
+#' @export
 get_plot_sites_vs_performance <- function(scores,
                                           ww_metadata,
                                           fig_file_dir) {
