@@ -81,7 +81,8 @@ Imports:
     fs,
     checkmate,
     scoringutils,
-    svglite
+    svglite,
+    forecasttools (>= 0.1.6)
 Suggests:
     httr,
     sessioninfo,
@@ -96,5 +97,6 @@ RoxygenNote: 7.3.2
 Remotes:
     stan-dev/cmdstanr,
     wwinference=CDCgov/ww-inference-model@v0.1.1,
+    github::cdcgov/forecasttools
 LazyData: true
 Config/testthat/edition: 3
