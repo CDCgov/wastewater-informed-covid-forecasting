@@ -1352,9 +1352,8 @@ get_qq_plot <- function(scores,
                         time_period,
                         save_files = TRUE) {
   p <- scores |>
-    data.table::as.data.table() |>
-    scoringutils::summarise_scores(by = c("model", "range")) |>
-    scoringutils::plot_interval_coverage() +
+    scoringutils::get_coverage() |>
+    scoringutils::plot_quantile_coverage() +
     ggtitle(glue::glue("QQ plot for {time_period}"))
 
 
