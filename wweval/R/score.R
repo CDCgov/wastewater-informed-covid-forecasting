@@ -530,7 +530,7 @@ check_any_flags <- function(forecast_dir,
     stanfit <- cmdstanr::as_cmdstan_fit(stan_csvs)
     flags <- get_diagnostic_flags(stanfit)
   } else if (fs::file_exists(diagnostic_file_path)) {
-    flag_tab <- readr::read_csv(diagnostic_file) |>
+    flag_tab <- readr::read_csv(diagnostic_file_path) |>
       clean_flag_df()
     checkmate::assert_names(flag_tabs$diagnostic,
       must.include = flags_to_check
