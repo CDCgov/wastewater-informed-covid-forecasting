@@ -545,39 +545,29 @@ make_plot_coverage_range <- function(scores_quantiles,
                                      fig_file_dir = NULL,
                                      write_files = FALSE) {
   to_plot <- scores_quantiles |>
-    scoringutils::summarize_scores(by = "horizon") |>
+    scoringutils::get_coverage(by = "horizon") |>
     order_horizons() |>
     dplyr::filter(!is.na(horizon)) |>
-    tidyr::pivot_longer(
-      id_cols = "horizon"
-    ) |>
-    dplyr::filter(stringr::str_starts_with(
-      .data$name,
-      "interval_coverage_"
-    )) |>
     dplyr::mutate(
-      range = stringr::str_replace_1(
-        .data$name,
-        "interval_coverage_",
-        ""
-      ) |>
-        as.numeric(),
-      named_facet = glue::glue("{.data$range}%")
+      named_facet = glue::glue("{.data$interval_range}%")
     ) |>
-    dplyr::filter(.data$range %in% !!ranges)
+    dplyr::filter(.data$interval_range %in% !!ranges)
 
   colors <- plot_components()
   p <- ggplot(
     data = to_plot,
     mapping = aes(
       x = .data$horizon,
-      y = .data$value,
+      y = .data$interval_coverage,
       color = .data$model
     )
   ) +
     geom_line() +
     geom_point() +
-    geom_hline(aes(yintercept = range), linetype = "dashed") +
+    geom_hline(
+      aes(yintercept = .data$interval_range),
+      linetype = "dashed"
+    ) +
     facet_wrap(~ .data$named_facet,
       scales = "free_y"
     ) +
