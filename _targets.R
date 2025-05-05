@@ -1320,7 +1320,8 @@ hub_targets <- list(
         "cfa-hosponlyrenewal(retro)" =
           "cfa-hosponlyrenewal"
       )) |>
-      dplyr::filter(!location_name %in% .env$hub_locations_to_exclude)
+      dplyr::filter(!location_name %in% .env$hub_locations_to_exclude) |>
+      with_dependencies(hub_locations_to_exclude)
   ),
   tar_target(
     name = hub_forecasts_cfa_ww_real_time,
@@ -1333,7 +1334,8 @@ hub_targets <- list(
         "cfa-wwrenewal(real-time)" =
           "cfa-wwrenewal"
       )) |>
-      dplyr::filter(!location_name %in% .env$hub_locations_to_exclude)
+      dplyr::filter(!location_name %in% .env$hub_locations_to_exclude) |>
+      with_dependencies(hub_locations_to_exclude)
   ),
   tar_target(
     name = hub_forecasts_cfa_hosp_real_time,
@@ -1344,7 +1346,8 @@ hub_targets <- list(
       eval_data = eval_hosp_data,
       model_type = "hosp"
     ) |>
-      dplyr::filter(!location_name %in% .env$hub_locations_to_exclude)
+      dplyr::filter(!location_name %in% .env$hub_locations_to_exclude) |>
+      with_dependencies(hub_locations_to_exclude)
   ),
   tar_target(
     name = hub_forecasts_cfa_real_time,
@@ -1360,7 +1363,8 @@ hub_targets <- list(
       pull_from_github = TRUE,
       dates = scored_forecast_dates
     ) |>
-      dplyr::filter(!location_name %in% .env$hub_locations_to_exclude)
+      dplyr::filter(!location_name %in% .env$hub_locations_to_exclude) |>
+      with_dependencies(hub_locations_to_exclude)
   ),
   tar_target(
     name = hub_forecasts,
@@ -1396,7 +1400,8 @@ hub_targets <- list(
       hub_scores,
       .data$forecast_date >=
         .env$first_real_time_forecast_date
-    )
+    ) |>
+      with_dependencies(first_real_time_forecast_date)
   ),
   tar_target(
     name = save_scores_real_time,
@@ -1614,7 +1619,8 @@ hub_comparison_plots <- list(
       hub_forecasts |>
         dplyr::filter(.data$model %in% .env$models_to_plot),
       time_period = "Oct 2023-Mar 2024"
-    )
+    ) |>
+      with_dependencies(models_to_plot)
   ),
   tar_target(
     name = hub_qq_plot_real_time,
@@ -1628,7 +1634,8 @@ hub_comparison_plots <- list(
           )
         )),
       time_period = "Feb-Mar 2024"
-    )
+    ) |>
+      with_dependencies(models_to_plot)
   ),
   tar_target(
     name = hub_barplot_wis_all_time,
