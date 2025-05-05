@@ -8,23 +8,11 @@
 #' @export
 make_fig4_results_table <- function(scores) {
   # Overall avg crps, bias, absolute error etc
-  scores_overall <- scores |>
-    dplyr::group_by(model) |>
-    dplyr::summarise(
-      avg_crps = mean(crps),
-      avg_bias = mean(bias),
-      avg_ae = mean(ae_median)
-    )
-
-
-  # By period (nowcast vs forecast)
-  scores_by_period <- scores |>
-    dplyr::group_by(model, period) |>
-    dplyr::summarise(
-      avg_crps = mean(crps),
-      avg_bias = mean(bias),
-      avg_ae = mean(ae_median)
-    )
+  scores_overall <- scoringutils::summarise_scores(scores)
+  scores_by_period <- scoringutils::summarise_scores(
+    scores,
+    by = "period"
+  )
 
   scores_tables <- list(
     scores_overall = scores_overall,
