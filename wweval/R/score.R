@@ -211,256 +211,6 @@ make_baseline_score_table <- function(all_ww_scores,
 }
 
 
-#' Query Zoltar for models to include in the analysis
-#'
-#' @description
-#' This function uses the `zoltr` R package to connect to the Zoltar
-#' database, which contains forecasts from the COVID Hub forecast
-#' project, and query it for the specified forecast dates.
-#' It queries for all dates, computes the proportion of dates for
-#' which the model has submitted, filters for models that have
-#' submitted for greater than the specified proportion of forecast
-#' dates for inclusion, and returns the vector of model names.
-#'
-#' @param prop_dates_for_incl_hub Numeric greater than 0 and less
-#' than or equal to 1 indicating the inclusion threshold for the
-#' proportion of forecast dates that a model must have submitted
-#' forecasts to be included in analysis.
-#' @param prop_locs_for_incl_hub Numeric less than 1 indicating
-#' the inclusion threshold for the proportion of the locations
-#' we expect that a model must have subbmited forecasts for to
-#' be included in analysis.
-#' @param forecast_dates vector of dates formatted in ISO8601 convention
-#' (YYYY-MM-DD) indicating the forecast dates for the analysis
-#' @param locations vector of state abbreviations that we want to
-#' ensure the submitting teams have produced forecasts for.
-#' @param project_name name of the Zoltar project, default is
-#' `"COVID-19 Forecasts"`.
-#'
-#' @return a vector of character strings indicating the
-#' unique model names that fit the inclusion criteria
-#' @export
-query_and_select_models <- function(prop_dates_for_incl_hub,
-                                    prop_locs_for_incl_hub,
-                                    forecast_dates,
-                                    locations,
-                                    project_name = "COVID-19 Forecasts") {
-  assert_needed_env_vars(c("ZOLTAR_USERNAME", "ZOLTAR_PASSWORD"))
-  # get state abbreviation codes
-  state_codes <- loc_abbr_to_flusight_code(
-    unique(locations)
-  )
-
-  if (prop_dates_for_incl_hub > 1 || prop_dates_for_incl_hub <= 0) {
-    cli::cli_abort(c(
-      "Proportion of forecast dates required for hub inclusion",
-      "must be greater than 0 and less than or equal to 1."
-    ))
-  }
-
-  if (prop_locs_for_incl_hub > 1 || prop_locs_for_incl_hub <= 0) {
-    cli::cli_abort(c(
-      "Proportion of locations required for hub inclusion",
-      "must be greater than 0 and less than or equal to 1."
-    ))
-  }
-
-  zoltar_connection <- zoltr::new_connection()
-  zoltr::zoltar_authenticate(
-    zoltar_connection, Sys.getenv("ZOLTAR_USERNAME"),
-    Sys.getenv("ZOLTAR_PASSWORD")
-  )
-
-  # list of project on zoltar
-  the_projects <- zoltr::projects(zoltar_connection)
-
-  # Grabbing a specific project
-  project_url <- the_projects[the_projects$name == project_name, "url"]
-  the_project_info <- zoltr::project_info(zoltar_connection, project_url)
-
-  # get the models
-  the_models <- zoltr::models(zoltar_connection, project_url)
-
-  # Submit query, poll job, get job data
-
-  forecast_data <- zoltr::do_zoltar_query(
-    zoltar_connection = zoltar_connection,
-    project_url = project_url,
-    query_type = "forecasts",
-    models = NULL, # all models by default
-    units = state_codes,
-    # We could query all of them, but this was very slow. This ensures
-    # that the forecasts submitted have at least reached 28 days.
-    targets = c("28 day ahead inc hosp"),
-    types = "quantile",
-    timezeros = forecast_dates
-  )
-
-  n_unique_forecasts <- forecast_data |>
-    dplyr::distinct(timezero) |>
-    dplyr::pull() |>
-    length()
-
-  forecasts_present_per_model <- forecast_data |>
-    dplyr::distinct(timezero, model, unit) |>
-    dplyr::group_by(model, timezero) |>
-    dplyr::summarize(
-      n_locs = dplyr::n(),
-      prop_locs = n_locs / length(state_codes)
-    ) |>
-    # Exclude any forecast dates/models with too few locations submitted
-    dplyr::filter(prop_locs >= !!prop_locs_for_incl_hub) |>
-    dplyr::group_by(model) |>
-    dplyr::summarize(
-      n_forecast_dates = dplyr::n(),
-      prop_present = n_forecast_dates / !!n_unique_forecasts
-    )
-
-  models <- forecasts_present_per_model |>
-    dplyr::filter(prop_present > !!prop_dates_for_incl_hub) |>
-    dplyr::filter(model != "COVIDhub_CDC-ensemble") |>
-    dplyr::pull(model)
-
-  return(models)
-}
-
-#' Score hub submissions
-#'
-#' @param model_name a vector of character strings indicating the names of the
-#' models to scores
-#' @param dates a vector of dates indicating the dates of the submissions to
-#'  score
-#' @param locations a vector of character strings indicating the locations
-#' to score
-#' @param hub_subdir path where the retrospective hub submissions are saved
-#' locally since these are not on COVID hub github
-#' @param pull_from_github boolean indicating whether or not to pull from github
-#' @param submissions_path url pointing to the "data-processed" folder on
-#' the COVIDhub github, which is where team's submissions are located
-#' @param truth_data_path the path to the truth data used by the hub for
-#' evaluation
-#'
-#' @return a dataframe containing all of the scores for all models,
-#' forecast dates (indicated by dates), locations, target end dates, and
-#' quantiles
-#' @export
-#'
-score_hub_submissions <- function(model_name,
-                                  dates,
-                                  locations = NULL,
-                                  hub_subdir = NA,
-                                  pull_from_github = TRUE,
-                                  submissions_path = "https://raw.githubusercontent.com/reichlab/covid19-forecast-hub/master/data-processed/", # nolint
-                                  truth_data_path = "https://media.githubusercontent.com/media/reichlab/covid19-forecast-hub/master/data-truth/truth-Incident%20Hospitalizations.csv") { # nolint
-
-  truth_data <- truth_data <- readr::read_csv(truth_data_path,
-    show_col_types = FALSE
-  ) |>
-    dplyr::rename(
-      true_value = "value",
-      target_end_date = "date"
-    )
-
-  to_score <- tidyr::crossing(
-    model_name = model_name,
-    forecast_date = dates
-  )
-
-  score_model_date <- function(model_name, forecast_date) {
-    if (isTRUE(pull_from_github)) {
-      gh_path <- glue::glue(
-        "{submissions_path}{model_name}/",
-        "{forecast_date}-{model_name}.csv"
-      )
-      quantiles <- tryCatch(
-        readr::read_csv(
-          gh_path,
-          show_col_types = FALSE
-        ) |>
-          dplyr::filter(type == "quantile"),
-        error = function(e) {
-          NULL
-        }
-      )
-    } else {
-      quantiles <- readr::read_csv(
-        file.path(
-          hub_subdir, model_name,
-          glue::glue("{forecast_date}-{model_name}.csv")
-        ),
-        show_col_types = FALSE
-      )
-    }
-
-    if (is.null(quantiles)) {
-      quantiles_w_truth <- tibble::tibble()
-    } else {
-      quantiles_w_truth <- quantiles |>
-        dplyr::rename(prediction = value) |>
-        dplyr::mutate(model = !!model_name) |>
-        dplyr::inner_join(truth_data,
-          by = c(
-            "target_end_date",
-            "location"
-          )
-        )
-    }
-
-    ## Filter locations if they are specified,
-    ## otherwise leave them all in
-    if (!is.null(locations)) {
-      quantiles_w_truth <- quantiles_w_truth |>
-        dplyr::filter(
-          .data$location %in%
-            loc_abbr_to_flusight_code(!!locations)
-        )
-    }
-
-    if (nrow(quantiles_w_truth) > 0) {
-      scores <- quantiles_w_truth |>
-        scoringutils::as_forecast_quantile(
-          predicted = "prediction",
-          observed = "true_value",
-          quantile_level = "quantile"
-        ) |>
-        scoringutils::transform_forecasts(
-          fun = scoringutils::log_shift,
-          offset = 1
-        ) |>
-        scoringutils::score() |>
-        dplyr::mutate(horizon_days = as.integer(
-          lubridate::ymd(.data$target_end_date) -
-            lubridate::ymd(.data$forecast_date)
-        )) |>
-        dplyr::mutate(
-          horizon_weeks = .data$horizon_days %/% 7 + 1,
-          horizon = glue::glue("{horizon_weeks} week ahead")
-        ) |>
-        dplyr::select(-"horizon_weeks", -"horizon_days")
-    } else {
-      scores <- tibble(
-        model = model_name,
-        forecast_date = lubridate::ymd(forecast_date),
-        scale = "missing"
-      )
-    }
-
-    return(scores)
-  }
-
-  all_scores <- purrr::pmap_df(to_score, score_model_date)
-
-  scores_list <- list(
-    natural_scale_scores = all_scores |>
-      dplyr::filter(.data$scale == "natural"),
-    log_scale_scores = all_scores |>
-      dplyr::filter(.data$scale == "log"),
-    missing_forecasts = all_scores |>
-      dplyr::filter(.data$scale == "missing") |>
-      dplyr::select("model", "forecast_date")
-  )
-  return(scores_list)
-}
 
 
 #' Clean flags from a real-time forecast
@@ -654,6 +404,82 @@ load_real_time_forecast <- function(output_dir,
 }
 
 
+#' Load real-time quantile outputs
+#'
+#' @param real_time_output_dir A string indicating the upper
+#' level directory where the real-time outputs live locally
+#' @param table_of_run_ids A tibble containing the forecast date, run id,
+#' and date run for each of the production runs
+#' @param locations A vector of character strings indicating
+#' the locations to
+#' pull, this should be all jurisdictions
+#' @param dates A vector of forecast dates to pull
+#' @param eval_data a tibble of hospital admissions evaluation
+#' data to be used
+#' for scoring.
+#' @param model_types String indicating model type to load.
+#' One of `"ww"` or `"hosp"`.
+#'
+#' @return The forecasts as the output of
+#' [scoringutils::as_forecast_quantile()]
+#' @export
+load_real_time_outputs <- function(real_time_output_dir,
+                                   table_of_run_ids,
+                                   locations,
+                                   eval_data,
+                                   model_type) {
+  checkmate::assert_scalar(model_type)
+  checkmate::assert_names(model_types, subset.of = c("ww", "hosp"))
+
+  load_forecast <- function(forecast_date,
+                            location) {
+    forecast <- load_real_time_forecast(
+      real_time_output_dir,
+      forecast_date,
+      location,
+      model_type,
+      "quantiles",
+      table_of_run_ids
+    )
+
+    if (!is.null(forecast)) {
+      forecast <- forecast |>
+        dplyr::inner_join(
+          eval_data |>
+            dplyr::select(-"pop") |>
+            dplyr::rename(true_value = "daily_hosp_admits"),
+          by = c("location", "date")
+        ) |>
+        dplyr::select(
+          "location",
+          "forecast_date",
+          "date",
+          "value",
+          "true_value",
+          "quantile",
+          "model",
+          "failed_convergence"
+        ) |>
+        dplyr::filter(.data$date > .data$forecast_date) |>
+        scoringutils::as_forecast_quantile(
+          predicted = "value",
+          observed = "true_value",
+          quantile_level = "quantile"
+        )
+    }
+
+    return(forecast)
+  }
+
+  to_load <- tidyr::crossing(
+    forecast_date = table_of_run_ids$forecast_date,
+    location = locations
+  )
+
+  return(purrr::pmap_df(to_load, load_forecast))
+}
+
+
 
 #' Load in and score the real-time outputs
 #'
@@ -674,7 +500,7 @@ load_real_time_forecast <- function(output_dir,
 #' @param model_types Character vector of model types to score.
 #' One or both of `"ww"` and `"hosp"`. Default both: `c("ww", "hosp")`
 #'
-#' @return A large tibble containing crps scores for every location and
+#' @return A tibble containing scores for every location and
 #' forecast date, conditioned on the presence of wastewater and model
 #' convergence
 #' @export

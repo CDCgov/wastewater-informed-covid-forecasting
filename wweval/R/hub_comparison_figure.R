@@ -481,35 +481,6 @@ plot_heatmap_relative_wis <- function(scores,
   return(p)
 }
 
-#' Make a quantile quantile plot for the Hub
-#'
-#' @param scores df of granular (daily) score across models, locations, forecast
-#' dates and horizons
-#' @param models_to_show A vector of charcter strings indicating which models
-#' from the COVID-19 forecast hub to include in the plot.
-#' @param time_period time period that scores are summarized over
-#'
-#' @return a ggplot object containing a plot of the proportion of data within
-#' each interval for each model.
-#' @export
-qq_plot_by_model <- function(scores,
-                             models_to_show,
-                             time_period) {
-  subset_scores <- scores |>
-    dplyr::filter(model %in% !!models_to_show)
-
-  colors <- plot_components()
-  p <- subset_scores |>
-    data.table::as.data.table() |>
-    scoringutils::summarise_scores(by = c("model", "quantile")) |>
-    scoringutils::plot_quantile_coverage() +
-    get_plot_theme() +
-    theme(legend.position = "none") +
-    scale_color_manual(values = colors$model_colors, guide = "none")
-
-
-  return(p)
-}
 
 #' Make a figure of the distribution of standardized WIS rank
 #'

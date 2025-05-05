@@ -72,7 +72,7 @@ upstream_targets <- list(
       })
   ),
   tar_target(
-    name = scored_real_time_forecast_dates,
+    name = scored_real_time_fcst_dates,
     command = scored_forecast_dates |>
       purrr::discard(\(x) {
         (x < first_real_time_forecast_date) |
@@ -285,8 +285,6 @@ combined_targets <- list(
       model_type = "hosp"
     )
   ),
-
-  ## Errors-------------------------------------------------------------------
   tar_target(
     name = all_ww_errors,
     command = combine_outputs(
@@ -438,7 +436,6 @@ head_to_head_targets <- list(
   )
 )
 
-# Manuscript analyses ------------------------------------------------
 # Note that these are just the components of the figures, not the full
 # ggarranged, properly formatted figures, and currently require
 # specification for the figure components that are examples.
@@ -712,7 +709,7 @@ manuscript_figures <- list(
   # the forecasts I think
   tar_target(
     name = plot3_interval_coverage1,
-    command = make_plot_coverage_range(
+    command = forecast_interval_coverage_plot(
       scores_quantiles_filtered |>
         dplyr::filter(location == locs_to_plot[1]),
       ranges = c(30, 60, 90)
@@ -720,8 +717,8 @@ manuscript_figures <- list(
   ),
   tar_target(
     name = plot3_qq_plot1,
-    command = make_qq_plot_overall(
-      scores_quantiles_filtered |>
+    command = forecast_qq_plot(
+      hosp_quantiles_filtered |>
         dplyr::filter(location == locs_to_plot[1])
     )
   ),
@@ -794,7 +791,7 @@ manuscript_figures <- list(
   # Supplementary
   tar_target(
     name = plot3_interval_coverage2,
-    command = make_plot_coverage_range(
+    command = forecast_interval_coverage_plot(
       scores_quantiles_filtered |>
         dplyr::filter(location == locs_to_plot[2]),
       ranges = c(30, 60, 90)
@@ -802,8 +799,8 @@ manuscript_figures <- list(
   ),
   tar_target(
     name = plot3_qq_plot2,
-    command = make_qq_plot_overall(
-      scores_quantiles_filtered |>
+    command = forecast_qq_plot(
+      hosp_quantiles_filtered |>
         dplyr::filter(location == locs_to_plot[2])
     )
   ),
@@ -875,7 +872,7 @@ manuscript_figures <- list(
   # Supplement to fig 3
   tar_target(
     name = plot3_interval_coverage3,
-    command = make_plot_coverage_range(
+    command = forecast_interval_coverage_plot(
       scores_quantiles_filtered |>
         dplyr::filter(location == locs_to_plot[3]),
       ranges = c(30, 60, 90)
@@ -883,8 +880,8 @@ manuscript_figures <- list(
   ),
   tar_target(
     name = plot3_qq_plot3,
-    command = make_qq_plot_overall(
-      scores_quantiles_filtered |>
+    command = forecast_qq_plot(
+      hosp_quantiles_filtered |>
         dplyr::filter(location == locs_to_plot[3])
     )
   ),
@@ -996,8 +993,8 @@ manuscript_figures <- list(
   ),
   tar_target(
     name = fig4_qq_plot_overall,
-    command = make_qq_plot_overall(
-      scores_quantiles_filtered,
+    command = forecast_qq_plot(
+      hosp_quantiles_filtered,
       time_period = "retro_all_time",
       fig_file_dir = fig_output_dir,
       write_files = TRUE
@@ -1005,8 +1002,8 @@ manuscript_figures <- list(
   ),
   tar_target(
     name = fig4_plot_coverage_range,
-    command = make_plot_coverage_range(
-      scores_quantiles_filtered,
+    command = forecast_interval_coverage_plot(
+      hosp_quantiles_filtered,
       ranges = c(30, 60, 90),
       time_period = "retro_all_time",
       fig_file_dir = fig_output_dir,
@@ -1211,47 +1208,35 @@ real_time_rel_targets <- list(
       locations = unique(eval_config$location_ww),
       eval_data = eval_hosp_data,
       model_types = c("ww", "hosp")
-    )
+    ) |>
+      dplyr::anti_join(ww_forecast_date_locs_to_excl) |>
+      ## Could eventually replace this with what is on the Hub
+      dplyr::left_join(table_of_loc_dates_w_ww) |>
+      dplyr::filter(ww_sufficient)
   ),
   tar_target(
-    name = real_time_wis_hosp_only,
+    name = real_time_wis_both_models,
     command = score_real_time_outputs(
       score_type = "wis",
       real_time_output_dir = eval_config$real_time_output_dir,
       table_of_run_ids = as.data.frame(eval_config$table_of_run_ids),
       locations = unique(eval_config$location_ww),
       eval_data = eval_hosp_data,
-      model_types = "hosp"
-    )
-  ),
-  tar_target(
-    name = real_time_wis_both_models_raw,
-    command = combine_hub_and_local_wis(
-      cfa_real_time_scores,
-      real_time_wis_hosp_only
-    )
-  ),
-  # For the real-time comparison, we exclude the forecasts that are the
-  # same
-  tar_target(
-    name = real_time_wis_both_models,
-    command = real_time_wis_both_models_raw |>
+      model_types = c("ww", "hosp")
+    ) |>
       dplyr::anti_join(ww_forecast_date_locs_to_excl) |>
-      # Could eventually replace this with what is on the Hub
+      ## Could eventually replace this with what is on the Hub
       dplyr::left_join(table_of_loc_dates_w_ww) |>
       dplyr::filter(ww_sufficient)
   ),
   tar_target(
     name = rel_mean_wis_real_time,
     command = real_time_wis_both_models |>
-      data.table::as.data.table() |>
-      scoringutils::summarise_scores(by = c("model")) |>
-      dplyr::select(model, interval_score) |>
-      tidyr::pivot_wider(
-        names_from = model,
-        values_from = interval_score
+      forecasttools::summarise_scores_with_baseline(
+        baseline = "hosp",
+        by = c("model")
       ) |>
-      dplyr::mutate(rel_wis = ww / hosp)
+      dplyr::rename(rel_wis = "model_scores_ratio")
   ),
   tar_target(
     name = rel_mean_wis_real_time_locs,
@@ -1297,9 +1282,10 @@ hub_targets <- list(
       model_name = "cfa-hosponlyrenewal"
     )
   ),
-  # Get the models that we will include in the analysis
+  ## Get the models that we will include in the analysis
+  ## (besides our own)
   tar_target(
-    name = covidhub_models_to_score,
+    name = non_cfa_hub_models_to_score,
     command = query_and_select_models(
       prop_dates_for_incl_hub = eval_config$prop_dates_for_incl_hub,
       prop_locs_for_incl_hub = eval_config$prop_locs_for_incl_hub,
@@ -1307,111 +1293,110 @@ hub_targets <- list(
       forecast_dates = scored_forecast_dates
     )
   ),
-  # Write a function that will get hub scores + all the metadata
-  # horizon by week, location, forecast_date + eval data alongside it
-  # for the models specified in the eval config
   tar_target(
-    name = scores_list_retro_hub_submissions,
-    command = score_hub_submissions(
+    name = hub_locations_to_exclude,
+    command = c(
+      "Virgin Islands",
+      "American Samoa",
+      "United States"
+    )
+  ),
+  tar_target(
+    name = hub_forecasts_cfa_retro,
+    command = pull_hub_forecasts(
       model_name = c("cfa-wwrenewal", "cfa-hosponlyrenewal"),
       hub_subdir = eval_config$hub_subdir,
       pull_from_github = FALSE,
       dates = scored_forecast_dates
-    ) |> with_dependencies(
-      metadata_hub_submissions,
-      metadata_hosp_hub_submissions
+    ) |>
+      with_dependencies(
+        metadata_hub_submissions,
+        metadata_hosp_hub_submissions
+      ) |>
+      dplyr::mutate(model = dplyr::recode(
+        .data$model,
+        "cfa-wwrenewal(retro)" =
+          "cfa-wwrenewal",
+        "cfa-hosponlyrenewal(retro)" =
+          "cfa-hosponlyrenewal"
+      )) |>
+      dplyr::filter(!location_name %in% !!hub_locations_exclude)
+  ),
+  tar_target(
+    name = hub_forecasts_cfa_ww_real_time,
+    command = pull_hub_forecasts(
+      model_name = "cfa-wwrenewal",
+      pull_from_github = TRUE,
+      dates = scored_real_time_fcst_dates
+    ) |>
+      dplyr::mutate(model = dplyr::recode(.data$model,
+        "cfa-wwrenewal(real-time)" =
+          "cfa-wwrenewal"
+      )) |>
+      dplyr::filter(!location_name %in% !!hub_locations_exclude)
+  ),
+  tar_target(
+    name = hub_forecasts_cfa_hosp_real_time,
+    command = load_real_time_outputs(
+      real_time_output_dir = eval_config$real_time_output_dir,
+      table_of_run_ids = as.data.frame(eval_config$table_of_run_ids),
+      locations = unique(eval_config$location_ww),
+      eval_data = eval_hosp_data,
+      model_type = "hosp"
+    ) |>
+      dplyr::filter(!location_name %in% !!hub_locations_exclude)
+  ),
+  tar_target(
+    name = hub_forecasts_cfa_real_time,
+    command = rbind(
+      hub_forecasts_cfa_ww_real_time,
+      hub_forecasts_cfa_hosp_real_time
     )
   ),
   tar_target(
-    name = scores_list_hub_submission_oct_mar,
-    command = score_hub_submissions(
-      model_name = covidhub_models_to_score,
+    name = hub_forecasts_non_cfa,
+    command = pull_hub_forecasts(
+      model_name = non_cfa_hub_models_to_score,
       pull_from_github = TRUE,
       dates = scored_forecast_dates
+    ) |>
+      dplyr::filter(!location_name %in% !!hub_locations_exclude)
+  ),
+  tar_target(
+    name = hub_forecasts,
+    command = rbind(
+      hub_forecasts_cfa_retro,
+      hub_forecasts_cfa_real_time,
+      hub_forecasts_non_cfa
     )
   ),
   tar_target(
-    name = combine_scores_oct_mar_raw,
-    command = dplyr::bind_rows(
-      scores_list_retro_hub_submissions$log_scale_scores,
-      scores_list_hub_submission_oct_mar$log_scale_scores
-    )
-  ),
-  # Rename the model as retrospective
-  tar_target(
-    name = combine_scores_oct_mar_full,
-    command = combine_scores_oct_mar_raw |> dplyr::mutate(
-      model = dplyr::recode(model,
-        "cfa-wwrenewal(retro)" = "cfa-wwrenewal",
-        "cfa-hosponlyrenewal(retro)" = "cfa-hosponlyrenewal"
-      )
-    )
+    name = hub_scores,
+    command = score_hub_forecasts(hub_forecasts)
   ),
   tar_target(
-    name = hosp_quantiles_filtered_grouped,
-    command = hosp_quantiles_filtered |>
-      dplyr::group_by(.data$forecast_date, .data$location) |>
-      targets::tar_group(),
-    iteration = "group"
-  ),
-
-  # Filter out the states that not every model has estimates for,
-  # start by doing this manually, can write functions if needed as
-  # we expand to other models
-  tar_target(
-    name = combine_scores_oct_mar,
-    command = combine_scores_oct_mar_full |>
-      dplyr::filter(!location_name %in% c(
-        "Virgin Islands",
-        "American Samoa",
-        "United States"
-      ))
-  ),
-  tar_target(
-    name = save_scores_oct_mar,
+    name = save_hub_scores,
     command = {
       fp <- fs::path(eval_config$score_subdir,
         "scores_oct_mar",
         ext = "csv"
       )
-      readr::write_csv(fp, combine_scores_oct_mar)
+      readr::write_csv(fp, hub_scores)
       fp
     },
     format = "file"
   ),
   tar_target(
-    name = scores_list_cfa_ww_real_time,
-    command = score_hub_submissions(
-      model_name = "cfa-wwrenewal",
-      pull_from_github = TRUE,
-      dates = scored_real_time_forecast_dates
-    )
-  ),
-  tar_target(
-    name = cfa_real_time_scores,
-    command = scores_list_cfa_ww_real_time$log_scale_scores |>
-      dplyr::mutate(
-        model = ifelse(
-          model == "cfa-wwrenewal", "cfa-wwrenewal(real-time)", model
-        )
-      ) |>
-      dplyr::filter(location != "US")
-  ),
-  tar_target(
-    name = cfa_hosp_real_time_scores,
-    command = format_scores_for_comparison(
-      real_time_scores = real_time_wis_both_models_raw,
-      other_real_time_scores = cfa_real_time_scores
-    )
+    name = cfa_real_time_hub_scores,
+    command = score_hub_forecasts(hub_forecasts_cfa_real_time)
   ),
   tar_target(
     name = combine_scores_feb_mar,
     command = dplyr::bind_rows(
-      cfa_real_time_scores,
-      cfa_hosp_real_time_scores,
+      cfa_real_time_hub_scores,
       dplyr::filter(
         combine_scores_oct_mar,
-        .data$forecast_date >= first_real_time_forecast_date
+        .data$forecast_date >= !!first_real_time_forecast_date
       )
     )
   ),
@@ -1536,8 +1521,8 @@ hub_comparison_plots <- list(
   ),
   tar_target(
     name = fig4_qq_plot_rt,
-    command = make_qq_plot_overall(
-      real_time_wis_both_models,
+    command = forecast_qq_plot(
+      real_time_wis_both_models, ## TODO: FIX
       time_period = "real_time",
       fig_file_dir = fig_output_dir,
       write_files = TRUE
@@ -1545,8 +1530,8 @@ hub_comparison_plots <- list(
   ),
   tar_target(
     name = fig4_plot_coverage_range_rt,
-    command = make_plot_coverage_range(
-      scores_quantiles = real_time_wis_both_models |>
+    command = forecast_interval_coverage_plot(
+      scores_quantiles = real_time_wis_both_models |> # TODO: FIX
         dplyr::mutate(
           horizon_days = as.integer(date - forecast_date),
           horizon = case_when(
@@ -1640,21 +1625,22 @@ hub_comparison_plots <- list(
   ),
   tar_target(
     name = hub_qq_plot_all_time,
-    command = qq_plot_by_model(
-      scores = combine_scores_oct_mar,
-      models_to_show = models_to_plot,
+    command = forecast_qq_plot(
+      forecasts |> dplyr::filter(.data$model %in% !!models_to_plot),
       time_period = "Oct 2023-Mar 2024"
     )
   ),
   tar_target(
     name = hub_qq_plot_real_time,
-    command = qq_plot_by_model(
-      scores = combine_scores_feb_mar |>
-        dplyr::filter(!model %in% c(
-          "cfa-wwrenewal(retro)",
-          "cfa-hosponlyrenewal(retro)"
+    command = forecast_qq_plot(
+      forecasts |> dplyr::filter(.data$model %in%
+        setdiff(
+          !!models_to_plot,
+          c(
+            "cfa-wwrenewal(retro)",
+            "cfa-hosponlyrenewal(retro)"
+          )
         )),
-      models_to_show = models_to_plot,
       time_period = "Feb-Mar 2024"
     )
   ),

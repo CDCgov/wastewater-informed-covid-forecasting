@@ -1336,8 +1336,7 @@ get_heatmap_relative_wis <- function(scores,
 
 #' Get quantile-quantile plot
 #'
-#' @param scores df of granular (daily) score across models, locations, forecast
-#' dates and horizons
+#' @param forecasts df of granular (daily) quantile forecasts
 #' @param figure_file_path path to save figure
 #' @param time_period time period that scores are summarized over
 #' @param save_files  save_files boolean indicating whether or not to save figures, default
@@ -1347,22 +1346,22 @@ get_heatmap_relative_wis <- function(scores,
 #' each interval for each model.
 #' @export
 #'
-get_qq_plot <- function(scores,
-                        figure_file_path,
-                        time_period,
-                        save_files = TRUE) {
-  p <- scores |>
+forecast_qq_plot <- function(forecasts,
+                             time_period,
+                             fig_file_dir = NULL,
+                             save_files = TRUE) {
+  p <- forecasts |>
     scoringutils::get_coverage() |>
     scoringutils::plot_quantile_coverage() +
-    ggtitle(glue::glue("QQ plot for {time_period}"))
+    ggtitle(glue::glue("QQ plot for {time_period}")) +
+    get_plot_theme() +
+    scale_color_manual(values = colors$model_colors)
 
 
   if (isTRUE(save_files)) {
-    full_file_path <- file.path(figure_file_path, "hub_comparison")
-    wwinference::create_dir(full_file_path)
     ggsave(
       file.path(
-        full_file_path,
+        fig_file_dir,
         glue::glue("qq_plot_{time_period}.png")
       ),
       plot = p,
@@ -1375,6 +1374,75 @@ get_qq_plot <- function(scores,
 
   return(p)
 }
+
+#' Plot interval coverage at specified ranges
+#'
+#' @param forecasts df of granular (daily) quantile forecasts
+#' @param ranges A numeric vector of credible interval ranges to plot,
+#' spanning from 0 to 100.
+#' @param time_period string indicating time period of fig to save
+#' @param fig_file_dir string indicating directory to save figure in,
+#' default is `NULL`
+#' @param write_files boolean indicating whether to save file, default is FALSE
+#'
+#' @return A ggplot2 object
+#' @export
+forecast_interval_coverage_plot <- function(forecasts, # nolint
+                                            ranges,
+                                            time_period,
+                                            fig_file_dir = NULL,
+                                            write_files = FALSE) {
+  to_plot <- forecasts |>
+    scoringutils::get_coverage(by = "horizon") |>
+    order_horizons() |>
+    dplyr::filter(!is.na(horizon)) |>
+    dplyr::mutate(
+      named_facet = glue::glue("{.data$interval_range}%")
+    ) |>
+    dplyr::filter(.data$interval_range %in% !!ranges)
+
+  colors <- plot_components()
+  p <- ggplot(
+    data = to_plot,
+    mapping = aes(
+      x = .data$horizon,
+      y = .data$interval_coverage,
+      color = .data$model
+    )
+  ) +
+    geom_line() +
+    geom_point() +
+    geom_hline(
+      aes(yintercept = .data$interval_range),
+      linetype = "dashed"
+    ) +
+    facet_wrap(~ .data$named_facet,
+      scales = "free_y"
+    ) +
+    labs(
+      y = "Proportion of data within interval",
+      x = "Forecast horizon",
+      col = "Model"
+    ) +
+    scale_y_continuous(expand = expansion(c(0, 0.2))) +
+    get_plot_theme(
+      x_axis_dates = TRUE
+    ) +
+    scale_color_manual(values = colors$model_colors)
+
+  if (isTRUE(write_files)) {
+    ggsave(p,
+      filename = file.path(
+        fig_file_dir,
+        glue::glue("coverage_range_{time_period}.png")
+      ),
+      height = 4,
+      width = 10
+    )
+  }
+  return(p)
+}
+
 
 #' Plot wastewater evaluation data
 #'
