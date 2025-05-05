@@ -407,7 +407,8 @@ head_to_head_targets <- list(
         last_hosp_data_date_map,
         by = c("location", "forecast_date")
       ) |>
-      add_horizons()
+      add_horizons() |>
+      scoringutils:::as_scores(metrics = names(wweval::sample_metrics))
   ),
   # Repeat for the quantile-based scores
   tar_target(
@@ -437,7 +438,8 @@ head_to_head_targets <- list(
         last_hosp_data_date_map,
         by = c("location", "forecast_date")
       ) |>
-      add_horizons()
+      add_horizons() |>
+      scoringutils:::as_scores(metrics = names(wweval::quantile_metrics))
   )
 )
 
