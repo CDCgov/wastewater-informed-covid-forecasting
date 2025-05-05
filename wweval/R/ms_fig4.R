@@ -538,7 +538,7 @@ make_qq_plot_overall <- function(scores_quantiles,
 #' @param write_files boolean indicating whether to save file, default is FALSE
 #'
 #' @return A ggplot2 object
-#'
+#' @export
 make_plot_coverage_range <- function(scores_quantiles,
                                      ranges,
                                      time_period,
