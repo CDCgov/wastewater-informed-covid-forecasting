@@ -532,7 +532,7 @@ check_any_flags <- function(forecast_dir,
   } else if (fs::file_exists(diagnostic_file_path)) {
     flag_tab <- readr::read_csv(diagnostic_file_path) |>
       clean_flag_df()
-    checkmate::assert_names(flag_tabs$diagnostic,
+    checkmate::assert_names(flag_tab$diagnostic,
       must.include = flags_to_check
     )
     flags <- flag_tab |>
