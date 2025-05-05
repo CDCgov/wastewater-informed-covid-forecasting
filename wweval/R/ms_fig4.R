@@ -544,11 +544,9 @@ make_plot_coverage_range <- function(scores_quantiles,
                                      time_period,
                                      fig_file_dir = NULL,
                                      write_files = FALSE) {
-  scores_by_horizon <- scores_quantiles |>
+  to_plot <- scores_quantiles |>
     scoringutils::summarize_scores(by = "horizon") |>
-    order_horizons()
-
-  coverage_summarized <- coverage_summarized |>
+    order_horizons() |>
     dplyr::filter(!is.na(horizon)) |>
     tidyr::pivot_longer(
       id_cols = "horizon"
@@ -569,12 +567,14 @@ make_plot_coverage_range <- function(scores_quantiles,
     dplyr::filter(.data$range %in% !!ranges)
 
   colors <- plot_components()
-  p <- ggplot(coverage_summarized) +
-    aes(
+  p <- ggplot(
+    data = to_plot,
+    mapping = aes(
       x = .data$horizon,
       y = .data$value,
       color = .data$model
-    ) +
+    )
+  ) +
     geom_line() +
     geom_point() +
     geom_hline(aes(yintercept = range), linetype = "dashed") +
