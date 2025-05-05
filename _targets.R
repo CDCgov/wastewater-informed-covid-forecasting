@@ -370,7 +370,12 @@ head_to_head_targets <- list(
         last_hosp_data_date_map,
         by = c("location", "forecast_date")
       ) |>
-      add_horizons()
+      add_horizons() |>
+      scoringutils::as_forecast_quantile(
+        predicted = "value",
+        observed = "eval_data",
+        quantile_level = "quantile"
+      )
   ),
   # Do the same thing for the sampled scores, combining ww and hosp under
   # the status quo scenario, filtering to the locations and forecast dates
