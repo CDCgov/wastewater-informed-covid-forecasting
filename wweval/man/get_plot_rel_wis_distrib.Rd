@@ -4,7 +4,7 @@
 \alias{get_plot_rel_wis_distrib}
 \title{Get a density plot of the relative WIS distribution}
 \usage{
-get_plot_rel_wis_distrib(wis_scores)
+get_plot_rel_wis_distrib(wis_scores, baseline)
 }
 \arguments{
 \item{wis_scores}{tibble of scores by horizon day, forecast date, and location}
