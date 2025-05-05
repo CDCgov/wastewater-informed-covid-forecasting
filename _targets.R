@@ -1579,14 +1579,14 @@ hub_comparison_plots <- list(
   tar_target(
     name = hub_hist_rwis_all_time,
     command = plot_relative_wis_histogram(
-      raw_scores = summarized_scores_oct_mar,
+      raw_scores = summarized_scores_all_time,
       models_to_show = models_to_plot
     )
   ),
   tar_target(
     name = hub_hist_rwis_real_time,
     command = relative_wis_histogram(
-      raw_scores = summarized_scores_feb_mar |>
+      raw_scores = summarized_scores_real_time |>
         dplyr::filter(
           !.data$model %in% c(
             "cfa-wwrenewal(retro)",
@@ -1599,7 +1599,7 @@ hub_comparison_plots <- list(
   tar_target(
     name = hub_wis_t_all_time,
     command = plot_wis_t(
-      all_scores = summarized_scores_oct_mar,
+      all_scores = summarized_scores_all_time,
       models_to_show = models_to_plot,
       time_period = "Oct 2023-Mar 2024"
     )
@@ -1607,7 +1607,7 @@ hub_comparison_plots <- list(
   tar_target(
     name = hub_wis_t_real_time,
     command = plot_wis_t(
-      all_scores = summarized_scores_feb_mar |>
+      all_scores = summarized_scores_real_time |>
         dplyr::filter(!model %in% c(
           "cfa-wwrenewal(retro)",
           "cfa-hosponlyrenewal(retro)"
@@ -1619,7 +1619,7 @@ hub_comparison_plots <- list(
   tar_target(
     name = hub_heatmap_rel_wis_all_time,
     command = plot_heatmap_relative_wis(
-      scores = summarized_scores_oct_mar,
+      scores = summarized_scores_all_time,
       models_to_show = models_to_plot,
       time_period = "Oct 2023-Mar 2024",
       baseline_model = "COVIDhub-4_week_ensemble"
@@ -1628,7 +1628,7 @@ hub_comparison_plots <- list(
   tar_target(
     name = hub_heatmap_rel_wis_real_time,
     command = plot_heatmap_relative_wis(
-      scores = summarized_scores_feb_mar |>
+      scores = summarized_scores_real_time |>
         dplyr::filter(!model %in% c(
           "cfa-wwrenewal(retro)",
           "cfa-hosponlyrenewal(retro)"
@@ -1679,7 +1679,7 @@ hub_comparison_plots <- list(
   tar_target(
     name = hub_wis_t_all_time_all_models,
     command = plot_wis_t(
-      all_scores = summarized_scores_oct_mar,
+      all_scores = summarized_scores_all_time,
       models_to_show = unique(combine_scores_oct_mar$model),
       time_period = "Oct 2023-Mar 2024",
       fig_file_dir = fig_output_dir
@@ -1688,7 +1688,7 @@ hub_comparison_plots <- list(
   tar_target(
     name = hub_performance_by_period,
     command = plot_hub_performance_by_period(
-      all_scores = summarized_scores_oct_mar,
+      all_scores = summarized_scores_all_time,
       cfa_real_time_scores = summarized_scores_cfa_real_time,
       models_to_show = models_to_plot,
       all_time_period = "Oct 2023-Mar 2024",
@@ -1697,11 +1697,11 @@ hub_comparison_plots <- list(
   ),
   tar_target(
     name = std_rank_summary_table_all_time,
-    command = summarize_std_rank(summarized_scores_oct_mar)
+    command = summarize_std_rank(summarized_scores_all_time)
   ),
   tar_target(
     name = std_rank_summary_table_real_time,
-    command = summarize_std_rank(summarized_scores_feb_mar |>
+    command = summarize_std_rank(summarized_scores_real_time |>
       dplyr::filter(!model %in% c(
         "cfa-wwrenewal(retro)",
         "cfa-hosponlyrenewal(retro)"
@@ -1710,7 +1710,7 @@ hub_comparison_plots <- list(
   tar_target(
     name = std_rank_plot_all_time,
     command = density_plot_std_rank(
-      scores = summarized_scores_oct_mar,
+      scores = summarized_scores_all_time,
       models_to_show = models_to_plot,
       time_period = "Oct 2023-Mar 2024",
       tp_fp = "at",
@@ -1720,7 +1720,7 @@ hub_comparison_plots <- list(
   tar_target(
     name = std_rank_plot_real_time,
     command = density_plot_std_rank(
-      scores = summarized_scores_feb_mar |>
+      scores = summarized_scores_real_time |>
         dplyr::filter(!model %in% c(
           "cfa-wwrenewal(retro)",
           "cfa-hosponlyrenewal(retro)"
@@ -1762,7 +1762,7 @@ hub_comparison_plots <- list(
 additional_figures <- list(
   tar_target(plot_hub_perf_heatmap,
     command = get_plot_hub_perf_heatmap(
-      scores = summarized_scores_oct_mar,
+      scores = summarized_scores_all_time,
       fig_file_dir = fig_output_dir
     )
   ),
