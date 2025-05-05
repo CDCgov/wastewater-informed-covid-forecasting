@@ -1378,7 +1378,7 @@ hub_targets <- list(
     name = save_hub_scores,
     command = {
       fp <- fs::path(eval_config$score_subdir,
-        "scores_oct_mar",
+        "hub_scores_all_time",
         ext = "csv"
       )
       readr::write_csv(fp, hub_scores)
@@ -1391,20 +1391,18 @@ hub_targets <- list(
     command = score_hub_forecasts(hub_forecasts_cfa_real_time)
   ),
   tar_target(
-    name = combine_scores_feb_mar,
-    command = dplyr::bind_rows(
-      cfa_real_time_hub_scores,
-      dplyr::filter(
-        combine_scores_oct_mar,
-        .data$forecast_date >= .env$first_real_time_forecast_date
-      )
+    name = hub_scores_real_time,
+    command = dplyr::filter(
+      hub_scores,
+      .data$forecast_date >=
+        .env$first_real_time_forecast_date
     )
   ),
   tar_target(
-    name = save_scores_feb_mar,
+    name = save_scores_real_time,
     command = readr::write_csv(
-      combine_scores_feb_mar,
-      file.path(eval_config$score_subdir, "scores_feb_mar.csv")
+      hub_scores_feb_mar,
+      file.path(eval_config$score_subdir, "hub_scores_real_time.csv")
     ),
     format = "file"
   )
@@ -1414,13 +1412,13 @@ hub_comparison_plots <- list(
   tar_target(
     name = hub_average_score_table_all_time,
     command = hub_average_score_table(
-      combine_scores_oct_mar,
+      hub_scores,
     )
   ),
   tar_target(
     name = hub_average_score_table_real_time,
     command = hub_average_score_table(
-      combine_scores_feb_mar |>
+      hub_scores_feb_mar |>
         dplyr::filter(!model %in% c(
           "cfa-hosponlyrenewal(retro)",
           "cfa-wwrenewal(retro)"
@@ -1445,20 +1443,17 @@ hub_comparison_plots <- list(
   ),
   tar_target(
     name = summarized_scores_all_time,
-    command = combine_scores_oct_mar |>
-      data.table::as.data.table() |>
+    command = hub_scores |>
       scoringutils::summarise_scores()
   ),
   tar_target(
     name = summarized_scores_real_time,
-    command = combine_scores_feb_mar |>
-      data.table::as.data.table() |>
+    command = hub_scores_real_time |>
       scoringutils::summarise_scores()
   ),
   tar_target(
     name = summarized_scores_cfa_real_time,
-    command = cfa_real_time_scores |>
-      data.table::as.data.table() |>
+    command = cfa_real_time_hub_scores |>
       scoringutils::summarise_scores()
   ),
   tar_target(
@@ -1476,7 +1471,6 @@ hub_comparison_plots <- list(
   tar_target(
     name = wis_summary_cfa_models_real_time,
     command = real_time_wis_both_models |>
-      data.table::as.data.table() |>
       scoringutils::summarise_scores()
   ),
   tar_target(
@@ -1647,14 +1641,14 @@ hub_comparison_plots <- list(
   tar_target(
     name = hub_barplot_wis_all_time,
     wis_barplot(
-      combine_scores_oct_mar,
+      hub_scores,
       time_period = "Oct-Mar"
     )
   ),
   tar_target(
     name = hub_barplot_wis_real_time,
     wis_barplot(
-      combine_scores_feb_mar |>
+      hub_scores_real_time |>
         dplyr::filter(!model %in% c(
           "cfa-wwrenewal(retro)",
           "cfa-hosponlyrenewal(retro)"
@@ -1666,7 +1660,7 @@ hub_comparison_plots <- list(
     name = hub_wis_t_all_time_all_models,
     command = plot_wis_t(
       all_scores = summarized_scores_all_time,
-      models_to_show = unique(combine_scores_oct_mar$model),
+      models_to_show = unique(hub_scores$model),
       time_period = "Oct 2023-Mar 2024",
       fig_file_dir = fig_output_dir
     )
@@ -1767,7 +1761,7 @@ additional_figures <- list(
   ),
   tar_target(
     name = plot_bias_over_time_Hub,
-    command = get_plot_bias_over_time(combine_scores_oct_mar,
+    command = get_plot_bias_over_time(hub_scores,
       fig_subscript = "Hub",
       fig_file_dir = fig_output_dir
     )
@@ -1803,16 +1797,16 @@ additional_figures <- list(
     )
   ),
   tar_target(
-    name = avg_wis_by_horizon_oct_mar,
+    name = avg_wis_by_horizon_all_time,
     command = get_avg_scores_model_horizon(
-      combine_scores_oct_mar,
+      hub_scores,
       "interval_score"
     )
   ),
   tar_target(
     name = avg_wis_by_horizon_feb_mar,
     command = get_avg_scores_model_horizon(
-      combine_scores_feb_mar,
+      hub_scores_real_time,
       "interval_score"
     )
   ),
