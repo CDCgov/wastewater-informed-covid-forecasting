@@ -18,11 +18,11 @@
 #' forecasts produced for each state, comparing the wastewater and hospital
 #' admissions models
 #' @export
-make_fig2_hosp_t <- function(hosp_quantiles,
-                             loc_to_plot,
-                             date_to_plot,
-                             n_forecast_days = 28,
-                             n_calib_days = 90) {
+plot_pred_actual_hosp <- function(hosp_quantiles,
+                                  loc_to_plot,
+                                  date_to_plot,
+                                  n_forecast_days = 28,
+                                  n_calib_days = 90) {
   hosp <- hosp_quantiles |>
     dplyr::filter(location %in% c(!!loc_to_plot)) |>
     dplyr::filter(forecast_date == !!date_to_plot) |>
@@ -119,13 +119,13 @@ make_fig2_hosp_t <- function(hosp_quantiles,
 #' calibrated and forecasted wastewater concentrations for 3 or fewer
 #' site-lab combinations for a single state
 #' @export
-make_fig2_ct <- function(ww_quantiles,
-                         loc_to_plot,
-                         date_to_plot,
-                         n_forecast_days = 28,
-                         n_calib_days = 90,
-                         max_n_site_labs_to_show = 3,
-                         site_lab_names_to_show = NULL) {
+plot_pred_actual_ww <- function(ww_quantiles,
+                                loc_to_plot,
+                                date_to_plot,
+                                n_forecast_days = 28,
+                                n_calib_days = 90,
+                                max_n_site_labs_to_show = 3,
+                                site_lab_names_to_show = NULL) {
   if (!is.null(site_lab_names_to_show)) {
     ww_quantiles <- ww_quantiles |>
       dplyr::filter(site_lab_name %in% c(site_lab_names_to_show))
@@ -382,42 +382,46 @@ make_fig2_ct_supp <- function(ww_quantiles,
 
 #' Make figure 2
 #'
-#' @param hosp1 first hospital admissions forecast
-#' @param hosp2 second
-#' @param hosp3 third
-#' @param ct1 first faceted fit to wastewater data in each site
-#' @param ct2 second
-#' @param ct3 third
+#' @param hosp1 first hospital admissions predicted-actual figure
+#' @param hosp2 second hospital admissions predicted-actual figure
+#' @param hosp3 third hospital admissions predicted-actual figure
+#' @param ww1 first wastewater predicted-actual figure
+#' @param ww2 second wastewater predicted-actual figure
+#' @param ww3 third wastewater predicted-actual figure
 #' @param fig_file_dir Path to save figures
 #'
 #' @return a combined ggplot object
 #' @export
-make_fig2 <- function(hosp1, hosp2, hosp3,
-                      ct1, ct2, ct3,
-                      fig_file_dir) {
-  fig2 <- hosp1 + ct1 +
-    hosp2 + ct2 +
-    hosp3 + ct3 +
-    patchwork::plot_layout(
-      guides = "collect",
-      nrow = 3, ncol = 2,
-      axes = "collect",
-      widths = c(1, 1.5)
-    ) & theme(
+multi_location_pred_actual_fig <- function(hosp1, hosp2, hosp3,
+                                           ww1, ww2, ww3,
+                                           fig_file_dir) {
+  fig <- patchwork::wrap_plots(
+    hosp1,
+    ww1,
+    hosp2,
+    ww2,
+    hosp3,
+    ww3,
+    guides = "collect",
+    nrow = 3,
+    ncol = 2,
+    axes = "collect",
+    widths = c(1, 1.5)
+  ) & theme(
     legend.position = "top",
     legend.justification = "left"
   )
 
   fs::dir_create(fig_file_dir)
-  ggsave(fig2,
-    filename = file.path(fig_file_dir, "fig2.png"),
+  ggsave(fig,
+    filename = file.path(fig_file_dir, "fig_pred_actual_examples.png"),
     width = 10, height = 7,
     create.dir = TRUE
   )
   ggsave(fig2,
-    filename = file.path(fig_file_dir, "fig2.svg"),
+    filename = file.path(fig_file_dir, "fig_pred_actual_examples.svg"),
     width = 10, height = 7,
     create.dir = TRUE
   )
-  return(fig2)
+  return(fig)
 }

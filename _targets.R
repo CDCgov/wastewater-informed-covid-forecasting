@@ -554,7 +554,7 @@ manuscript_figures <- list(
   ## Figure showing example forecasts for 3 locs, 1 forecast date
   tar_target(
     name = example_hosp_t_1,
-    command = plot_model_hosp_t_comparison(
+    command = plot_pred_actual_hosp(
       hosp_quants_plot,
       loc_to_plot = locs_to_plot[1],
       date_to_plot = forecast_date_to_plot
@@ -562,7 +562,7 @@ manuscript_figures <- list(
   ),
   tar_target(
     name = example_hosp_t_2,
-    command = plot_model_hosp_t_comparison(
+    command = plot_pred_actual_hosp(
       hosp_quants_plot,
       loc_to_plot = locs_to_plot[2],
       date_to_plot = forecast_date_to_plot
@@ -570,7 +570,7 @@ manuscript_figures <- list(
   ),
   tar_target(
     name = example_hosp_t_3,
-    command = plot_model_hosp_t_comparison(
+    command = plot_pred_actual_hosp(
       hosp_quants_plot,
       loc_to_plot = locs_to_plot[3],
       date_to_plot = forecast_date_to_plot
@@ -578,7 +578,7 @@ manuscript_figures <- list(
   ),
   tar_target(
     name = example_ww_conc_1,
-    command = plot_ww_conc_by_site(
+    command = plot_pred_actual_ww(
       ww_quants_plot,
       loc_to_plot = locs_to_plot[1],
       date_to_plot = forecast_date_to_plot,
@@ -591,7 +591,7 @@ manuscript_figures <- list(
   ),
   tar_target(
     name = example_ww_conc_2,
-    command = plot_ww_conc_by_site(
+    command = plot_pred_actual_ww(
       ww_quants_plot,
       loc_to_plot = locs_to_plot[2],
       date_to_plot = forecast_date_to_plot
@@ -599,7 +599,7 @@ manuscript_figures <- list(
   ),
   tar_target(
     name = example_ww_conc_3,
-    command = plot_ww_conc_by_site(
+    command = plot_pred_actual_ww(
       ww_quants_plot,
       loc_to_plot = locs_to_plot[3],
       date_to_plot = forecast_date_to_plot
@@ -608,13 +608,13 @@ manuscript_figures <- list(
   ### Fig combined--------------------------------------------
   tar_target(
     name = three_location_forecast_fig,
-    command = three_location_forecast_fig(
+    command = multi_location_pred_actual_fig(
       hosp1 = example_hosp_t_1,
       hosp2 = example_hosp_t_2,
       hosp3 = example_hosp_t_3,
-      ww_conc1 = example_ww_conc_1,
-      ww_conc2 = example_ww_conc_2,
-      ww_conc3 = example_ww_conc3
+      ww1 = example_ww_conc_1,
+      ww2 = example_ww_conc_2,
+      ww3 = example_ww_conc3
     )
   ),
 
