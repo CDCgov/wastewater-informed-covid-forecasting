@@ -1320,7 +1320,7 @@ hub_targets <- list(
         "cfa-hosponlyrenewal(retro)" =
           "cfa-hosponlyrenewal"
       )) |>
-      dplyr::filter(!location_name %in% !!hub_locations_exclude)
+      dplyr::filter(!location_name %in% !!hub_locations_to_exclude)
   ),
   tar_target(
     name = hub_forecasts_cfa_ww_real_time,
@@ -1333,7 +1333,7 @@ hub_targets <- list(
         "cfa-wwrenewal(real-time)" =
           "cfa-wwrenewal"
       )) |>
-      dplyr::filter(!location_name %in% !!hub_locations_exclude)
+      dplyr::filter(!location_name %in% !!hub_locations_to_exclude)
   ),
   tar_target(
     name = hub_forecasts_cfa_hosp_real_time,
@@ -1344,7 +1344,7 @@ hub_targets <- list(
       eval_data = eval_hosp_data,
       model_type = "hosp"
     ) |>
-      dplyr::filter(!location_name %in% !!hub_locations_exclude)
+      dplyr::filter(!location_name %in% !!hub_locations_to_exclude)
   ),
   tar_target(
     name = hub_forecasts_cfa_real_time,
@@ -1360,7 +1360,7 @@ hub_targets <- list(
       pull_from_github = TRUE,
       dates = scored_forecast_dates
     ) |>
-      dplyr::filter(!location_name %in% !!hub_locations_exclude)
+      dplyr::filter(!location_name %in% !!hub_locations_to_exclude)
   ),
   tar_target(
     name = hub_forecasts,
