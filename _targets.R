@@ -1401,7 +1401,7 @@ hub_targets <- list(
   tar_target(
     name = save_scores_real_time,
     command = readr::write_csv(
-      hub_scores_feb_mar,
+      hub_scores_real_time,
       file.path(eval_config$score_subdir, "hub_scores_real_time.csv")
     ),
     format = "file"
@@ -1418,7 +1418,7 @@ hub_comparison_plots <- list(
   tar_target(
     name = hub_average_score_table_real_time,
     command = hub_average_score_table(
-      hub_scores_feb_mar |>
+      hub_scores_real_time |>
         dplyr::filter(!model %in% c(
           "cfa-hosponlyrenewal(retro)",
           "cfa-wwrenewal(retro)"
@@ -1776,7 +1776,7 @@ additional_figures <- list(
   tar_target(
     name = plot_wis_over_time_hub,
     command = get_plot_score_by_horizon_t(
-      combine_scores_oct_mar,
+      hub_scores,
       score_type = "wis",
       fig_file_dir = fig_output_dir
     )
@@ -1796,7 +1796,7 @@ additional_figures <- list(
     )
   ),
   tar_target(
-    name = avg_wis_by_horizon_feb_mar,
+    name = avg_wis_by_horizon_real_time,
     command = get_avg_scores_model_horizon(
       hub_scores_real_time,
       "interval_score"
