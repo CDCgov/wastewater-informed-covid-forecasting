@@ -38,17 +38,14 @@ make_fig4_rel_crps_over_time <- function(scores) {
     )
 
   relative_crps <- scores_overall |>
-    dplyr::group_by(forecast_date, location, model, horizon) |>
-    dplyr::summarize(mean_crps = mean(crps)) |>
-    tidyr::pivot_wider(
-      names_from = model,
-      values_from = mean_crps,
-      id_cols = c("horizon", "forecast_date", "location")
-    ) |>
-    dplyr::mutate(
-      rel_crps = ww / hosp
+    forecasttools::summarise_scores_with_baseline(
+      baseline = "cfa-hosponlyrenewal(retro)",
+      by = c(
+        "forecast_date",
+        "location",
+        "horizon"
+      )
     )
-
 
   colors <- plot_components()
   date_lims <- c(range(scores$forecast_date))
