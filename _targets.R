@@ -1676,7 +1676,7 @@ hub_comparison_plots <- list(
       time_period = "Oct-Mar"
     )
   ),
-  tar_twarget(
+  tar_target(
     name = hub_wis_t_all_time_all_models,
     command = plot_wis_t(
       all_scores = summarized_scores_oct_mar,
