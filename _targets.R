@@ -1516,25 +1516,16 @@ hub_comparison_plots <- list(
   tar_target(
     name = fig4_qq_plot_rt,
     command = forecast_qq_plot(
-      real_time_wis_both_models, ## TODO: FIX
+      hub_forecasts_cfa_real_time,
       time_period = "real_time",
       fig_file_dir = fig_output_dir,
       write_files = TRUE
     )
   ),
   tar_target(
-    name = fig4_plot_coverage_range_rt,
+    name = fig4_plot_coverage_range_real_time,
     command = forecast_interval_coverage_plot(
-      scores_quantiles = real_time_wis_both_models |> # TODO: FIX
-        dplyr::mutate(
-          horizon_days = as.integer(date - forecast_date),
-          horizon = case_when(
-            horizon_days <= 7 ~ "1 wk",
-            horizon_days <= 14 & horizon_days > 7 ~ "2 wks",
-            horizon_days <= 21 & horizon_days > 14 ~ "3 wks",
-            horizon_days <= 28 & horizon_days > 21 ~ "4 wks"
-          )
-        ),
+      hub_forecasts_cfa_real_time,
       ranges = c(30, 60, 90),
       time_period = "real_time",
       fig_file_dir = fig_output_dir,
@@ -1620,14 +1611,15 @@ hub_comparison_plots <- list(
   tar_target(
     name = hub_qq_plot_all_time,
     command = forecast_qq_plot(
-      forecasts |> dplyr::filter(.data$model %in% .env$models_to_plot),
+      hub_forecasts |>
+        dplyr::filter(.data$model %in% .env$models_to_plot),
       time_period = "Oct 2023-Mar 2024"
     )
   ),
   tar_target(
     name = hub_qq_plot_real_time,
     command = forecast_qq_plot(
-      forecasts |> dplyr::filter(.data$model %in%
+      hub_forecasts |> dplyr::filter(.data$model %in%
         setdiff(
           .env$models_to_plot,
           c(
