@@ -524,7 +524,7 @@ make_qq_plot_overall <- function(scores_quantiles,
   return(p)
 }
 
-#' Plot coverage at specified ranges
+#' Plot interval coverage at specified ranges
 #'
 #' @param scores_quantiles A tibble of scores by location, forecast date,
 #' date and model, containing the outputs of `scoringutils::score()` on
@@ -545,43 +545,42 @@ make_plot_coverage_range <- function(scores_quantiles,
                                      fig_file_dir = NULL,
                                      write_files = FALSE) {
   scores_by_horizon <- scores_quantiles |>
-    dplyr::mutate(
-      horizon_weeks = dplyr::case_when(
-        horizon_days <= -7 ~ -2,
-        horizon_days > -7 & horizon_days <= 0 ~ -1,
-        horizon_days > 0 & horizon_days <= 6 ~ 1,
-        horizon_days > 6 & horizon_days <= 13 ~ 2,
-        horizon_days > 13 & horizon_days <= 21 ~ 3,
-        horizon_days > 21 ~ 4,
-        TRUE ~ NA
-      )
-    )
-  coverage_summarized <- scores_by_horizon |>
-    dplyr::filter(range %in% c(!!ranges)) |>
-    dplyr::group_by(horizon, model, range) |>
-    dplyr::summarise(pct_interval_coverage = 100 * mean(coverage)) |>
+    scoringutils::summarize_scores(by = "horizon") |>
     order_horizons()
-
-  if (nrow(coverage_summarized |> dplyr::filter(is.na(horizon))) > 0) {
-    warning("Horizon is missing for some data points")
-  }
 
   coverage_summarized <- coverage_summarized |>
     dplyr::filter(!is.na(horizon)) |>
+    tidyr::pivot_longer(
+      id_cols = "horizon"
+    ) |>
+    dplyr::filter(stringr::str_starts_with(
+      .data$name,
+      "interval_coverage_"
+    )) |>
     dplyr::mutate(
-      named_facet = glue::glue("{range}%")
-    )
+      range = stringr::str_replace_1(
+        .data$name,
+        "interval_coverage_",
+        ""
+      ) |>
+        as.numeric(),
+      named_facet = glue::glue("{.data$range}%")
+    ) |>
+    dplyr::filter(.data$range %in% !!ranges)
 
   colors <- plot_components()
   p <- ggplot(coverage_summarized) +
     aes(
-      x = horizon, y = pct_interval_coverage, color = model,
-      group = model
+      x = .data$horizon,
+      y = .data$value,
+      color = .data$model
     ) +
     geom_line() +
     geom_point() +
     geom_hline(aes(yintercept = range), linetype = "dashed") +
-    facet_wrap(~named_facet, scales = "free_y") +
+    facet_wrap(~ .data$named_facet,
+      scales = "free_y"
+    ) +
     labs(
       y = "Proportion of data within interval",
       x = "Forecast horizon",
@@ -597,7 +596,7 @@ make_plot_coverage_range <- function(scores_quantiles,
     ggsave(p,
       filename = file.path(
         fig_file_dir,
-        glue::glue("sfig_coverage_range_{time_period}.png")
+        glue::glue("coverage_range_{time_period}.png")
       ),
       height = 4,
       width = 10
