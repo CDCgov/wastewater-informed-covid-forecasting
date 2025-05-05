@@ -465,115 +465,6 @@ make_fig4_rel_crps_overall <- function(scores,
 }
 
 
-
-#' Make figure that plots distribution of relative crps stratified by
-#' epidemic phase
-#'
-#' @param scores A tibble of scores by location, forecast date, date and model,
-#' containing the outputs of `scoringutils::score()` on samples plus metadata
-#' transformed into a tibble.
-#'
-#' @return A ggplot object containing plots of the distribution of relative
-#' CRPS scores stratified by epidemic phase, across
-#' locations and forecast dates
-#' @export
-make_fig4_rel_crps_by_phase <- function(scores) {
-  scores_w_fig_order <- scores |>
-    order_phases()
-
-  # Quick warning if there are NAs in epidemic phases
-  missing_phases <- scores |>
-    dplyr::filter(is.na(phase))
-
-  if (nrow(missing_phases) > 0) {
-    warning("There are dates missing epidemic phases")
-  }
-
-  relative_crps <- scores_w_fig_order |>
-    compute_relative_crps(id_cols = c(
-      "location",
-      "date", "forecast_date",
-      "horizon", "phase"
-    )) |>
-    dplyr::filter(!is.na(phase)) |>
-    dplyr::filter(!is.na(horizon)) |>
-    order_phases() |>
-    order_horizons()
-
-
-  colors <- plot_components()
-
-  p <- ggplot(relative_crps) +
-    tidybayes::stat_halfeye(
-      aes(
-        x = as.factor(phase), y = rel_crps,
-        fill = phase
-      ),
-      point_interval = "mean_qi",
-      alpha = 0.5,
-      position = position_dodge(width = 0.75),
-      show.legend = FALSE
-    ) +
-    geom_hline(aes(yintercept = 1), linetype = "dashed") +
-    xlab("Epidemic phase") +
-    ylab("Relative CRPS") +
-    scale_y_continuous(trans = "log10", limits = c(0.5, 2)) +
-    get_plot_theme(
-      x_axis_title_size = 8,
-      y_axis_title_size = 8
-    ) +
-    scale_fill_manual(values = colors$phase_colors)
-
-  return(p)
-}
-#' Make figure that plots distribution of absolute crps stratified by
-#' epidemic phase
-#'
-#' @param scores A tibble of scores by location, forecast date, date and model,
-#' containing the outputs of `scoringutils::score()` on samples plus metadata
-#' transformed into a tibble.
-#'
-#' @return A ggplot object containing plots of the distribution of
-#' continuous ranked probability scores, colored by model, stratified by epidemic phase, across
-#' locations and forecast dates
-#' @export
-make_sfig_crps_by_phase <- function(scores) {
-  scores_w_fig_order <- scores |>
-    order_phases()
-
-  # Quick warning if there are NAs in epidemic phases
-  missing_phases <- scores |>
-    dplyr::filter(is.na(phase))
-
-  if (nrow(missing_phases) > 0) {
-    warning("There are dates missing epidemic phases")
-  }
-
-  # Going to keep this in there for now
-  scores_to_plot <- scores_w_fig_order |>
-    dplyr::filter(!is.na(phase))
-
-  p <- ggplot(scores_to_plot) +
-    tidybayes::stat_halfeye(
-      aes(
-        x = as.factor(phase), y = crps,
-        fill = model
-      ),
-      point_interval = "mean_qi",
-      alpha = 0.5,
-      position = position_dodge(width = 0.75),
-    ) +
-    xlab("Epidemic phase") +
-    ylab("CRPS") +
-    scale_y_continuous(limits = c(0.0, 1)) +
-    get_plot_theme(
-      x_axis_title_size = 8,
-      y_axis_title_size = 8
-    ) +
-    scale_fill_manual(values = colors$model_colors)
-  return(p)
-}
-
 #' Plot average CRPS over time for model comparison
 #'
 #' @param scores A tibble of scores by location, forecast date, date and model,
@@ -590,17 +481,15 @@ make_fig4_avg_crps_over_time <- function(scores,
                                          horizon_time_in_weeks = NULL) {
   if (!is.null(horizon_time_in_weeks)) {
     scores_by_forecast_date <- scores |>
-      data.table::as.data.table() |>
-      scoringutils::summarise_scores(by = c(
-        "forecast_date",
-        "model", "horizon"
-      )) |>
-      dplyr::filter(horizon_weeks == {
-        horizon_time_in_weeks
-      })
+      scoringutils::summarise_scores(
+        by = c(
+          "forecast_date",
+          "horizon"
+        )
+      ) |>
+      dplyr::filter(horizon_weeks == !!horizon_time_in_weeks)
   } else {
     scores_by_forecast_date <- scores |>
-      data.table::as.data.table() |>
       scoringutils::summarise_scores(by = c(
         "forecast_date",
         "model"
@@ -651,25 +540,21 @@ make_fig4_avg_crps_over_time <- function(scores,
 #' @param wis_scores tibble of scores by horizon day, forecast date, and location
 #'
 #' @return ggplot object of distribution of relative CRPS scores
-get_plot_rel_wis_distrib <- function(wis_scores) {
+get_plot_rel_wis_distrib <- function(wis_scores,
+                                     baseline) {
   relative_wis_by_forecast <- wis_scores |>
-    data.table::as.data.table() |>
-    scoringutils::summarise_scores(by = c(
-      "location",
-      "model",
-      "forecast_date"
-    )) |>
-    tidyr::pivot_wider(
-      names_from = model,
-      values_from = interval_score,
-      id_cols = c(
-        "location", "forecast_date"
+    forecasttools::summarise_scores_with_baseline(
+      baseline = baseline,
+      by = c(
+        "location",
+        "forecast_date"
       )
     ) |>
-    dplyr::mutate(
-      rel_wis = ww / hosp
+    dplyr::rename(
+      rel_wis = "model_scores_ratio"
     )
-  p_log <- ggplot(relative_wis_by_forecast) +
+
+  p <- ggplot(relative_wis_by_forecast) +
     tidybayes::stat_dotsinterval(
       aes(
         y = rel_wis
@@ -686,7 +571,7 @@ get_plot_rel_wis_distrib <- function(wis_scores) {
     scale_y_continuous(trans = "log10") +
     coord_cartesian(ylim = c(1 / 3.5, 3.5))
 
-  return(p_log)
+  return(p)
 }
 
 #' Get a plot of the relative wis from the real-time models

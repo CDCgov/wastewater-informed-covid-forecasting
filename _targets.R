@@ -216,7 +216,7 @@ combined_targets <- list(
     command = get_convergence_df(all_flags_hosp,
       scenario = "no_wastewater"
     ) |>
-      dplyr::rename(any_flags_hosp = any_flags)
+      dplyr::rename(any_flags_hosp = "any_flags")
   ),
   tar_target(
     name = all_ww_data_flags,
@@ -539,7 +539,7 @@ manuscript_figures <- list(
     name = hosp_quants_plot,
     command = hosp_quantiles_filtered |>
       dplyr::filter(
-        quantile %in% quantile_levels_to_plot,
+        quantile_level %in% quantile_levels_to_plot,
         location %in% locs_to_plot
       )
   ),
@@ -1496,7 +1496,8 @@ hub_comparison_plots <- list(
   tar_target(
     name = fig4_rel_wis_hist,
     command = get_plot_rel_wis_distrib(
-      wis_scores = wis_summary_cfa_models_real_time
+      wis_scores = wis_summary_cfa_models_real_time,
+      baseline = "cfa-hosponlyrenewal(real-time)"
     )
   ),
   tar_target(

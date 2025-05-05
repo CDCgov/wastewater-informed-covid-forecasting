@@ -24,56 +24,83 @@ plot_pred_actual_hosp <- function(hosp_quantiles,
                                   n_forecast_days = 28,
                                   n_calib_days = 90) {
   hosp <- hosp_quantiles |>
-    dplyr::filter(location %in% c(!!loc_to_plot)) |>
-    dplyr::filter(forecast_date == !!date_to_plot) |>
+    dplyr::filter(.data$location %in% c(!!loc_to_plot)) |>
+    dplyr::filter(.data$forecast_date == !!date_to_plot) |>
     dplyr::filter(
-      date <= forecast_date + lubridate::days(n_forecast_days),
-      date >= forecast_date - lubridate::days(n_calib_days)
+      .data$date <= .data$forecast_date +
+        lubridate::days(!!n_forecast_days),
+      .data$date >= .data$forecast_date -
+        lubridate::days(!!n_calib_days)
+    ) |>
+    dplyr::select(
+      "model_type",
+      "forecast_date",
+      "date",
+      "calib_data",
+      "observed",
+      "quantile_level",
+      "value"
     )
 
   quantiles_wide <- hosp |>
-    dplyr::filter(quantile %in% c(0.025, 0.25, 0.5, 0.75, 0.975)) |>
+    dplyr::filter(quantile_level %in% c(0.025, 0.25, 0.5, 0.75, 0.975)) |>
     tidyr::pivot_wider(
       id_cols = c(
-        location, forecast_date, period, scenario,
-        date, eval_data, calib_data, model_type
+        "model_type",
+        "forecast_date",
+        "date",
+        "calib_data",
+        "observed"
       ),
-      names_from = quantile,
-      values_from = value
+      names_from = "quantile_level",
+      values_from = "value"
     )
 
   colors <- plot_components()
 
   p <- ggplot(quantiles_wide) +
-    geom_point(aes(x = date, y = eval_data),
+    geom_point(
+      aes(
+        x = .data$date,
+        y = .data$observed
+      ),
       fill = "white", size = 1, shape = 21,
       show.legend = FALSE
     ) +
     geom_point(
-      aes(x = date, y = calib_data),
-      color = "black", show.legend = FALSE
+      aes(
+        x = .data$date,
+        y = .data$calib_data
+      ),
+      color = "black",
+      show.legend = FALSE
     ) +
     geom_line(
       aes(
-        x = date, y = `0.5`,
-        color = model_type
+        x = .data$date,
+        y = .data$`0.5`,
+        color = .data$model_type
       )
     ) +
     geom_ribbon(
       aes(
-        x = date, ymin = `0.025`, ymax = `0.975`,
-        fill = model_type
+        x = .data$date,
+        ymin = .data$`0.025`,
+        ymax = .data$`0.975`,
+        fill = .data$model_type
       ),
       alpha = 0.1
     ) +
     geom_ribbon(
       aes(
-        x = date, ymin = `0.25`, ymax = `0.75`,
-        fill = model_type
+        x = .data$date,
+        ymin = .data$`0.25`,
+        ymax = .data$`0.75`,
+        fill = .data$model_type
       ),
       alpha = 0.2,
     ) +
-    geom_vline(aes(xintercept = lubridate::ymd(forecast_date)),
+    geom_vline(aes(xintercept = lubridate::ymd(.data$forecast_date)),
       linetype = "dashed"
     ) +
     scale_x_date(
