@@ -417,7 +417,7 @@ load_real_time_forecast <- function(output_dir,
 #' @param eval_data a tibble of hospital admissions evaluation
 #' data to be used
 #' for scoring.
-#' @param model_types String indicating model type to load.
+#' @param model_type String indicating model type to load.
 #' One of `"ww"` or `"hosp"`.
 #'
 #' @return The forecasts as the output of
@@ -429,7 +429,7 @@ load_real_time_outputs <- function(real_time_output_dir,
                                    eval_data,
                                    model_type) {
   checkmate::assert_scalar(model_type)
-  checkmate::assert_names(model_types, subset.of = c("ww", "hosp"))
+  checkmate::assert_names(model_type, subset.of = c("ww", "hosp"))
 
   load_forecast <- function(forecast_date,
                             location) {
