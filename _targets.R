@@ -1320,7 +1320,7 @@ hub_targets <- list(
         "cfa-hosponlyrenewal(retro)" =
           "cfa-hosponlyrenewal"
       )) |>
-      dplyr::filter(!location_name %in% !!hub_locations_to_exclude)
+      dplyr::filter(!location_name %in% .env$hub_locations_to_exclude)
   ),
   tar_target(
     name = hub_forecasts_cfa_ww_real_time,
@@ -1333,7 +1333,7 @@ hub_targets <- list(
         "cfa-wwrenewal(real-time)" =
           "cfa-wwrenewal"
       )) |>
-      dplyr::filter(!location_name %in% !!hub_locations_to_exclude)
+      dplyr::filter(!location_name %in% .env$hub_locations_to_exclude)
   ),
   tar_target(
     name = hub_forecasts_cfa_hosp_real_time,
@@ -1344,7 +1344,7 @@ hub_targets <- list(
       eval_data = eval_hosp_data,
       model_type = "hosp"
     ) |>
-      dplyr::filter(!location_name %in% !!hub_locations_to_exclude)
+      dplyr::filter(!location_name %in% .env$hub_locations_to_exclude)
   ),
   tar_target(
     name = hub_forecasts_cfa_real_time,
@@ -1360,7 +1360,7 @@ hub_targets <- list(
       pull_from_github = TRUE,
       dates = scored_forecast_dates
     ) |>
-      dplyr::filter(!location_name %in% !!hub_locations_to_exclude)
+      dplyr::filter(!location_name %in% .env$hub_locations_to_exclude)
   ),
   tar_target(
     name = hub_forecasts,
@@ -1396,7 +1396,7 @@ hub_targets <- list(
       cfa_real_time_hub_scores,
       dplyr::filter(
         combine_scores_oct_mar,
-        .data$forecast_date >= !!first_real_time_forecast_date
+        .data$forecast_date >= .env$first_real_time_forecast_date
       )
     )
   ),
@@ -1626,7 +1626,7 @@ hub_comparison_plots <- list(
   tar_target(
     name = hub_qq_plot_all_time,
     command = forecast_qq_plot(
-      forecasts |> dplyr::filter(.data$model %in% !!models_to_plot),
+      forecasts |> dplyr::filter(.data$model %in% .env$models_to_plot),
       time_period = "Oct 2023-Mar 2024"
     )
   ),
@@ -1635,7 +1635,7 @@ hub_comparison_plots <- list(
     command = forecast_qq_plot(
       forecasts |> dplyr::filter(.data$model %in%
         setdiff(
-          !!models_to_plot,
+          .env$models_to_plot,
           c(
             "cfa-wwrenewal(retro)",
             "cfa-hosponlyrenewal(retro)"
