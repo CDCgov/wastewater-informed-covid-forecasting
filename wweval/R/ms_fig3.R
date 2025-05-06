@@ -62,6 +62,7 @@ multi_location_crps_figure <- function(scores,
 #' @param this_forecast_date the forecast date of interest
 #'
 #' @return A tibble of mean scores by models
+#' @export
 get_ind_forecast_score <- function(scores,
                                    loc,
                                    this_forecast_date) {
@@ -85,6 +86,8 @@ get_ind_forecast_score <- function(scores,
 #' transformed into a tibble.
 #' @param loc_to_plot A  string indicating the state abbreviations of the state
 #' to plot
+#' @param baseline Name of the model to use a sa baseline. Default
+#' `"cfa-hosponlyrenewal(retro)"`
 #' @param horizons_to_show A vector of strings indicating the names of the
 #' `horizon` that we want to show on the plot, must be a subset of
 #' `nowcast`, `1 wk`, `2 wks`,`3 wks`, `4 wks` and `overall`
@@ -95,50 +98,41 @@ get_ind_forecast_score <- function(scores,
 #' @export
 make_fig3_single_loc_comp <- function(scores,
                                       loc_to_plot,
+                                      baseline =
+                                        "cfa-hosponlyrenewal(retro)",
                                       horizons_to_show = c(
                                         "nowcast",
                                         "1 wk", "4 wks",
                                         "overall"
                                       )) {
   scores_by_horizon <- scores |>
-    dplyr::filter(location == !!loc_to_plot) |>
-    dplyr::filter(horizon %in% !!horizons_to_show)
+    dplyr::filter(
+      .data$location == !!loc_to_plot,
+      .data$horizon %in% !!horizons_to_show
+    )
   scores_overall <- scores |>
-    dplyr::filter(location == !!loc_to_plot) |>
+    dplyr::filter(.data$location == !!loc_to_plot) |>
     dplyr::mutate(horizon = "overall")
 
   scores_comb <- dplyr::bind_rows(scores_by_horizon, scores_overall) |>
-    dplyr::filter(
-      horizon %in% !!horizons_to_show
-    ) |>
-    order_horizons()
+    dplyr::filter(horizon %in% !!horizons_to_show)
 
   relative_crps <- scores_comb |>
-    dplyr::group_by(horizon, forecast_date, location, model) |>
-    dplyr::summarize(mean_crps = mean(crps)) |>
-    tidyr::pivot_wider(
-      names_from = model,
-      values_from = mean_crps,
-      id_cols = c("horizon", "forecast_date", "location")
+    forecasttools::summarise_scores_with_baseline(
+      baseline = baseline,
+      by = c("horizon", "forecast_date", "location")
     ) |>
-    dplyr::mutate(
-      rel_crps = ww / hosp
-    ) |>
-    dplyr::filter(!is.na(horizon)) |>
+    dplyr::rename(rel_crps = "mean_scores_ratio") |>
     order_horizons()
-
-
-  rel_mean_crps <- relative_crps |>
-    dplyr::group_by(horizon) |>
-    dplyr::summarize(rel_mean_crps = mean(ww) / mean(hosp), na.rm = TRUE)
 
   colors <- plot_components()
 
   p <- ggplot(relative_crps) +
     tidybayes::stat_dotsinterval(
       aes(
-        x = horizon, y = rel_crps,
-        fill = horizon
+        x = .data$horizon,
+        y = .data$rel_crps,
+        fill = .data$horizon
       ),
       point_interval = "mean_qi",
       alpha = 0.5,
@@ -158,8 +152,6 @@ make_fig3_single_loc_comp <- function(scores,
     scale_y_continuous(trans = "log10") + # , limits = c(0.25, 4.0)) +
     labs(color = "Model") +
     coord_cartesian(ylim = c(1 / 6, 6))
-
-  # Also make a bar chart of the two average crps scores
 
 
   return(p)
