@@ -125,7 +125,7 @@ plot_rel_crps_distribution_t <- function(scores,
   )
 
   colors <- plot_components()
-  horizon_color <- colors$horizon_colors$overall
+  horizon_color <- colors$horizon_colors[["overall"]]
 
   date_lims <- c(range(scores$forecast_date))
 
@@ -283,7 +283,7 @@ plot_rel_crps_by_location <- function(scores,
   )
 
   colors <- plot_components()
-  horizon_color <- colors$horizon_colors$overall
+  horizon_color <- colors$horizon_colors[["overall"]]
 
   p <- ggplot(relative_scores) +
     tidybayes::stat_dotsinterval(
