@@ -416,44 +416,6 @@ head_to_head_targets <- list(
         "ww_sufficient"
       )) |>
       scoringutils:::as_scores(metrics = names(wweval::sample_metrics))
-  ),
-  # Repeat for the quantile-based scores
-  tar_target(
-    name = scores_quantiles_filtered,
-    command = dplyr::bind_rows(
-      all_hosp_scores_quantiles,
-      all_ww_scores_quantiles |>
-        dplyr::filter(scenario == "status_quo")
-    ) |>
-      dplyr::filter(scale == "log") |>
-      dplyr::left_join(table_of_loc_dates_w_ww,
-        by = c("location", "forecast_date")
-      ) |>
-      dplyr::filter(.data$ww_sufficient) |>
-      dplyr::left_join(
-        convergence_df,
-        by = c(
-          "location",
-          "forecast_date"
-        )
-      ) |>
-      dplyr::filter(
-        .data$any_flags_ww == FALSE,
-        .data$any_flags_hosp == FALSE
-      ) |>
-      dplyr::left_join(
-        last_hosp_data_date_map,
-        by = c("location", "forecast_date")
-      ) |>
-      add_horizons() |>
-      dplyr::select(-c(
-        "scenario",
-        "model_type",
-        "any_flags_ww",
-        "any_flags_hosp",
-        "ww_sufficient"
-      )) |>
-      scoringutils:::as_scores(metrics = names(wweval::quantile_metrics))
   )
 )
 
@@ -731,7 +693,7 @@ manuscript_figures <- list(
   tar_target(
     name = plot3_interval_coverage1,
     command = forecast_interval_coverage_plot(
-      scores_quantiles_filtered |>
+      hosp_quantiles_filtered |>
         dplyr::filter(location == locs_to_plot[1]),
       ranges = c(30, 60, 90)
     )
@@ -813,7 +775,7 @@ manuscript_figures <- list(
   tar_target(
     name = plot3_interval_coverage2,
     command = forecast_interval_coverage_plot(
-      scores_quantiles_filtered |>
+      hosp_quantiles_filtered |>
         dplyr::filter(location == locs_to_plot[2]),
       ranges = c(30, 60, 90)
     )
@@ -894,7 +856,7 @@ manuscript_figures <- list(
   tar_target(
     name = plot3_interval_coverage3,
     command = forecast_interval_coverage_plot(
-      scores_quantiles_filtered |>
+      hosp_quantiles_filtered |>
         dplyr::filter(location == locs_to_plot[3]),
       ranges = c(30, 60, 90)
     )
