@@ -16,10 +16,10 @@ forecast_qq_plot(
 
 \item{time_period}{time period that scores are summarized over}
 
+\item{fig_file_dir}{Directory in which to save figure}
+
 \item{save_files}{save_files boolean indicating whether or not to save figures, default
 is \code{TRUE}}
-
-\item{figure_file_path}{path to save figure}
 }
 \value{
 a ggplot object containing a plot of the proportion of data within

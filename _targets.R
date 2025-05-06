@@ -704,7 +704,8 @@ manuscript_figures <- list(
     command = forecast_qq_plot(
       hosp_quantiles_filtered |>
         dplyr::rename(model = "model_type") |>
-        dplyr::filter(location == locs_to_plot[1])
+        dplyr::filter(location == locs_to_plot[1]),
+      save_files = FALSE
     )
   ),
 
@@ -788,7 +789,8 @@ manuscript_figures <- list(
     command = forecast_qq_plot(
       hosp_quantiles_filtered |>
         dplyr::rename(model = "model_type") |>
-        dplyr::filter(location == locs_to_plot[2])
+        dplyr::filter(location == locs_to_plot[2]),
+      save_files = FALSE
     )
   ),
   ### Third loc----
@@ -871,7 +873,8 @@ manuscript_figures <- list(
     command = forecast_qq_plot(
       hosp_quantiles_filtered |>
         dplyr::rename(model = "model_type") |>
-        dplyr::filter(location == locs_to_plot[3])
+        dplyr::filter(location == locs_to_plot[3]),
+      save_files = FALSE
     )
   ),
 
@@ -984,8 +987,7 @@ manuscript_figures <- list(
     command = forecast_qq_plot(
       hosp_quantiles_filtered,
       time_period = "retro_all_time",
-      fig_file_dir = fig_output_dir,
-      write_files = TRUE
+      fig_file_dir = fig_output_dir
     )
   ),
   tar_target(

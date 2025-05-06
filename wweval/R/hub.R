@@ -177,7 +177,7 @@ pull_hub_forecasts <- function(model_name,
       quantiles_w_truth <- tibble::tibble()
     } else {
       quantiles_w_truth <- quantiles |>
-        dplyr::rename(prediction = value) |>
+        dplyr::rename(prediction = "value") |>
         dplyr::mutate(
           model = !!model_name,
           location = forecasttools::us_loc_code_to_abbr(

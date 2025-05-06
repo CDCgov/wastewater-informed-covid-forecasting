@@ -1337,8 +1337,8 @@ get_heatmap_relative_wis <- function(scores,
 #' Get quantile-quantile plot
 #'
 #' @param forecasts df of granular (daily) quantile forecasts
-#' @param figure_file_path path to save figure
 #' @param time_period time period that scores are summarized over
+#' @param fig_file_dir Directory in which to save figure
 #' @param save_files  save_files boolean indicating whether or not to save figures, default
 #' is `TRUE`
 #'

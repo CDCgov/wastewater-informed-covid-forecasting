@@ -4,7 +4,7 @@
 \alias{plot_rel_crps_by_location}
 \title{Make figure that stratifies scores by location across forecast dates}
 \usage{
-plot_rel_crps_by_location(scores)
+plot_rel_crps_by_location(scores, target_model, baseline_model)
 }
 \arguments{
 \item{scores}{A tibble of scores by location, forecast date, date and model,
