@@ -7,6 +7,7 @@
 make_fig3_single_loc_comp(
   scores,
   loc_to_plot,
+  baseline = "cfa-hosponlyrenewal(retro)",
   horizons_to_show = c("nowcast", "1 wk", "4 wks", "overall")
 )
 }
@@ -17,6 +18,9 @@ transformed into a tibble.}
 
 \item{loc_to_plot}{A  string indicating the state abbreviations of the state
 to plot}
+
+\item{baseline}{Name of the model to use a sa baseline. Default
+\code{"cfa-hosponlyrenewal(retro)"}}
 
 \item{horizons_to_show}{A vector of strings indicating the names of the
 \code{horizon} that we want to show on the plot, must be a subset of
