@@ -1813,7 +1813,7 @@ additional_figures <- list(
   ),
   tar_target(
     name = comp_stats_real_time,
-    command = get_stats_imp_forecasts_wis(
+    command = get_stats_improved_forecasts(
       scores = wis_summary_cfa_models_real_time,
       threshold = 1.1
     )
