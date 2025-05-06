@@ -156,7 +156,7 @@ get_model_draws_w_data <- function(fit_obj_wwinference,
 get_state_level_quantiles <- function(draws) {
   quantiles <- draws |>
     dplyr::select("date", "value") |>
-    trajectories_to_quantiles(
+    forecasttools::trajectories_to_quantiles(
       timepoint_cols = "date",
       value_col = "value",
       quantile_level_name = "quantile",
@@ -191,7 +191,7 @@ get_state_level_quantiles <- function(draws) {
 get_state_level_ww_quantiles <- function(ww_draws) {
   quantiles <- ww_draws |>
     dplyr::select("date", "value", "lab_site_index") |>
-    trajectories_to_quantiles(
+    forecasttools::trajectories_to_quantiles(
       timepoint_cols = "date",
       value_col = "value",
       id_cols = "lab_site_index",
