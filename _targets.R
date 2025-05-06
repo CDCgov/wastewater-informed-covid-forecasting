@@ -1036,7 +1036,7 @@ manuscript_figures <- list(
       rel_crps_dist = rel_crps_distribution_overall_cfa_models,
       abs_crps_over_time = fig_crps_t_cfa_models,
       total_admissions = fig_total_admissions,
-      rel_crps_over_time = rel_crps_distribution_t_cfa_models,
+      rel_crps_dist_over_time = rel_crps_distribution_t_cfa_models,
       rel_crps_by_location = rel_crps_by_location_cfa_models,
       time_period = "all_time",
       fig_file_dir = fig_output_dir
@@ -1515,10 +1515,11 @@ hub_comparison_plots <- list(
     )
   ),
   tar_target(
-    name = fig4_natl_admissions_rt,
-    command = make_fig4_admissions_overall(
+    name = real_time_admissions_timeseries,
+    command = plot_total_admissions(
       eval_hosp_data,
-      first_forecast_date = lubridate::ymd("2024-02-05") - lubridate::days(7),
+      first_forecast_date = lubridate::ymd("2024-02-05") -
+        lubridate::days(7),
       last_forecast_date = max(eval_config$forecast_date_ww)
     )
   ),

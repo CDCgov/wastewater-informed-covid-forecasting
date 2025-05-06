@@ -20,7 +20,7 @@ plot_total_admissions <- function(eval_hosp_data,
     dplyr::group_by(.data$date) |>
     dplyr::summarise(total_hosp = sum(daily_hosp_admits))
 
-  max_total_hosp <- max(total_hosp$total_hosp)
+  max_total_hosp <- max(hosp_data$total_hosp)
 
   date_lims <- c(
     as.Date(first_forecast_date),
