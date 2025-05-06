@@ -594,7 +594,7 @@ manuscript_figures <- list(
       hosp3 = example_hosp_t_3,
       ww1 = example_ww_conc_1,
       ww2 = example_ww_conc_2,
-      ww3 = example_ww_conc3
+      ww3 = example_ww_conc_3
     )
   ),
 
@@ -694,8 +694,8 @@ manuscript_figures <- list(
     name = plot3_interval_coverage1,
     command = forecast_interval_coverage_plot(
       hosp_quantiles_filtered |>
-        dplyr::rename(model = "model_type") |>
-        dplyr::filter(location == locs_to_plot[1]),
+        dplyr::filter(.data$location == locs_to_plot[1]) |>
+        dplyr::rename(model = "model_type"),
       ranges = c(30, 60, 90)
     )
   ),
@@ -703,8 +703,9 @@ manuscript_figures <- list(
     name = plot3_qq_plot1,
     command = forecast_qq_plot(
       hosp_quantiles_filtered |>
-        dplyr::rename(model = "model_type") |>
-        dplyr::filter(location == locs_to_plot[1]),
+        dplyr::filter(.data$location == locs_to_plot[1]) |>
+        dplyr::rename(model = "model_type"),
+      time_period = "Oct 2023-Mar 2024",
       save_files = FALSE
     )
   ),
@@ -790,6 +791,7 @@ manuscript_figures <- list(
       hosp_quantiles_filtered |>
         dplyr::rename(model = "model_type") |>
         dplyr::filter(location == locs_to_plot[2]),
+      time_period = "Oct 2023-Mar 2024",
       save_files = FALSE
     )
   ),
@@ -874,6 +876,7 @@ manuscript_figures <- list(
       hosp_quantiles_filtered |>
         dplyr::rename(model = "model_type") |>
         dplyr::filter(location == locs_to_plot[3]),
+      time_period = "Oct 2023-Mar 2024",
       save_files = FALSE
     )
   ),

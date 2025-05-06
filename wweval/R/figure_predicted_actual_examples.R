@@ -39,21 +39,14 @@ plot_pred_actual_hosp <- function(hosp_quantiles,
       "calib_data",
       "observed",
       "quantile_level",
-      "value"
+      "predicted"
     )
 
   quantiles_wide <- hosp |>
     dplyr::filter(.data$quantile_level %in% c(0.025, 0.25, 0.5, 0.75, 0.975)) |>
     tidyr::pivot_wider(
-      id_cols = c(
-        "model_type",
-        "forecast_date",
-        "date",
-        "calib_data",
-        "observed"
-      ),
       names_from = "quantile_level",
-      values_from = "value"
+      values_from = "predicted"
     )
 
   colors <- plot_components()
@@ -184,8 +177,8 @@ plot_pred_actual_ww <- function(ww_quantiles,
         location, site_lab_name, forecast_date, period, scenario,
         date, eval_data, calib_data, below_LOD, flag_as_ww_outlier
       ),
-      names_from = quantile,
-      values_from = log_conc
+      names_from = "quantile",
+      values_from = "log_conc"
     ) |>
     dplyr::mutate(
       model = "ww",

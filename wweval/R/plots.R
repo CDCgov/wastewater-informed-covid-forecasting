@@ -1345,13 +1345,12 @@ get_heatmap_relative_wis <- function(scores,
 #' @return a ggplot object containing a plot of the proportion of data within
 #' each interval for each model.
 #' @export
-#'
 forecast_qq_plot <- function(forecasts,
                              time_period,
                              fig_file_dir = NULL,
                              save_files = TRUE) {
-  p <- forecasts |>
-    scoringutils::get_coverage() |>
+  colors <- plot_components()
+  p <- scoringutils::get_coverage(forecasts) |>
     scoringutils::plot_quantile_coverage() +
     ggtitle(glue::glue("QQ plot for {time_period}")) +
     get_plot_theme() +
@@ -1371,7 +1370,6 @@ forecast_qq_plot <- function(forecasts,
       bg = "white"
     )
   }
-
   return(p)
 }
 
