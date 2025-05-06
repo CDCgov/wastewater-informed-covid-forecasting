@@ -118,6 +118,8 @@ query_and_select_models <- function(prop_dates_for_incl_hub,
 #' the names of the models to score.
 #' @param dates a vector of dates indicating the dates of the
 #' submissions to score.
+#' @param eval_data Table of evaluation data, as the output of
+#' [get_input_hosp_data()]
 #' @param locations a vector of character strings indicating the locations
 #' to score
 #' @param hub_subdir path where the retrospective hub submissions are saved
@@ -126,8 +128,6 @@ query_and_select_models <- function(prop_dates_for_incl_hub,
 #' from github
 #' @param submissions_path url pointing to the "data-processed" folder on
 #' the COVIDhub github, which is where team's submissions are located
-#' @param truth_data_path the path to the truth data used by the hub for
-#' evaluation
 #'
 #' @return a dataframe containing all of the scores for all models,
 #' forecast dates (indicated by dates), locations, target end dates, and
@@ -136,19 +136,11 @@ query_and_select_models <- function(prop_dates_for_incl_hub,
 #'
 pull_hub_forecasts <- function(model_name,
                                dates,
+                               eval_data,
                                locations = NULL,
                                hub_subdir = NA,
                                pull_from_github = TRUE,
-                               submissions_path = "https://raw.githubusercontent.com/reichlab/covid19-forecast-hub/master/data-processed/", # nolint
-                               truth_data_path = "https://media.githubusercontent.com/media/reichlab/covid19-forecast-hub/master/data-truth/truth-Incident%20Hospitalizations.csv") { # nolint
-
-  truth_data <- readr::read_csv(truth_data_path,
-    show_col_types = FALSE
-  ) |>
-    dplyr::rename(
-      true_value = "value",
-      target_end_date = "date"
-    )
+                               submissions_path = "https://raw.githubusercontent.com/reichlab/covid19-forecast-hub/master/data-processed/") { # nolint
 
   to_pull <- tidyr::crossing(
     model_name = model_name,
@@ -186,12 +178,21 @@ pull_hub_forecasts <- function(model_name,
     } else {
       quantiles_w_truth <- quantiles |>
         dplyr::rename(prediction = value) |>
-        dplyr::mutate(model = !!model_name) |>
-        dplyr::inner_join(truth_data,
-          by = c(
-            "target_end_date",
-            "location"
+        dplyr::mutate(
+          model = !!model_name,
+          location = forecasttools::us_loc_code_to_abbr(
+            .data$location
           )
+        ) |>
+        dplyr::inner_join(
+          eval_data |>
+            dplyr::select(-"pop") |>
+            dplyr::rename(
+              observed =
+                "daily_hosp_admits",
+              target_end_date = "date"
+            ),
+          by = c("target_end_date", "location")
         )
     }
 
@@ -199,9 +200,6 @@ pull_hub_forecasts <- function(model_name,
     ## otherwise leave them all in
     if (!is.null(locations)) {
       quantiles_w_truth <- quantiles_w_truth |>
-        dplyr::mutate(location = forecasttools::us_loc_code_to_abbr(
-          .data$location
-        )) |>
         dplyr::filter(.data$location %in% !!locations)
     }
 
@@ -209,7 +207,7 @@ pull_hub_forecasts <- function(model_name,
       result <- quantiles_w_truth |>
         scoringutils::as_forecast_quantile(
           predicted = "prediction",
-          observed = "true_value",
+          observed = "observed",
           quantile_level = "quantile"
         )
     } else {

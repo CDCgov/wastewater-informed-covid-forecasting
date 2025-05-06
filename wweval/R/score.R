@@ -603,19 +603,11 @@ score_real_time_outputs <- function(score_type,
 #' @param real_time_scores the set of real time scores gathered from local
 #' pull
 #' @param other_real_time_scores the set we want them to be formatted like
-#' @param truth_data_path a link to the truth data to create loc name
 #'
 #' @return a tibble formatted as the other real time scores for the real
 #' time hosp only model
 #' @export
-format_scores_for_comparison <- function(real_time_scores,
-                                         other_real_time_scores,
-                                         truth_data_path = "https://media.githubusercontent.com/media/reichlab/covid19-forecast-hub/master/data-truth/truth-Incident%20Hospitalizations.csv") { # nolint
-
-  loc_to_loc_name_table <- readr::read_csv(truth_data_path) |>
-    dplyr::distinct(location, location_name)
-
-
+format_scores_for_comparison <- function(real_time_scores) {
   formatted_scores <- real_time_scores |>
     dplyr::filter(
       model == "hosp",
@@ -635,13 +627,6 @@ format_scores_for_comparison <- function(real_time_scores,
     ) |>
     dplyr::rename(
       target_end_date = date
-    ) |>
-    dplyr::left_join(
-      loc_to_loc_name_table,
-      by = "location"
-    ) |>
-    dplyr::select(
-      colnames(other_real_time_scores)
     )
 
   return(formatted_scores)

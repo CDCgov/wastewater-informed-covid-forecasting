@@ -1227,8 +1227,8 @@ real_time_rel_targets <- list(
     name = rel_mean_wis_real_time,
     command = real_time_wis_both_models |>
       forecasttools::summarise_scores_with_baseline(
+        compare = "model",
         baseline = "hosp",
-        by = c("model")
       ) |>
       dplyr::rename(rel_wis = "model_scores_ratio")
   ),
@@ -1237,8 +1237,9 @@ real_time_rel_targets <- list(
     command = real_time_wis_both_models |>
       dplyr::filter(location %in% c("TX", "FL", "IL", "MI")) |>
       forecasttools::summarise_scores_with_baseline(
+        compare = "model",
         baseline = "hosp",
-        by = c("model", "location")
+        by = "location"
       ) |>
       dplyr::rename(rel_wis = "model_scores_ratio")
   )
@@ -1253,8 +1254,7 @@ hub_targets <- list(
   tar_target(
     name = filtered_ww_hosp_quantiles,
     command = hosp_quantiles_filtered |>
-      dplyr::filter(model_type == "ww") |>
-      dplyr::select(colnames(all_ww_hosp_quantiles))
+      dplyr::filter(model_type == "ww")
   ),
   tar_target(
     name = metadata_hub_submissions,
@@ -1299,9 +1299,10 @@ hub_targets <- list(
     name = hub_forecasts_cfa_retro,
     command = pull_hub_forecasts(
       model_name = c("cfa-wwrenewal", "cfa-hosponlyrenewal"),
+      dates = scored_forecast_dates,
+      eval_data = eval_hosp_data,
       hub_subdir = eval_config$hub_subdir,
-      pull_from_github = FALSE,
-      dates = scored_forecast_dates
+      pull_from_github = FALSE
     ) |>
       with_dependencies(
         metadata_hub_submissions,
@@ -1321,8 +1322,9 @@ hub_targets <- list(
     name = hub_forecasts_cfa_ww_real_time,
     command = pull_hub_forecasts(
       model_name = "cfa-wwrenewal",
-      pull_from_github = TRUE,
-      dates = scored_real_time_fcst_dates
+      dates = scored_real_time_fcst_dates,
+      eval_data = eval_hosp_data,
+      pull_from_github = TRUE
     ) |>
       dplyr::mutate(model = dplyr::recode(.data$model,
         "cfa-wwrenewal(real-time)" =
@@ -1340,6 +1342,7 @@ hub_targets <- list(
       eval_data = eval_hosp_data,
       model_type = "hosp"
     ) |>
+      to_hub_output() |>
       dplyr::filter(!location %in% .env$hub_locations_to_exclude) |>
       with_dependencies(hub_locations_to_exclude)
   ),
@@ -1354,8 +1357,9 @@ hub_targets <- list(
     name = hub_forecasts_non_cfa,
     command = pull_hub_forecasts(
       model_name = non_cfa_hub_models_to_score,
-      pull_from_github = TRUE,
-      dates = scored_forecast_dates
+      dates = scored_forecast_dates,
+      eval_data = eval_hosp_data,
+      pull_from_github = TRUE
     ) |>
       dplyr::filter(!location %in% .env$hub_locations_to_exclude) |>
       with_dependencies(hub_locations_to_exclude)
