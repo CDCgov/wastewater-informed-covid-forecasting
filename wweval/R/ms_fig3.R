@@ -192,15 +192,15 @@ make_fig3_forecast_comp_fig <- function(hosp_quantiles,
       "date",
       "model_type",
       "quantile_level",
-      "value"
+      "predicted"
     ) |>
     tidyr::pivot_wider(
       names_from = "quantile_level",
-      values_from = "value"
+      values_from = "predicted"
     )
   colors <- plot_components()
 
-  max_obs <- max(hosp_quants_horizons$eval_data)
+  max_obs <- max(hosp_quants_horizons$observed)
 
   date_lims <- c(
     min(hosp_quantiles$forecast_date) + lubridate::days(horizon_days_ahead - 9),
