@@ -594,7 +594,8 @@ manuscript_figures <- list(
       hosp3 = example_hosp_t_3,
       ww1 = example_ww_conc_1,
       ww2 = example_ww_conc_2,
-      ww3 = example_ww_conc_3
+      ww3 = example_ww_conc_3,
+      fig_file_dir = fig_output_dir
     )
   ),
 
@@ -988,7 +989,8 @@ manuscript_figures <- list(
   tar_target(
     name = qq_plot_retro_all_time,
     command = forecast_qq_plot(
-      hosp_quantiles_filtered,
+      hosp_quantiles_filtered |>
+        dplyr::rename(model_type = "model"),
       time_period = "retro_all_time",
       fig_file_dir = fig_output_dir
     )
