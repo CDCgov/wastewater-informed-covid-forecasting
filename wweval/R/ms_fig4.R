@@ -272,7 +272,9 @@ plot_rel_crps_distribution <- function(scores,
 #' @return A ggplot object containing plots of the distribution of relative
 #' CRPS scores by location, across forecast dates, colored by location
 #' @export
-plot_rel_crps_by_location <- function(scores) {
+plot_rel_crps_by_location <- function(scores,
+                                      target_model,
+                                      baseline_model) {
   relative_scores <- .target_model_relative_scores(
     scores = scores,
     target_model = target_model,
