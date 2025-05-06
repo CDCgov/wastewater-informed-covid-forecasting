@@ -174,6 +174,7 @@ make_fig3_forecast_comp_fig <- function(hosp_quantiles,
                                         horizon_to_plot,
                                         horizon_days_ahead,
                                         days_to_show_prev_data = 14) {
+  needed_quantiles <- c(0.025, 0.25, 0.5, 0.75, 0.975)
   hosp_quants_horizons <- hosp_quantiles |>
     dplyr::filter(location == !!loc_to_plot) |>
     dplyr::filter(date >=
@@ -182,15 +183,20 @@ make_fig3_forecast_comp_fig <- function(hosp_quantiles,
       ))
 
   hosp <- hosp_quants_horizons |>
-    dplyr::filter(horizon == !!horizon_to_plot) |>
-    dplyr::filter(quantile %in% c(0.025, 0.25, 0.5, 0.75, 0.975)) |>
+    dplyr::filter(
+      horizon == !!horizon_to_plot,
+      .data$quantile_level %in% !!needed_quantiles
+    ) |>
+    dplyr::select(
+      "forecast_date",
+      "date",
+      "model_type",
+      "quantile_level",
+      "value"
+    ) |>
     tidyr::pivot_wider(
-      id_cols = c(
-        forecast_date, model_type,
-        date, eval_data
-      ),
-      names_from = quantile,
-      values_from = value
+      names_from = "quantile_level",
+      values_from = "value"
     )
   colors <- plot_components()
 
@@ -203,34 +209,41 @@ make_fig3_forecast_comp_fig <- function(hosp_quantiles,
   p <- ggplot(hosp) +
     geom_point(
       data = hosp_quants_horizons,
-      aes(x = date, y = eval_data),
+      aes(
+        x = .data$date,
+        y = .data$observed
+      ),
       fill = "black", size = 0.3, shape = 21,
       show.legend = FALSE
     ) +
     geom_ribbon(
-      data = hosp,
       aes(
-        x = date, ymin = `0.025`, ymax = `0.975`,
-        group = interaction(forecast_date, model_type),
-        fill = model_type
-      ), alpha = 0.1,
+        x = .data$date,
+        ymin = .data$`0.025`,
+        ymax = .data$ `0.975`,
+        group = interaction(
+          .data$forecast_date,
+          .data$model_type
+        ),
+        fill = .data$model_type
+      ),
+      alpha = 0.1,
       show.legend = FALSE
     ) +
     geom_ribbon(
-      data = hosp,
       aes(
-        x = date, ymin = `0.25`, ymax = `0.75`,
-        group = interaction(forecast_date, model_type),
-        fill = model_type
-      ), alpha = 0.1,
+        x = .data$date, ymin = .data$`0.25`, ymax = .data$`0.75`,
+        group = interaction(.data$forecast_date, .data$model_type),
+        fill = .data$model_type
+      ),
+      alpha = 0.1,
       show.legend = FALSE
     ) +
     geom_line(
-      data = hosp,
       aes(
-        x = date, y = `0.5`,
-        group = interaction(forecast_date, model_type),
-        color = model_type,
+        x = .data$date, y = .data$`0.5`,
+        group = interaction(.data$forecast_date, .data$model_type),
+        color = .data$model_type,
         show.legend = FALSE
       ),
     ) +
