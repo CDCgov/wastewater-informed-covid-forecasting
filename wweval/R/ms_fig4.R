@@ -76,6 +76,183 @@ make_fig4_rel_crps_over_time <- function(scores) {
   return(p)
 }
 
+#' Get the relative mean crps for a location
+#'
+#' @param scores tibble of scores by day forecast day model
+#' @param locs loc to get relative mean score for
+#'
+#' @return table of relative mean score for each location
+#' @export
+get_loc_rel_crps <- function(scores, locs) {
+  relative_crps <- scores |>
+    dplyr::filter(location %in% locs) |>
+    dplyr::group_by(location, model) |>
+    dplyr::summarise(mean_crps = mean(crps)) |>
+    tidyr::pivot_wider(
+      names_from = model,
+      values_from = mean_crps
+    ) |>
+    dplyr::mutate(rel_mean_crps = ww / hosp)
+
+  return(relative_crps)
+}
+
+#' Plot a heatmap of the relative crps by locations and forecast date
+#' for the head-to-head comparison
+#'
+#' @param scores A tibble of daily scores by forecast date, location, and model
+#' @param fig_file_dir A string indicating the directory to save the figures in
+#'
+#' @return a ggplot object
+#' @export
+get_plot_rel_crps_heatmap <- function(scores,
+                                      fig_file_dir) {
+  scores_summary <- scores |>
+    dplyr::group_by(forecast_date, location, model) |>
+    dplyr::summarize(mean_crps = mean(crps)) |>
+    tidyr::pivot_wider(
+      names_from = model,
+      values_from = mean_crps,
+      id_cols = c("forecast_date", "location")
+    ) |>
+    dplyr::mutate(
+      rel_mean_crps = ww / hosp
+    )
+
+
+  p <- ggplot(scores_summary) +
+    geom_tile(aes(x = forecast_date, y = location, fill = rel_mean_crps)) +
+    scale_fill_gradient2(
+      high = "red", mid = "white", low = "blue",
+      transform = "log2",
+      midpoint = 1,
+      guide = "colourbar", aesthetics = "fill",
+      labels = scales::number_format(accuracy = 0.01)
+    ) +
+    geom_text(aes(
+      x = forecast_date, y = location,
+      label = round(rel_mean_crps, 2)
+    ), size = 1.5) +
+    get_plot_theme(
+      x_axis_dates = TRUE,
+      y_axis_text_size = 4
+    ) +
+    theme(legend.text = element_text(size = 6)) +
+    scale_x_date(
+      date_breaks = "1 week",
+      labels = scales::date_format("%Y-%m-%d")
+    ) +
+    xlab("") +
+    ylab("Location") +
+    labs(fill = "Relative CRPS") +
+    ggtitle(glue::glue("Relative CRPS by forecast date and location"))
+
+  return(p)
+}
+
+#' Get a density plot of the relative CRPS distribution
+#'
+#' @param scores tibble of scores by horizon day, forecast date, and location
+#' @param fig_file_dir directory to save figure in
+#'
+#' @return ggplot object of distribution of relative CRPS scores
+#' @export
+get_plot_rel_crps_distrib <- function(scores,
+                                      fig_file_dir) {
+  relative_crps_by_forecast <- scores |>
+    dplyr::group_by(location, model, forecast_date) |>
+    dplyr::summarize(crps = mean(crps)) |>
+    tidyr::pivot_wider(
+      names_from = model,
+      values_from = crps,
+      id_cols = c(
+        "location", "forecast_date"
+      )
+    ) |>
+    dplyr::mutate(
+      rel_crps = ww / hosp
+    )
+
+  p_log <- ggplot(relative_crps_by_forecast) +
+    tidybayes::stat_dotsinterval(
+      aes(
+        y = rel_crps
+      ),
+      alpha = 0.5,
+      position = position_dodge(width = 0.75),
+      show.legend = FALSE,
+      fill = "darkblue"
+    ) +
+    geom_hline(aes(yintercept = 1), linetype = "dashed") +
+    get_plot_theme() +
+    ylab("Relative CRPS") +
+    xlab("Count") +
+    scale_y_continuous(trans = "log10") +
+    coord_cartesian(ylim = c(1 / 3.5, 3.5))
+
+  return(p_log)
+}
+
+
+
+#' Make figure that stratifies scores by location across forecast dates
+#'
+#' @param scores A tibble of scores by location, forecast date, date and model,
+#' containing the outputs of `scoringutils::score()` on samples plus metadata
+#' transformed into a tibble.
+#'
+#' @return A ggplot object containing plots of the distribution of relative
+#' CRPS scores by location, across forecast dates, colored by location
+#' @export
+make_fig4_rel_crps_by_location <- function(scores) {
+  scores_overall <- scores |>
+    dplyr::mutate(
+      horizon = "overall"
+    )
+
+
+  relative_crps <- scores_overall |>
+    dplyr::group_by(forecast_date, location, model, horizon) |>
+    dplyr::summarize(mean_crps = mean(crps)) |>
+    tidyr::pivot_wider(
+      names_from = model,
+      values_from = mean_crps,
+      id_cols = c("horizon", "forecast_date", "location")
+    ) |>
+    dplyr::mutate(
+      rel_crps = ww / hosp
+    ) |>
+    order_locations(score_name = "rel_crps")
+
+  colors <- plot_components()
+
+  p <- ggplot(relative_crps) +
+    tidybayes::stat_dotsinterval(
+      aes(
+        x = location, y = rel_crps,
+        fill = horizon
+      ),
+      point_interval = "mean_qi",
+      alpha = 0.5,
+      position = position_dodge(width = 0.75),
+      show.legend = FALSE
+    ) +
+    geom_hline(aes(yintercept = 1), linetype = "dashed") +
+    theme_bw() +
+    get_plot_theme(
+      y_axis_title_size = 8,
+      x_axis_dates = TRUE
+    ) + # bc we want them smaller and turned
+    xlab("") +
+    ylab("Relative CRPS") +
+    scale_y_continuous(trans = "log10") +
+    coord_cartesian(ylim = c(0.5, 2)) +
+    scale_fill_manual(values = colors$horizon_colors) +
+    scale_color_manual(values = colors$horizon_colors)
+
+
+  return(p)
+}
 
 #' Make figure that stratifies across location and forecast dates
 #'
