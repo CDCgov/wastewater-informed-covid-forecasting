@@ -1003,7 +1003,7 @@ manuscript_figures <- list(
   ),
   tar_target(
     name = rel_crps_dist_by_horizon,
-    command = plot_rel_dists_by_horizon(
+    command = plot_rel_crps_dists_by_horizon(
       scores_filtered,
       fig_file_dir = fig_output_dir,
       write_files = TRUE
