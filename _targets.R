@@ -694,6 +694,7 @@ manuscript_figures <- list(
     name = plot3_interval_coverage1,
     command = forecast_interval_coverage_plot(
       hosp_quantiles_filtered |>
+        dplyr::rename(model = "model_type") |>
         dplyr::filter(location == locs_to_plot[1]),
       ranges = c(30, 60, 90)
     )
@@ -702,6 +703,7 @@ manuscript_figures <- list(
     name = plot3_qq_plot1,
     command = forecast_qq_plot(
       hosp_quantiles_filtered |>
+        dplyr::rename(model = "model_type") |>
         dplyr::filter(location == locs_to_plot[1])
     )
   ),
@@ -776,6 +778,7 @@ manuscript_figures <- list(
     name = plot3_interval_coverage2,
     command = forecast_interval_coverage_plot(
       hosp_quantiles_filtered |>
+        dplyr::rename(model = "model_type") |>
         dplyr::filter(location == locs_to_plot[2]),
       ranges = c(30, 60, 90)
     )
@@ -784,6 +787,7 @@ manuscript_figures <- list(
     name = plot3_qq_plot2,
     command = forecast_qq_plot(
       hosp_quantiles_filtered |>
+        dplyr::rename(model = "model_type") |>
         dplyr::filter(location == locs_to_plot[2])
     )
   ),
@@ -857,6 +861,7 @@ manuscript_figures <- list(
     name = plot3_interval_coverage3,
     command = forecast_interval_coverage_plot(
       hosp_quantiles_filtered |>
+        dplyr::rename(model = "model_type") |>
         dplyr::filter(location == locs_to_plot[3]),
       ranges = c(30, 60, 90)
     )
@@ -865,6 +870,7 @@ manuscript_figures <- list(
     name = plot3_qq_plot3,
     command = forecast_qq_plot(
       hosp_quantiles_filtered |>
+        dplyr::rename(model = "model_type") |>
         dplyr::filter(location == locs_to_plot[3])
     )
   ),
