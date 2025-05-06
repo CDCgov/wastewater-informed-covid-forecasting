@@ -391,7 +391,7 @@ head_to_head_targets <- list(
       dplyr::left_join(table_of_loc_dates_w_ww,
         by = c("location", "forecast_date")
       ) |>
-      dplyr::filter(ww_sufficient) |>
+      dplyr::filter(.data$ww_sufficient) |>
       dplyr::left_join(
         convergence_df,
         by = c(
@@ -400,14 +400,21 @@ head_to_head_targets <- list(
         )
       ) |>
       dplyr::filter(
-        any_flags_ww == FALSE,
-        any_flags_hosp == FALSE
+        .data$any_flags_ww == FALSE,
+        .data$any_flags_hosp == FALSE
       ) |>
       dplyr::left_join(
         last_hosp_data_date_map,
         by = c("location", "forecast_date")
       ) |>
       add_horizons() |>
+      dplyr::select(-c(
+        "scenario",
+        "model_type",
+        "any_flags_ww",
+        "any_flags_hosp",
+        "ww_sufficient"
+      )) |>
       scoringutils:::as_scores(metrics = names(wweval::sample_metrics))
   ),
   # Repeat for the quantile-based scores
@@ -422,7 +429,7 @@ head_to_head_targets <- list(
       dplyr::left_join(table_of_loc_dates_w_ww,
         by = c("location", "forecast_date")
       ) |>
-      dplyr::filter(ww_sufficient) |>
+      dplyr::filter(.data$ww_sufficient) |>
       dplyr::left_join(
         convergence_df,
         by = c(
@@ -431,14 +438,21 @@ head_to_head_targets <- list(
         )
       ) |>
       dplyr::filter(
-        any_flags_ww == FALSE,
-        any_flags_hosp == FALSE
+        .data$any_flags_ww == FALSE,
+        .data$any_flags_hosp == FALSE
       ) |>
       dplyr::left_join(
         last_hosp_data_date_map,
         by = c("location", "forecast_date")
       ) |>
       add_horizons() |>
+      dplyr::select(-c(
+        "scenario",
+        "model_type",
+        "any_flags_ww",
+        "any_flags_hosp",
+        "ww_sufficient"
+      )) |>
       scoringutils:::as_scores(metrics = names(wweval::quantile_metrics))
   )
 )
@@ -1342,7 +1356,6 @@ hub_targets <- list(
       eval_data = eval_hosp_data,
       model_type = "hosp"
     ) |>
-      to_hub_output() |>
       dplyr::filter(!location %in% .env$hub_locations_to_exclude) |>
       with_dependencies(hub_locations_to_exclude)
   ),
@@ -1812,6 +1825,8 @@ additional_figures <- list(
     name = comp_stats,
     command = get_stats_improved_forecasts(
       scores = scores_filtered,
+      target_model = "cfa-wwrenewal(retro)",
+      baseline = "cfa-hosponlyrenewal(retro)",
       threshold = 1.1
     )
   ),
@@ -1819,6 +1834,8 @@ additional_figures <- list(
     name = comp_stats_real_time,
     command = get_stats_improved_forecasts(
       scores = wis_summary_cfa_models_real_time,
+      target_model = "cfa-wwrenewal(real-time)",
+      baseline = "cfa-hosponlyrenewal(real-time)*",
       threshold = 1.1
     )
   ),

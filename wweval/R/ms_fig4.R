@@ -746,20 +746,19 @@ BBEEE
 BBFFF
 "
 
-  fig4 <- fig4_rel_crps_heatmap +
-    fig4_rel_crps_hist +
-    fig4_natl_admissions +
-    fig4_avg_crps +
-    fig4_rel_crps_over_time +
-    fig4_rel_crps_by_location +
-    patchwork::plot_layout(
-      design = layout,
-      axes = "collect"
-    ) & theme(
+  fig4 <- patchwork::wrap_plots(
+    fig4_rel_crps_heatmap,
+    fig4_rel_crps_hist,
+    fig4_natl_admissions,
+    fig4_avg_crps,
+    fig4_rel_crps_over_time,
+    fig4_rel_crps_by_location,
+    design = layout,
+    axes = "collect"
+  ) & theme(
     legend.position = "top",
     legend.justification = "left"
-  ) #+ plot_annotation(tag_levels = "A") #nolint not working
-  fig4
+  )
 
   fs::dir_create(fig_file_dir)
 

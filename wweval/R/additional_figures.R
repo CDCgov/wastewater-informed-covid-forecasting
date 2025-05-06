@@ -648,61 +648,78 @@ get_avg_scores_model_horizon <- function(scores,
 #' @param scores tibble of scores for every location, forecast date, and horizon
 #' @param threshold numeric indicating fold change for considering a forecast
 #' improved or worse relative to baseline, e.g. 1.1
+#' @param target_model Name of the target model
 #' @param baseline Name of the baseline model
 #' @return table of the number of states with improvements, number of overall
 #' forecasts with improvements, number that got worse, etc.
 #' @export
 get_stats_improved_forecasts <- function(scores,
                                          threshold,
+                                         target_model,
                                          baseline) {
-  relative_crps_by_loc <- scores |>
+  scores <- dplyr::filter(
+    scores,
+    .data$model %in% c(!!target_model, baseline)
+  )
+  relative_score_by_loc <- scores |>
     forecasttools::summarise_scores_with_baseline(
+      compare = "model",
+      metric_to_compare = "crps",
       baseline = baseline,
       by = "location"
-    )
+    ) |>
+    dplyr::filter(.data$model == !!target_model)
 
-  n_states_better <- relative_crps_by_loc |>
-    dplyr::filter(.data$mean_scores_ratio > 1) |>
-    nrow()
+  n_states <- nrow(relative_score_by_loc)
 
-  n_states_worse <- relative_crps_by_loc |>
+  n_states_better <- relative_score_by_loc |>
     dplyr::filter(.data$mean_scores_ratio < 1) |>
     nrow()
 
-  relative_crps_by_forecast <- scores |>
+  n_states_worse <- relative_score_by_loc |>
+    dplyr::filter(.data$mean_scores_ratio > 1) |>
+    nrow()
+
+  stopifnot(n_states == n_states_better + n_states_worse)
+
+  relative_score_by_date_loc <- scores |>
     forecasttools::summarise_scores_with_baseline(
       baseline = baseline,
       by = c("location", "forecast_date")
-    )
+    ) |>
+    dplyr::filter(.data$model == !!target_model)
 
-  forecasts_3x_worse <- relative_crps_by_forecast |>
+  n_forecasts <- nrow(relative_score_by_date_loc)
+
+  n_forecasts_3x_worse <- relative_score_by_date_loc |>
     dplyr::filter(.data$mean_scores_ratio > 3) |>
     nrow()
 
-  forecasts_3x_better <- relative_crps_by_forecast |>
+  n_forecasts_3x_better <- relative_score_by_date_loc |>
     dplyr::filter(.data$mean_scores_ratio < 1 / 3) |>
     nrow()
 
-  n_forecasts_better <- relative_crps_by_forecast |>
+  n_forecasts_better <- relative_score_by_date_loc |>
     dplyr::filter(.data$mean_scores_ratio < 1) |>
     nrow()
 
-  n_forecasts_worse <- relative_crps_by_forecast |>
+  n_forecasts_worse <- relative_score_by_date_loc |>
     dplyr::filter(.data$mean_scores_ratio > 1) |>
     nrow()
 
-  n_forecasts_better_thres <- relative_crps_by_forecast |>
+  n_forecasts_better_thres <- relative_score_by_date_loc |>
     dplyr::filter(
       .data$mean_scores_ratio < 1 / !!threshold
     ) |>
     nrow()
 
-  n_forecasts_worse_thres <- relative_crps_by_forecast |>
+  n_forecasts_worse_thres <- relative_score_by_date_loc |>
     dplyr::filter(
       .data$mean_scores_ratio > !!threshold
     ) |>
     nrow()
 
+  stopifnot(n_forecasts == n_forecasts_better + n_forecasts_worse)
 
   stats <- tibble::tibble(
     n_states_better,

@@ -4,13 +4,15 @@
 \alias{get_stats_improved_forecasts}
 \title{Get stats on number of improved forecasts}
 \usage{
-get_stats_improved_forecasts(scores, threshold, baseline)
+get_stats_improved_forecasts(scores, threshold, target_model, baseline)
 }
 \arguments{
 \item{scores}{tibble of scores for every location, forecast date, and horizon}
 
 \item{threshold}{numeric indicating fold change for considering a forecast
 improved or worse relative to baseline, e.g. 1.1}
+
+\item{target_model}{Name of the target model}
 
 \item{baseline}{Name of the baseline model}
 }
