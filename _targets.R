@@ -940,67 +940,77 @@ manuscript_figures <- list(
 
   ## Fig: Retrospective relative performance---------------------------------
   tar_target(
-    name = fig4_results_tables,
-    command = make_fig4_results_table(
+    name = score_summary_tables_cfa_models,
+    command = get_score_summary_tables(
       scores_filtered
     )
   ),
   tar_target(
-    name = fig4_rel_crps_over_time,
-    command = make_fig4_rel_crps_over_time(
-      scores_filtered
-    )
-  ),
-  tar_target(
-    name = loc_summary,
-    command = get_loc_rel_crps(
+    name = rel_crps_distribution_t_cfa_models,
+    command = plot_rel_crps_distribution_t(
       scores_filtered,
-      locs = c("DC", "OH", "NH", "CO", "IL", "IN")
+      target_model = "cfa-wwrenewal(retro)",
+      baseline_model = "cfa-hosponlyrenewal(retro)"
     )
   ),
-  tar_target(fig4_rel_crps_heatmap,
-    command = get_plot_rel_crps_heatmap(
+  tar_target(
+    name = rel_crps_cfa_models_by_loc,
+    command = forecasttools::summarise_scores_with_baseline(
+      scores_filtered,
+      compare = "model",
+      baseline = "cfa-hosponlyrenewal(retro)",
+      by = "location"
+    )
+  ),
+  tar_target(rel_crps_heatmap_cfa_models,
+    command = plot_rel_crps_heatmap(
       scores = scores_filtered,
+      target_model = "cfa-wwrenewal(retro)",
+      baseline_model = "cfa-hosponlyrenewal(retro)",
       fig_file_dir = fig_output_dir
     )
   ),
   tar_target(
-    name = fig4_rel_crps_hist,
-    command = get_plot_rel_crps_distrib(
+    name = rel_crps_distribution_overall_cfa_models,
+    command = plot_rel_crps_distribution(
       scores = scores_filtered,
+      target_model = "cfa-wwrenewal(retro)",
+      baseline_model = "cfa-hosponlyrenewal(retro)",
       fig_file_dir = fig_output_dir
     )
   ),
   tar_target(
-    name = fig4_natl_admissions,
-    command = make_fig4_admissions_overall(
+    name = fig_total_admissions,
+    command = plot_total_admissions(
       eval_hosp_data,
       first_forecast_date = min(eval_config$forecast_date_ww),
       last_forecast_date = max(eval_config$forecast_date_ww)
     )
   ),
   tar_target(
-    name = fig4_avg_crps,
-    command = make_fig4_avg_crps_over_time(
+    name = fig_crps_t_cfa_models,
+    command = plot_crps_t(
       scores_filtered
     )
   ),
   tar_target(
-    name = fig4_rel_crps_by_location,
-    command = make_fig4_rel_crps_by_location(
-      scores_filtered
+    name = rel_crps_by_location_cfa_models,
+    command = plot_rel_crps_by_location(
+      scores_filtered,
+      target_model = "cfa-wwrenewal(retro)",
+      baseline_model = "cfa-hosponlyrenewal(retro)"
     )
   ),
   tar_target(
-    name = fig4_rel_crps_overall,
-    command = make_fig4_rel_crps_overall(
+    name = rel_crps_dist_by_horizon,
+    command = plot_rel_dists_by_horizon(
       scores_filtered,
       fig_file_dir = fig_output_dir,
       write_files = TRUE
     )
   ),
   tar_target(
-    name = fig4_qq_plot_overall,
+    name = qq_plot_retro_all_time,
     command = forecast_qq_plot(
       hosp_quantiles_filtered,
       time_period = "retro_all_time",
@@ -1009,7 +1019,7 @@ manuscript_figures <- list(
     )
   ),
   tar_target(
-    name = fig4_plot_coverage_range,
+    name = coverage_plot_retro_all_time,
     command = forecast_interval_coverage_plot(
       hosp_quantiles_filtered,
       ranges = c(30, 60, 90),
@@ -1020,14 +1030,14 @@ manuscript_figures <- list(
   ),
   ### Fig combined---------------------------------------------
   tar_target(
-    name = fig4,
-    command = make_fig4(
-      fig4_rel_crps_heatmap = fig4_rel_crps_heatmap,
-      fig4_rel_crps_hist = fig4_rel_crps_hist,
-      fig4_avg_crps = fig4_avg_crps,
-      fig4_natl_admissions = fig4_natl_admissions,
-      fig4_rel_crps_over_time = fig4_rel_crps_over_time,
-      fig4_rel_crps_by_location = fig4_rel_crps_by_location,
+    name = figure_retro_rel_performance,
+    command = compose_rel_performance_fig(
+      rel_crps_heatmap = rel_crps_heatmap_cfa_models,
+      rel_crps_dist = rel_crps_distribution_overall_cfa_models,
+      abs_crps_over_time = fig_crps_t_cfa_models,
+      total_admissions = fig_total_admissions,
+      rel_crps_over_time = rel_crps_distribution_t_cfa_models,
+      rel_crps_by_location = rel_crps_by_location_cfa_models,
       time_period = "all_time",
       fig_file_dir = fig_output_dir
     )
