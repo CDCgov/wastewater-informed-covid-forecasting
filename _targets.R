@@ -1005,6 +1005,8 @@ manuscript_figures <- list(
     name = rel_crps_dist_by_horizon,
     command = plot_rel_crps_dists_by_horizon(
       scores_filtered,
+      target_model = "cfa-wwrenewal(retro)",
+      baseline_model = "cfa-hosponlyrenewal(retro)",
       fig_file_dir = fig_output_dir,
       write_files = TRUE
     )
