@@ -199,10 +199,10 @@ pull_hub_forecasts <- function(model_name,
     ## otherwise leave them all in
     if (!is.null(locations)) {
       quantiles_w_truth <- quantiles_w_truth |>
-        dplyr::filter(
-          .data$location %in%
-            loc_abbr_to_flusight_code(!!locations)
-        )
+        dplyr::mutate(location = forecasttools::us_loc_code_to_abbr(
+          .data$location
+        )) |>
+        dplyr::filter(.data$location %in% !!locations)
     }
 
     if (nrow(quantiles_w_truth) > 0) {

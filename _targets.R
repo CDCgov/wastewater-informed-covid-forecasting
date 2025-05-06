@@ -1303,9 +1303,9 @@ hub_targets <- list(
   tar_target(
     name = hub_locations_to_exclude,
     command = c(
-      "Virgin Islands",
-      "American Samoa",
-      "United States"
+      "VI",
+      "AS",
+      "US"
     )
   ),
   tar_target(
@@ -1341,7 +1341,7 @@ hub_targets <- list(
         "cfa-wwrenewal(real-time)" =
           "cfa-wwrenewal"
       )) |>
-      dplyr::filter(!location_name %in% .env$hub_locations_to_exclude) |>
+      dplyr::filter(!location %in% .env$hub_locations_to_exclude) |>
       with_dependencies(hub_locations_to_exclude)
   ),
   tar_target(
@@ -1353,7 +1353,7 @@ hub_targets <- list(
       eval_data = eval_hosp_data,
       model_type = "hosp"
     ) |>
-      dplyr::filter(!location_name %in% .env$hub_locations_to_exclude) |>
+      dplyr::filter(!location %in% .env$hub_locations_to_exclude) |>
       with_dependencies(hub_locations_to_exclude)
   ),
   tar_target(
@@ -1370,7 +1370,7 @@ hub_targets <- list(
       pull_from_github = TRUE,
       dates = scored_forecast_dates
     ) |>
-      dplyr::filter(!location_name %in% .env$hub_locations_to_exclude) |>
+      dplyr::filter(!location %in% .env$hub_locations_to_exclude) |>
       with_dependencies(hub_locations_to_exclude)
   ),
   tar_target(
