@@ -177,7 +177,7 @@ pull_hub_forecasts <- function(model_name,
       quantiles_w_truth <- tibble::tibble()
     } else {
       quantiles_w_truth <- quantiles |>
-        dplyr::rename(prediction = "value") |>
+        dplyr::rename(predicted = "value") |>
         dplyr::mutate(
           model = !!model_name,
           location = forecasttools::us_loc_code_to_abbr(
@@ -186,11 +186,11 @@ pull_hub_forecasts <- function(model_name,
         ) |>
         dplyr::inner_join(
           eval_data |>
-            dplyr::select(-"pop") |>
-            dplyr::rename(
+            dplyr::select(
               observed =
                 "daily_hosp_admits",
-              target_end_date = "date"
+              target_end_date = "date",
+              location = "location"
             ),
           by = c("target_end_date", "location")
         )
@@ -206,9 +206,9 @@ pull_hub_forecasts <- function(model_name,
     if (nrow(quantiles_w_truth) > 0) {
       result <- quantiles_w_truth |>
         scoringutils::as_forecast_quantile(
-          predicted = "prediction",
+          predicted = "predicted",
           observed = "observed",
-          quantile_level = "quantile"
+          quantile_level = "quantile_level"
         )
     } else {
       result <- NULL
@@ -226,7 +226,7 @@ pull_hub_forecasts <- function(model_name,
 #' Score hub forecasts
 #'
 #' @param hub_forecasts hub quantile forecasts, as the output
-#' of [pull_hub_submissions()].
+#' of [pull_hub_forecasts()].
 #'
 #' @return Data frame of scores, as the output of [scoringutils::score()].
 score_hub_forecasts <- function(hub_forecasts) {
