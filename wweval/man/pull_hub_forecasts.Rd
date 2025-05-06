@@ -8,13 +8,12 @@ as the output of \code{\link[scoringutils:as_forecast_quantile]{scoringutils::as
 pull_hub_forecasts(
   model_name,
   dates,
+  eval_data,
   locations = NULL,
   hub_subdir = NA,
   pull_from_github = TRUE,
   submissions_path =
-    "https://raw.githubusercontent.com/reichlab/covid19-forecast-hub/master/data-processed/",
-  truth_data_path =
-    "https://media.githubusercontent.com/media/reichlab/covid19-forecast-hub/master/data-truth/truth-Incident\%20Hospitalizations.csv"
+    "https://raw.githubusercontent.com/reichlab/covid19-forecast-hub/master/data-processed/"
 )
 }
 \arguments{
@@ -23,6 +22,9 @@ the names of the models to score.}
 
 \item{dates}{a vector of dates indicating the dates of the
 submissions to score.}
+
+\item{eval_data}{Table of evaluation data, as the output of
+\code{\link[=get_input_hosp_data]{get_input_hosp_data()}}}
 
 \item{locations}{a vector of character strings indicating the locations
 to score}
@@ -35,9 +37,6 @@ from github}
 
 \item{submissions_path}{url pointing to the "data-processed" folder on
 the COVIDhub github, which is where team's submissions are located}
-
-\item{truth_data_path}{the path to the truth data used by the hub for
-evaluation}
 }
 \value{
 a dataframe containing all of the scores for all models,

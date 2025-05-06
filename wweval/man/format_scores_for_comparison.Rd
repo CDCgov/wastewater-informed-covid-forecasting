@@ -5,20 +5,13 @@
 \title{Format the hosp only real time scores for comparison to the other real
 time models}
 \usage{
-format_scores_for_comparison(
-  real_time_scores,
-  other_real_time_scores,
-  truth_data_path =
-    "https://media.githubusercontent.com/media/reichlab/covid19-forecast-hub/master/data-truth/truth-Incident\%20Hospitalizations.csv"
-)
+format_scores_for_comparison(real_time_scores)
 }
 \arguments{
 \item{real_time_scores}{the set of real time scores gathered from local
 pull}
 
 \item{other_real_time_scores}{the set we want them to be formatted like}
-
-\item{truth_data_path}{a link to the truth data to create loc name}
 }
 \value{
 a tibble formatted as the other real time scores for the real
