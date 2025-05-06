@@ -4,39 +4,30 @@
 #' horizon day
 #' @param locs_to_plot the locations we want summaries for
 #' @param fig_file_dir string indicating directory to save fig in
-#'
 #' @return Figure showing CRPS for multiple locations.
 #' @export
 multi_location_crps_figure <- function(scores,
                                        locs_to_plot,
                                        fig_file_dir) {
   scores_locs_long <- scores |>
-    dplyr::filter(
-      location %in% locs_to_plot
-    ) |>
-    dplyr::group_by(model, location) |>
-    dplyr::summarize(
-      mean_crps = mean(crps)
-    )
-  scores_locs <- scores_locs_long |>
-    tidyr::pivot_wider(
-      id_cols = c("location"),
-      names_from = "model",
-      names_prefix = "mean_crps_",
-      values_from = mean_crps
-    ) |>
-    dplyr::mutate(
-      rel_crps_means = mean_crps_ww / mean_crps_hosp
+    dplyr::filter(.data$location %in% !!locs_to_plot) |>
+    scoringutils::summarise_scores(
+      by = c("model", "location")
     )
 
   colors <- plot_components()
   p <- ggplot(scores_locs_long) +
-    geom_bar(aes(x = model, y = mean_crps, fill = model),
+    geom_bar(
+      aes(
+        x = .data$model,
+        y = .data$crps,
+        fill = .data$model
+      ),
       stat = "identity",
       position = "dodge"
     ) +
     scale_fill_manual(values = colors$model_colors) +
-    facet_wrap(~location) +
+    facet_wrap(~ .data$location) +
     get_plot_theme(
       x_axis_dates = TRUE,
       y_axis_title_size = 8,
@@ -46,7 +37,10 @@ multi_location_crps_figure <- function(scores,
     ylab("Mean CRPS")
 
   ggsave(p,
-    filename = file.path(fig_file_dir, "plot_multi_location_crps.png"),
+    filename = file.path(
+      fig_file_dir,
+      "plot_multi_location_crps.png"
+    ),
     width = 7, height = 4
   )
 
@@ -68,13 +62,13 @@ get_ind_forecast_score <- function(scores,
                                    this_forecast_date) {
   ind_score <- scores |>
     dplyr::filter(
-      location == loc,
-      forecast_date == this_forecast_date
+      .data$location == !!loc,
+      .data$forecast_date == !!this_forecast_date
     ) |>
-    dplyr::group_by(model) |>
-    dplyr::summarize(
-      mean_crps = mean(crps)
+    scoringutils::summarize_scores(
+      by = "model"
     )
+
   return(ind_score)
 }
 

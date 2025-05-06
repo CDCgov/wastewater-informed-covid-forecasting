@@ -972,19 +972,6 @@ manuscript_figures <- list(
     )
   ),
   tar_target(
-    name = fig4_pct_better_w_ww,
-    command = make_fig4_pct_better_w_ww(
-      scores_filtered,
-      eval_hosp_data
-    )
-  ),
-  tar_target(
-    name = fig4_rel_crps_by_phase,
-    command = make_fig4_rel_crps_by_phase(
-      scores_filtered
-    )
-  ),
-  tar_target(
     name = fig4_rel_crps_by_location,
     command = make_fig4_rel_crps_by_location(
       scores_filtered

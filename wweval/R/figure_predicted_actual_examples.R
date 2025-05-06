@@ -43,7 +43,7 @@ plot_pred_actual_hosp <- function(hosp_quantiles,
     )
 
   quantiles_wide <- hosp |>
-    dplyr::filter(quantile_level %in% c(0.025, 0.25, 0.5, 0.75, 0.975)) |>
+    dplyr::filter(.data$quantile_level %in% c(0.025, 0.25, 0.5, 0.75, 0.975)) |>
     tidyr::pivot_wider(
       id_cols = c(
         "model_type",
