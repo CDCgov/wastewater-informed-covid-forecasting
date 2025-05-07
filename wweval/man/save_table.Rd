@@ -11,7 +11,8 @@ save_table(
   scenario,
   forecast_date,
   model_type = c("ww", "hosp"),
-  location
+  location,
+  ext = "tsv"
 )
 }
 \arguments{
