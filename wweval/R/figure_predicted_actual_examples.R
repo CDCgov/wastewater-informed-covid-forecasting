@@ -438,7 +438,7 @@ multi_location_pred_actual_fig <- function(hosp1, hosp2, hosp3,
     width = 10, height = 7,
     create.dir = TRUE
   )
-  ggsave(fig2,
+  ggsave(fig,
     filename = file.path(fig_file_dir, "fig_pred_actual_examples.svg"),
     width = 10, height = 7,
     create.dir = TRUE
