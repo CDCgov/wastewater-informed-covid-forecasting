@@ -72,8 +72,8 @@ get_model_draws_w_data <- function(fit_obj_wwinference,
       dplyr::left_join(
         eval_data |>
           dplyr::rename(
-            "below_lod_eval" = "below_lod",
-            "log_lod_eval" = "log_lod"
+            below_lod_eval = "below_lod",
+            log_lod_eval = "log_lod"
           ) |>
           dplyr::select(
             "date",
@@ -91,7 +91,7 @@ get_model_draws_w_data <- function(fit_obj_wwinference,
         ww_pop = "subpop_pop",
         site_lab_name = "lab_site_name",
         flag_as_ww_outlier = "exclude",
-        below_LOD = "below_lod"
+        below_lod = "below_lod"
       ) |>
       dplyr::mutate(
         name = "pred_ww",
@@ -112,7 +112,7 @@ get_model_draws_w_data <- function(fit_obj_wwinference,
           .data$below_lod_eval == 1, .data$lod_sewage_eval, .data$eval_data
         ),
         "calib_data" = ifelse(
-          .data$below_LOD == 1, .data$lod_sewage, .data$eval_data
+          .data$below_lod == 1, .data$lod_sewage, .data$eval_data
         )
       ) |>
       dplyr::select(
@@ -126,7 +126,7 @@ get_model_draws_w_data <- function(fit_obj_wwinference,
         "location",
         "ww_pop",
         "calib_data",
-        "below_LOD",
+        "below_lod",
         "lod_sewage",
         "below_lod_eval",
         "flag_as_ww_outlier",
@@ -815,8 +815,7 @@ eval_postprocess <- function(forecast_date,
           lod_sewage = exp(.data$log_lod)
         ) |>
         dplyr::rename(
-          ww_pop = "site_pop",
-          below_LOD = "below_lod"
+          ww_pop = "site_pop"
         )
       ww_data_flags <- get_ww_data_flags(
         input_ww_data_wweval,
