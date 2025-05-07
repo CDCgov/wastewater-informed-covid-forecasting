@@ -8,7 +8,7 @@ score_hub_forecasts(hub_forecasts)
 }
 \arguments{
 \item{hub_forecasts}{hub quantile forecasts, as the output
-of \code{\link[=pull_hub_submissions]{pull_hub_submissions()}}.}
+of \code{\link[=pull_hub_forecasts]{pull_hub_forecasts()}}.}
 }
 \value{
 Data frame of scores, as the output of \code{\link[scoringutils:score]{scoringutils::score()}}.

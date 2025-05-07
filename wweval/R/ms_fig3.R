@@ -337,7 +337,7 @@ make_fig3_crps_underlay_fig <- function(scores,
   return(p)
 }
 
-#' Title
+#' Compose figure showing examples of forecasts and their scores.
 #'
 #' @param fig3_crps_single_loc1 first states crps density plot
 #' @param fig3_forecast_comparison_nowcast1 first states nowcast comparison
@@ -397,37 +397,45 @@ HLMN
 OPQR
 OSTU
 "
-  fig3 <- fig3_crps_single_loc1 + fig3_forecast_comparison_nowcast1 +
-    fig3_forecast_comparison_1wk1 +
-    fig3_forecast_comparison_4wks1 + fig3_crps_underlay_nowcast1 +
-    fig3_crps_underlay_1wk1 + fig3_crps_underlay_4wks1 +
-    fig3_crps_single_loc2 + fig3_forecast_comparison_nowcast2 +
-    fig3_forecast_comparison_1wk2 +
-    fig3_forecast_comparison_4wks2 + fig3_crps_underlay_nowcast2 +
-    fig3_crps_underlay_1wk2 + fig3_crps_underlay_4wks2 +
-    fig3_crps_single_loc3 + fig3_forecast_comparison_nowcast3 +
-    fig3_forecast_comparison_1wk3 +
-    fig3_forecast_comparison_4wks3 + fig3_crps_underlay_nowcast3 +
-    fig3_crps_underlay_1wk3 + fig3_crps_underlay_4wks3 +
-    patchwork::plot_layout(
-      design = layout,
-      guides = "collect",
-      axes = "collect"
-    ) & theme(
+  fig <- patchwork::wrap_layout(
+    fig3_crps_single_loc1,
+    fig3_forecast_comparison_nowcast1,
+    fig3_forecast_comparison_1wk1,
+    fig3_forecast_comparison_4wks1,
+    fig3_crps_underlay_nowcast1,
+    fig3_crps_underlay_1wk1,
+    fig3_crps_underlay_4wks1,
+    fig3_crps_single_loc2,
+    fig3_forecast_comparison_nowcast2,
+    fig3_forecast_comparison_1wk2,
+    fig3_forecast_comparison_4wks2,
+    fig3_crps_underlay_nowcast2,
+    fig3_crps_underlay_1wk2,
+    fig3_crps_underlay_4wks2,
+    fig3_crps_single_loc3,
+    fig3_forecast_comparison_nowcast3,
+    fig3_forecast_comparison_1wk3,
+    fig3_forecast_comparison_4wks3,
+    fig3_crps_underlay_nowcast3,
+    fig3_crps_underlay_1wk3,
+    fig3_crps_underlay_4wks3,
+    design = layout,
+    guides = "collect",
+    axes = "collect"
+  ) & theme(
     legend.position = "top",
     legend.justification = "left"
-  ) #+ plot_annotation(tag_levels = "A") #nolint , not working
+  )
 
-  fig3
   fs::dir_create(fig_file_dir)
-  ggsave(fig3,
+  ggsave(fig,
     filename = file.path(fig_file_dir, "fig3.png"),
     width = 10, height = 7
   )
-  ggsave(fig3,
+  ggsave(fig,
     filename = file.path(fig_file_dir, "fig3.svg"),
     width = 10, height = 7
   )
 
-  return(fig3)
+  return(fig)
 }

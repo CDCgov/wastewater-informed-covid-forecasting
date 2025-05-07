@@ -2,7 +2,7 @@
 % Please edit documentation in R/ms_fig3.R
 \name{make_fig3}
 \alias{make_fig3}
-\title{Title}
+\title{Compose figure showing examples of forecasts and their scores.}
 \usage{
 make_fig3(
   fig3_crps_single_loc1,
@@ -81,5 +81,5 @@ forecast comparisons across horizons with an underlay indicating the crps
 score
 }
 \description{
-Title
+Compose figure showing examples of forecasts and their scores.
 }
