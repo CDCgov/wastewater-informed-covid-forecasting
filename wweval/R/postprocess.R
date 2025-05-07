@@ -242,7 +242,8 @@ save_table <- function(data_to_save,
                        scenario,
                        forecast_date,
                        model_type = c("ww", "hosp"),
-                       location) {
+                       location,
+                       ext = "tsv") {
   model_type <- arg_match(model_type)
   if (!is.null(data_to_save)) {
     full_dir <- file.path(
@@ -260,16 +261,12 @@ save_table <- function(data_to_save,
       model_type,
       location,
       glue::glue("{type_of_output}"),
-      "tsv"
+      ext
     )
-
-
 
     wwinference::create_dir(full_dir)
 
-    readr::write_tsv(as_tibble(data_to_save),
-      file = fp
-    )
+    forecasttools::write_tabular_file(as_tibble(data_to_save), fp)
   }
 
   invisible()
@@ -467,6 +464,18 @@ postprocess_successful_fit <- function(wwinference_fit_obj,
   }
   save_object(ww_draws)
   save_object(hosp_draws)
+
+  save_table(
+    data_to_save = hosp_draws,
+    type_of_output = "posterior_predictive_admissions",
+    output_dir = output_dir,
+    scenario = scenario,
+    forecast_date = forecast_date,
+    model_type = model,
+    location = location,
+    ext = "parquet"
+  )
+
 
   full_hosp_quantiles <- {
     if (is.null(hosp_draws)) {
