@@ -232,6 +232,7 @@ pull_hub_forecasts <- function(model_name,
 #' of [pull_hub_forecasts()].
 #'
 #' @return Data frame of scores, as the output of [scoringutils::score()].
+#' @export
 score_hub_forecasts <- function(hub_forecasts) {
   scores <- hub_forecasts |>
     scoringutils::transform_forecasts(
