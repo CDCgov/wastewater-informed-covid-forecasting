@@ -353,7 +353,7 @@ head_to_head_targets <- list(
         by = c("location", "forecast_date")
       ) |>
       dplyr::filter(
-        ww_sufficient # filters to location forecast dates with sufficient ww
+        .data$ww_sufficient
       ) |>
       dplyr::left_join(
         convergence_df,
@@ -370,6 +370,7 @@ head_to_head_targets <- list(
         last_hosp_data_date_map,
         by = c("location", "forecast_date")
       ) |>
+      dplyr::rename(target_end_date = "date") |>
       add_horizons() |>
       scoringutils::as_forecast_quantile(
         predicted = "value",
@@ -407,6 +408,7 @@ head_to_head_targets <- list(
         last_hosp_data_date_map,
         by = c("location", "forecast_date")
       ) |>
+      dplyr::rename(target_end_date = "date") |>
       add_horizons() |>
       dplyr::select(-c(
         "scenario",

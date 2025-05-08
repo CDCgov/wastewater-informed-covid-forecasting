@@ -613,36 +613,6 @@ get_plot_score_by_horizon_t <- function(scores,
 }
 
 
-#' Get avg of scores by horizon
-#'
-#' @param scores tibble of scores for every location, forecast date, and horizon
-#' @param score_type string indicating the type of score to summarize over
-#'
-#' @return table of avg scores by horizon and overall by model
-#' @export
-get_avg_scores_model_horizon <- function(scores,
-                                         score_type) {
-  ## append additional set of rows to summarize
-  ## across all horizons
-  to_agg <- dplyr::bind_rows(
-    scores,
-    dplyr::mutate(scores, horizon = "overall")
-  )
-
-  avg_scores <- to_agg |>
-    dplyr::group_by(.data$model, .data$horizon) |>
-    dplyr::summarize(
-      avg_score = mean(.data[[score_type]])
-    ) |>
-    tidyr::pivot_wider(
-      names_from = "model",
-      values_from = "avg_score"
-    )
-
-  return(avg_scores)
-}
-
-
 #' Get stats on number of improved forecasts
 #'
 #' @param scores tibble of scores for every location, forecast date, and horizon
