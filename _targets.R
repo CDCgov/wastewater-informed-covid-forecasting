@@ -992,7 +992,7 @@ manuscript_figures <- list(
     name = qq_plot_retro_all_time,
     command = forecast_qq_plot(
       hosp_quantiles_filtered |>
-        dplyr::rename(model_type = "model"),
+        dplyr::rename(model = "model_type"),
       time_period = "retro_all_time",
       fig_file_dir = fig_output_dir
     )
@@ -1000,7 +1000,8 @@ manuscript_figures <- list(
   tar_target(
     name = coverage_plot_retro_all_time,
     command = forecast_interval_coverage_plot(
-      hosp_quantiles_filtered,
+      hosp_quantiles_filtered |>
+        dplyr::rename(model = "model_type"),
       ranges = c(30, 60, 90),
       time_period = "retro_all_time",
       fig_file_dir = fig_output_dir,
