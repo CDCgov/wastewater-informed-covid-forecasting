@@ -10,10 +10,8 @@ score_hub_submissions(
   locations = NULL,
   hub_subdir = NA,
   pull_from_github = TRUE,
-  submissions_path =
-    "https://raw.githubusercontent.com/reichlab/covid19-forecast-hub/master/data-processed/",
-  truth_data_path =
-    "https://media.githubusercontent.com/media/reichlab/covid19-forecast-hub/master/data-truth/truth-Incident\%20Hospitalizations.csv"
+  submissions_path = wweval::covidhub_submissions_raw,
+  truth_data_path = wweval::covidhub_truth_data
 )
 }
 \arguments{
