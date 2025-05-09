@@ -22,88 +22,104 @@
 #' forecast_dates, locations, and scenarios
 #' @export
 #'
-combine_outputs <- function(output_type =
-                              c(
-                                "quantiles", "scores", "ww_quantiles",
-                                "scores_quantiles", "hosp_quantiles", "flags",
-                                "errors", "ww_data_flags"
-                              ),
+combine_outputs <- function(output_type,
                             scenarios,
                             forecast_dates,
                             locations,
                             eval_output_subdir,
                             model_type) {
-  output_type <- arg_match(output_type)
-  df <- tibble(
+  checkmate::assert_scalar(output_type)
+  checkmate::assert_names(output_type,
+    subset.of = c(
+      "quantiles",
+      "scores",
+      "ww_quantiles",
+      "scores_quantiles",
+      "hosp_quantiles",
+      "flags",
+      "errors",
+      "ww_data_flags"
+    )
+  )
+  to_combine <- tibble::tibble(
     scenario = scenarios,
     forecast_date = forecast_dates,
     location = locations
   )
-  combined_output <- tibble()
-  flag_failed_output <- tibble()
-  for (i in seq_len(nrow(df))) {
-    this_scenario <- df$scenario[i]
-    this_forecast_date <- df$forecast_date[i]
-    this_location <- df$location[i]
 
-    # This is very much hard coded to the file structure. Will be replaced
-    # with a single subdirectory when we have everything from azure
+  load_output <- function(scenario, forecast_date, location) {
     fp <- get_filepath(
       eval_output_subdir,
-      this_scenario,
-      this_forecast_date,
+      scenario,
+      forecast_date,
       model_type,
-      this_location,
-      glue::glue("{output_type}"),
+      location,
+      output_type,
       "tsv"
     )
-
-
-    message(fp)
     if (file.exists(fp)) {
-      tryCatch(
-        {
-          this_output <- readr::read_tsv(fp)
-          combined_output <- rbind(combined_output, this_output)
-        },
-        error = function(e) {}
-      )
+      output <- readr::read_tsv(
+        fp,
+        show_col_types = FALSE,
+        col_types = readr::cols(
+          forecast_date = readr::col_date(),
+          scenario = readr::col_character(),
+          location = readr::col_character()
+        )
+      ) |>
+        dplyr::mutate(success = TRUE)
     } else {
       warning(glue::glue(
-        "File missing for {this_scenario} ",
-        "in {this_location} on {this_forecast_date}"
+        "File missing for {scenario} ",
+        "in {location} on {forecast_date}"
       ))
-
-      # Create a tibble of the combos that are missing, to save
-      this_failed_output <- tibble(
-        scenario = this_scenario,
-        location = this_location,
-        forecast_date = this_forecast_date
+      output <- tibble(
+        scenario = scenario,
+        location = location,
+        forecast_date = as.Date(forecast_date),
+        success = FALSE
       )
-      flag_failed_output <- rbind(flag_failed_output, this_failed_output)
-    } # end if file missing
+    }
+
+    return(output)
   }
+
+  combined <- purrr::pmap_df(to_combine, load_output)
+
+  combined_output <- combined |>
+    dplyr::filter(.data$success) |>
+    dplyr::select(-"success")
+
+  failed_output <- combined |>
+    dplyr::filter(!.data$success) |>
+    dplyr::select(
+      "scenario",
+      "location",
+      "forecast_date",
+      "success"
+    )
 
   if (nrow(combined_output) == 0) {
     combined_output <- NULL
   }
 
-  if (nrow(flag_failed_output) != 0) {
-    # Save the missing files in a new subfolder in the eval_output_subdir
+  if (nrow(failed_output) != 0) {
     wwinference::create_dir(file.path(
       eval_output_subdir,
       "files_missing", model_type
     ))
 
-    write.csv(
-      flag_failed_output,
-      file.path(
-        eval_output_subdir, "files_missing", model_type,
-        glue::glue("{output_type}.csv")
+    readr::write_tsv(
+      failed_output,
+      fs::path(
+        eval_output_subdir,
+        "files_missing",
+        model_type,
+        output_type,
+        ext = "tsv"
       )
     )
   }
-
 
   return(combined_output)
 }

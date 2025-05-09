@@ -300,6 +300,24 @@ query_and_select_models <- function(prop_dates_for_incl_hub,
   return(models)
 }
 
+#' Github URL of raw Covidhub submissions files.
+#' @export
+covidhub_submissions_raw <- paste0(
+  "https://raw.githubusercontent.com/",
+  "reichlab/covid19-forecast-hub/",
+  "master/data-processed/"
+)
+
+#' Github URL of Covidhub truth data file
+#' @export
+#' @rdname covidhub_submissions_raw
+covidhub_truth_data <- paste0(
+  "https://media.githubusercontent.com/",
+  "media/reichlab/covid19-forecast-hub/",
+  "master/data-truth/",
+  "truth-Incident%20Hospitalizations.csv"
+)
+
 #' Score hub submissions
 #'
 #' @param model_name a vector of character strings indicating the names of the
@@ -326,9 +344,10 @@ score_hub_submissions <- function(model_name,
                                   locations = NULL,
                                   hub_subdir = NA,
                                   pull_from_github = TRUE,
-                                  submissions_path = "https://raw.githubusercontent.com/reichlab/covid19-forecast-hub/master/data-processed/", # nolint
-                                  truth_data_path = "https://media.githubusercontent.com/media/reichlab/covid19-forecast-hub/master/data-truth/truth-Incident%20Hospitalizations.csv") { # nolint
-
+                                  submissions_path =
+                                    wweval::covidhub_submissions_raw,
+                                  truth_data_path =
+                                    wweval::covidhub_truth_data) {
   truth_data <- truth_data <- readr::read_csv(truth_data_path)
 
   natural_scale_scores <- tibble::tibble()

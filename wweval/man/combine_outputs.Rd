@@ -5,8 +5,7 @@
 \title{Combine outputs}
 \usage{
 combine_outputs(
-  output_type = c("quantiles", "scores", "ww_quantiles", "scores_quantiles",
-    "hosp_quantiles", "flags", "errors", "ww_data_flags"),
+  output_type,
   scenarios,
   forecast_dates,
   locations,
