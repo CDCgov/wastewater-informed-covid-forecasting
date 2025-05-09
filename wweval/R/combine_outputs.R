@@ -60,7 +60,12 @@ combine_outputs <- function(output_type,
     if (file.exists(fp)) {
       output <- readr::read_tsv(
         fp,
-        show_col_types = FALSE
+        show_col_types = FALSE,
+        col_types = readr::cols(
+          forecast_date = readr::col_date(),
+          scenario = readr::col_character(),
+          location = readr::col_character()
+        )
       ) |>
         dplyr::mutate(success = TRUE)
     } else {
@@ -71,7 +76,7 @@ combine_outputs <- function(output_type,
       output <- tibble(
         scenario = scenario,
         location = location,
-        forecast_date = forecast_date,
+        forecast_date = as.Date(forecast_date),
         success = FALSE
       )
     }
