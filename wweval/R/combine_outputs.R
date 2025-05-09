@@ -92,7 +92,12 @@ combine_outputs <- function(output_type,
 
   failed_output <- combined |>
     dplyr::filter(!.data$success) |>
-    dplyr::select(-"success")
+    dplyr::select(
+      "scenario",
+      "location",
+      "forecast_date",
+      "success"
+    )
 
   if (nrow(combined_output) == 0) {
     combined_output <- NULL
