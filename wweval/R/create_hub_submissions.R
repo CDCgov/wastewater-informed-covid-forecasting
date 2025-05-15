@@ -42,20 +42,20 @@ create_hub_submissions <- function(hosp_quantiles_ww,
                                    scenario = "status_quo",
                                    save_files = TRUE) {
   hosp_quantiles_ww <- hosp_quantiles_ww |>
-    dplyr::filter(scenario == {{ scenario }})
+    dplyr::filter(scenario == !!scenario)
   metadata_df <- data.frame()
   for (i in seq_along(forecast_dates)) {
     forecast_date <- forecast_dates[i]
     first_target_date <- forecast_date + lubridate::days(1)
     ww_quantiles <- hosp_quantiles_ww |>
       dplyr::filter(
-        forecast_date == !!forecast_date,
-        date >= !!first_target_date
+        .data$forecast_date == !!forecast_date,
+        .data$date >= !!first_target_date
       )
     hosp_quantiles <- hosp_quantiles_hosp |>
       dplyr::filter(
-        forecast_date == !!forecast_date,
-        date >= !!first_target_date
+        .data$forecast_date == !!forecast_date,
+        .data$date >= !!first_target_date
       )
 
     all_locs <- unique(hosp_quantiles$location)
@@ -152,11 +152,11 @@ format_for_hub <- function(quantiles,
       quantile = {{ quantile_col_name }}
     ) |>
     dplyr::mutate(
-      location = loc_abbr_to_flusight_code(location),
+      location = forecasttools::us_loc_abbr_to_code(.data$location),
       quantile = round(quantile, 4),
     ) |>
     dplyr::filter(
-      target_end_date >= lubridate::ymd(forecast_date) + lubridate::days(1)
+      target_end_date >= lubridate::ymd(.data$forecast_date) + lubridate::days(1)
     ) |>
     dplyr::mutate(days_ahead = as.numeric(target_end_date - forecast_date)) |>
     dplyr::mutate(

@@ -1,9 +1,8 @@
 linters: linters_with_defaults(
+    line_length_linter(100),
     object_usage_linter = NULL,
-    line_length_linter(length = 100),
     return_linter = NULL
   )
 exclusions: list(
     ".Rprofile"
   )
-encoding: "UTF-8"

@@ -1,35 +1,46 @@
-#' Add columns indicating the horizon to the scores
+#' Add columns indicating the horizon to forecasts or scores
 #'
 #' @description
-#' This function takes in a tibble of scores on the nowcasts/forecasts
-#' containing the columns `date`, `forecast_date`, and `last_hosp_data_date`,
-#' and adds the following columns: `horizon_days` (an integer) and
+#' This function takes in a tibble of forecasts or scores and
+#' adds the following columns: `horizon_days` (an integer) and
 #'  `horizon` (a string to be used for categorical grouping of horizons)
 #'
-#'
 #' @param df A tibble containing either forecasts or scores (or both)
-#' and the following required columns: `date`,`forecast_date`,
-#' `last_hosp_data_date`
+#' and columns corresponding to the target end date, the forecast_date,
+#' and the last data date (which defines the boundary between the
+#' calibration period and the nowcast period.
+#' @param target_end_date_col Name of the column containing target end
+#' dates. Default `"target_end_date"`.
+#' @param forecast_date_col Name of the column containing forecast dates.
+#' Default `"forecast_date"`.
+#' @param last_data_date_col column containing last data dates. Default
+#' `"last_hosp_data_date"`
 #'
 #' @return a tibble containing the same columns as `df` plus
 #' `horizon_days` and `horizon`
 #' @export
-add_horizons <- function(df) {
+add_horizons <- function(df,
+                         target_end_date_col = "target_end_date",
+                         forecast_date_col = "forecast_date",
+                         last_data_date_col = "last_hosp_data_date") {
   df_w_horizons <- df |>
     dplyr::mutate(
-      horizon_days = as.numeric(date - forecast_date)
+      horizon_days = as.integer(as.numeric(
+        as.Date(.data[[target_end_date_col]]) -
+          as.Date(.data[[forecast_date_col]])
+      ))
     ) |>
-    dplyr::mutate(
-      horizon = dplyr::case_when(
-        date <= last_hosp_data_date & horizon_days <= 0 ~ "calibration",
-        date > last_hosp_data_date & horizon_days <= 0 ~ "nowcast",
-        horizon_days > 0 & horizon_days <= 7 ~ "1 wk",
-        horizon_days > 7 & horizon_days <= 14 ~ "2 wks",
-        horizon_days > 14 & horizon_days <= 21 ~ "3 wks",
-        horizon_days > 21 & horizon_days <= 28 ~ "4 wks",
-        TRUE ~ NA_character_
-      )
-    )
+    dplyr::mutate(horizon = dplyr::case_when(
+      .data[[target_end_date_col]] <= .data[[last_data_date_col]] & .data$horizon_days <= 0 ~
+        "calibration",
+      .data[[target_end_date_col]] > .data[[last_data_date_col]] & .data$horizon_days <= 0 ~
+        "nowcast",
+      .data$horizon_days > 0 & .data$horizon_days <= 7 ~ "1 wk",
+      .data$horizon_days > 7 & .data$horizon_days <= 14 ~ "2 wks",
+      .data$horizon_days > 14 & .data$horizon_days <= 21 ~ "3 wks",
+      .data$horizon_days > 21 & .data$horizon_days <= 28 ~ "4 wks",
+      TRUE ~ NA_character_
+    ))
 
   return(df_w_horizons)
 }
@@ -48,10 +59,10 @@ add_horizons <- function(df) {
 #' @export
 get_last_hosp_data_date_map <- function(df) {
   map <- df |>
-    dplyr::group_by(forecast_date, location) |>
-    dplyr::filter(!is.na(calib_data)) |>
+    dplyr::group_by(.data$forecast_date, .data$location) |>
+    dplyr::filter(!is.na(.data$calib_data)) |>
     dplyr::summarise(
-      last_hosp_data_date = max(date)
+      last_hosp_data_date = max(.data$date)
     ) |>
     dplyr::ungroup()
 

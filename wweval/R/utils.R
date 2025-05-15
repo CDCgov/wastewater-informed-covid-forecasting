@@ -36,7 +36,7 @@ check_package_is_installed <- function(pkg_name) {
 #'
 #' @return the first argument
 #'
-#' @noRd
+#' @export
 with_dependencies <- function(x, ...) {
   x
 }
@@ -101,4 +101,49 @@ get_raw_output_suffix <- function(location,
     scenario,
     sep = "_"
   ))
+}
+
+#' Assert that needed environment variables are set
+#'
+#' @param needed_vars Vector of needed environment
+#' variables.
+#'
+#' @return `NULL`, invisibly on success or raise an error.
+#' @examples
+#'
+#' tryCatch(
+#'   assert_needed_env_vars(c(
+#'     "WWEVAL_EXAMPLE_ONE",
+#'     "WWEVAL_EXAMPLE_TWO"
+#'   )),
+#'   error = \(e) print(e)
+#' )
+#'
+#' @export
+assert_needed_env_vars <- function(needed_vars) {
+  vars <- Sys.getenv(needed_vars)
+  checkmate::assert_character(vars)
+  which_missing <- vars == ""
+  if (any(which_missing)) {
+    cli::cli_abort(c(
+      "Could not find required environment variables ",
+      "{names(vars)[which_missing]}"
+    ))
+  }
+  invisible()
+}
+
+
+#' Select columns from one dataframe based on the column
+#' spec of a second dataframe
+#'
+#' @param df Dataframe from which to select columns
+#' @param template_df Dataframe to use as a template
+#' for the column specification
+#' @return The result of calling [dplyr::select()] on
+#' `df`, raising an error if not all of the columns from
+#' `template_df` can be found.
+#' @export
+select_like <- function(df, template_df) {
+  return(dplyr::select(df, tidyselect::all_of(colnames(template_df))))
 }

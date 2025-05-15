@@ -162,7 +162,7 @@ get_plot_ww_data_comparison <- function(draws_w_data,
     scale_y_continuous(trans = "log10") +
     facet_wrap(~site_lab_name, scales = "free_y") +
     geom_point(
-      data = draws_w_data_subsetted |> filter(below_LOD == 1),
+      data = draws_w_data_subsetted |> filter(below_lod == 1),
       aes(x = date, y = calib_data), color = "red", size = 1.1
     ) +
     geom_point(
@@ -507,12 +507,24 @@ get_plot_ww_comparison <- function(ww_quantiles,
   return(p)
 }
 
-
-get_plot_final_scores <- function(final_scores,
-                                  score_metric = "crps") {
-  p <- ggplot(final_scores) +
-    geom_bar(aes(x = scenario, y = .data[[score_metric]], fill = scenario),
-      position = "dodge", stat = "identity"
+#' Barplot of scores by scenario
+#'
+#' @param scenario_scores data frame of scenario scores to plot.
+#' @param score_metric Metric to plot. Must be a column name in
+#' `scenario_scores`. Default `"crps"`.
+#' @return The plot, as a ggplot object.
+#' @export
+plot_scores_by_scenario <- function(scenario_scores,
+                                    score_metric = "crps") {
+  p <- ggplot(scenario_scores) +
+    geom_bar(
+      aes(
+        x = .data$scenario,
+        y = .data[[score_metric]],
+        fill = .data$scenario
+      ),
+      position = "dodge",
+      stat = "identity"
     ) +
     theme_bw() +
     ylab(glue::glue("{score_metric} across forecast dates and locations"))
@@ -1324,67 +1336,119 @@ get_heatmap_relative_wis <- function(scores,
 
 #' Get quantile-quantile plot
 #'
-#' @param scores df of granular (daily) score across models, locations, forecast
-#' dates and horizons
-#' @param figure_file_path path to save figure
+#' @param forecasts df of granular (daily) quantile forecasts
 #' @param time_period time period that scores are summarized over
-#' @param save_files  save_files boolean indicating whether or not to save figures, default
-#' is `TRUE`
-#'
 #' @return a ggplot object containing a plot of the proportion of data within
 #' each interval for each model.
 #' @export
+forecast_qq_plot <- function(forecasts,
+                             time_period) {
+  colors <- plot_components()
+  p <- scoringutils::get_coverage(forecasts) |>
+    scoringutils::plot_quantile_coverage() +
+    scale_y_continuous(
+      labels = scales::label_percent()
+    ) +
+    ggtitle(glue::glue("QQ plot for {time_period}")) +
+    get_plot_theme() +
+    scale_color_manual(values = colors$model_colors) +
+    coord_fixed()
+  return(p)
+}
+
+#' Plot interval coverage at specified ranges
 #'
-get_qq_plot <- function(scores,
-                        figure_file_path,
-                        time_period,
-                        save_files = TRUE) {
-  p <- scores |>
-    data.table::as.data.table() |>
-    scoringutils::summarise_scores(by = c("model", "range")) |>
-    scoringutils::plot_interval_coverage() +
-    ggtitle(glue::glue("QQ plot for {time_period}"))
-
-
-  if (isTRUE(save_files)) {
-    full_file_path <- file.path(figure_file_path, "hub_comparison")
-    wwinference::create_dir(full_file_path)
-    ggsave(
-      file.path(
-        full_file_path,
-        glue::glue("qq_plot_{time_period}.png")
-      ),
-      plot = p,
-      width = 6,
-      height = 6,
-      units = "in",
-      bg = "white"
+#' @param forecasts df of granular (daily) quantile forecasts,
+#' as the output of [scoringutils::as_forecast_quantile()].
+#' @param ranges A numeric vector of credible interval ranges to plot,
+#' spanning from 0 to 100.
+#' @param time_period string indicating time period of fig to save
+#' @param by Columns by which to stratify. Passed as the `by`
+#' argument to [scoringutils::get_coverage()]. Default `c("model", "horizon")`.
+#' @return A ggplot2 object
+#' @export
+forecast_interval_coverage_plot <- function(forecasts, # nolint
+                                            ranges,
+                                            time_period,
+                                            by = c("model", "horizon")) {
+  to_plot <- scoringutils::get_coverage(
+    forecasts,
+    by = by
+  ) |>
+    dplyr::mutate(
+      named_facet = glue::glue("{.data$interval_range}%")
+    ) |>
+    order_horizons() |>
+    dplyr::filter(.data$interval_range %in% !!ranges)
+  colors <- plot_components()
+  p <- ggplot(
+    data = to_plot,
+    mapping = aes(
+      x = .data$horizon,
+      y = .data$interval_coverage,
+      color = .data$model
     )
-  }
+  ) +
+    geom_line(aes(group = .data$model),
+      linetype = "dashed"
+    ) +
+    geom_point() +
+    geom_hline(
+      aes(yintercept = .data$interval_range / 100),
+      linetype = "dashed"
+    ) +
+    facet_wrap(~ .data$named_facet,
+      scales = "free_y"
+    ) +
+    labs(
+      y = "Proportion of data within interval",
+      x = "Forecast horizon",
+      col = "Model"
+    ) +
+    scale_y_continuous(
+      expand = expansion(c(0.2, 0.2)),
+      labels = scales::label_percent()
+    ) +
+    scale_x_discrete() +
+    get_plot_theme(
+      x_axis_dates = TRUE
+    ) +
+    scale_color_manual(values = colors$model_colors)
 
   return(p)
 }
 
+
+#' Plot wastewater evaluation data
+#'
+#' @param eval_data Data frame of evaluation data
+#' @return The plot, as a ggplot object.
+#'
+#' @export
 get_plot_ww_data <- function(eval_data) {
   eval_data <- eval_data |>
     dplyr::mutate(
-      lab_site_name = glue::glue("Site: {site}, lab: {lab}")
+      lab_site_name = glue::glue("Site: {.data$site}, lab: {.data$lab}"),
+      ww = exp(.data$log_genome_copies_per_ml)
     )
+
   loc <- eval_data |>
-    dplyr::distinct(location) |>
+    dplyr::distinct(.data$location) |>
     dplyr::pull()
 
   p <- ggplot(eval_data) +
-    geom_point(aes(x = date, y = log(ww)), size = 0.5) +
-    geom_line(aes(x = date, y = log(ww)), size = 0.5) +
+    geom_point(aes(x = .data$date, y = .data$ww), size = 0.5) +
+    geom_line(aes(x = .data$date, y = .data$ww), size = 0.5) +
     geom_point(
-      data = eval_data |> dplyr::filter(flag_as_ww_outlier == 1),
-      aes(x = date, y = log(ww)),
-      fill = "red", color = "red", size = 0.5
+      data = eval_data |> dplyr::filter(.data$flag_as_ww_outlier == 1),
+      aes(x = .data$date, y = .data$ww),
+      fill = "red",
+      color = "red",
+      size = 0.5
     ) +
     geom_point(
-      data = eval_data |> dplyr::filter(below_LOD == 1),
-      aes(x = date, y = log(ww)),
+      data = eval_data |> dplyr::filter(.data$below_lod == 1),
+      aes(x = .data$date, y = .data$ww),
       fill = "darkblue", color = "darkblue", size = 0.5
     ) +
     facet_wrap(~lab_site_name, scales = "free_y") +
@@ -1401,9 +1465,64 @@ get_plot_ww_data <- function(eval_data) {
         vjust = 0.5, hjust = 0.5
       )
     ) +
+    scale_x_date() +
+    scale_y_continuous(transform = "log10") +
     xlab("") +
     ylab("Log(genome copies per mL)") +
     ggtitle(glue::glue("Wastewater concentration data in {loc}"))
 
+  return(p)
+}
+
+
+#' Make a figure of overall admissions (summed across locations) for context
+#'
+#' @param eval_hosp_data Hospital admissions data for evaluating against
+#' for all locations
+#' @param first_forecast_date The first forecast date we are evaluating
+#' @param last_forecast_date The last forecast date we are evaluating
+#'
+#' @return ggplot object displaying a timeseries of total
+#' hospital admissions.
+#' @export
+plot_total_admissions <- function(eval_hosp_data,
+                                  first_forecast_date,
+                                  last_forecast_date) {
+  hosp_data <- eval_hosp_data |>
+    dplyr::distinct(
+      .data$location,
+      .data$daily_hosp_admits,
+      .data$date
+    ) |>
+    dplyr::group_by(.data$date) |>
+    dplyr::summarise(total_hosp = sum(daily_hosp_admits))
+
+  max_total_hosp <- max(hosp_data$total_hosp)
+
+  date_lims <- c(
+    as.Date(first_forecast_date),
+    as.Date(last_forecast_date)
+  )
+
+  p <- ggplot(
+    data = hosp_data,
+    aes(
+      x = .data$date,
+      y = .data$total_hosp
+    )
+  ) +
+    geom_point() +
+    get_plot_theme(x_axis_dates = TRUE) +
+    xlab("") +
+    ylab("National admissions") +
+    get_plot_theme(
+      y_axis_title_size = 8,
+      x_axis_dates = TRUE
+    ) +
+    scale_x_date(
+      date_breaks = "1 week",
+      date_labels = "%Y-%m-%d",
+      limits = date_lims
+    )
   return(p)
 }

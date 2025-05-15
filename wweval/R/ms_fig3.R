@@ -1,41 +1,33 @@
-#' Get a summary of a single states crps
+#' Generate a bar plots of CRPS for each model in different locations
 #'
 #' @param scores tibble of crps scores by location, forecast date, model,
 #' horizon day
 #' @param locs_to_plot the locations we want summaries for
 #' @param fig_file_dir string indicating directory to save fig in
-#'
-#' @return a table with mean crps for each model and the relative crps
-get_summary_table_fig3 <- function(scores,
-                                   locs_to_plot,
-                                   fig_file_dir) {
+#' @return Figure showing CRPS for multiple locations.
+#' @export
+multi_location_crps_figure <- function(scores,
+                                       locs_to_plot,
+                                       fig_file_dir) {
   scores_locs_long <- scores |>
-    dplyr::filter(
-      location %in% locs_to_plot
-    ) |>
-    dplyr::group_by(model, location) |>
-    dplyr::summarize(
-      mean_crps = mean(crps)
-    )
-  scores_locs <- scores_locs_long |>
-    tidyr::pivot_wider(
-      id_cols = c("location"),
-      names_from = "model",
-      names_prefix = "mean_crps_",
-      values_from = mean_crps
-    ) |>
-    dplyr::mutate(
-      rel_crps_means = mean_crps_ww / mean_crps_hosp
+    dplyr::filter(.data$location %in% !!locs_to_plot) |>
+    scoringutils::summarise_scores(
+      by = c("model", "location")
     )
 
   colors <- plot_components()
   p <- ggplot(scores_locs_long) +
-    geom_bar(aes(x = model, y = mean_crps, fill = model),
+    geom_bar(
+      aes(
+        x = .data$model,
+        y = .data$crps,
+        fill = .data$model
+      ),
       stat = "identity",
       position = "dodge"
     ) +
     scale_fill_manual(values = colors$model_colors) +
-    facet_wrap(~location) +
+    facet_wrap(~ .data$location) +
     get_plot_theme(
       x_axis_dates = TRUE,
       y_axis_title_size = 8,
@@ -45,14 +37,14 @@ get_summary_table_fig3 <- function(scores,
     ylab("Mean CRPS")
 
   ggsave(p,
-    filename = file.path(fig_file_dir, "sfig_bar_chart_mean_crps_3_locs.png"),
+    filename = file.path(
+      fig_file_dir,
+      "plot_multi_location_crps.png"
+    ),
     width = 7, height = 4
   )
 
-
-
-
-  return(scores_locs)
+  return(p)
 }
 
 #' Get an individual forecast score summary for a particular
@@ -64,18 +56,19 @@ get_summary_table_fig3 <- function(scores,
 #' @param this_forecast_date the forecast date of interest
 #'
 #' @return A tibble of mean scores by models
+#' @export
 get_ind_forecast_score <- function(scores,
                                    loc,
                                    this_forecast_date) {
   ind_score <- scores |>
     dplyr::filter(
-      location == loc,
-      forecast_date == this_forecast_date
+      .data$location == !!loc,
+      .data$forecast_date == !!this_forecast_date
     ) |>
-    dplyr::group_by(model) |>
-    dplyr::summarize(
-      mean_crps = mean(crps)
+    scoringutils::summarize_scores(
+      by = "model"
     )
+
   return(ind_score)
 }
 
@@ -87,6 +80,8 @@ get_ind_forecast_score <- function(scores,
 #' transformed into a tibble.
 #' @param loc_to_plot A  string indicating the state abbreviations of the state
 #' to plot
+#' @param baseline Name of the model to use a sa baseline. Default
+#' `"cfa-hosponlyrenewal(retro)"`
 #' @param horizons_to_show A vector of strings indicating the names of the
 #' `horizon` that we want to show on the plot, must be a subset of
 #' `nowcast`, `1 wk`, `2 wks`,`3 wks`, `4 wks` and `overall`
@@ -94,52 +89,44 @@ get_ind_forecast_score <- function(scores,
 #' @return a ggplot object containing violin plots comparing the distribution
 #' of crps scores across forecast dates for a single location, grouped by
 #' horizon and colored by model
+#' @export
 make_fig3_single_loc_comp <- function(scores,
                                       loc_to_plot,
+                                      baseline =
+                                        "cfa-hosponlyrenewal(retro)",
                                       horizons_to_show = c(
                                         "nowcast",
                                         "1 wk", "4 wks",
                                         "overall"
                                       )) {
   scores_by_horizon <- scores |>
-    dplyr::filter(location == !!loc_to_plot) |>
-    dplyr::filter(horizon %in% !!horizons_to_show)
+    dplyr::filter(
+      .data$location == !!loc_to_plot,
+      .data$horizon %in% !!horizons_to_show
+    )
   scores_overall <- scores |>
-    dplyr::filter(location == !!loc_to_plot) |>
+    dplyr::filter(.data$location == !!loc_to_plot) |>
     dplyr::mutate(horizon = "overall")
 
   scores_comb <- dplyr::bind_rows(scores_by_horizon, scores_overall) |>
-    dplyr::filter(
-      horizon %in% !!horizons_to_show
-    ) |>
-    order_horizons()
+    dplyr::filter(horizon %in% !!horizons_to_show)
 
   relative_crps <- scores_comb |>
-    dplyr::group_by(horizon, forecast_date, location, model) |>
-    dplyr::summarize(mean_crps = mean(crps)) |>
-    tidyr::pivot_wider(
-      names_from = model,
-      values_from = mean_crps,
-      id_cols = c("horizon", "forecast_date", "location")
+    forecasttools::summarise_scores_with_baseline(
+      baseline = baseline,
+      by = c("horizon", "forecast_date", "location")
     ) |>
-    dplyr::mutate(
-      rel_crps = ww / hosp
-    ) |>
-    dplyr::filter(!is.na(horizon)) |>
+    dplyr::rename(rel_crps = "mean_scores_ratio") |>
     order_horizons()
-
-
-  rel_mean_crps <- relative_crps |>
-    dplyr::group_by(horizon) |>
-    dplyr::summarize(rel_mean_crps = mean(ww) / mean(hosp), na.rm = TRUE)
 
   colors <- plot_components()
 
   p <- ggplot(relative_crps) +
     tidybayes::stat_dotsinterval(
       aes(
-        x = horizon, y = rel_crps,
-        fill = horizon
+        x = .data$horizon,
+        y = .data$rel_crps,
+        fill = .data$horizon
       ),
       point_interval = "mean_qi",
       alpha = 0.5,
@@ -159,8 +146,6 @@ make_fig3_single_loc_comp <- function(scores,
     scale_y_continuous(trans = "log10") + # , limits = c(0.25, 4.0)) +
     labs(color = "Model") +
     coord_cartesian(ylim = c(1 / 6, 6))
-
-  # Also make a bar chart of the two average crps scores
 
 
   return(p)
@@ -189,6 +174,7 @@ make_fig3_forecast_comp_fig <- function(hosp_quantiles,
                                         horizon_to_plot,
                                         horizon_days_ahead,
                                         days_to_show_prev_data = 14) {
+  needed_quantiles <- c(0.025, 0.25, 0.5, 0.75, 0.975)
   hosp_quants_horizons <- hosp_quantiles |>
     dplyr::filter(location == !!loc_to_plot) |>
     dplyr::filter(date >=
@@ -197,19 +183,24 @@ make_fig3_forecast_comp_fig <- function(hosp_quantiles,
       ))
 
   hosp <- hosp_quants_horizons |>
-    dplyr::filter(horizon == !!horizon_to_plot) |>
-    dplyr::filter(quantile %in% c(0.025, 0.25, 0.5, 0.75, 0.975)) |>
+    dplyr::filter(
+      horizon == !!horizon_to_plot,
+      .data$quantile_level %in% !!needed_quantiles
+    ) |>
+    dplyr::select(
+      "forecast_date",
+      "date",
+      "model_type",
+      "quantile_level",
+      "predicted"
+    ) |>
     tidyr::pivot_wider(
-      id_cols = c(
-        forecast_date, model_type,
-        date, eval_data
-      ),
-      names_from = quantile,
-      values_from = value
+      names_from = "quantile_level",
+      values_from = "predicted"
     )
   colors <- plot_components()
 
-  max_obs <- max(hosp_quants_horizons$eval_data)
+  max_obs <- max(hosp_quants_horizons$observed)
 
   date_lims <- c(
     min(hosp_quantiles$forecast_date) + lubridate::days(horizon_days_ahead - 9),
@@ -218,34 +209,41 @@ make_fig3_forecast_comp_fig <- function(hosp_quantiles,
   p <- ggplot(hosp) +
     geom_point(
       data = hosp_quants_horizons,
-      aes(x = date, y = eval_data),
+      aes(
+        x = .data$date,
+        y = .data$observed
+      ),
       fill = "black", size = 0.3, shape = 21,
       show.legend = FALSE
     ) +
     geom_ribbon(
-      data = hosp,
       aes(
-        x = date, ymin = `0.025`, ymax = `0.975`,
-        group = interaction(forecast_date, model_type),
-        fill = model_type
-      ), alpha = 0.1,
+        x = .data$date,
+        ymin = .data$`0.025`,
+        ymax = .data$ `0.975`,
+        group = interaction(
+          .data$forecast_date,
+          .data$model_type
+        ),
+        fill = .data$model_type
+      ),
+      alpha = 0.1,
       show.legend = FALSE
     ) +
     geom_ribbon(
-      data = hosp,
       aes(
-        x = date, ymin = `0.25`, ymax = `0.75`,
-        group = interaction(forecast_date, model_type),
-        fill = model_type
-      ), alpha = 0.1,
+        x = .data$date, ymin = .data$`0.25`, ymax = .data$`0.75`,
+        group = interaction(.data$forecast_date, .data$model_type),
+        fill = .data$model_type
+      ),
+      alpha = 0.1,
       show.legend = FALSE
     ) +
     geom_line(
-      data = hosp,
       aes(
-        x = date, y = `0.5`,
-        group = interaction(forecast_date, model_type),
-        color = model_type,
+        x = .data$date, y = .data$`0.5`,
+        group = interaction(.data$forecast_date, .data$model_type),
+        color = .data$model_type,
         show.legend = FALSE
       ),
     ) +
@@ -337,99 +335,4 @@ make_fig3_crps_underlay_fig <- function(scores,
 
 
   return(p)
-}
-
-#' Title
-#'
-#' @param fig3_crps_single_loc1 first states crps density plot
-#' @param fig3_forecast_comparison_nowcast1 first states nowcast comparison
-#' @param fig3_forecast_comparison_1wk1 first states 1 wk forecast comparison
-#' @param fig3_forecast_comparison_4wks1 first states 4 wk forecast comparison
-#' @param fig3_crps_underlay_nowcast1 first states crps nowcast underlay
-#' @param fig3_crps_underlay_1wk1 first states crps 1 wk underlay
-#' @param fig3_crps_underlay_4wks1 first states crps 4wk underlay
-#' @param fig3_crps_single_loc2 second states crps density plot
-#' @param fig3_forecast_comparison_nowcast2 second states nowcast comparison
-#' @param fig3_forecast_comparison_1wk2 second states 1 wk forecast comparison
-#' @param fig3_forecast_comparison_4wks2 second states 4 wk forecast comparison
-#' @param fig3_crps_underlay_nowcast2 second states crps nowcast underlay
-#' @param fig3_crps_underlay_1wk2 second states crps 1 wk underlay
-#' @param fig3_crps_underlay_4wks2 second states crps 4wk underlay
-#' @param fig3_crps_single_loc3 first state's crps density plot
-#' @param fig3_forecast_comparison_nowcast3 third states nowcast comparison
-#' @param fig3_forecast_comparison_1wk3 third states 1 wk forecast comparison
-#' @param fig3_forecast_comparison_4wks3 third states 4 wk forecast comparison
-#' @param fig3_crps_underlay_nowcast3 third states crps nowcast underlay
-#' @param fig3_crps_underlay_1wk3 third states crps 1 wk underlay
-#' @param fig3_crps_underlay_4wks3 third states crps 4wk underlay
-#' @param fig_file_dir Path to save figures
-#'
-#' @return ggplot object that is a combination of 3 states overall crps
-#' distributions comparing the two model types +
-#' forecast comparisons across horizons with an underlay indicating the crps
-#' score
-#' @export
-make_fig3 <- function(fig3_crps_single_loc1,
-                      fig3_forecast_comparison_nowcast1, # nolint
-                      fig3_forecast_comparison_1wk1,
-                      fig3_forecast_comparison_4wks1,
-                      fig3_crps_underlay_nowcast1,
-                      fig3_crps_underlay_1wk1,
-                      fig3_crps_underlay_4wks1,
-                      fig3_crps_single_loc2,
-                      fig3_forecast_comparison_nowcast2, # nolint
-                      fig3_forecast_comparison_1wk2,
-                      fig3_forecast_comparison_4wks2,
-                      fig3_crps_underlay_nowcast2,
-                      fig3_crps_underlay_1wk2,
-                      fig3_crps_underlay_4wks2,
-                      fig3_crps_single_loc3,
-                      fig3_forecast_comparison_nowcast3, # nolint
-                      fig3_forecast_comparison_1wk3,
-                      fig3_forecast_comparison_4wks3,
-                      fig3_crps_underlay_nowcast3,
-                      fig3_crps_underlay_1wk3,
-                      fig3_crps_underlay_4wks3,
-                      fig_file_dir) {
-  layout <- "
-ABCD
-AEFG
-HIJK
-HLMN
-OPQR
-OSTU
-"
-  fig3 <- fig3_crps_single_loc1 + fig3_forecast_comparison_nowcast1 +
-    fig3_forecast_comparison_1wk1 +
-    fig3_forecast_comparison_4wks1 + fig3_crps_underlay_nowcast1 +
-    fig3_crps_underlay_1wk1 + fig3_crps_underlay_4wks1 +
-    fig3_crps_single_loc2 + fig3_forecast_comparison_nowcast2 +
-    fig3_forecast_comparison_1wk2 +
-    fig3_forecast_comparison_4wks2 + fig3_crps_underlay_nowcast2 +
-    fig3_crps_underlay_1wk2 + fig3_crps_underlay_4wks2 +
-    fig3_crps_single_loc3 + fig3_forecast_comparison_nowcast3 +
-    fig3_forecast_comparison_1wk3 +
-    fig3_forecast_comparison_4wks3 + fig3_crps_underlay_nowcast3 +
-    fig3_crps_underlay_1wk3 + fig3_crps_underlay_4wks3 +
-    patchwork::plot_layout(
-      design = layout,
-      guides = "collect",
-      axes = "collect"
-    ) & theme(
-    legend.position = "top",
-    legend.justification = "left"
-  ) #+ plot_annotation(tag_levels = "A") #nolint , not working
-
-  fig3
-  fs::dir_create(fig_file_dir)
-  ggsave(fig3,
-    filename = file.path(fig_file_dir, "fig3.png"),
-    width = 10, height = 7
-  )
-  ggsave(fig3,
-    filename = file.path(fig_file_dir, "fig3.svg"),
-    width = 10, height = 7
-  )
-
-  return(fig3)
 }

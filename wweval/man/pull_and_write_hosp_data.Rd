@@ -20,7 +20,7 @@ Boolean, default \code{FALSE}.}
 NULL, saving the data to disk as a side effect.
 }
 \description{
-Pull data using \code{\link[=pull_nhsn]{pull_nhsn()}}, format it for pipeline ingestion,
+Pull data using \code{\link[=pull_daily_nhsn]{pull_daily_nhsn()}}, format it for pipeline ingestion,
 and write it to disk as a date-stamped \code{.csv} file.
 }
 \examples{

@@ -1,4 +1,16 @@
-#' Get the scores for ever day for a particular location and forecast date
+#' Metrics to use for quantile scores
+#' @export
+quantile_metrics <- scoringutils::get_metrics(
+  scoringutils::example_quantile
+)
+
+#' Metrics to use for quantile scores
+#' @export
+sample_metrics <- scoringutils::get_metrics(
+  scoringutils::example_sample_discrete
+)
+
+#' Get the scores for every day for a particular location and forecast date
 #'
 #' @description
 #' Uses scoringutils to transform data and predictions using a log transform
@@ -10,16 +22,15 @@
 #' @param scenario a string indicating the wastewater data scenario we're
 #' running
 #' @param metrics Vector of scoring metrics to output, passed as the
-#' `metrics` argument to [scoringutils::score()]. Default is NULL,
-#' which returns all options for samples including:
-#' `c("crps", "dss", "bias", "mad", "ae_median", "se_mean")`.
+#' `metrics` argument to [scoringutils::score()]. Default
+#' [sample_metrics]
 #'
 #' @return a dataframe containing a score for each day in the nowcast
 #' and forecast period
 #' @export
-get_full_scores <- function(draws,
-                            scenario,
-                            metrics = NULL) {
+score_samples <- function(draws,
+                          scenario,
+                          metrics = sample_metrics) {
   if (is.null(draws)) {
     scores <- NULL
   } else {
@@ -27,34 +38,40 @@ get_full_scores <- function(draws,
     last_calib_date <- max(draws$date[!is.na(draws$calib_data)])
 
     forecasted_draws <- draws |>
-      filter(date > !!last_calib_date) |>
-      ungroup() |>
-      # Rename for scoring utils
-      rename(
-        sample = draw,
-        model = model_type,
-        true_value = eval_data,
-        prediction = value,
-      ) |>
-      select(
-        location,
-        forecast_date,
-        date,
-        true_value,
-        prediction,
-        sample,
-        model
+      dplyr::filter(.data$date > !!last_calib_date) |>
+      dplyr::select(
+        model = "model_type",
+        "location",
+        "forecast_date",
+        "date",
+        "value",
+        "eval_data",
+        "draw"
       )
-    scores <- forecasted_draws |>
-      data.table::as.data.table() |>
+    to_score <- forecasted_draws |>
+      scoringutils::as_forecast_sample(
+        predicted = "value",
+        observed = "eval_data",
+        sample_id = "draw"
+      ) |>
       scoringutils::transform_forecasts(
         fun = scoringutils::log_shift,
         offset = 1
-      ) |>
-      scoringutils::check_forecasts() |>
-      scoringutils::score(metrics = metrics) |>
-      mutate(
-        period = ifelse(date <= forecast_date, "nowcast", "forecast"),
+      )
+
+    if (is.null(metrics)) {
+      metrics <- scoringutils::get_metrics(to_score)
+    }
+
+    scores <- scoringutils::score(to_score,
+      metrics = metrics
+    ) |>
+      dplyr::mutate(
+        period =
+          ifelse(.data$date <= .data$forecast_date,
+            "nowcast",
+            "forecast"
+          ),
         scenario = !!scenario
       )
   }
@@ -75,48 +92,52 @@ get_full_scores <- function(draws,
 #' @param scenario a string indicating the wastewater data scenario we're
 #' running
 #' @param metrics Vector of scoring metrics to output, passed as the
-#' `metrics` argument to [scoringutils::score()]. Default is NULL which will
-#' include all scoring metrics for quantiles by default, including
-#' `c("interval_score", "coverage", "dispersion", "bias")`.
+#' `metrics` argument to [scoringutils::score()]. Default
+#' [quantile_metrics]
 #'
 #' @return a dataframe containing a score for each day in the nowcast
 #' and forecast period
 #' @export
-get_scores_from_quantiles <- function(quantiles,
-                                      scenario,
-                                      metrics = NULL) {
+score_quantiles <- function(quantiles,
+                            scenario,
+                            metrics = quantile_metrics) {
   if (is.null(quantiles)) {
     scores <- NULL
   } else {
     forecasted_quantiles <- quantiles |>
-      ungroup() |>
-      # Rename for scoring utils
-      rename(
-        model = model_type,
-        true_value = eval_data,
-        prediction = value,
-      ) |>
-      select(
-        location,
-        forecast_date,
-        date,
-        true_value,
-        prediction,
-        quantile,
-        model
+      dplyr::select(
+        model = "model_type",
+        "location",
+        "forecast_date",
+        "date",
+        "value",
+        "eval_data",
+        "quantile"
       )
 
-
-    scores <- forecasted_quantiles |>
-      data.table::as.data.table() |>
+    to_score <- forecasted_quantiles |>
+      scoringutils::as_forecast_quantile(
+        predicted = "value",
+        observed = "eval_data",
+        quantile_level = "quantile"
+      ) |>
       scoringutils::transform_forecasts(
         fun = scoringutils::log_shift,
         offset = 1
-      ) |>
-      scoringutils::check_forecasts() |>
-      scoringutils::score(metrics = metrics) |>
-      mutate(
-        period = ifelse(date <= forecast_date, "nowcast", "forecast"),
+      )
+
+    if (is.null(metrics)) {
+      metrics <- scoringutils::get_metrics(to_score)
+    }
+
+    scores <- scoringutils::score(to_score,
+      metrics = metrics
+    ) |>
+      dplyr::mutate(
+        period = ifelse(.data$date <= .data$forecast_date,
+          "nowcast",
+          "forecast"
+        ),
         scenario = !!scenario
       )
   }
@@ -190,268 +211,553 @@ make_baseline_score_table <- function(all_ww_scores,
 }
 
 
-#' Query Zoltar for models to include in the analysis
+
+
+#' Clean flags from a real-time forecast
 #'
-#' @description
-#' This function uses the `zoltr` R package to connect to the Zoltar database
-#' which contains forecasts from the COVID Hub forecast project, and query it
-#' for the specified forecast dates. It queries for all dates, computes the
-#' proportion of dates for which the model has submitted, filters for models
-#' that have submitted for greater than the specified proportion of forecast
-#' dates for inclusion, and returns the vector of model names.
+#' Fixes typos and computes needed quantities if absent
 #'
-#'
-#' @param prop_dates_for_incl_hub Numeric greater than 0 and less than or equal
-#' to 1 indicating the inclusion threshold for the proportion of forecast dates
-#' that a model must have submitted forecasts to be included in analysis
-#' @param prop_locs_for_incl_hub Numeric less than 1 indicating the inclusion
-#' threshold for the proportion of the locations we expect that a model
-#' must have subbmited forecasts for to be included in analysis
-#' @param forecast_dates vector of dates formatted in ISO8601 convention
-#' (YYYY-MM-DD) indicating the forecast dates for the analysis
-#' @param locations vector of state abbreviations that we want to ensure the
-#' submitting teams have produced forecasts for
-#' @param project_name name of the Zoltar project, default is
-#' `"COVID-19 Forecasts"`
-#'
-#' @return a vector of character strings indicating the unique model names
-#' that fit the inclusion criteria
-#' @export
-query_and_select_models <- function(prop_dates_for_incl_hub,
-                                    prop_locs_for_incl_hub,
-                                    forecast_dates,
-                                    locations,
-                                    project_name = "COVID-19 Forecasts") {
-  # get state abbreviation codes
-  state_codes <- loc_abbr_to_flusight_code(
-    unique(locations)
-  )
-
-  if (prop_dates_for_incl_hub > 1 || prop_dates_for_incl_hub <= 0) {
-    cli::cli_abort(c(
-      "Proportion of forecast dates required for hub inclusion",
-      "must be greater than 0 and less than or equal to 1."
-    ))
-  }
-
-  if (prop_locs_for_incl_hub > 1 || prop_locs_for_incl_hub <= 0) {
-    cli::cli_abort(c(
-      "Proportion of locations required for hub inclusion",
-      "must be greater than 0 and less than or equal to 1."
-    ))
-  }
-
-  zoltar_connection <- zoltr::new_connection()
-  zoltr::zoltar_authenticate(
-    zoltar_connection, get_secret("Z_USERNAME"),
-    get_secret("Z_PASSWORD")
-  )
-
-  # list of project on zoltar
-  the_projects <- zoltr::projects(zoltar_connection)
-
-  # Grabbing a specific project
-  project_url <- the_projects[the_projects$name == project_name, "url"]
-  the_project_info <- zoltr::project_info(zoltar_connection, project_url)
-
-  # get the models
-  the_models <- zoltr::models(zoltar_connection, project_url)
-
-  # Submit query, poll job, get job data
-
-  forecast_data <- zoltr::do_zoltar_query(
-    zoltar_connection = zoltar_connection,
-    project_url = project_url,
-    query_type = "forecasts",
-    models = NULL, # all models by default
-    units = state_codes,
-    # We could query all of them, but this was very slow. This ensures
-    # that the forecasts submitted have at least reached 28 days.
-    targets = c("28 day ahead inc hosp"),
-    types = "quantile",
-    timezeros = forecast_dates
-  )
-
-  n_unique_forecasts <- forecast_data |>
-    dplyr::distinct(timezero) |>
-    dplyr::pull() |>
-    length()
-
-  forecasts_present_per_model <- forecast_data |>
-    dplyr::distinct(timezero, model, unit) |>
-    dplyr::group_by(model, timezero) |>
-    dplyr::summarize(
-      n_locs = dplyr::n(),
-      prop_locs = n_locs / length(state_codes)
-    ) |>
-    # Exclude any forecast dates/models with too few locations submitted
-    dplyr::filter(prop_locs >= !!prop_locs_for_incl_hub) |>
-    dplyr::group_by(model) |>
-    dplyr::summarize(
-      n_forecast_dates = dplyr::n(),
-      prop_present = n_forecast_dates / !!n_unique_forecasts
-    )
-
-  models <- forecasts_present_per_model |>
-    dplyr::filter(prop_present > !!prop_dates_for_incl_hub) |>
-    dplyr::filter(model != "COVIDhub_CDC-ensemble") |>
-    dplyr::pull(model)
-
-  return(models)
+#' @param df Dataframe of flags
+#' @return A cleaned version of the data frame,
+#' with flag names corrected.
+clean_flag_df <- function(df) {
+  return(dplyr::mutate(df,
+    diagnostic =
+      dplyr::case_match(
+        .data$diagnostic,
+        "flag_low_embfi" ~
+          "flag_low_ebfmi",
+        .default = .data$diagnostic
+      )
+  ))
 }
 
-#' Github URL of raw Covidhub submissions files.
-#' @export
-covidhub_submissions_raw <- paste0(
-  "https://raw.githubusercontent.com/",
-  "reichlab/covid19-forecast-hub/",
-  "master/data-processed/"
-)
-
-#' Github URL of Covidhub truth data file
-#' @export
-#' @rdname covidhub_submissions_raw
-covidhub_truth_data <- paste0(
-  "https://media.githubusercontent.com/",
-  "media/reichlab/covid19-forecast-hub/",
-  "master/data-truth/",
-  "truth-Incident%20Hospitalizations.csv"
-)
-
-#' Score hub submissions
+#' Compute diagnostic flags from raw stanfit objects
 #'
-#' @param model_name a vector of character strings indicating the names of the
-#' models to scores
-#' @param dates a vector of dates indicating the dates of the submissions to
-#'  score
-#' @param locations a vector of character strings indicating the locations
-#' to score
-#' @param hub_subdir path where the retrospective hub submissions are saved
-#' locally since these are not on COVID hub github
-#' @param pull_from_github boolean indicating whether or not to pull from github
-#' @param submissions_path url pointing to the "data-processed" folder on
-#' the COVIDhub github, which is where team's submissions are located
-#' @param truth_data_path the path to the truth data used by the hub for
-#' evaluation
+compute_flags <- function(forecast_dir,
+                          forecast_date,
+                          run_on_date,
+                          run_id) {
+  cli::cli_inform(c(
+    "Recomputing flags from raw stanfit objects. ",
+    "This may take a moment."
+  ))
+  ## diagnostic flags were not saved prior to 2024-02-26;
+  ## need to compute manually. Subsequent flag computation
+  ## used the same flag thresholds as get_diagnostic_flags()
+  ## (see https://github.com/CDCgov/wastewater-informed-covid-forecasting/blob/06d13e0b4f4cd4fbd0334ea22341b800c504abc9/cfaforecastrenewalww/R/process_model_outputs.R#L468-L473)  # nolint
+  ## so we can just use that function.
+  run_dir <- glue::glue("run-on-{run_on_date}-{run_id}")
+  date_dir <- run_on_date
+  old_file_structure <- as.Date(forecast_date) < as.Date("2024-02-19")
+  stan_csvs <- fs::path(
+    forecast_dir,
+    "stan_objects",
+    ifelse(old_file_structure,
+      fs::path(
+        forecast_date,
+        run_on_date,
+        run_dir
+      ),
+      fs::path("")
+    )
+  ) |>
+    fs::dir_ls(
+      type = "file",
+      glob = "*.csv"
+    )
+
+  stanfit <- cmdstanr::as_cmdstan_fit(stan_csvs)
+  flags <- get_diagnostic_flags(stanfit)
+
+  return(flags)
+}
+
+check_any_flags <- function(forecast_dir,
+                            forecast_date,
+                            run_on_date,
+                            run_id) {
+  flags_to_check <- c(
+    "flag_low_ebfmi",
+    "flag_too_many_divergences",
+    "flag_high_rhat",
+    "flag_high_max_treedepth"
+  )
+
+  real_time_flag_path <- fs::path(forecast_dir,
+    "diagnostics",
+    ext = "csv"
+  )
+  post_hoc_flag_path <- fs::path(forecast_dir,
+    "post_hoc_diagnostics",
+    ext = "csv"
+  )
+
+  flags_found <- FALSE
+  if (fs::file_exists(real_time_flag_path)) {
+    flag_tab <- readr::read_csv(real_time_flag_path) |>
+      clean_flag_df()
+    checkmate::assert_names(names(flag_tab),
+      must.include = "diagnostic"
+    )
+    flags_found <- checkmate::test_names(na.omit(flag_tab$diagnostic),
+      must.include = flags_to_check
+    )
+    if (flags_found) {
+      cli::cli_inform("Using archived flags computed in real time...")
+    }
+  }
+  if (!flags_found && fs::file_exists(post_hoc_flag_path)) {
+    flag_tab <- readr::read_csv(post_hoc_flag_path) |>
+      clean_flag_df()
+    checkmate::assert_names(names(flag_tab),
+      must.include = "diagnostic"
+    )
+    flags_found <- checkmate::test_names(na.omit(flag_tab$diagnostic),
+      must.include = flags_to_check
+    )
+
+    if (flags_found) {
+      cli::cli_inform(paste0(
+        "Using flags computed post-hoc in a ",
+        "previous analysis run..."
+      ))
+    }
+  }
+
+  if (!flags_found) {
+    cli::cli_inform(paste0(
+      "Could not find flags computed in real ",
+      "time or subsequently computed post-hoc. Will ",
+      "recompute now..."
+    ))
+
+    flag_tab <- compute_flags(
+      forecast_dir,
+      forecast_date,
+      run_on_date,
+      run_id
+    ) |>
+      tidyr::pivot_longer(
+        tidyselect::everything(),
+        names_to = "diagnostic",
+        values_to = "value"
+      )
+
+    cli::cli_inform(paste0(
+      "Saving flags ",
+      "to {post_hoc_flag_path}..."
+    ))
+    readr::write_csv(flag_tab, post_hoc_flag_path)
+  }
+
+
+  checkmate::assert_names(na.omit(flag_tab$diagnostic),
+    must.include = flags_to_check
+  )
+  flags <- flag_tab |>
+    dplyr::filter(.data$diagnostic %in% !!flags_to_check) |>
+    dplyr::pull(.data$value)
+
+  return(any(flags == TRUE))
+}
+
+
+#' Load a real-time forecast
 #'
-#' @return a dataframe containing all of the scores for all models,
-#' forecast dates (indicated by dates), locations, target end dates, and
-#' quantiles
+#' Loads a forecast for a single location, date,
+#' model type, and run.
+#'
+#' @param output_dir Output directory containing real-time
+#' forecasts.
+#' @param forecast_date Forecast date, as a string.
+#' @param location Forecast location, as a string.
+#' @param model_type Model type, as a string. One of
+#' `"hosp"` or `"ww"`.
+#' @param forecast_output_type Type of forecast output to pull.
+#' One of `"quantiles"` o `"draws"`.
+#' @param table_of_run_ids Table mapping forecast dates
+#' to chosen run unique ids and run dates.
+#' @return The forecast, as a tibble.
+#'
 #' @export
+load_real_time_forecast <- function(output_dir,
+                                    forecast_date,
+                                    location,
+                                    model_type,
+                                    forecast_output_type,
+                                    table_of_run_ids) {
+  checkmate::assert_scalar(model_type)
+  checkmate::assert_names(model_type, subset.of = c("ww", "hosp"))
+  checkmate::assert_scalar(forecast_output_type)
+  checkmate::assert_names(forecast_output_type,
+    subset.of = c("quantiles", "draws")
+  )
+  ## remove trailing s from output type, col name is singular
+  output_id_col <- stringr::str_sub(forecast_output_type,
+    end = -2
+  )
+
+  metadata <- table_of_run_ids |>
+    dplyr::filter(.data$forecast_date == !!forecast_date)
+  run_id <- metadata$ids
+  date_run <- metadata$dates_run
+  model_long <- c(
+    "ww" = "site-level infection dynamics",
+    "hosp" = "hospital admissions only"
+  )[[model_type]]
+
+  old_file_structure <- as.Date(forecast_date) < as.Date("2024-02-19")
+  if (old_file_structure) {
+    dir <- fs::path(
+      output_dir,
+      forecast_date,
+      "raw",
+      location,
+      model_long
+    )
+    forecast_filename <- fs::path(
+      forecast_output_type,
+      forecast_date,
+      glue::glue(
+        "run-on-{date_run}",
+        "-{run_id}-",
+        "{forecast_output_type}"
+      )
+    )
+  } else {
+    dir <- fs::path(
+      output_dir,
+      forecast_date,
+      glue::glue("run-on-{date_run}-{run_id}"),
+      "raw",
+      location,
+      model_long
+    )
+    forecast_filename <- forecast_output_type
+  }
+
+  forecast_path <- fs::path(dir,
+    forecast_filename,
+    ext = "parquet"
+  )
+  cli::cli_inform("Looking for forecast at {forecast_path}...")
+  forecast_exists <- fs::file_exists(forecast_path)
+  forecast <- NULL
+
+  if (forecast_exists) {
+    any_flags <- check_any_flags(
+      dir,
+      forecast_date,
+      date_run,
+      run_id
+    )
+    forecast <- arrow::read_parquet(forecast_path) |>
+      dplyr::filter(
+        .data$name == "pred_hosp",
+        .data$period != "calibration"
+      ) |>
+      dplyr::select(
+        "forecast_date",
+        "date",
+        "location",
+        "value",
+        !!output_id_col
+      ) |>
+      dplyr::mutate(
+        model = !!model_type,
+        failed_convergence = !!any_flags
+      )
+  }
+
+  return(forecast)
+}
+
+
+#' Load real-time quantile outputs
 #'
-score_hub_submissions <- function(model_name,
-                                  dates,
-                                  locations = NULL,
-                                  hub_subdir = NA,
-                                  pull_from_github = TRUE,
-                                  submissions_path =
-                                    wweval::covidhub_submissions_raw,
-                                  truth_data_path =
-                                    wweval::covidhub_truth_data) {
-  truth_data <- truth_data <- readr::read_csv(truth_data_path)
+#' @param real_time_output_dir A string indicating the upper
+#' level directory where the real-time outputs live locally
+#' @param table_of_run_ids A tibble containing the forecast date, run id,
+#' and date run for each of the production runs
+#' @param locations A vector of character strings indicating
+#' the locations to pull, this should be all jurisdictions
+#' @param dates A vector of forecast dates to pull
+#' @param eval_data a tibble of hospital admissions evaluation
+#' data to be used for scoring.
+#' @param model_type String indicating model type to load.
+#' One of `"ww"` or `"hosp"`.
+#' @return The forecasts, as the output of
+#' [scoringutils::as_forecast_quantile()]
+#' @export
+load_real_time_quantile_fcsts <- function(real_time_output_dir,
+                                          table_of_run_ids,
+                                          locations,
+                                          eval_data,
+                                          model_type) {
+  checkmate::assert_scalar(model_type)
+  checkmate::assert_names(model_type, subset.of = c("ww", "hosp"))
 
-  natural_scale_scores <- tibble::tibble()
-  log_scale_scores <- tibble::tibble()
-  missing_forecasts <- tibble::tibble()
-  for (i in seq_along(model_name)) {
-    for (j in seq_along(dates)) {
-      this_forecast_date <- dates[j]
-      this_model_name <- model_name[i]
-      if (isTRUE(pull_from_github)) {
-        quantiles <- tryCatch(
-          readr::read_csv(glue::glue(
-            "{submissions_path}{this_model_name}/{this_forecast_date}-{this_model_name}.csv"
-          )) |>
-            dplyr::filter(type == "quantile"),
-          error = function(e) NULL
-        )
-      } else {
-        quantiles <- readr::read_csv(
-          file.path(
-            hub_subdir, this_model_name,
-            glue::glue("{this_forecast_date}-{this_model_name}.csv")
-          )
-        )
-      }
+  load_forecast <- function(forecast_date,
+                            location) {
+    forecast <- load_real_time_forecast(
+      real_time_output_dir,
+      forecast_date,
+      location,
+      model_type,
+      "quantiles",
+      table_of_run_ids
+    )
 
-      if (!is.null(quantiles)) {
-        quantiles_w_truth <- quantiles |>
-          dplyr::left_join(
-            truth_data |> dplyr::rename(
-              true_value = value
+    if (!is.null(forecast)) {
+      forecast <- forecast |>
+        format_for_hub() |>
+        dplyr::filter(!is.na(.data$quantile)) |>
+        dplyr::mutate(location = forecasttools::us_loc_code_to_abbr(.data$location)) |>
+        dplyr::inner_join(
+          eval_data |>
+            dplyr::select(
+              observed = "daily_hosp_admits",
+              target_end_date = "date",
+              location = "location"
             ),
-            by = c(
-              "target_end_date" = "date",
-              "location"
-            )
-          ) |>
-          dplyr::rename(
-            prediction = value
-          ) |>
-          dplyr::mutate(
-            model = this_model_name
+          by = c("location", "target_end_date")
+        ) |>
+        scoringutils::as_forecast_quantile(
+          predicted = "value",
+          observed = "observed",
+          quantile_level = "quantile"
+        )
+    }
+    return(forecast)
+  }
+
+  to_load <- tidyr::crossing(
+    forecast_date = table_of_run_ids$forecast_date,
+    location = locations
+  )
+
+  return(purrr::pmap_df(to_load, load_forecast))
+}
+
+
+
+#' Load in and score the real-time outputs
+#'
+#' @param score_type A string indicating which score to generate, either
+#' "crps" or "wis". Note, if using crps, will score draws from nowcast and
+#' forecast. If using wis, will score only the forecasts.
+#' @param real_time_output_dir A string indicating the upper
+#' level directory where the real-time outputs live locally
+#' @param table_of_run_ids A tibble containing the forecast date, run id,
+#' and date run for each of the production runs
+#' @param locations A vector of character strings indicating
+#' the locations to
+#' pull, this should be all jurisdictions
+#' @param dates A vector of forecast dates to pull
+#' @param eval_data a tibble of hospital admissions evaluation
+#' data to be used
+#' for scoring.
+#' @param model_types Character vector of model types to score.
+#' One or both of `"ww"` and `"hosp"`. Default both: `c("ww", "hosp")`
+#'
+#' @return A tibble containing scores for every location and
+#' forecast date, conditioned on the presence of wastewater and model
+#' convergence
+#' @export
+score_real_time_outputs <- function(score_type,
+                                    real_time_output_dir,
+                                    table_of_run_ids,
+                                    locations,
+                                    eval_data,
+                                    model_types = c("ww", "hosp")) {
+  checkmate::assert_scalar(score_type)
+  checkmate::assert_names(score_type, subset.of = c("wis", "crps"))
+  model_types <- unique(model_types)
+  checkmate::assert_names(model_types, subset.of = c("ww", "hosp"))
+
+  forecast_output_type <- c(
+    "wis" = "quantiles",
+    "crps" = "draws"
+  )[[score_type]]
+  ## remove trailing s from output type, col name is singular
+  output_id_col <- stringr::str_sub(forecast_output_type,
+    end = -2
+  )
+
+  score_problem <- function(forecast_date,
+                            location,
+                            model_type) {
+    scores <- NULL
+
+    forecast <- load_real_time_forecast(
+      real_time_output_dir,
+      forecast_date,
+      location,
+      model_type,
+      forecast_output_type,
+      table_of_run_ids
+    )
+
+    if (!is.null(forecast)) {
+      preds_w_eval <- forecast |>
+        dplyr::inner_join(
+          eval_data |>
+            dplyr::select(-"pop") |>
+            dplyr::rename(true_value = "daily_hosp_admits"),
+          by = c("location", "date")
+        ) |>
+        dplyr::select(
+          "location",
+          "forecast_date",
+          "date",
+          "value",
+          "true_value",
+          !!output_id_col,
+          "model",
+          "failed_convergence"
+        )
+
+      if (score_type == "crps") {
+        for_scoring <- preds_w_eval |>
+          scoringutils::as_forecast_sample(
+            sample_id = "draw",
+            predicted = "value",
+            observed = "true_value"
           )
-
-        # Filter locations if they are specified, otherwise leave them all in
-        if (!is.null(locations)) {
-          quantiles_w_truth <- quantiles_w_truth |>
-            dplyr::filter(location %in% loc_abbr_to_flusight_code(locations))
-        }
-
-        # Pass to scoring utils, no summaries just daily, quantiled scores
-        these_natural_scale_scores <- quantiles_w_truth |>
-          scoringutils::score(metrics = NULL) |>
-          dplyr::mutate(horizon_days = as.integer(
-            lubridate::ymd(target_end_date) - lubridate::ymd(forecast_date)
-          )) |>
-          dplyr::mutate(
-            horizon_weeks =
-              ceiling(horizon_days / 7)
-          ) |>
-          dplyr::mutate(horizon = glue::glue("{horizon_weeks} week ahead")) |>
-          dplyr::select(-horizon_weeks, -horizon_days)
-
-        these_log_scores <- quantiles_w_truth |>
+      } else if (score_type == "wis") {
+        for_scoring <- preds_w_eval |>
+          dplyr::filter(.data$date > .data$forecast_date) |>
+          scoringutils::as_forecast_quantile(
+            predicted = "value",
+            observed = "true_value",
+            quantile_level = "quantile"
+          )
+      }
+      if (nrow(for_scoring) > 0) {
+        scores <- for_scoring |>
           scoringutils::transform_forecasts(
             fun = scoringutils::log_shift,
-            offset = 1
+            offset = 1,
+            append = FALSE
           ) |>
-          scoringutils::score(metrics = NULL) |>
-          dplyr::mutate(horizon_days = as.integer(
-            lubridate::ymd(target_end_date) - lubridate::ymd(forecast_date)
-          )) |>
-          dplyr::mutate(
-            horizon_weeks =
-              ceiling(horizon_days / 7)
-          ) |>
-          dplyr::mutate(horizon = glue::glue("{horizon_weeks} week ahead")) |>
-          dplyr::select(-horizon_weeks, -horizon_days)
-
-
-        log_scale_scores <- dplyr::bind_rows(log_scale_scores, these_log_scores)
-        natural_scale_scores <- dplyr::bind_rows(
-          natural_scale_scores,
-          these_natural_scale_scores
-        )
-      } else { # end if statement for quantiles empty
-        these_missing_forecasts <- tibble(
-          model = this_model_name,
-          forecast_date = this_forecast_date
-        )
-        missing_forecasts <- dplyr::bind_rows(
-          missing_forecasts,
-          these_missing_forecasts
-        )
+          scoringutils::score()
       }
-    } # end loop forecast dates
-  } # end loop model name
-  log_scale_scores <- log_scale_scores |>
-    dplyr::filter(scale == "log")
+    }
 
-  scores_list <- list(
-    natural_scale_scores = natural_scale_scores,
-    log_scale_scores = log_scale_scores,
-    missing_forecasts = missing_forecasts
+    return(scores)
+  }
+
+
+  to_score <- tidyr::crossing(
+    forecast_date = table_of_run_ids$forecast_date,
+    location = locations,
+    model_type = model_types
   )
-  return(scores_list)
+
+  return(purrr::pmap_df(to_score, score_problem))
+}
+
+#' Format the hosp only real time scores for comparison to the other real
+#' time models
+#'
+#' @param real_time_scores the set of real time scores gathered from local
+#' pull
+#' @param other_real_time_scores the set we want them to be formatted like
+#'
+#' @return a tibble formatted as the other real time scores for the real
+#' time hosp only model
+#' @export
+format_scores_for_comparison <- function(real_time_scores) {
+  formatted_scores <- real_time_scores |>
+    dplyr::filter(
+      model == "hosp",
+      scale == "log"
+    ) |>
+    dplyr::mutate(
+      location = loc_abbr_to_flusight_code(location),
+      model = "cfa-hosponlyrenewal(real-time)*",
+      type = "quantile",
+      days_ahead = as.numeric(date - forecast_date),
+      target = glue::glue("{days_ahead} day ahead inc hosp"),
+      horizon_days = as.integer(
+        lubridate::ymd(date) - lubridate::ymd(forecast_date)
+      ),
+      horizon_weeks = ceiling(horizon_days / 7),
+      horizon = glue::glue("{horizon_weeks} week ahead")
+    ) |>
+    dplyr::rename(
+      target_end_date = date
+    )
+
+  return(formatted_scores)
+}
+
+#' Combine the hosp only real-time scores and cfa real-
+#' time scores from github
+#'
+#' @param cfa_real_time_scores Hub formatted scores for
+#' only the ww model, `cfa-wwrenewal(real-time)`
+#' @param real_time_wis_hosp_only hosp only
+#' wis scores calculated from local data
+#'
+#' @return a df formatted the same way as the real_time_wis_hosp_only scores,
+#' but for both models
+#' @export
+combine_hub_and_local_wis <- function(
+    cfa_real_time_scores,
+    real_time_wis_hosp_only) {
+  real_time_wis_ho <- real_time_wis_hosp_only |>
+    dplyr::select(-failed_convergence)
+
+  loc_map_table <- cfa_real_time_scores |>
+    dplyr::distinct(location) |>
+    dplyr::left_join(wweval::flusight_location_table,
+      by = c("location" = "location_code")
+    )
+
+  rt_reformatted <- cfa_real_time_scores |>
+    dplyr::rename(location_code = location) |>
+    dplyr::left_join(loc_map_table,
+      by = c("location_code" = "location")
+    ) |>
+    dplyr::rename(
+      location = short_name,
+      date = target_end_date,
+    ) |>
+    dplyr::mutate(
+      model = "ww"
+    ) |>
+    dplyr::select(colnames(real_time_wis_ho))
+
+  real_time_wis_both_models <- dplyr::bind_rows(
+    rt_reformatted,
+    real_time_wis_ho
+  )
+  return(real_time_wis_both_models)
+}
+
+
+#' Make a summary of the with and without wastewater comparison scores
+#'
+#' @param scores a tibble of scores for each model, horizon day, forecast date
+#' and location for the subset of forecasts used in the head-to-head comparison
+#'
+#' @return a list of two tables with summary scores, one overall and one by
+#' forecast vs nowcast
+#' @export
+get_score_summary_tables <- function(scores) {
+  # Overall avg crps, bias, absolute error etc
+  scores_overall <- scoringutils::summarise_scores(scores)
+  scores_by_period <- scoringutils::summarise_scores(
+    scores,
+    by = "period"
+  )
+
+  scores_tables <- list(
+    scores_overall = scores_overall,
+    scores_by_period = scores_by_period
+  )
+
+  return(scores_tables)
 }
