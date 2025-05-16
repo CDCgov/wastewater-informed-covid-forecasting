@@ -26,7 +26,7 @@ def main(pool_name: str) -> None:
 
     creds = EnvCredentialHandler()
     client = get_batch_management_client(creds)
-    node_id_ref = creds.get_compute_node_identity_reference
+    node_id_ref = creds.compute_node_identity_reference
     mount_config = blob.get_node_mount_config(
         storage_containers=[
             "wastewater-input",
