@@ -34,20 +34,18 @@ plot_score_t <- function(scores,
   }
 
   colors <- plot_components()
-  p <- ggplot(scores_by_forecast_date) +
-    geom_line(
-      aes(
-        x = .data$forecast_date,
-        y = .data[[metric]],
-        color = .data$model
-      ),
-      size = 1
-    ) +
-    geom_point(aes(
+  p <- ggplot(
+    scores_by_forecast_date,
+    aes(
       x = .data$forecast_date,
       y = .data[[metric]],
       color = .data$model
-    )) +
+    )
+  ) +
+    geom_line(
+      size = 1
+    ) +
+    geom_point() +
     labs(
       ylab = glue::glue("Average {toupper(metric)} across locations"),
       col = "Model",

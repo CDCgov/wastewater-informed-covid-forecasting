@@ -49,8 +49,10 @@ plot_hub_performance_by_period <- function(scores,
                                            all_time_period,
                                            real_time_period,
                                            models_to_show,
-                                           summarize_across_horizon = FALSE,
-                                           baseline_model = "COVIDhub-4_week_ensemble") {
+                                           summarize_across_horizon =
+                                             FALSE,
+                                           baseline_model =
+                                             "COVIDhub-4_week_ensemble") {
   subset_scores <- scores |>
     dplyr::filter(model %in% !!models_to_show)
 
@@ -249,12 +251,15 @@ plot_heatmap_relative_wis <- function(scores,
       baseline = baseline_model,
       compare = "model",
       metric_to_compare = "wis",
-      by = c("location", "forecast_date")
+      by = "location"
     ) |>
     dplyr::filter(
       .data$model != !!baseline_model,
       .data$location != "US"
-    )
+    ) |>
+    dplyr::mutate(display_score = format(.data$mean_scores_ratio,
+      digits = 2
+    ))
 
   message("Plotting heatmap...")
   p <- ggplot(
@@ -263,11 +268,11 @@ plot_heatmap_relative_wis <- function(scores,
       x = .data$model,
       y = .data$location,
       fill = .data$mean_scores_ratio,
-      label = round(.data$mean_scores_ratio, 2)
+      label = .data$display_score
     )
   ) +
     geom_tile() +
-    geom_text(size = 1.5) +
+    geom_text() +
     scale_fill_gradient2(
       high = "red",
       mid = "white",

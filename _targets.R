@@ -1729,7 +1729,7 @@ save_figures_to_disk <- list(
           fig_output_dir,
           fig_name = name,
           width = 10,
-          height = 6.18
+          height = 8
         )
       }
     ),
