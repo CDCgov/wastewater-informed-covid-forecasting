@@ -5,7 +5,7 @@ import argparse
 import azuretools.defaults as d
 from azure.mgmt.batch import models
 from azuretools import blob
-from azuretools.auth import EnvCredentialHandler, get_compute_node_id_reference
+from azuretools.auth import EnvCredentialHandler
 from azuretools.client import get_batch_management_client
 
 
@@ -26,7 +26,7 @@ def main(pool_name: str) -> None:
 
     creds = EnvCredentialHandler()
     client = get_batch_management_client(creds)
-    node_id_ref = get_compute_node_id_reference()
+    node_id_ref = creds.compute_node_identity_reference
     mount_config = blob.get_node_mount_config(
         storage_containers=[
             "wastewater-input",
