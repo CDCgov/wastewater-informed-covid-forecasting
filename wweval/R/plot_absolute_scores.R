@@ -21,7 +21,7 @@ plot_score_t <- function(scores,
                          metric,
                          model_z_order = NULL,
                          horizon_time_in_weeks = NULL) {
-  if (is.null(model_order)) {
+  if (is.null(model_z_order)) {
     model_z_order <- scores |>
       scoringutils::summarise_scores(by = "model") |>
       dplyr::arrange(desc(.data[[metric]])) |> # want lowest overall score => plotted on top
