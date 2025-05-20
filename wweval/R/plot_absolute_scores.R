@@ -57,10 +57,10 @@ plot_score_t <- function(scores,
       color = .data$model
     )
   ) +
-    geom_line(
-      size = 1
+    forecasttools::geom_line_point(
+      linewidth = 2,
+      size = 3
     ) +
-    geom_point() +
     labs(
       ylab = glue::glue("Average {toupper(metric)} across locations"),
       col = "Model",
