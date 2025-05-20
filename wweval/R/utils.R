@@ -147,3 +147,40 @@ assert_needed_env_vars <- function(needed_vars) {
 select_like <- function(df, template_df) {
   return(dplyr::select(df, tidyselect::all_of(colnames(template_df))))
 }
+
+
+#' Light wrapper function for converting a dataframe column
+#' to an ordered factors.
+#'
+#' Wraps [dplyr::mutate()]. Useful for pipe chains.
+#'
+#' @param df Data frame to transform
+#' @param col column to transform
+#' @param levels levels for the column, in ascending order..
+#' @return A copy of the data frame with the `col` column transformed
+#' into an ordered factor with levels given by `levels`.
+#' @examples
+#'
+#' df <- tibble::tibble(
+#'   x = c("b", "c", "a", "c", "b", "a", "a"),
+#'   y = rnorm(7),
+#'   z = 5
+#' )
+#'
+#' new_df <- df |>
+#'   order_col("x", c("c", "b", "a")) |>
+#'   dplyr::select("x", "z") |>
+#'   dplyr::arrange(x)
+#'
+#' new_df
+#' @export
+order_col <- function(df, col, levels) {
+  checkmate::assert_vector(levels, unique = TRUE)
+  return(dplyr::mutate(
+    df,
+    !!col := factor(.data[[col]],
+      ordered = TRUE,
+      levels = levels
+    )
+  ))
+}

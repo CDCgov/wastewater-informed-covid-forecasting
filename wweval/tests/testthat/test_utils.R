@@ -71,3 +71,37 @@ test_that("assert_needed_env_vars() works as expected", {
     )
   })
 })
+
+test_that("order_col behavior corresponds to manual expectation", {
+  df <- tibble::tibble(
+    x = c("b", "c", "a", "c", "b", "a", "a"),
+    y = rnorm(7),
+    z = 5
+  )
+
+  df_ordered <- order_col(df, "x", c("c", "b", "a")) |>
+    dplyr::arrange(.data$x)
+  df_ordered_desc <- order_col(df, "x", rev(c("c", "b", "a"))) |>
+    dplyr::arrange(.data$x)
+
+  expect_equal(
+    df_ordered$x,
+    factor(c("c", "c", "b", "b", "a", "a", "a"),
+      levels = c("c", "b", "a"),
+      ordered = TRUE
+    )
+  )
+
+  expect_equal(
+    df_ordered_desc$x,
+    factor(c("a", "a", "a", "b", "b", "c", "c"),
+      levels = c("a", "b", "c"),
+      ordered = TRUE
+    )
+  )
+
+  expect_error(
+    order_col(df, "x", c("c", "b", "a", "a")),
+    "duplicated"
+  )
+})
