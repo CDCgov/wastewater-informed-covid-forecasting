@@ -5,7 +5,12 @@
 \title{Plotting functions for absolute forecast scores
 Plot average score over time for model comparison}
 \usage{
-plot_score_t(scores, metric, horizon_time_in_weeks = NULL)
+plot_score_t(
+  scores,
+  metric,
+  model_z_order = NULL,
+  horizon_time_in_weeks = NULL
+)
 }
 \arguments{
 \item{scores}{A tibble of scores by location, forecast date, date and model,
@@ -14,12 +19,17 @@ transformed into a tibble.}
 
 \item{metric}{Metric to plot.}
 
+\item{model_z_order}{z-order in which to overplot the individual models,
+ascending (so the last named model is plotted on top). If \code{NULL} (default),
+plot the the models in order of overall score, so that the lowest (best) scoring
+models are on top.}
+
 \item{horizon_time_in_weeks}{horizon time in weeks to summarize over, default
 is \code{NULL} which means that the scores are summarized over the nowcast period
 and the 4 week forecast period}
 }
 \value{
-a ggplot object plotting the magnitude of the avg crps across
+a ggplot object plotting the magnitude of the avg score across
 locations at each forecast date
 }
 \description{

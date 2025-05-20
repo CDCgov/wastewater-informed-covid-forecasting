@@ -6,36 +6,51 @@
 #' containing the outputs of `scoringutils::score()` on samples plus metadata
 #' transformed into a tibble.
 #' @param metric Metric to plot.
+#' @param model_z_order z-order in which to overplot the individual models,
+#' ascending (so the last named model is plotted on top). If `NULL` (default),
+#' plot the the models in order of overall score, so that the lowest (best) scoring
+#' models are on top.
 #' @param horizon_time_in_weeks horizon time in weeks to summarize over, default
 #' is `NULL` which means that the scores are summarized over the nowcast period
 #' and the 4 week forecast period
 #'
-#' @return a ggplot object plotting the magnitude of the avg crps across
+#' @return a ggplot object plotting the magnitude of the avg score across
 #' locations at each forecast date
 #' @export
 plot_score_t <- function(scores,
                          metric,
+                         model_z_order = NULL,
                          horizon_time_in_weeks = NULL) {
+  if (is.null(model_order)) {
+    model_z_order <- scores |>
+      scoringutils::summarise_scores(by = "model") |>
+      dplyr::arrange(desc(.data[[metric]])) |> # want lowest overall score => plotted on top
+      dplyr::pull("model")
+  }
+
   if (!is.null(horizon_time_in_weeks)) {
-    scores_by_forecast_date <- scores |>
+    by_date <- scores |>
       scoringutils::summarise_scores(
         by = c(
           "forecast_date",
-          "horizon"
+          "horizon",
+          "model"
         )
       ) |>
       dplyr::filter(horizon_weeks == !!horizon_time_in_weeks)
   } else {
-    scores_by_forecast_date <- scores |>
+    by_date <- scores |>
       scoringutils::summarise_scores(by = c(
         "forecast_date",
         "model"
       ))
   }
 
+  by_date <- order_col(by_date, "model", model_z_order)
+
   colors <- plot_components()
   p <- ggplot(
-    scores_by_forecast_date,
+    by_date,
     aes(
       x = .data$forecast_date,
       y = .data[[metric]],
