@@ -8,7 +8,7 @@ from azuretools.auth import EnvCredentialHandler
 from azuretools.client import get_batch_service_client
 from azuretools.task import get_container_settings, get_task_config
 from azuretools.util import ensure_listlike
-
+from azuretools.job import create_job
 
 def main(
     eval_config_file: str,
@@ -86,13 +86,7 @@ def main(
         uses_task_dependencies=uses_deps,
     )
 
-    try:
-        batch_service_client.job.add(job)
-    except batchmodels.BatchErrorException as err:
-        if err.error.code != "JobExists":
-            raise
-        else:
-            print(f"Job {job_id} already exists.")
+    create_job(batch_service_client, job)
 
     container_image = (
         f"ghcr.io/cdcgov/{container_image_name}:{container_image_version}"
