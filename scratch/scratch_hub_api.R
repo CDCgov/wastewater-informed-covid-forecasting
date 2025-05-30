@@ -8,13 +8,19 @@ truth_data_path <- "https://media.githubusercontent.com/media/reichlab/covid19-f
 truth_data <- truth_data <- readr::read_csv(truth_data_path)
 wweval::setup_secrets("secrets.yaml")
 eval_config <- yaml::read_yaml(file.path(
-  "input", "config",
-  "eval", "eval_config.yaml"
+  "input",
+  "config",
+  "eval",
+  "eval_config.yaml"
 ))
 
 
 zoltar_connection <- new_connection()
-zoltar_authenticate(zoltar_connection, get_secret("Z_USERNAME"), get_secret("Z_PASSWORD"))
+zoltar_authenticate(
+  zoltar_connection,
+  get_secret("Z_USERNAME"),
+  get_secret("Z_PASSWORD")
+)
 zoltar_connection
 
 # list of project on zoltar
@@ -78,9 +84,6 @@ see_missing_dates <- forecast_data |>
   dplyr::distinct(timezero, model)
 
 
-
-
-
 # Their example
 forecast_data <- do_zoltar_query(
   zoltar_connection,
@@ -101,14 +104,22 @@ names(the_project_info)
 the_models <- models(zoltar_connection, project_url)
 str(the_models)
 
-query <- list("targets" = list("pct next week", "cases next week"), "types" = list("point"))
+query <- list(
+  "targets" = list("pct next week", "cases next week"),
+  "types" = list("point")
+)
 job_url <- submit_query(zoltar_connection, project_url, "forecasts", query)
 busy_poll_job(zoltar_connection, job_url)
 the_job_data <- job_data(zoltar_connection, job_url)
 the_job_data
 
-forecast_data <- do_zoltar_query(zoltar_connection, project_url, "forecasts", "docs_mod",
-  c("loc1", "loc2"), c("pct next week", "cases next week"),
+forecast_data <- do_zoltar_query(
+  zoltar_connection,
+  project_url,
+  "forecasts",
+  "docs_mod",
+  c("loc1", "loc2"),
+  c("pct next week", "cases next week"),
   c("2011-10-02", "2011-10-09", "2011-10-16"),
   types = c("point", "quantile")
 )

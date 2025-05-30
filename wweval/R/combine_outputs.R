@@ -22,14 +22,17 @@
 #' forecast_dates, locations, and scenarios
 #' @export
 #'
-combine_outputs <- function(output_type,
-                            scenarios,
-                            forecast_dates,
-                            locations,
-                            eval_output_subdir,
-                            model_type) {
+combine_outputs <- function(
+  output_type,
+  scenarios,
+  forecast_dates,
+  locations,
+  eval_output_subdir,
+  model_type
+) {
   checkmate::assert_scalar(output_type)
-  checkmate::assert_names(output_type,
+  checkmate::assert_names(
+    output_type,
     subset.of = c(
       "quantiles",
       "scores",
@@ -106,7 +109,8 @@ combine_outputs <- function(output_type,
   if (nrow(failed_output) != 0) {
     wwinference::create_dir(file.path(
       eval_output_subdir,
-      "files_missing", model_type
+      "files_missing",
+      model_type
     ))
 
     readr::write_tsv(

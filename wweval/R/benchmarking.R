@@ -17,13 +17,16 @@
 #' @return a list containing the metadata and 3 tables summarizing forecast
 #' performance overall, by forecast date, and by location
 #' @export
-benchmark_performance <- function(ww_scores,
-                                  hosp_scores,
-                                  benchmark_dir,
-                                  benchmark_scope,
-                                  wwinference_version,
-                                  overwrite_benchmark) {
-  wweval_commit_hash <- system("git log --pretty=format:'%h' -n 1",
+benchmark_performance <- function(
+  ww_scores,
+  hosp_scores,
+  benchmark_dir,
+  benchmark_scope,
+  wwinference_version,
+  overwrite_benchmark
+) {
+  wweval_commit_hash <- system(
+    "git log --pretty=format:'%h' -n 1",
     intern = TRUE
   )
 
@@ -93,12 +96,10 @@ benchmark_performance <- function(ww_scores,
     dplyr::select(colnames(overall_scores)) |>
     dplyr::bind_rows(overall_scores)
 
-
   benchmarks <- list(
     scores_by_forecast_date = scores_by_forecast_date,
     scores_by_location = scores_by_location
   )
-
 
   if (isTRUE(overwrite_benchmark)) {
     readr::write_tsv(
@@ -121,12 +122,14 @@ benchmark_performance <- function(ww_scores,
     )
 
     # Read in and append scores by forecast_date
-    if (file.exists(file.path(
-      benchmark_dir,
-      glue::glue(
-        "{benchmark_scope}_by_forecast_date.tsv"
-      )
-    ))) {
+    if (
+      file.exists(file.path(
+        benchmark_dir,
+        glue::glue(
+          "{benchmark_scope}_by_forecast_date.tsv"
+        )
+      ))
+    ) {
       df <- readr::read_tsv(
         file.path(
           benchmark_dir,
@@ -149,7 +152,11 @@ benchmark_performance <- function(ww_scores,
       )
 
       # check that wwinference hash is different
-      if (df$wwinference_version[1] != wwinference_version || df$wweval_commit_hash[1] != wweval_commit_hash) { # nolint
+      if (
+        df$wwinference_version[1] != wwinference_version ||
+          df$wweval_commit_hash[1] != wweval_commit_hash
+      ) {
+        # nolint
         df_to_append <- df
       } else {
         df_to_append <- tibble::tibble()
@@ -157,7 +164,6 @@ benchmark_performance <- function(ww_scores,
     } else {
       df_to_append <- tibble::tibble()
     }
-
 
     readr::write_tsv(
       dplyr::bind_rows(scores_by_forecast_date, df_to_append),
@@ -170,12 +176,14 @@ benchmark_performance <- function(ww_scores,
     )
 
     # Read in and append scores by loc
-    if (file.exists(file.path(
-      benchmark_dir,
-      glue::glue(
-        "{benchmark_scope}_by_location.tsv"
-      )
-    ))) {
+    if (
+      file.exists(file.path(
+        benchmark_dir,
+        glue::glue(
+          "{benchmark_scope}_by_location.tsv"
+        )
+      ))
+    ) {
       df <- readr::read_tsv(
         file.path(
           benchmark_dir,
@@ -197,7 +205,11 @@ benchmark_performance <- function(ww_scores,
         )
       )
       # check that wwinference hash is different
-      if (df$wwinference_version[1] != wwinference_version || df$wweval_commit_hash[1] != wweval_commit_hash) { # nolint
+      if (
+        df$wwinference_version[1] != wwinference_version ||
+          df$wweval_commit_hash[1] != wweval_commit_hash
+      ) {
+        # nolint
         df_to_append <- df
       } else {
         df_to_append <- tibble::tibble()
@@ -216,7 +228,6 @@ benchmark_performance <- function(ww_scores,
       )
     )
   }
-
 
   return(benchmarks)
 }
@@ -239,12 +250,14 @@ benchmark_performance <- function(ww_scores,
 #' version and faceted by the grouping variable, with the height of the bar
 #' indicating the scores
 #' @export
-plot_benchmarks <- function(grouping_var,
-                            benchmark_scope,
-                            benchmark_dir,
-                            scores_list,
-                            score_to_plot = "crps",
-                            write_files = TRUE) {
+plot_benchmarks <- function(
+  grouping_var,
+  benchmark_scope,
+  benchmark_dir,
+  scores_list,
+  score_to_plot = "crps",
+  write_files = TRUE
+) {
   # Load in table
   fp <- glue::glue("{benchmark_dir}/{benchmark_scope}_by_{grouping_var}.tsv")
   df <- readr::read_tsv(fp)
@@ -267,7 +280,8 @@ plot_benchmarks <- function(grouping_var,
     p_all <- ggplot(df_all) +
       geom_bar(
         aes(
-          x = model, y = score,
+          x = model,
+          y = score,
           fill = wwinference_version
         ),
         stat = "identity",
@@ -291,13 +305,19 @@ plot_benchmarks <- function(grouping_var,
     }
   }
 
-  p <- ggplot(df_long |>
-    dplyr::filter(score_type == {
-      score_to_plot
-    })) +
+  p <- ggplot(
+    df_long |>
+      dplyr::filter(
+        score_type ==
+          {
+            score_to_plot
+          }
+      )
+  ) +
     geom_bar(
       aes(
-        x = model, y = score,
+        x = model,
+        y = score,
         fill = wwinference_version
       ),
       stat = "identity",

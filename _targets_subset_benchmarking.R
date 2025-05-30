@@ -47,8 +47,10 @@ setup_interactive_dev_run()
 
 # Need to specify the evaluation variable combinations outside of targets
 benchmark_config <- yaml::read_yaml(file.path(
-  "input", "config",
-  "eval", "benchmark_config.yaml"
+  "input",
+  "config",
+  "eval",
+  "benchmark_config.yaml"
 ))
 
 combined_targets <- list(
@@ -76,7 +78,6 @@ combined_targets <- list(
     )
   )
 )
-
 
 
 # Benchmarking----------------------------------------------------------

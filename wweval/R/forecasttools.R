@@ -32,34 +32,35 @@
 #' locations, such as different US States and Territories.
 #' If NULL, ignored. Default NULL.
 #' @export
-trajectories_to_quantiles <- function(trajectories,
-                                      quantiles = c(
-                                        0.01, 0.025,
-                                        seq(0.05, 0.95, 0.05),
-                                        0.975, 0.99
-                                      ),
-                                      timepoint_cols = "timepoint",
-                                      value_col = "value",
-                                      quantile_value_name =
-                                        "quantile_value",
-                                      quantile_level_name =
-                                        "quantile_level",
-                                      id_cols = NULL) {
+trajectories_to_quantiles <- function(
+  trajectories,
+  quantiles = c(
+    0.01,
+    0.025,
+    seq(0.05, 0.95, 0.05),
+    0.975,
+    0.99
+  ),
+  timepoint_cols = "timepoint",
+  value_col = "value",
+  quantile_value_name = "quantile_value",
+  quantile_level_name = "quantile_level",
+  id_cols = NULL
+) {
   grouped_df <- trajectories |>
     dplyr::rename(
       value_col = {{ value_col }}
     ) |>
     dplyr::group_by(
       dplyr::across(c(
-        {{ timepoint_cols }}, {{ id_cols }}
+        {{ timepoint_cols }},
+        {{ id_cols }}
       ))
     )
 
   quant_df <- grouped_df |>
     dplyr::reframe(
-      {{ quantile_value_name }} := quantile(value_col,
-        probs = !!quantiles
-      ),
+      {{ quantile_value_name }} := quantile(value_col, probs = !!quantiles),
       {{ quantile_level_name }} := !!quantiles
     )
   return(quant_df)
@@ -113,19 +114,20 @@ trajectories_to_quantiles <- function(trajectories,
 #' @param ... other arguments passed to [nhsn_soda_query()]
 #' @return the pulled data, as a [tibble::tibble()].
 #' @export
-pull_nhsn <- function(api_endpoint =
-                        "https://healthdata.gov/resource/g62h-syeh.json",
-                      api_key_id = NULL,
-                      api_key_secret = NULL,
-                      start_date = NULL,
-                      end_date = NULL,
-                      columns = NULL,
-                      states = NULL,
-                      order_by = c("state", "date"),
-                      desc = FALSE,
-                      limit = 1e5,
-                      error_on_limit = TRUE,
-                      ...) {
+pull_nhsn <- function(
+  api_endpoint = "https://healthdata.gov/resource/g62h-syeh.json",
+  api_key_id = NULL,
+  api_key_secret = NULL,
+  start_date = NULL,
+  end_date = NULL,
+  columns = NULL,
+  states = NULL,
+  order_by = c("state", "date"),
+  desc = FALSE,
+  limit = 1e5,
+  error_on_limit = TRUE,
+  ...
+) {
   check_package_is_installed("httr")
 
   query <- nhsn_soda_query(
@@ -229,15 +231,17 @@ soql_is_in <- function(soql_list, column, match_values) {
 #' @param ... additional arguments (ignored for now)
 #' @return the query as [soql::soql()] output
 #' @export
-nhsn_soda_query <- function(api_endpoint,
-                            start_date = NULL,
-                            end_date = NULL,
-                            columns = NULL,
-                            states = NULL,
-                            limit = 1e5,
-                            order_by = c("state", "date"),
-                            desc = FALSE,
-                            ...) {
+nhsn_soda_query <- function(
+  api_endpoint,
+  start_date = NULL,
+  end_date = NULL,
+  columns = NULL,
+  states = NULL,
+  limit = 1e5,
+  order_by = c("state", "date"),
+  desc = FALSE,
+  ...
+) {
   query <- soql::soql() |>
     soql::soql_add_endpoint(api_endpoint)
 
@@ -268,15 +272,14 @@ nhsn_soda_query <- function(api_endpoint,
   if (!is.null(states)) {
     query <- query |>
       soql_is_in(
-        "state", states
+        "state",
+        states
       )
   }
 
   query <- query |>
     soql::soql_order(
-      paste(unique(order_by),
-        collapse = ","
-      ),
+      paste(unique(order_by), collapse = ","),
       desc = desc
     )
 
@@ -313,32 +316,36 @@ nhsn_soda_query <- function(api_endpoint,
 #' Default "darkblue".
 #' @return the resultant plot, as a ggplot objec
 #' @export
-plot_quantiles <- function(data,
-                           time_column,
-                           observation_column,
-                           quantile_level_column,
-                           linesize = 2,
-                           pointsize = 4,
-                           pointcolor = "darkblue",
-                           linecolor = "darkblue") {
-  return(ggplot2::ggplot(
-    mapping = ggplot2::aes(
-      x = {{ time_column }},
-      y = {{ observation_column }},
-      group = {{ quantile_level_column }},
-      alpha = 1 - abs({{ quantile_level_column }} - 0.5)
-    ),
-    data = data
-  ) +
-    ggplot2::geom_line(
-      size = linesize,
-      color = linecolor
+plot_quantiles <- function(
+  data,
+  time_column,
+  observation_column,
+  quantile_level_column,
+  linesize = 2,
+  pointsize = 4,
+  pointcolor = "darkblue",
+  linecolor = "darkblue"
+) {
+  return(
+    ggplot2::ggplot(
+      mapping = ggplot2::aes(
+        x = {{ time_column }},
+        y = {{ observation_column }},
+        group = {{ quantile_level_column }},
+        alpha = 1 - abs({{ quantile_level_column }} - 0.5)
+      ),
+      data = data
     ) +
-    ggplot2::geom_point(
-      size = pointsize,
-      color = pointcolor
-    ) +
-    ggplot2::scale_alpha_continuous(guide = NULL))
+      ggplot2::geom_line(
+        size = linesize,
+        color = linecolor
+      ) +
+      ggplot2::geom_point(
+        size = pointsize,
+        color = pointcolor
+      ) +
+      ggplot2::scale_alpha_continuous(guide = NULL)
+  )
 }
 
 #' Convert a two-letter location abbreviation to a

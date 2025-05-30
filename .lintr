@@ -1,7 +1,8 @@
 linters: linters_with_defaults(
     object_usage_linter = NULL,
-    line_length_linter(length = 100),
-    return_linter = NULL
+    line_length_linter(length = 80),
+    return_linter = NULL,
+    indentation_linter = NULL
   )
 exclusions: list(
     ".Rprofile"

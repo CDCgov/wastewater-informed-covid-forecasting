@@ -12,60 +12,157 @@
 #' @export
 #'
 #' @examples
-write_config <- function(run_id,
-                         date_run,
-                         forecast_date,
-                         location,
-                         save_config = TRUE,
-                         config_path = file.path("input", "config"),
-                         geo_type = "state",
-                         include_ww = 1,
-                         hosp_reporting_delay = 4,
-                         ww_data_source = "NWSS",
-                         hosp_data_source = "HHS_protect_vintages",
-                         hosp_data_dir = file.path(
-                           "input", "hosp_data",
-                           "vintage_datasets"
-                         ),
-                         train_data_dir = file.path(
-                           "input", "train_data"
-                         ),
-                         population_data_path = file.path(
-                           "input",
-                           "locations.csv"
-                         ),
-                         param_file_path = file.path("input", "params.toml"),
-                         prod_run = FALSE, # TRUE if running for submission
-                         ww_data_path = file.path(
-                           "input", "ww_data", "nwss_data",
-                           "2024-01-11.csv"
-                         ),
-                         ww_geo_type = "site",
-                         ww_target_type = "pcr_target_avg_conc",
-                         ww_data_type = "pop_weighted_conc_w_thres",
-                         pull_from_local = FALSE,
-                         model_type = "state-level aggregated wastewater",
-                         submitting_model_name = "cfa-wwrenewal") {
+write_config <- function(
+  run_id,
+  date_run,
+  forecast_date,
+  location,
+  save_config = TRUE,
+  config_path = file.path("input", "config"),
+  geo_type = "state",
+  include_ww = 1,
+  hosp_reporting_delay = 4,
+  ww_data_source = "NWSS",
+  hosp_data_source = "HHS_protect_vintages",
+  hosp_data_dir = file.path(
+    "input",
+    "hosp_data",
+    "vintage_datasets"
+  ),
+  train_data_dir = file.path(
+    "input",
+    "train_data"
+  ),
+  population_data_path = file.path(
+    "input",
+    "locations.csv"
+  ),
+  param_file_path = file.path("input", "params.toml"),
+  prod_run = FALSE, # TRUE if running for submission
+  ww_data_path = file.path(
+    "input",
+    "ww_data",
+    "nwss_data",
+    "2024-01-11.csv"
+  ),
+  ww_geo_type = "site",
+  ww_target_type = "pcr_target_avg_conc",
+  ww_data_type = "pop_weighted_conc_w_thres",
+  pull_from_local = FALSE,
+  model_type = "state-level aggregated wastewater",
+  submitting_model_name = "cfa-wwrenewal"
+) {
   if (is.null(location)) {
     if (model_type == "state-level aggregated wastewater") {
       location <- c(
-        "AK", "AL", "AR", "AZ", "CA",
-        "CO", "CT", "DC", "DE", "FL", "GA", "ND",
-        "HI", "IA", "ID", "IL", "IN", "KS", "KY", "LA", "MA",
-        "MD", "ME", "MI", "MN", "MO", "MS", "MT", "NC",
-        "NE", "NH", "NJ", "NM", "NV", "NY", "OH", "OK", "OR",
-        "PA", "PR", "RI", "SC", "SD", "TN", "TX", "UT", "VA",
-        "VT", "WA", "WI", "WV", "WY", "US"
+        "AK",
+        "AL",
+        "AR",
+        "AZ",
+        "CA",
+        "CO",
+        "CT",
+        "DC",
+        "DE",
+        "FL",
+        "GA",
+        "ND",
+        "HI",
+        "IA",
+        "ID",
+        "IL",
+        "IN",
+        "KS",
+        "KY",
+        "LA",
+        "MA",
+        "MD",
+        "ME",
+        "MI",
+        "MN",
+        "MO",
+        "MS",
+        "MT",
+        "NC",
+        "NE",
+        "NH",
+        "NJ",
+        "NM",
+        "NV",
+        "NY",
+        "OH",
+        "OK",
+        "OR",
+        "PA",
+        "PR",
+        "RI",
+        "SC",
+        "SD",
+        "TN",
+        "TX",
+        "UT",
+        "VA",
+        "VT",
+        "WA",
+        "WI",
+        "WV",
+        "WY",
+        "US"
       )
     } else {
       location <- c(
-        "AK", "AL", "AR", "AZ", "CA",
-        "CO", "CT", "DC", "DE", "FL", "GA", "ND",
-        "HI", "IA", "ID", "IL", "IN", "KS", "KY", "LA", "MA",
-        "MD", "ME", "MI", "MN", "MO", "MS", "MT", "NC",
-        "NE", "NH", "NJ", "NM", "NV", "NY", "OH", "OK", "OR",
-        "PA", "PR", "RI", "SC", "SD", "TN", "TX", "UT", "VA",
-        "VT", "WA", "WI", "WV", "WY"
+        "AK",
+        "AL",
+        "AR",
+        "AZ",
+        "CA",
+        "CO",
+        "CT",
+        "DC",
+        "DE",
+        "FL",
+        "GA",
+        "ND",
+        "HI",
+        "IA",
+        "ID",
+        "IL",
+        "IN",
+        "KS",
+        "KY",
+        "LA",
+        "MA",
+        "MD",
+        "ME",
+        "MI",
+        "MN",
+        "MO",
+        "MS",
+        "MT",
+        "NC",
+        "NE",
+        "NH",
+        "NJ",
+        "NM",
+        "NV",
+        "NY",
+        "OH",
+        "OK",
+        "OR",
+        "PA",
+        "PR",
+        "RI",
+        "SC",
+        "SD",
+        "TN",
+        "TX",
+        "UT",
+        "VA",
+        "VT",
+        "WA",
+        "WI",
+        "WV",
+        "WY"
       )
     }
   }
@@ -77,10 +174,10 @@ write_config <- function(run_id,
   forecast_time <- 28
   n_draws <- 100 # draws from the posterior to save
 
-
   output_dir <-
     file.path(
-      "output", forecast_date,
+      "output",
+      forecast_date,
       stringr::str_glue("run-on-{date_run}-{run_id}")
     ) # nolint
   dir_to_save_metadata <-
@@ -88,12 +185,14 @@ write_config <- function(run_id,
 
   # Pre-specified delay distributions
   generation_interval <- read.csv(here::here(
-    "input", "saved_pmfs",
+    "input",
+    "saved_pmfs",
     "generation_interval.csv"
   )) |>
     dplyr::pull(probability_mass)
   inf_to_hosp <- read.csv(here::here(
-    "input", "saved_pmfs",
+    "input",
+    "saved_pmfs",
     "inf_to_hosp.csv"
   )) |>
     dplyr::pull(probability_mass)
@@ -119,9 +218,10 @@ write_config <- function(run_id,
     rep("OR", 7)
   )
 
-
   # Assign the dates and locations for wastewater data to be removed manually
-  first_date <- forecast_date - lubridate::days(calibration_time) - hosp_reporting_delay
+  first_date <- forecast_date -
+    lubridate::days(calibration_time) -
+    hosp_reporting_delay
 
   dates_for_ww_removal <- c()
   states_for_ww_removal <- c()
@@ -140,12 +240,14 @@ write_config <- function(run_id,
 
   if (prod_run == TRUE) {
     full_file_path <- file.path(
-      config_path, "prod",
+      config_path,
+      "prod",
       glue::glue("{forecast_date}-run-on-{date_run}")
     )
   } else {
     full_file_path <- file.path(
-      config_path, "test",
+      config_path,
+      "test",
       glue::glue("{forecast_date}-run-on-{date_run}")
     )
   }
@@ -188,7 +290,9 @@ write_config <- function(run_id,
     ww_geo_type = ww_geo_type,
     pull_from_local = pull_from_local,
     model_type = model_type,
-    dates_for_hosp_removal = as.character(lubridate::ymd(dates_for_hosp_removal)),
+    dates_for_hosp_removal = as.character(lubridate::ymd(
+      dates_for_hosp_removal
+    )),
     states_for_hosp_removal = states_for_hosp_removal,
     dates_for_ww_removal = as.character(lubridate::ymd(dates_for_ww_removal)),
     states_for_ww_removal = states_for_ww_removal,
@@ -201,15 +305,16 @@ write_config <- function(run_id,
     config_file_path = fp
   )
 
-
   if (save_config == TRUE) {
     create_dir(full_file_path)
-    yaml::write_yaml(config, file = file.path(
-      full_file_path,
-      glue::glue("config-{model_file_name}-{run_id}.yaml")
-    ))
+    yaml::write_yaml(
+      config,
+      file = file.path(
+        full_file_path,
+        glue::glue("config-{model_file_name}-{run_id}.yaml")
+      )
+    )
   }
-
 
   return(fp)
 }

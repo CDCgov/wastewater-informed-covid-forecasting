@@ -17,9 +17,7 @@
 #' @return a dataframe containing a score for each day in the nowcast
 #' and forecast period
 #' @export
-get_full_scores <- function(draws,
-                            scenario,
-                            metrics = NULL) {
+get_full_scores <- function(draws, scenario, metrics = NULL) {
   if (is.null(draws)) {
     scores <- NULL
   } else {
@@ -59,7 +57,6 @@ get_full_scores <- function(draws,
       )
   }
 
-
   return(scores)
 }
 
@@ -82,9 +79,7 @@ get_full_scores <- function(draws,
 #' @return a dataframe containing a score for each day in the nowcast
 #' and forecast period
 #' @export
-get_scores_from_quantiles <- function(quantiles,
-                                      scenario,
-                                      metrics = NULL) {
+get_scores_from_quantiles <- function(quantiles, scenario, metrics = NULL) {
   if (is.null(quantiles)) {
     scores <- NULL
   } else {
@@ -105,7 +100,6 @@ get_scores_from_quantiles <- function(quantiles,
         quantile,
         model
       )
-
 
     scores <- forecasted_quantiles |>
       data.table::as.data.table() |>
@@ -145,9 +139,11 @@ get_scores_from_quantiles <- function(quantiles,
 #' wastewater model across dates and locations
 #' @export
 #'
-make_baseline_score_table <- function(all_ww_scores,
-                                      baseline_score_table_dir,
-                                      overwrite_table = FALSE) {
+make_baseline_score_table <- function(
+  all_ww_scores,
+  baseline_score_table_dir,
+  overwrite_table = FALSE
+) {
   # Get metadata
   locations <- all_ww_scores |>
     dplyr::pull(location) |>
@@ -159,9 +155,9 @@ make_baseline_score_table <- function(all_ww_scores,
     dplyr::pull(scenario) |>
     unique()
 
-
   # Score forecasts
-  scores <- scoringutils::summarize_scores(all_ww_scores,
+  scores <- scoringutils::summarize_scores(
+    all_ww_scores,
     by = c(
       "scenario",
       "forecast_date"
@@ -176,14 +172,19 @@ make_baseline_score_table <- function(all_ww_scores,
     # Check that is only one scenario
     stopifnot("more than one scenario" = length(unique(scores$scenario)) == 1)
     # Check that is only one forecast_date
-    stopifnot("more than one forecast_date" = length(unique(scores$forecast_date)) == 1)
+    stopifnot(
+      "more than one forecast_date" = length(unique(scores$forecast_date)) == 1
+    )
 
     wwinference::create_dir(baseline_score_table_dir)
 
-    write.table(scores, file.path(
-      baseline_score_table_dir,
-      glue::glue("baseline_scores_{model_type}.tsv")
-    ))
+    write.table(
+      scores,
+      file.path(
+        baseline_score_table_dir,
+        glue::glue("baseline_scores_{model_type}.tsv")
+      )
+    )
   }
 
   return(scores)
@@ -217,11 +218,13 @@ make_baseline_score_table <- function(all_ww_scores,
 #' @return a vector of character strings indicating the unique model names
 #' that fit the inclusion criteria
 #' @export
-query_and_select_models <- function(prop_dates_for_incl_hub,
-                                    prop_locs_for_incl_hub,
-                                    forecast_dates,
-                                    locations,
-                                    project_name = "COVID-19 Forecasts") {
+query_and_select_models <- function(
+  prop_dates_for_incl_hub,
+  prop_locs_for_incl_hub,
+  forecast_dates,
+  locations,
+  project_name = "COVID-19 Forecasts"
+) {
   # get state abbreviation codes
   state_codes <- loc_abbr_to_flusight_code(
     unique(locations)
@@ -243,7 +246,8 @@ query_and_select_models <- function(prop_dates_for_incl_hub,
 
   zoltar_connection <- zoltr::new_connection()
   zoltr::zoltar_authenticate(
-    zoltar_connection, get_secret("Z_USERNAME"),
+    zoltar_connection,
+    get_secret("Z_USERNAME"),
     get_secret("Z_PASSWORD")
   )
 
@@ -339,15 +343,15 @@ covidhub_truth_data <- paste0(
 #' quantiles
 #' @export
 #'
-score_hub_submissions <- function(model_name,
-                                  dates,
-                                  locations = NULL,
-                                  hub_subdir = NA,
-                                  pull_from_github = TRUE,
-                                  submissions_path =
-                                    wweval::covidhub_submissions_raw,
-                                  truth_data_path =
-                                    wweval::covidhub_truth_data) {
+score_hub_submissions <- function(
+  model_name,
+  dates,
+  locations = NULL,
+  hub_subdir = NA,
+  pull_from_github = TRUE,
+  submissions_path = wweval::covidhub_submissions_raw,
+  truth_data_path = wweval::covidhub_truth_data
+) {
   truth_data <- truth_data <- readr::read_csv(truth_data_path)
 
   natural_scale_scores <- tibble::tibble()
@@ -368,7 +372,8 @@ score_hub_submissions <- function(model_name,
       } else {
         quantiles <- readr::read_csv(
           file.path(
-            hub_subdir, this_model_name,
+            hub_subdir,
+            this_model_name,
             glue::glue("{this_forecast_date}-{this_model_name}.csv")
           )
         )
@@ -377,9 +382,10 @@ score_hub_submissions <- function(model_name,
       if (!is.null(quantiles)) {
         quantiles_w_truth <- quantiles |>
           dplyr::left_join(
-            truth_data |> dplyr::rename(
-              true_value = value
-            ),
+            truth_data |>
+              dplyr::rename(
+                true_value = value
+              ),
             by = c(
               "target_end_date" = "date",
               "location"
@@ -401,12 +407,13 @@ score_hub_submissions <- function(model_name,
         # Pass to scoring utils, no summaries just daily, quantiled scores
         these_natural_scale_scores <- quantiles_w_truth |>
           scoringutils::score(metrics = NULL) |>
-          dplyr::mutate(horizon_days = as.integer(
-            lubridate::ymd(target_end_date) - lubridate::ymd(forecast_date)
-          )) |>
           dplyr::mutate(
-            horizon_weeks =
-              ceiling(horizon_days / 7)
+            horizon_days = as.integer(
+              lubridate::ymd(target_end_date) - lubridate::ymd(forecast_date)
+            )
+          ) |>
+          dplyr::mutate(
+            horizon_weeks = ceiling(horizon_days / 7)
           ) |>
           dplyr::mutate(horizon = glue::glue("{horizon_weeks} week ahead")) |>
           dplyr::select(-horizon_weeks, -horizon_days)
@@ -417,23 +424,24 @@ score_hub_submissions <- function(model_name,
             offset = 1
           ) |>
           scoringutils::score(metrics = NULL) |>
-          dplyr::mutate(horizon_days = as.integer(
-            lubridate::ymd(target_end_date) - lubridate::ymd(forecast_date)
-          )) |>
           dplyr::mutate(
-            horizon_weeks =
-              ceiling(horizon_days / 7)
+            horizon_days = as.integer(
+              lubridate::ymd(target_end_date) - lubridate::ymd(forecast_date)
+            )
+          ) |>
+          dplyr::mutate(
+            horizon_weeks = ceiling(horizon_days / 7)
           ) |>
           dplyr::mutate(horizon = glue::glue("{horizon_weeks} week ahead")) |>
           dplyr::select(-horizon_weeks, -horizon_days)
-
 
         log_scale_scores <- dplyr::bind_rows(log_scale_scores, these_log_scores)
         natural_scale_scores <- dplyr::bind_rows(
           natural_scale_scores,
           these_natural_scale_scores
         )
-      } else { # end if statement for quantiles empty
+      } else {
+        # end if statement for quantiles empty
         these_missing_forecasts <- tibble(
           model = this_model_name,
           forecast_date = this_forecast_date

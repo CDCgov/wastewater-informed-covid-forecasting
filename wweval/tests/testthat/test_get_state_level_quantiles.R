@@ -28,11 +28,18 @@ test_that("Period column is calculated correctly in get_state_level_quantiles", 
   expect_true(all(result$period %in% c("calibration", "nowcast", "forecast")))
 
   # Ensure that rows with date <= forecast_date without calibration data are labeled as "nowcast"
-  expect_true(all(result$period[result$date <= sample_draws$forecast_date & # nolint
-    is.na(result$calib_data)] == "nowcast")) # nolint
+  expect_true(all(
+    result$period[
+      result$date <= sample_draws$forecast_date & # nolint
+        is.na(result$calib_data)
+    ] ==
+      "nowcast"
+  )) # nolint
 
   # Ensure that rows with date > forecast_date are labeled as "forecast"
-  expect_true(all(result$period[result$date > sample_draws$forecast_date] == "forecast"))
+  expect_true(all(
+    result$period[result$date > sample_draws$forecast_date] == "forecast"
+  ))
 })
 
 # Test case: Check if the join preserves all unique combinations of 't' and 'name'

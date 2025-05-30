@@ -18,13 +18,21 @@ test_that("Test date_of_ww_data returns the correct date to pull the wastewater 
   # Test case where ww_data_mapping has a specific rule (Monday: Monday, Wednesday: Monday)
   forecast_date <- "2024-03-20" # Wednesday
   expect_equal(
-    date_of_ww_data(forecast_date, "Monday: Monday, Wednesday: Monday", temp_dir),
+    date_of_ww_data(
+      forecast_date,
+      "Monday: Monday, Wednesday: Monday",
+      temp_dir
+    ),
     "2024-03-18" # Previous Monday
   )
 
   forecast_date <- "2024-03-18" # Monday
   expect_equal(
-    date_of_ww_data(forecast_date, "Monday: Monday, Wednesday: Monday", temp_dir),
+    date_of_ww_data(
+      forecast_date,
+      "Monday: Monday, Wednesday: Monday",
+      temp_dir
+    ),
     "2024-03-18" # Same day (Monday)
   )
 
@@ -38,7 +46,11 @@ test_that("Test date_of_ww_data returns the correct date to pull the wastewater 
   # Test case where forecast date is not a Monday or a Wednesday
   forecast_date <- "2024-03-19"
   expect_error(
-    date_of_ww_data(forecast_date, "Monday: Monday, Wednesday: Monday", temp_dir),
+    date_of_ww_data(
+      forecast_date,
+      "Monday: Monday, Wednesday: Monday",
+      temp_dir
+    ),
     "Forecast date is not a Monday or Wednesday"
   )
 })
@@ -51,10 +63,7 @@ test_that("Last hospital admissions data is returned properly", {
       to = ymd("2024-03-10"),
       by = "days"
     ),
-    daily_hosp_admits = sample.int(10,
-      size = 10,
-      replace = TRUE
-    )
+    daily_hosp_admits = sample.int(10, size = 10, replace = TRUE)
   )
   returned_last_hosp_data_date <- get_last_hosp_data_date(fake_df)
   # Test the fake df returns what we'd expect
@@ -95,25 +104,34 @@ test_that("clean_ww_data correctly cleans and renames columns", {
   ## Check if all expected columns are present
   ## but no extra columns are present
   expected_colnames <- c(
-    "date", "site", "lab",
-    "log_genome_copies_per_ml", "log_lod",
-    "site_pop", "location"
+    "date",
+    "site",
+    "lab",
+    "log_genome_copies_per_ml",
+    "log_lod",
+    "site_pop",
+    "location"
   )
 
-  checkmate::expect_names(names(cleaned_data),
+  checkmate::expect_names(
+    names(cleaned_data),
     permutation.of = expected_colnames
   )
 
-
   # Check if 'location' and 'site' columns are correctly transformed to uppercase
-  expect_true(all(toupper(fake_nwss_subset$wwtp_jurisdiction) == cleaned_data$location))
+  expect_true(all(
+    toupper(fake_nwss_subset$wwtp_jurisdiction) == cleaned_data$location
+  ))
   expect_true(all(cleaned_data$site == fake_nwss_subset$wwtp_name))
 
   # Check if the date column is renamed correctly
   expect_equal(cleaned_data$date, fake_nwss_subset$sample_collect_date)
 
   # Check if the ww (wastewater) column is renamed correctly
-  expect_equal(cleaned_data$log_genome_copies_per_ml, log(fake_nwss_subset$pcr_target_avg_conc))
+  expect_equal(
+    cleaned_data$log_genome_copies_per_ml,
+    log(fake_nwss_subset$pcr_target_avg_conc)
+  )
 
   # Check if the ww_pop (population served) column is renamed correctly
   expect_equal(cleaned_data$site_pop, fake_nwss_subset$population_served)

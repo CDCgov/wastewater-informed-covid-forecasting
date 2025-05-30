@@ -64,11 +64,13 @@ with_dependencies <- function(x, ...) {
 #' Default `rds`.
 #' @return Nothing, saving the object as a side effect.
 #' @export
-to_rds_with_suffix <- function(object,
-                               output_dir,
-                               save_basename = NULL,
-                               save_suffix = "",
-                               ext = "rds") {
+to_rds_with_suffix <- function(
+  object,
+  output_dir,
+  save_basename = NULL,
+  save_suffix = "",
+  ext = "rds"
+) {
   if (is.null(save_basename)) {
     save_basename <- deparse(substitute(object))
   }
@@ -92,10 +94,9 @@ to_rds_with_suffix <- function(object,
 #' @param scenario Name of the scenario, as a string.
 #' @return The output suffix, as a string.
 #' @export
-get_raw_output_suffix <- function(location,
-                                  forecast_date,
-                                  scenario) {
-  return(paste("",
+get_raw_output_suffix <- function(location, forecast_date, scenario) {
+  return(paste(
+    "",
     location,
     format(as.Date(forecast_date), "%Y.%m.%d"),
     scenario,

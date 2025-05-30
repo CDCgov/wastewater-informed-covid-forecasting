@@ -3,9 +3,17 @@ library(tidyverse)
 
 test <- tibble(
   trend = c(
-    rep("increasing", 5), rep("uncertain", 5),
-    rep("decreasing", 5), "increasing", "uncertain", "decreasing",
-    "decreasing", "uncertain", "uncertain", "increasing", "increasing"
+    rep("increasing", 5),
+    rep("uncertain", 5),
+    rep("decreasing", 5),
+    "increasing",
+    "uncertain",
+    "decreasing",
+    "decreasing",
+    "uncertain",
+    "uncertain",
+    "increasing",
+    "increasing"
   ),
   date = c(
     seq(
@@ -36,15 +44,22 @@ summarized_by_trend <- test |>
     lead_phase = dplyr::lead(trend),
     phase_reclass = dplyr::case_when(
       trend == "uncertain" & lag_phase == lead_phase ~ lead_phase,
-      trend == "uncertain" & lag_phase == "decreasing" & lead_phase == "increasing" ~ "nadir",
-      trend == "uncertain" & lag_phase == "increasing" & lead_phase == "decreasing" ~ "peak",
+      trend == "uncertain" &
+        lag_phase == "decreasing" &
+        lead_phase == "increasing" ~
+        "nadir",
+      trend == "uncertain" &
+        lag_phase == "increasing" &
+        lead_phase == "decreasing" ~
+        "peak",
       TRUE ~ trend
     )
   ) |>
   dplyr::ungroup() |>
   dplyr::select(state_abbr, groups_phase, phase_reclass)
 
-rt_cat <- test |> dplyr::left_join(
-  summarized_by_trend,
-  by = c("state_abbr", "groups_phase")
-)
+rt_cat <- test |>
+  dplyr::left_join(
+    summarized_by_trend,
+    by = c("state_abbr", "groups_phase")
+  )

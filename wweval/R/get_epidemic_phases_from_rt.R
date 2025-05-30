@@ -17,10 +17,12 @@
 #' to be daily, for each location, based on the retrospective R(t) estimate.
 #' @export
 #'
-get_epidemic_phases_from_rt <- function(locations,
-                                        retro_rt_path,
-                                        location_col_name = "state_abb",
-                                        prob_threshold = 0.9) {
+get_epidemic_phases_from_rt <- function(
+  locations,
+  retro_rt_path,
+  location_col_name = "state_abb",
+  prob_threshold = 0.9
+) {
   retro_rt <- arrow::read_parquet(retro_rt_path) |>
     dplyr::rename(state_abbr = !!sym(location_col_name)) |>
     dplyr::filter(state_abbr %in% locations) |>
@@ -56,8 +58,14 @@ get_epidemic_phases_from_rt <- function(locations,
       lead_phase = dplyr::lead(trend),
       phase = dplyr::case_when(
         trend == "uncertain" & lag_phase == lead_phase ~ lead_phase, # nolint
-        trend == "uncertain" & lag_phase == "decreasing" & lead_phase == "increasing" ~ "nadir", # nolint
-        trend == "uncertain" & lag_phase == "increasing" & lead_phase == "decreasing" ~ "peak", # nolint
+        trend == "uncertain" &
+          lag_phase == "decreasing" &
+          lead_phase == "increasing" ~
+          "nadir", # nolint
+        trend == "uncertain" &
+          lag_phase == "increasing" &
+          lead_phase == "decreasing" ~
+          "peak", # nolint
         TRUE ~ trend
       )
     ) |>
@@ -71,8 +79,6 @@ get_epidemic_phases_from_rt <- function(locations,
     ) |>
     dplyr::select(state_abbr, phase, week_start_date)
 
-
-
   # Expand to daily and save only the necessary columns
   df_epi_phase <- retro_rt |>
     dplyr::distinct(reference_date, state_abbr, week_start_date) |>
@@ -85,8 +91,6 @@ get_epidemic_phases_from_rt <- function(locations,
       location = state_abbr,
       date = reference_date
     )
-
-
 
   return(df_epi_phase)
 }

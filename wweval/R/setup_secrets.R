@@ -27,7 +27,9 @@ get_secret <- function(secret) {
   if (identical(val, "")) {
     stop(
       paste0(
-        "Requested secret \"", secret, "\" does not exist in the environment. ",
+        "Requested secret \"",
+        secret,
+        "\" does not exist in the environment. ",
         "Have you run setup_secrets()?"
       )
     )
@@ -46,7 +48,8 @@ setup_secrets <- function(yaml_path) {
 
   stopifnot("Cannot find file with secrets" = file.exists(yaml_path))
 
-  secrets <- yaml::read_yaml(yaml_path,
+  secrets <- yaml::read_yaml(
+    yaml_path,
     fileEncoding = "UTF-8",
     readLines.warn = FALSE
   )

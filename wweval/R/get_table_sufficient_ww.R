@@ -17,8 +17,9 @@
 get_table_sufficient_ww <- function(combined_ww_data_flags) {
   # Ensure all `values` are boolean
   stopifnot(
-    "In diagnostic table checking for sufficent wastewater data flags, not all values are boolean" =
-      is.logical(combined_ww_data_flags$value)
+    "In diagnostic table checking for sufficent wastewater data flags, not all values are boolean" = is.logical(
+      combined_ww_data_flags$value
+    )
   )
 
   table_of_loc_dates_w_ww <- combined_ww_data_flags |>
@@ -66,13 +67,15 @@ get_table_sufficient_ww <- function(combined_ww_data_flags) {
 #' associated with this individual run
 #' @export
 #'
-get_ww_data_flags <- function(input_ww_data,
-                              forecast_date,
-                              delay_thres = 21,
-                              n_dps_thres = 5,
-                              prop_below_lod_thres = 0.5,
-                              sd_thres = 0.1,
-                              mean_log_ww_value_thres = -4) {
+get_ww_data_flags <- function(
+  input_ww_data,
+  forecast_date,
+  delay_thres = 21,
+  n_dps_thres = 5,
+  prop_below_lod_thres = 0.5,
+  sd_thres = 0.1,
+  mean_log_ww_value_thres = -4
+) {
   this_location <- input_ww_data |>
     dplyr::distinct(location) |>
     dplyr::pull(location)
@@ -101,8 +104,9 @@ get_ww_data_flags <- function(input_ww_data,
 
   # Ensure all `values` are boolean
   stopifnot(
-    "In diagnostic table checking for sufficent wastewater data flags, not all values are boolean" =
-      is.logical(flag_table_long$value)
+    "In diagnostic table checking for sufficent wastewater data flags, not all values are boolean" = is.logical(
+      flag_table_long$value
+    )
   )
 
   return(flag_table_long)

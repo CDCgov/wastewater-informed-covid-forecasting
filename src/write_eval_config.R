@@ -24,16 +24,22 @@
 #' @export
 #'
 #' @examples
-write_eval_config <- function(locations, forecast_dates,
-                              scenarios,
-                              config_dir,
-                              scenario_dir,
-                              benchmark_dir,
-                              eval_date,
-                              overwrite_summary_table,
-                              wwinference_version = sessioninfo::package_info("wwinference", dependencies = FALSE)$source, # nolint
-                              name_of_config = "eval_config",
-                              overwrite_benchmark = FALSE) {
+write_eval_config <- function(
+  locations,
+  forecast_dates,
+  scenarios,
+  config_dir,
+  scenario_dir,
+  benchmark_dir,
+  eval_date,
+  overwrite_summary_table,
+  wwinference_version = sessioninfo::package_info(
+    "wwinference",
+    dependencies = FALSE
+  )$source, # nolint
+  name_of_config = "eval_config",
+  overwrite_benchmark = FALSE
+) {
   # Will need to load in the files corresponding to the input scenarios, so we
   # get the list of locations that are relevant for each scenario. We will bind
   # these all together to create the full eval config.
@@ -45,10 +51,13 @@ write_eval_config <- function(locations, forecast_dates,
     if (scenarios[i] == "status_quo") {
       locs <- locations
     } else {
-      scenario_df <- read.table(file.path(
-        scenario_dir,
-        glue::glue("{scenarios[i]}.tsv")
-      ), header = TRUE)
+      scenario_df <- read.table(
+        file.path(
+          scenario_dir,
+          glue::glue("{scenarios[i]}.tsv")
+        ),
+        header = TRUE
+      )
       locs <- scenario_df |>
         dplyr::filter(wwtp_jurisdiction %in% !!locations) |>
         dplyr::pull(wwtp_jurisdiction) |>
@@ -83,8 +92,10 @@ write_eval_config <- function(locations, forecast_dates,
   output_dir <- file.path("output", "eval_latest")
   figure_dir <- file.path("output", "eval_latest", "plots")
   ms_fig_dir <- file.path(
-    "output", "eval_latest",
-    "plots", "manuscript"
+    "output",
+    "eval_latest",
+    "plots",
+    "manuscript"
   )
   hub_subdir <- file.path("output", "eval_latest", "hub")
   retro_rt_path <- file.path("input", "retro_Rt", "Rt_draws.parquet")
@@ -116,7 +127,6 @@ write_eval_config <- function(locations, forecast_dates,
 
   inf_to_hosp <- wwinference::default_covid_inf_to_hosp
 
-
   # Table of hospital admissions outliers by location-forecast-date-admissions-date:
   # This is currently fake/a test. We will replace with a load in to a path
   # to a saved csv eventually.
@@ -127,16 +137,24 @@ write_eval_config <- function(locations, forecast_dates,
   )
 
   forecast_dates <- df_ww |>
-    dplyr::filter(lubridate::ymd(forecast_date) >= lubridate::ymd("2024-02-05")) |>
+    dplyr::filter(
+      lubridate::ymd(forecast_date) >= lubridate::ymd("2024-02-05")
+    ) |>
     dplyr::pull(forecast_date) |>
     as.vector() |>
     unique()
 
   real_time_output_dir <- file.path("output", "real_time_outputs")
-  path_to_table_of_run_ids <- file.path("output", "real_time_outputs", "table_of_run_ids.rds")
+  path_to_table_of_run_ids <- file.path(
+    "output",
+    "real_time_outputs",
+    "table_of_run_ids.rds"
+  )
   if (file.exists(path_to_table_of_run_ids)) {
     table_of_run_ids <- readRDS(path_to_table_of_run_ids)
-    table_of_run_ids$forecast_date <- as.character(table_of_run_ids$forecast_date)
+    table_of_run_ids$forecast_date <- as.character(
+      table_of_run_ids$forecast_date
+    )
   } else {
     table_of_run_ids <- NULL
   }
@@ -149,7 +167,9 @@ write_eval_config <- function(locations, forecast_dates,
   add_to_exclude <- data.frame(
     location = c("MN", "MN", "MN"),
     forecast_date = c(
-      "2024-01-15", "2024-01-22", "2024-01-29"
+      "2024-01-15",
+      "2024-01-22",
+      "2024-01-29"
     )
   )
 
@@ -157,8 +177,6 @@ write_eval_config <- function(locations, forecast_dates,
     dates_we_excluded,
     add_to_exclude
   )
-
-
 
   config <- list(
     location_ww = df_ww |> dplyr::pull(location) |> as.vector(),
@@ -211,10 +229,13 @@ write_eval_config <- function(locations, forecast_dates,
   )
 
   wwinference::create_dir(config_dir)
-  yaml::write_yaml(config, file = file.path(
-    config_dir,
-    glue::glue("{name_of_config}.yaml")
-  ))
+  yaml::write_yaml(
+    config,
+    file = file.path(
+      config_dir,
+      glue::glue("{name_of_config}.yaml")
+    )
+  )
 
   return(config)
 }
