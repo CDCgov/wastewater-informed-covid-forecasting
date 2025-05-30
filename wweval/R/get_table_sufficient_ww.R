@@ -15,23 +15,21 @@
 #' @export
 #'
 get_table_sufficient_ww <- function(combined_ww_data_flags) {
-  # Ensure all `values` are boolean
-  stopifnot(
-    paste0(
-      "In diagnostic table checking for sufficent ",
-      "wastewater data flags, not all values are ",
-      "boolean"
-    ) = is.logical(
-      combined_ww_data_flags$value
-    )
-  )
+                                        # Ensure all `values` are boolean
+    # nolint start
+        stopifnot(
+                "In diagnostic table checking for sufficent wastewater data flags, not all values are boolean" = is.logical(
+                        combined_ww_data_flags$value
+                )
+        )
+    # nolint end
 
-  table_of_loc_dates_w_ww <- combined_ww_data_flags |>
-    dplyr::filter(name != "flag_low_val") |> # try removing this  temporarily
-    dplyr::group_by(location, forecast_date) |>
-    dplyr::summarise(ww_sufficient = !any(value))
+        table_of_loc_dates_w_ww <- combined_ww_data_flags |>
+                dplyr::filter(name != "flag_low_val") |> # try removing this  temporarily
+                dplyr::group_by(location, forecast_date) |>
+                dplyr::summarise(ww_sufficient = !any(value))
 
-  return(table_of_loc_dates_w_ww)
+        return(table_of_loc_dates_w_ww)
 }
 
 #' Get table of location-forecast dates with sufficient wastewater
@@ -72,46 +70,49 @@ get_table_sufficient_ww <- function(combined_ww_data_flags) {
 #' @export
 #'
 get_ww_data_flags <- function(
-  input_ww_data,
-  forecast_date,
-  delay_thres = 21,
-  n_dps_thres = 5,
-  prop_below_lod_thres = 0.5,
-  sd_thres = 0.1,
-  mean_log_ww_value_thres = -4
+        input_ww_data,
+        forecast_date,
+        delay_thres = 21,
+        n_dps_thres = 5,
+        prop_below_lod_thres = 0.5,
+        sd_thres = 0.1,
+        mean_log_ww_value_thres = -4
 ) {
-  this_location <- input_ww_data |>
-    dplyr::distinct(location) |>
-    dplyr::pull(location)
+        this_location <- input_ww_data |>
+                dplyr::distinct(location) |>
+                dplyr::pull(location)
 
-  diagnostic_table <- input_ww_data |>
-    dplyr::summarize(
-      last_date = max(date),
-      n_dps = dplyr::n(),
-      prop_below_lod = sum(below_LOD == 1) / dplyr::n(),
-      sd = sd(ww),
-      mean_log_ww = mean(log(ww))
-    ) |>
-    dplyr::mutate(
-      location = !!this_location,
-      forecast_date = lubridate::ymd(!!forecast_date),
-      flag_delay = as.integer(forecast_date - last_date) > !!delay_thres,
-      flag_n_dps = n_dps < !!n_dps_thres,
-      flag_lod = prop_below_lod > !!prop_below_lod_thres,
-      flag_sd = sd < !!sd_thres,
-      flag_low_val = mean_log_ww < !!mean_log_ww_value_thres
-    )
+        diagnostic_table <- input_ww_data |>
+                dplyr::summarize(
+                        last_date = max(date),
+                        n_dps = dplyr::n(),
+                        prop_below_lod = sum(below_LOD == 1) / dplyr::n(),
+                        sd = sd(ww),
+                        mean_log_ww = mean(log(ww))
+                ) |>
+                dplyr::mutate(
+                        location = !!this_location,
+                        forecast_date = lubridate::ymd(!!forecast_date),
+                        flag_delay = as.integer(forecast_date - last_date) >
+                                !!delay_thres,
+                        flag_n_dps = n_dps < !!n_dps_thres,
+                        flag_lod = prop_below_lod > !!prop_below_lod_thres,
+                        flag_sd = sd < !!sd_thres,
+                        flag_low_val = mean_log_ww < !!mean_log_ww_value_thres
+                )
 
-  flag_table_long <- diagnostic_table |>
-    dplyr::ungroup() |>
-    tidyr::pivot_longer(starts_with("flag"))
+        flag_table_long <- diagnostic_table |>
+                dplyr::ungroup() |>
+                tidyr::pivot_longer(starts_with("flag"))
 
-  # Ensure all `values` are boolean
-  stopifnot(
-    "In diagnostic table checking for sufficent wastewater data flags, not all values are boolean" = is.logical(
-      flag_table_long$value
-    )
-  )
+        # Ensure all `values` are boolean
+        # nolint start
+        stopifnot(
+                "In diagnostic table checking for sufficent wastewater data flags, not all values are boolean" = is.logical(
+                        flag_table_long$value
+                )
+        )
+        # nolint end
 
-  return(flag_table_long)
+        return(flag_table_long)
 }
