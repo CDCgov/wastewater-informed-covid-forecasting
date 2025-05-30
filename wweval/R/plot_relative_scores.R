@@ -101,7 +101,11 @@ plot_rel_score_dists <- function(
       dplyr::pull(!!x)
     relative_scores <- relative_scores |>
       dplyr::mutate(
-        !!x := factor(.data[[x]], ordered = TRUE, levels = x_levels)
+        !!x := factor(
+          .data[[x]],
+          ordered = TRUE,
+          levels = x_levels
+        )
       )
   }
 
@@ -269,7 +273,6 @@ plot_rel_score_distribution <- function(
 }
 
 
-# nolint start
 #' Make figure that stratifies across location and forecast dates
 #'
 #' @param scores output of [scoringutils::score()].
@@ -286,6 +289,7 @@ plot_rel_score_distribution <- function(
 #' @return A ggplot object containing plots of the distribution
 #' of relative scores across location and forecast dates
 #' @export
+# nolint start
 plot_rel_score_dists_by_horizon <- function(
   # nolint end
   scores,
