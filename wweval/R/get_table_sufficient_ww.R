@@ -17,9 +17,11 @@
 get_table_sufficient_ww <- function(combined_ww_data_flags) {
   # Ensure all `values` are boolean
   stopifnot(
-      paste0("In diagnostic table checking for sufficent ",
-             "wastewater data flags, not all values are ",
-             "boolean") = is.logical(
+    paste0(
+      "In diagnostic table checking for sufficent ",
+      "wastewater data flags, not all values are ",
+      "boolean"
+    ) = is.logical(
       combined_ww_data_flags$value
     )
   )
