@@ -254,12 +254,7 @@ score_real_time_outputs <- function(
 format_scores_for_comparison <- function(
   real_time_scores,
   other_real_time_scores,
-  truth_data_path = paste0(
-    "https://media.githubusercontent.com/",
-    "media/reichlab/covid19-forecast-hub/",
-    "master/data-truth/",
-    "truth-Incident%20Hospitalizations.csv"
-  )
+  truth_data_path = "https://media.githubusercontent.com/media/reichlab/covid19-forecast-hub/master/data-truth/truth-Incident%20Hospitalizations.csv" # nolint
 ) {
   loc_to_loc_name_table <- readr::read_csv(truth_data_path) |>
     dplyr::distinct(location, location_name)
