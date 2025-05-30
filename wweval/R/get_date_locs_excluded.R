@@ -16,7 +16,9 @@ get_date_locs_excluded <- function(dates) {
 
     metadata <- yaml::read_yaml(yaml_path)
 
-    locs_to_exclude <- unlist(metadata$`States we chose to use hospital admissions only model on`)
+    locs_to_exclude <- unlist(
+      metadata$`States we chose to use hospital admissions only model on`
+    )
 
     this_dates_exclusions <- tibble::tibble(
       location = locs_to_exclude,
@@ -37,14 +39,19 @@ get_date_locs_hosp_used <- function(dates) {
 
     metadata <- yaml::read_yaml(yaml_path)
 
-    locs_to_exclude <- unlist(metadata$`States we chose to use hospital admissions only model on`)
+    locs_to_exclude <- unlist(
+      metadata$`States we chose to use hospital admissions only model on`
+    )
     locs_wout_ww <- unlist(metadata$`States without wastewaster data`)
     this_dates_replacements <- tibble::tibble(
       location = c(locs_to_exclude, locs_wout_ww),
       forecast_date = rep(date, length(c(locs_to_exclude, locs_wout_ww)))
     )
 
-    table_of_replacements <- rbind(table_of_replacements, this_dates_replacements)
+    table_of_replacements <- rbind(
+      table_of_replacements,
+      this_dates_replacements
+    )
   }
   return(table_of_replacements)
 }

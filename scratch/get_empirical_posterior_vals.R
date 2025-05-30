@@ -1,8 +1,10 @@
 # Quick estimate of posterior parameters
 
 benchmark_config <- yaml::read_yaml(file.path(
-  "input", "config",
-  "eval", "benchmark_config.yaml"
+  "input",
+  "config",
+  "eval",
+  "benchmark_config.yaml"
 ))
 
 vars <- c("eta_sd", "inf_feedback")
@@ -14,7 +16,8 @@ for (i in seq_along(benchmark_config$forecast_date_hosp)) {
   this_forecast_date <- benchmark_config$forecast_date_hosp[i]
   this_scenario <- "no_wastewater"
   for (j in seq_along(vars)) {
-    fp_var <- wweval::get_filepath(benchmark_config$output_dir,
+    fp_var <- wweval::get_filepath(
+      benchmark_config$output_dir,
       scenario = this_scenario,
       forecast_date = this_forecast_date,
       model_type = "hosp",

@@ -19,9 +19,11 @@
 #' pull_and_write_hosp_data(locs, out)
 #' }
 #' @export
-pull_and_write_hosp_data <- function(location_data_path,
-                                     output_dir,
-                                     force = FALSE) {
+pull_and_write_hosp_data <- function(
+  location_data_path,
+  output_dir,
+  force = FALSE
+) {
   pull_date <- lubridate::today()
 
   location_data <- readr::read_csv(location_data_path) |>

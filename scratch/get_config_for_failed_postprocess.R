@@ -2,8 +2,10 @@
 
 # Get missing files
 table_missing <- readr::read_csv(file.path(
-  "output", "eval",
-  "files_missing", "ww",
+  "output",
+  "eval",
+  "files_missing",
+  "ww",
   "hosp_quantiles.csv"
 ))
 
@@ -15,8 +17,10 @@ scenario_vec <- table_missing$scenario
 
 # Load in the eval_config
 eval_config <- yaml::read_yaml(file.path(
-  "input", "config",
-  "eval", "eval_config.yaml"
+  "input",
+  "config",
+  "eval",
+  "eval_config.yaml"
 ))
 
 config_dir <- file.path("input", "config", "eval")
@@ -29,7 +33,10 @@ new_eval_config$location_hosp <- "MA"
 new_eval_config$forecast_date_hosp <- "2023-10-16"
 
 
-yaml::write_yaml(new_eval_config, file = file.path(
-  config_dir,
-  glue::glue("eval_config.yaml")
-))
+yaml::write_yaml(
+  new_eval_config,
+  file = file.path(
+    config_dir,
+    glue::glue("eval_config.yaml")
+  )
+)

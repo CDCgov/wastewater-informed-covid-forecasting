@@ -19,9 +19,11 @@
 #' @return ww_metadata: a tibble with a row for each forecast date location and
 #' columns that provide summaries of the wastewater data
 #' @export
-combine_and_summarize_ww_data <- function(forecast_dates,
-                                          locations,
-                                          eval_output_subdir) {
+combine_and_summarize_ww_data <- function(
+  forecast_dates,
+  locations,
+  eval_output_subdir
+) {
   if (length(forecast_dates) != length(locations)) {
     cli::cli_abort(
       message = c(
@@ -84,13 +86,16 @@ combine_and_summarize_ww_data <- function(forecast_dates,
     # Save the missing files in a new subfolder in the eval_output_subdir
     wwinference::create_dir(file.path(
       eval_output_subdir,
-      "files_missing", "ww"
+      "files_missing",
+      "ww"
     ))
 
     readr::write_csv(
       flag_failed_output,
       file.path(
-        eval_output_subdir, "files_missing", "ww",
+        eval_output_subdir,
+        "files_missing",
+        "ww",
         "ww_data_metadata.csv"
       )
     )
@@ -121,9 +126,12 @@ combine_and_summarize_ww_data <- function(forecast_dates,
 #' @return this_ww_metadata: a 1 row dataframe with metadata on the wastewater
 #' summary statistics for that forecast date and location
 #' @export
-load_data_and_summarize <- function(fp_hosp, fp_ww,
-                                    this_forecast_date,
-                                    this_location) {
+load_data_and_summarize <- function(
+  fp_hosp,
+  fp_ww,
+  this_forecast_date,
+  this_location
+) {
   # Use hospital data to get state pop
   this_hosp_data <- readr::read_tsv(fp_hosp)
   state_pop <- this_hosp_data |>
@@ -147,9 +155,7 @@ load_data_and_summarize <- function(fp_hosp, fp_ww,
         mean_site_pop = mean(.data$ww_pop, na.rm = TRUE)
       ) |>
       dplyr::ungroup() |>
-      dplyr::summarise(ww_total_pop = sum(.data$mean_site_pop,
-        na.rm = TRUE
-      )) |>
+      dplyr::summarise(ww_total_pop = sum(.data$mean_site_pop, na.rm = TRUE)) |>
       dplyr::pull(.data$ww_total_pop)
     pop_coverage <- sum_site_pops / state_pop
 
@@ -158,9 +164,12 @@ load_data_and_summarize <- function(fp_hosp, fp_ww,
       dplyr::group_by(.data$lab_site_index) |>
       dplyr::summarize(max_date = max(.data$date)) |>
       dplyr::mutate(
-        latency = as.numeric(lubridate::ymd(
-          !!this_forecast_date
-        ) - lubridate::ymd(.data$max_date))
+        latency = as.numeric(
+          lubridate::ymd(
+            !!this_forecast_date
+          ) -
+            lubridate::ymd(.data$max_date)
+        )
       ) |>
       dplyr::summarize(
         mean_latency = mean(.data$latency, na.rm = TRUE)
@@ -208,7 +217,8 @@ load_data_and_summarize <- function(fp_hosp, fp_ww,
       n_days_w_samples,
       n_duplicate_obs
     )
-  } else { # Wastewater data has no rows -- fill in rows with NAs for ww metrics
+  } else {
+    # Wastewater data has no rows -- fill in rows with NAs for ww metrics
     this_ww_metadata <- tibble::tibble(
       forecast_date = this_forecast_date,
       location = this_location,
@@ -223,7 +233,6 @@ load_data_and_summarize <- function(fp_hosp, fp_ww,
       n_duplicate_obs = NA
     )
   }
-
 
   return(this_ww_metadata)
 }
@@ -253,17 +262,18 @@ load_data_and_summarize <- function(fp_hosp, fp_ww,
 #' or not there were any flags for manual exclusions, convergence issues,
 #' or wastewater quality issues
 #' @export
-get_add_ww_metadata <- function(granular_ww_metadata,
-                                ww_forecast_date_locs_to_excl,
-                                convergence_df,
-                                table_of_loc_dates_w_ww,
-                                include_manual_exclusions = FALSE) {
+get_add_ww_metadata <- function(
+  granular_ww_metadata,
+  ww_forecast_date_locs_to_excl,
+  convergence_df,
+  table_of_loc_dates_w_ww,
+  include_manual_exclusions = FALSE
+) {
   granular_ww_metadata_used <- granular_ww_metadata |>
     dplyr::mutate(forecast_date = lubridate::ymd(.data$forecast_date)) |>
-    dplyr::left_join(convergence_df,
-      by = c("location", "forecast_date")
-    ) |>
-    dplyr::left_join(table_of_loc_dates_w_ww,
+    dplyr::left_join(convergence_df, by = c("location", "forecast_date")) |>
+    dplyr::left_join(
+      table_of_loc_dates_w_ww,
       by = c("location", "forecast_date")
     )
 
@@ -305,9 +315,11 @@ get_add_ww_metadata <- function(granular_ww_metadata,
 #' @return a list containing a summary overall table, a summary by forecast
 #' date and a summary by state
 #' @export
-get_summary_ww_table <- function(ww_metadata,
-                                 hosp_quantiles_filtered,
-                                 output_dir) {
+get_summary_ww_table <- function(
+  ww_metadata,
+  hosp_quantiles_filtered,
+  output_dir
+) {
   # First, get the true number of forecast-date locations with wastewater
   # in the current analysis
   n_w_ww_actual <- hosp_quantiles_filtered |>
@@ -363,8 +375,10 @@ get_summary_ww_table <- function(ww_metadata,
     dplyr::mutate(
       ww_expected = dplyr::case_when(
         ww_data_present == 1 &
-          !(.data$any_flags_hosp) & !(.data$any_flags_ww) &
-          isTRUE(.data$ww_sufficient) ~ TRUE,
+          !(.data$any_flags_hosp) &
+          !(.data$any_flags_ww) &
+          isTRUE(.data$ww_sufficient) ~
+          TRUE,
         TRUE ~ FALSE
       )
     ) |>
@@ -390,24 +404,28 @@ get_summary_ww_table <- function(ww_metadata,
     n_w_ww_actual
   )
 
-
   # Summarize across states by forecast date
   forecast_date_summary_table <-
     ww_metadata |>
     dplyr::group_by(.data$forecast_date) |>
     dplyr::summarize(
       prop_states_w_ww = sum(.data$ww_data_present) / dplyr::n(),
-      pop_coverage_by_date = sum(.data$pop_coverage * .data$state_pop,
+      pop_coverage_by_date = sum(
+        .data$pop_coverage * .data$state_pop,
         na.rm = TRUE
-      ) / sum(.data$state_pop),
+      ) /
+        sum(.data$state_pop),
       avg_avg_latency = mean(.data$avg_latency, na.rm = TRUE),
       avg_avg_sampling_freq = mean(.data$avg_sampling_freq, na.rm = TRUE),
       n_states_w_duplicate_obs = sum(.data$n_duplicate_obs > 0, na.rm = TRUE)
     )
-  saveRDS(forecast_date_summary_table, file = file.path(
-    output_dir,
-    "forecast_date_summary_table.rds"
-  ))
+  saveRDS(
+    forecast_date_summary_table,
+    file = file.path(
+      output_dir,
+      "forecast_date_summary_table.rds"
+    )
+  )
 
   # Summarize across forecast dates by state
   state_summary_table <-
@@ -418,20 +436,24 @@ get_summary_ww_table <- function(ww_metadata,
       avg_pop_coverage_by_state = mean(.data$pop_coverage, na.rm = TRUE),
       avg_avg_latency = mean(.data$avg_latency, na.rm = TRUE),
       avg_avg_sampling_frequency = mean(.data$avg_sampling_freq, na.rm = TRUE),
-      n_forecast_dates_w_duplicate_obs = sum(.data$n_duplicate_obs > 0, na.rm = TRUE)
+      n_forecast_dates_w_duplicate_obs = sum(
+        .data$n_duplicate_obs > 0,
+        na.rm = TRUE
+      )
     )
-  saveRDS(state_summary_table, file = file.path(
-    output_dir,
-    "state_summary_table.rds"
-  ))
-
+  saveRDS(
+    state_summary_table,
+    file = file.path(
+      output_dir,
+      "state_summary_table.rds"
+    )
+  )
 
   ww_metadata_list <- list(
     summary_table = summary_table,
     state_summary_table = state_summary_table,
     forecast_date_summary_table = forecast_date_summary_table
   )
-
 
   return(ww_metadata_list)
 }

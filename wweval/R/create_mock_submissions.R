@@ -25,8 +25,10 @@
 #' model scores filling in when scores are missing.
 #' @export
 
-create_mock_submission_scores <- function(all_scores,
-                                          name_of_replacement_model = "no_wastewater") {
+create_mock_submission_scores <- function(
+  all_scores,
+  name_of_replacement_model = "no_wastewater"
+) {
   # For each forecast date, we want to create a mock submission to the Hub
   # (so forecasts for all states + territories) for each scenario. Since we
   # know the scores are independent and we just do a weighted average over them
@@ -80,7 +82,9 @@ create_mock_submission_scores <- function(all_scores,
     dplyr::select(forecast_date, location, scenario) |>
     unique() |>
     nrow()
-  n_expected_combos <- length(forecast_dates) * length(locations) * length(scenarios)
+  n_expected_combos <- length(forecast_dates) *
+    length(locations) *
+    length(scenarios)
 
   message("Number of expected combos:", n_expected_combos)
   message("Number of actual combos:", n_combos)
@@ -98,9 +102,11 @@ create_mock_submission_scores <- function(all_scores,
 
   # Function that excludes rows based on one combination of exclusions
   exclude_combination <- function(df, exclusion) {
-    filtered_df <- df |> dplyr::filter(
-      !(location == exclusion$location & forecast_date == exclusion$forecast_date)
-    )
+    filtered_df <- df |>
+      dplyr::filter(
+        !(location == exclusion$location &
+          forecast_date == exclusion$forecast_date)
+      )
     return(filtered_df)
   }
 
@@ -117,10 +123,11 @@ create_mock_submission_scores <- function(all_scores,
     arrange(n)
 
   stopifnot(
-    "Check that all locations forecast dates have full set of scenarios" =
-      min(test$n) == length(unique(all_submission_scores$scenario))
+    "Check that all locations forecast dates have full set of scenarios" = min(
+      test$n
+    ) ==
+      length(unique(all_submission_scores$scenario))
   )
-
 
   return(filtered_scores)
 }

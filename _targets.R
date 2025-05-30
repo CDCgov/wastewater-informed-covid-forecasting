@@ -26,11 +26,22 @@ controller <- crew_controller_local(
 # Set target options:
 tar_option_set(
   packages = c(
-    "tibble", "dplyr", "lubridate",
-    "cmdstanr", "posterior", "yaml", "zoo",
-    "tidybayes", "scales", "here",
-    "fs", "scales", "gridExtra", "httr",
-    "jsonlite", "cfaforecastrenewalww"
+    "tibble",
+    "dplyr",
+    "lubridate",
+    "cmdstanr",
+    "posterior",
+    "yaml",
+    "zoo",
+    "tidybayes",
+    "scales",
+    "here",
+    "fs",
+    "scales",
+    "gridExtra",
+    "httr",
+    "jsonlite",
+    "cfaforecastrenewalww"
   ),
   workspace_on_error = TRUE,
   # Run with a pre-specified crew controller
@@ -65,11 +76,11 @@ list(
   tar_target(
     name = ww_data_path,
     command = save_timestamped_nwss_data(
-      ww_path_to_save =
-        file.path(
-          "input", "ww_data",
-          "nwss_data"
-        )
+      ww_path_to_save = file.path(
+        "input",
+        "ww_data",
+        "nwss_data"
+      )
     ),
     deployment = "main"
   ),
@@ -199,21 +210,27 @@ list(
   ),
   tar_target(
     name = train_data_orig_id,
-    command = do.call(get_all_training_data, c(
-      list(
-        ww_data_raw = ww_data_raw_id
-      ),
-      config_vars_id
-    )),
+    command = do.call(
+      get_all_training_data,
+      c(
+        list(
+          ww_data_raw = ww_data_raw_id
+        ),
+        config_vars_id
+      )
+    ),
     deployment = "main",
     priority = 1
   ),
   tar_target(
     name = train_data_id,
-    command = do.call(manual_removal_of_hosp_data, c(
-      list(train_data = train_data_orig_id),
-      config_vars_id
-    )),
+    command = do.call(
+      manual_removal_of_hosp_data,
+      c(
+        list(train_data = train_data_orig_id),
+        config_vars_id
+      )
+    ),
     deployment = "main",
     priority = 1
   ),
@@ -226,9 +243,7 @@ list(
   ),
   tar_target(
     name = model_object_id,
-    command = compile_model(model_file_path_id,
-      target_dir = "bin"
-    ),
+    command = compile_model(model_file_path_id, target_dir = "bin"),
     deployment = "main",
     priority = 1
   ),
@@ -253,7 +268,6 @@ list(
     deployment = "main",
     priority = 1
   ),
-
 
   ## Fit the model ------------------------------------------------------------
   # get a stacked long dataframe containing the quantiles(estimated
@@ -288,7 +302,8 @@ list(
   ),
   tar_target(
     name = plot_single_location_hosp_draws_id,
-    command = get_plot_draws(grouped_df_id,
+    command = get_plot_draws(
+      grouped_df_id,
       "pred_hosp",
       figure_output_subdirectory,
       show_calibration_data = FALSE,
@@ -300,7 +315,8 @@ list(
   ),
   tar_target(
     name = plot_single_location_hosp_draws_log_id,
-    command = get_plot_draws(grouped_df_id,
+    command = get_plot_draws(
+      grouped_df_id,
       "pred_hosp",
       figure_output_subdirectory,
       log_scale = TRUE,
@@ -455,20 +471,26 @@ list(
   ),
   tar_target(
     name = train_data_orig_ho,
-    command = do.call(get_all_training_data, c(
-      list(
-        ww_data_raw = ww_data_raw_ho
-      ),
-      config_vars_ho
-    )),
+    command = do.call(
+      get_all_training_data,
+      c(
+        list(
+          ww_data_raw = ww_data_raw_ho
+        ),
+        config_vars_ho
+      )
+    ),
     deployment = "main"
   ),
   tar_target(
     name = train_data_ho,
-    command = do.call(manual_removal_of_hosp_data, c(
-      list(train_data = train_data_orig_ho),
-      config_vars_ho
-    )),
+    command = do.call(
+      manual_removal_of_hosp_data,
+      c(
+        list(train_data = train_data_orig_ho),
+        config_vars_ho
+      )
+    ),
     deployment = "main"
   ),
   tar_target(
@@ -479,9 +501,7 @@ list(
   ),
   tar_target(
     name = model_object_ho,
-    command = compile_model(model_file_path_ho,
-      target_dir = "bin"
-    ),
+    command = compile_model(model_file_path_ho, target_dir = "bin"),
     deployment = "main"
   ),
   tar_target(
@@ -533,7 +553,8 @@ list(
   ),
   tar_target(
     name = plot_single_location_hosp_draws_ho,
-    command = get_plot_draws(grouped_df,
+    command = get_plot_draws(
+      grouped_df,
       "pred_hosp",
       figure_output_subdirectory,
       show_calibration_data = FALSE,
@@ -545,7 +566,8 @@ list(
   ),
   tar_target(
     name = plot_single_location_hosp_draws_log_ho,
-    command = get_plot_draws(grouped_df,
+    command = get_plot_draws(
+      grouped_df,
       "pred_hosp",
       figure_output_subdirectory,
       log_scale = TRUE,
@@ -576,7 +598,6 @@ list(
     deployment = "main"
   ),
 
-
   # National aggregated model for the US only--------------------------------
   tar_target(
     name = config_vars_sa,
@@ -600,20 +621,26 @@ list(
   ),
   tar_target(
     name = train_data_orig_sa,
-    command = do.call(get_all_training_data, c(
-      list(
-        ww_data_raw = ww_data_raw_sa
-      ),
-      config_vars_sa
-    )),
+    command = do.call(
+      get_all_training_data,
+      c(
+        list(
+          ww_data_raw = ww_data_raw_sa
+        ),
+        config_vars_sa
+      )
+    ),
     deployment = "main"
   ),
   tar_target(
     name = train_data_sa,
-    command = do.call(manual_removal_of_hosp_data, c(
-      list(train_data = train_data_orig_sa),
-      config_vars_sa
-    )),
+    command = do.call(
+      manual_removal_of_hosp_data,
+      c(
+        list(train_data = train_data_orig_sa),
+        config_vars_sa
+      )
+    ),
     deployment = "main"
   ),
   tar_target(
@@ -624,9 +651,7 @@ list(
   ),
   tar_target(
     name = model_object_sa,
-    command = compile_model(model_file_path_sa,
-      target_dir = "bin"
-    ),
+    command = compile_model(model_file_path_sa, target_dir = "bin"),
     deployment = "main"
   ),
   tar_target(
@@ -693,7 +718,8 @@ list(
   ),
   tar_target(
     name = plot_single_location_hosp_draws_sa,
-    command = get_plot_draws(grouped_df_sa,
+    command = get_plot_draws(
+      grouped_df_sa,
       "pred_hosp",
       figure_output_subdirectory,
       show_calibration_data = FALSE,
@@ -716,7 +742,8 @@ list(
   ),
   tar_target(
     name = plot_single_location_hosp_draws_log_sa,
-    command = get_plot_draws(grouped_df_sa,
+    command = get_plot_draws(
+      grouped_df_sa,
       "pred_hosp",
       figure_output_subdirectory,
       log_scale = TRUE,
@@ -728,7 +755,8 @@ list(
   ),
   tar_target(
     name = plot_single_location_ww_draws_sa,
-    command = get_plot_draws(df_of_filepaths_us,
+    command = get_plot_draws(
+      df_of_filepaths_us,
       "pred_ww",
       figure_output_subdirectory,
       show_calibration_data = FALSE
@@ -850,8 +878,7 @@ list(
       save_to_pdf,
       c(
         list(
-          list_of_plots =
-            plot_ww_site_level_quantiles_id
+          list_of_plots = plot_ww_site_level_quantiles_id
         ),
         type_of_output = "site_level_inf_dynamics",
         pdf_file_path = file.path(
@@ -872,8 +899,7 @@ list(
       save_to_pdf,
       c(
         list(
-          list_of_plots =
-            plot_single_location_comb_quantiles_id
+          list_of_plots = plot_single_location_comb_quantiles_id
         ),
         type_of_output = "hosp_and_ww_forecasts_site_level_inf_dyn",
         pdf_file_path = file.path(
@@ -892,7 +918,8 @@ list(
     name = pdf_of_forecast_comparisons,
     command = do.call(
       save_to_pdf,
-      c(list(list_of_plots = plot_mult_models),
+      c(
+        list(list_of_plots = plot_mult_models),
         type_of_output = "forecasts_from_mult_model_types",
         pdf_file_path = file.path(
           pdf_output_subdirectory,
@@ -910,7 +937,8 @@ list(
     name = pdf_of_forecast_comparisons_log,
     command = do.call(
       save_to_pdf,
-      c(list(list_of_plots = plot_mult_models_log),
+      c(
+        list(list_of_plots = plot_mult_models_log),
         type_of_output = "forecasts_from_mult_model_types_log",
         pdf_file_path = file.path(
           pdf_output_subdirectory,
@@ -1053,8 +1081,7 @@ list(
       save_to_pdf,
       c(
         list(
-          list_of_plots =
-            plot_covidhub_submission
+          list_of_plots = plot_covidhub_submission
         ),
         model_name = config_vars_id$submitting_model_name,
         type_of_output = "COVID_hub_submissions",
@@ -1132,8 +1159,7 @@ list(
       save_to_pdf,
       c(
         list(
-          list_of_plots =
-            plot_covidhub_submission_ho
+          list_of_plots = plot_covidhub_submission_ho
         ),
         type_of_output = "COVID_hub_submissions",
         model_name = "cfa-wwrenewal_hosp_only",
@@ -1147,7 +1173,8 @@ list(
   ),
   tar_target(
     name = loc_model_map_ww,
-    command = get_loc_model_map(df_of_filepaths_id,
+    command = get_loc_model_map(
+      df_of_filepaths_id,
       hosp_only_states = c(),
       exclude_states = c()
     ),
@@ -1202,8 +1229,7 @@ list(
       save_to_pdf,
       c(
         list(
-          list_of_plots =
-            plot_covidhub_submission_ww
+          list_of_plots = plot_covidhub_submission_ww
         ),
         type_of_output = "COVID_hub_submissions",
         model_name = "cfa-wwrenewal_all_ww",

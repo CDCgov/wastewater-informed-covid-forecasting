@@ -31,24 +31,26 @@
 #' @return NULL, saving the pre-processed data and model fitting
 #' output to disk as side effects.
 #' @export
-eval_fit <- function(forecast_date,
-                     location,
-                     model,
-                     scenario,
-                     hosp_data_dir,
-                     ww_data_dir,
-                     ww_data_mapping,
-                     scenario_dir,
-                     calibration_time,
-                     forecast_horizon,
-                     params_path,
-                     raw_output_dir,
-                     seed,
-                     iter_sampling,
-                     n_chains,
-                     adapt_delta,
-                     max_treedepth,
-                     table_of_exclusions = NULL) {
+eval_fit <- function(
+  forecast_date,
+  location,
+  model,
+  scenario,
+  hosp_data_dir,
+  ww_data_dir,
+  ww_data_mapping,
+  scenario_dir,
+  calibration_time,
+  forecast_horizon,
+  params_path,
+  raw_output_dir,
+  seed,
+  iter_sampling,
+  n_chains,
+  adapt_delta,
+  max_treedepth,
+  table_of_exclusions = NULL
+) {
   checkmate::assert_names(model, subset.of = c("ww", "hosp"))
   ww_model <- model == "ww"
 
@@ -60,7 +62,8 @@ eval_fit <- function(forecast_date,
   )
   table_of_exclusions <- tibble::as_tibble(table_of_exclusions)
 
-  save_object <- purrr::partial(to_rds_with_suffix,
+  save_object <- purrr::partial(
+    to_rds_with_suffix,
     output_dir = raw_output_dir,
     save_suffix = raw_output_suffix
   )
@@ -81,11 +84,11 @@ eval_fit <- function(forecast_date,
   )
   save_object(input_hosp_data)
 
-
   last_hosp_data_date <- get_last_hosp_data_date(input_hosp_data)
 
   if (ww_model) {
-    ww_data_pull <- purrr::safely(get_input_ww_data)(forecast_date_i = forecast_date,
+    ww_data_pull <- purrr::safely(get_input_ww_data)(
+      forecast_date_i = forecast_date,
       location_i = location,
       scenario_i = scenario,
       scenario_dir = scenario_dir,
@@ -119,10 +122,8 @@ eval_fit <- function(forecast_date,
     max_treedepth = as.integer(max_treedepth)
   )
 
-  do_fit <- (
-    !is.null(input_hosp_data) &&
-      (!include_ww || !is.null(input_ww_data))
-  )
+  do_fit <- !is.null(input_hosp_data) &&
+    (!include_ww || !is.null(input_ww_data))
 
   fit_obj <- NULL
 
@@ -145,12 +146,12 @@ eval_fit <- function(forecast_date,
     }
   } else {
     message("Missing needed data. Skipping fit")
-    err_msg <- ifelse(include_ww,
+    err_msg <- ifelse(
+      include_ww,
       "missing ww data",
       "fitting error or non-wastewater data error"
     )
   }
-
 
   ## If wwinference job fails, replace
   ## with missing data error for postprocessing to proceed

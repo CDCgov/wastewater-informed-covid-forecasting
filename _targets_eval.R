@@ -67,14 +67,17 @@ setup_interactive_dev_run()
 
 # Need to specify the evaluation variable combinations outside of targets
 eval_config <- yaml::read_yaml(file.path(
-  "input", "config",
-  "eval", "eval_config.yaml"
+  "input",
+  "config",
+  "eval",
+  "eval_config.yaml"
 ))
 # Get global parameter values
 params <- wwinference::get_params(file.path(
-  "input", "params.toml"
-)) |> as.data.frame()
-
+  "input",
+  "params.toml"
+)) |>
+  as.data.frame()
 
 
 # Set up some global targets
@@ -166,7 +169,8 @@ mapped_ww <- tar_map(
     deployment = "main",
     priority = 1
   ),
-  tar_target(input_ww_data,
+  tar_target(
+    input_ww_data,
     command = get_input_ww_data(
       forecast_date_i = forecast_date,
       location_i = location,
@@ -202,7 +206,9 @@ mapped_ww <- tar_map(
   tar_target(
     name = init_lists,
     command = get_inits(
-      model_type = "ww", standata, params,
+      model_type = "ww",
+      standata,
+      params,
       n_chains = eval_config$n_chains
     ),
     deployment = "main",
@@ -457,16 +463,15 @@ mapped_ww <- tar_map(
   ),
   tar_target(
     name = save_hosp_scores_ww,
-    command =
-      save_table(
-        data_to_save = hosp_scores,
-        type_of_output = "scores",
-        output_dir = eval_config$output_dir,
-        scenario = scenario,
-        forecast_date = forecast_date,
-        model_type = "ww",
-        location = location
-      )
+    command = save_table(
+      data_to_save = hosp_scores,
+      type_of_output = "scores",
+      output_dir = eval_config$output_dir,
+      scenario = scenario,
+      forecast_date = forecast_date,
+      model_type = "ww",
+      location = location
+    )
   ),
   tar_target(
     name = hosp_scores_quantiles,
@@ -474,16 +479,15 @@ mapped_ww <- tar_map(
   ),
   tar_target(
     name = save_hosp_scores_ww_quantiles,
-    command =
-      save_table(
-        data_to_save = hosp_scores_quantiles,
-        type_of_output = "scores_quantiles",
-        output_dir = eval_config$output_dir,
-        scenario = scenario,
-        forecast_date = forecast_date,
-        model_type = "ww",
-        location = location
-      )
+    command = save_table(
+      data_to_save = hosp_scores_quantiles,
+      type_of_output = "scores_quantiles",
+      output_dir = eval_config$output_dir,
+      scenario = scenario,
+      forecast_date = forecast_date,
+      model_type = "ww",
+      location = location
+    )
   )
 ) # end tar map
 
@@ -547,7 +551,8 @@ mapped_hosp <- tar_map(
     name = init_lists,
     command = get_inits(
       model_type = "hosp",
-      standata, params,
+      standata,
+      params,
       n_chains = eval_config$n_chains
     ),
     deployment = "main"
@@ -684,7 +689,8 @@ mapped_hosp <- tar_map(
   ## Score the hospital admissions only model-------------------------
   tar_target(
     name = hosp_scores,
-    command = get_full_scores(hosp_model_hosp_draws,
+    command = get_full_scores(
+      hosp_model_hosp_draws,
       scenario = "no_wastewater"
     ),
     deployment = "main"
@@ -703,7 +709,8 @@ mapped_hosp <- tar_map(
   ),
   tar_target(
     name = hosp_scores_quantiles,
-    command = get_scores_from_quantiles(hosp_model_quantiles,
+    command = get_scores_from_quantiles(
+      hosp_model_quantiles,
       scenario = "no_wastewater"
     ),
     deployment = "main"
@@ -777,7 +784,8 @@ downstream_targets <- list(
   # a mix of model types
   tar_target(
     name = summarized_raw_scores,
-    command = scoringutils::summarize_scores(all_ww_scores,
+    command = scoringutils::summarize_scores(
+      all_ww_scores,
       by = c(
         "scenario",
         "period",
@@ -803,7 +811,8 @@ downstream_targets <- list(
   ),
   tar_target(
     name = summarized_scores,
-    command = scoringutils::summarize_scores(mock_submission_scores,
+    command = scoringutils::summarize_scores(
+      mock_submission_scores,
       by = c(
         "scenario",
         "period",
@@ -823,7 +832,8 @@ downstream_targets <- list(
   ),
   tar_target(
     name = final_summary_scores,
-    command = scoringutils::summarize_scores(mock_submission_scores,
+    command = scoringutils::summarize_scores(
+      mock_submission_scores,
       by = c(
         "scenario",
         "period"

@@ -1,56 +1,51 @@
 repos:
-#####
-# Basic file cleanliness
--   repo: https://github.com/pre-commit/pre-commit-hooks
+  #####
+  # Basic file cleanliness
+  - repo: https://github.com/pre-commit/pre-commit-hooks
     rev: v5.0.0
     hooks:
-    -   id: check-added-large-files
+      - id: check-added-large-files
         args: ['--maxkb=4000']
-    -   id: check-yaml
-    -   id: check-toml
-    -   id: end-of-file-fixer
-    -   id: mixed-line-ending
+      - id: check-yaml
+      - id: check-toml
+      - id: end-of-file-fixer
+      - id: mixed-line-ending
         args: ['--fix=lf']
-    -   id: trailing-whitespace
-#####
-# R
--   repo: https://github.com/lorenzwalthert/precommit
+      - id: trailing-whitespace
+  #####
+  # Python
+  - repo: https://github.com/astral-sh/ruff-pre-commit
+    rev: v0.11.11
+    hooks:
+      # Sort imports
+      - id: ruff
+        args: ["check", "--select", "I", "--fix"]
+        # Run the linter
+      - id: ruff
+        # Run the formatter
+      - id: ruff-format
+        args: ["--line-length", "79"]
+  - repo: https://github.com/astral-sh/uv-pre-commit
+    rev: 0.7.8
+    hooks:
+      - id: uv-lock
+  #####
+  # R
+  - repo: https://github.com/lorenzwalthert/precommit
     rev: v0.4.3.9009
     hooks:
-    -   id: style-files
-        args: [--style_pkg=styler, --style_fun=tidyverse_style,
-               --cache-root=styler-perm]
-    -   id: use-tidy-description
-    -   id: lintr
-    -   id: readme-rmd-rendered
-    -   id: parsable-R
-    -   id: no-browser-statement
-    -   id: no-print-statement
-    -   id: no-debug-statement
-
-########
-# Python
--   repo: https://github.com/psf/black
-    rev: 25.1.0
+      - id: lintr
+  #####
+  # Bash
+  - repo: https://github.com/scop/pre-commit-shfmt
+    rev: v3.11.0-1
     hooks:
-    -   id: black
-        args: ['--line-length', '79']
--   repo: https://github.com/PyCQA/isort
-    rev: 6.0.1
-    hooks:
-    -   id: isort
-        args: ['--profile', 'black',
-               '--line-length', '79']
--   repo: https://github.com/astral-sh/ruff-pre-commit
-    rev: v0.11.10
-    hooks:
-    -   id: ruff
-
-#########
-# Secrets
--   repo: https://github.com/Yelp/detect-secrets
+      - id: shfmt
+  #####
+  # Secrets
+  - repo: https://github.com/Yelp/detect-secrets
     rev: v1.5.0
     hooks:
-    -   id: detect-secrets
-        args: ['--baseline', '.secrets.baseline']
-        exclude: package.lock.json
+      - id: detect-secrets
+        args: ["--baseline", ".secrets.baseline"]
+        exclude: output

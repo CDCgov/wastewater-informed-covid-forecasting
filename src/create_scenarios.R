@@ -24,7 +24,23 @@ national_w_wwtp_name <- national |>
 # Write to scenarios folder
 scenario_dir <- file.path("input", "config", "eval", "scenarios")
 
-write.table(coes_w_wwtp_name, file.path(scenario_dir, "coes.tsv"), row.names = FALSE)
-write.table(hhs_regions_w_wwtp_name, file.path(scenario_dir, "hhs_regions.tsv"), row.names = FALSE)
-write.table(msas_w_wwtp_name, file.path(scenario_dir, "msas.tsv"), row.names = FALSE)
-write.table(national_w_wwtp_name, file.path(scenario_dir, "national.tsv"), row.names = FALSE)
+write.table(
+  coes_w_wwtp_name,
+  file.path(scenario_dir, "coes.tsv"),
+  row.names = FALSE
+)
+write.table(
+  hhs_regions_w_wwtp_name,
+  file.path(scenario_dir, "hhs_regions.tsv"),
+  row.names = FALSE
+)
+write.table(
+  msas_w_wwtp_name,
+  file.path(scenario_dir, "msas.tsv"),
+  row.names = FALSE
+)
+write.table(
+  national_w_wwtp_name,
+  file.path(scenario_dir, "national.tsv"),
+  row.names = FALSE
+)

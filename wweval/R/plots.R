@@ -14,34 +14,40 @@
 #' @return a ggplot object containing site-lab level exponential growth rates
 #' with the state level hospital admissions growth rates overlaid
 #' @export
-get_growth_rate_plot <- function(input_hosp_data,
-                                 input_ww_data,
-                                 location,
-                                 forecast_date,
-                                 rate = "daily",
-                                 align = "center") {
-  hosp_data <- input_hosp_data |> dplyr::mutate(
-    admits_7d_rolling = zoo::rollmean(daily_hosp_admits,
-      k = 7, na.pad = TRUE,
-      align = {{ align }}
+get_growth_rate_plot <- function(
+  input_hosp_data,
+  input_ww_data,
+  location,
+  forecast_date,
+  rate = "daily",
+  align = "center"
+) {
+  hosp_data <- input_hosp_data |>
+    dplyr::mutate(
+      admits_7d_rolling = zoo::rollmean(
+        daily_hosp_admits,
+        k = 7,
+        na.pad = TRUE,
+        align = {{ align }}
+      )
     )
-  )
 
   # linear interpolation of ww data
   ww_data <- input_ww_data |>
     dplyr::group_by(lab, site, lab_site_index) |>
-    tidyr::complete(date = seq.Date(min(hosp_data$date),
-      max(hosp_data$date),
-      by = "day"
-    )) |>
+    tidyr::complete(
+      date = seq.Date(min(hosp_data$date), max(hosp_data$date), by = "day")
+    ) |>
     dplyr::mutate(
       ww_interpolated = zoo::na.approx(ww, na.rm = FALSE)
     ) |>
     dplyr::ungroup() |>
     # Get 7 day rolling average of interpolated data
     dplyr::mutate(
-      ww_7d_rolling = zoo::rollmean(ww_interpolated,
-        k = 7, na.pad = TRUE,
+      ww_7d_rolling = zoo::rollmean(
+        ww_interpolated,
+        k = 7,
+        na.pad = TRUE,
         align = {{ align }}
       )
     )
@@ -67,7 +73,6 @@ get_growth_rate_plot <- function(input_hosp_data,
       lab_site_name = glue::glue("Site: {site}, Lab: {lab}")
     )
 
-
   daily_p <- ggplot(comb_data) +
     geom_line(aes(x = date, y = daily_r_ww, color = lab_site_name)) +
     geom_line(aes(x = date, y = daily_r_hosp)) +
@@ -77,8 +82,10 @@ get_growth_rate_plot <- function(input_hosp_data,
       panel.background = element_rect(fill = "white"),
       panel.grid.major = element_line(color = "gray"),
       axis.text.x = element_text(
-        size = 8, vjust = 1,
-        hjust = 1, angle = 45
+        size = 8,
+        vjust = 1,
+        hjust = 1,
+        angle = 45
       )
     ) +
     # coord_cartesian(ylim = c(-1, 1)) +
@@ -97,8 +104,10 @@ get_growth_rate_plot <- function(input_hosp_data,
       panel.background = element_rect(fill = "white"),
       panel.grid.major = element_line(color = "gray"),
       axis.text.x = element_text(
-        size = 8, vjust = 1,
-        hjust = 1, angle = 45
+        size = 8,
+        vjust = 1,
+        hjust = 1,
+        angle = 45
       )
     ) +
     xlab("") +
@@ -117,9 +126,6 @@ get_growth_rate_plot <- function(input_hosp_data,
 }
 
 
-
-
-
 #' Get plot of wastewater data compared to model draws
 #'
 #' @param draws_w_data A long tidy dataframe containing draws from the model of
@@ -132,10 +138,12 @@ get_growth_rate_plot <- function(input_hosp_data,
 #'
 #' @return a ggplot object faceted by site showing the draws
 #' @export
-get_plot_ww_data_comparison <- function(draws_w_data,
-                                        location,
-                                        model_type = "ww",
-                                        n_draws = 100) {
+get_plot_ww_data_comparison <- function(
+  draws_w_data,
+  location,
+  model_type = "ww",
+  n_draws = 100
+) {
   sampled_draws <- sample(1:max(draws_w_data$draw), n_draws)
   draws_w_data_subsetted <- draws_w_data |>
     dplyr::filter(
@@ -144,30 +152,41 @@ get_plot_ww_data_comparison <- function(draws_w_data,
     )
 
   p <- ggplot(draws_w_data_subsetted) +
-    geom_line(aes(x = date, y = value, group = draw, color = site_lab_name),
-      linewidth = 0.1, alpha = 0.1,
+    geom_line(
+      aes(x = date, y = value, group = draw, color = site_lab_name),
+      linewidth = 0.1,
+      alpha = 0.1,
       show.legend = FALSE
     ) +
-    geom_point(aes(x = date, y = eval_data),
-      fill = "white", size = 1, shape = 21,
+    geom_point(
+      aes(x = date, y = eval_data),
+      fill = "white",
+      size = 1,
+      shape = 21,
       show.legend = FALSE
     ) +
-    geom_point(aes(x = date, y = calib_data),
+    geom_point(
+      aes(x = date, y = calib_data),
       color = "black",
       show.legend = FALSE
     ) +
-    geom_vline(aes(xintercept = lubridate::ymd(forecast_date)),
+    geom_vline(
+      aes(xintercept = lubridate::ymd(forecast_date)),
       linetype = "dashed"
     ) +
     scale_y_continuous(trans = "log10") +
     facet_wrap(~site_lab_name, scales = "free_y") +
     geom_point(
       data = draws_w_data_subsetted |> filter(below_LOD == 1),
-      aes(x = date, y = calib_data), color = "red", size = 1.1
+      aes(x = date, y = calib_data),
+      color = "red",
+      size = 1.1
     ) +
     geom_point(
       data = draws_w_data_subsetted |> filter(flag_as_ww_outlier == 1),
-      aes(x = date, y = calib_data), color = "blue", size = 1.1
+      aes(x = date, y = calib_data),
+      color = "blue",
+      size = 1.1
     ) +
     xlab("") +
     ylab("Genome copies per mL") +
@@ -184,14 +203,17 @@ get_plot_ww_data_comparison <- function(draws_w_data,
     theme_bw() +
     theme(
       axis.text.x = element_text(
-        size = 8, vjust = 1,
-        hjust = 1, angle = 45
+        size = 8,
+        vjust = 1,
+        hjust = 1,
+        angle = 45
       ),
       axis.title.x = element_text(size = 12),
       axis.title.y = element_text(size = 12),
       plot.title = element_text(
         size = 10,
-        vjust = 0.5, hjust = 0.5
+        vjust = 0.5,
+        hjust = 0.5
       )
     )
   return(p)
@@ -211,10 +233,12 @@ get_plot_ww_data_comparison <- function(draws_w_data,
 #' @return a ggplot object showing the model draws of hospital admissions
 #' alongside the calibration and forecast data
 #' @export
-get_plot_hosp_data_comparison <- function(draws_w_data,
-                                          location,
-                                          model_type = c("ww", "hosp"),
-                                          n_draws = 100) {
+get_plot_hosp_data_comparison <- function(
+  draws_w_data,
+  location,
+  model_type = c("ww", "hosp"),
+  n_draws = 100
+) {
   model_type <- arg_match(model_type)
   sampled_draws <- sample(1:max(draws_w_data$draw), n_draws)
   draws_w_data_subsetted <- draws_w_data |>
@@ -225,22 +249,28 @@ get_plot_hosp_data_comparison <- function(draws_w_data,
 
   plot_color <- ifelse(model_type == "ww", "cornflowerblue", "purple4")
 
-
   p <- ggplot(draws_w_data_subsetted) +
-    geom_line(aes(x = date, y = value, group = draw),
+    geom_line(
+      aes(x = date, y = value, group = draw),
       color = plot_color,
-      linewidth = 0.2, alpha = 0.4,
+      linewidth = 0.2,
+      alpha = 0.4,
       show.legend = FALSE
     ) +
-    geom_point(aes(x = date, y = eval_data),
-      fill = "white", size = 1, shape = 21,
+    geom_point(
+      aes(x = date, y = eval_data),
+      fill = "white",
+      size = 1,
+      shape = 21,
       show.legend = FALSE
     ) +
-    geom_point(aes(x = date, y = calib_data),
+    geom_point(
+      aes(x = date, y = calib_data),
       color = "black",
       show.legend = FALSE
     ) +
-    geom_vline(aes(xintercept = lubridate::ymd(forecast_date)),
+    geom_vline(
+      aes(xintercept = lubridate::ymd(forecast_date)),
       linetype = "dashed"
     ) +
     # scale_y_continuous(trans = "log10") +
@@ -259,14 +289,17 @@ get_plot_hosp_data_comparison <- function(draws_w_data,
     theme_bw() +
     theme(
       axis.text.x = element_text(
-        size = 8, vjust = 1,
-        hjust = 1, angle = 45
+        size = 8,
+        vjust = 1,
+        hjust = 1,
+        angle = 45
       ),
       axis.title.x = element_text(size = 12),
       axis.title.y = element_text(size = 12),
       plot.title = element_text(
         size = 10,
-        vjust = 0.5, hjust = 0.5
+        vjust = 0.5,
+        hjust = 0.5
       )
     )
   return(p)
@@ -286,11 +319,13 @@ get_plot_hosp_data_comparison <- function(draws_w_data,
 #' each scenarion in a specific location for visual comparison
 #' @export
 #'
-get_plot_quantile_comparison <- function(hosp_quantiles,
-                                         eval_data,
-                                         figure_file_path,
-                                         days_to_show_forecast = 28,
-                                         save_files = TRUE) {
+get_plot_quantile_comparison <- function(
+  hosp_quantiles,
+  eval_data,
+  figure_file_path,
+  days_to_show_forecast = 28,
+  save_files = TRUE
+) {
   location <- hosp_quantiles |>
     pull(location) |>
     unique()
@@ -306,62 +341,77 @@ get_plot_quantile_comparison <- function(hosp_quantiles,
       date >= min(hosp_quantiles$date[hosp_quantiles$period == "nowcast"])
     )
 
-
-
   quantiles_wide <- hosp_quantiles |>
     dplyr::filter(period != "calibration") |>
     dplyr::filter(quantile %in% c(0.025, 0.25, 0.5, 0.75, 0.975)) |>
     tidyr::pivot_wider(
       id_cols = c(
-        forecast_date, period, scenario,
-        date, eval_data
+        forecast_date,
+        period,
+        scenario,
+        date,
+        eval_data
       ),
       names_from = quantile,
       values_from = value
     )
 
-
   p <- ggplot(quantiles_wide) +
     geom_point(
       data = eval_data_subsetted,
       aes(x = date, y = daily_hosp_admits),
-      color = "black", alpha = 0.3
+      color = "black",
+      alpha = 0.3
     ) +
     geom_line(
       data = eval_data_subsetted,
       aes(x = date, y = daily_hosp_admits),
-      color = "black", alpha = 0.3
+      color = "black",
+      alpha = 0.3
     ) +
     geom_line(
-      data = quantiles_wide |> filter(
-        date >= forecast_date,
-        date <= forecast_date + days_to_show_forecast
-      ),
+      data = quantiles_wide |>
+        filter(
+          date >= forecast_date,
+          date <= forecast_date + days_to_show_forecast
+        ),
       aes(
-        x = date, y = `0.5`, group = forecast_date,
+        x = date,
+        y = `0.5`,
+        group = forecast_date,
         color = scenario
       )
     ) +
     geom_ribbon(
-      data = quantiles_wide |> filter(
-        date >= forecast_date,
-        date <= forecast_date + days_to_show_forecast
-      ),
+      data = quantiles_wide |>
+        filter(
+          date >= forecast_date,
+          date <= forecast_date + days_to_show_forecast
+        ),
       aes(
-        x = date, ymin = `0.025`, ymax = `0.975`,
-        fill = scenario, group = forecast_date
-      ), alpha = 0.1,
+        x = date,
+        ymin = `0.025`,
+        ymax = `0.975`,
+        fill = scenario,
+        group = forecast_date
+      ),
+      alpha = 0.1,
       show.legend = FALSE
     ) +
     geom_ribbon(
-      data = quantiles_wide |> filter(
-        date >= forecast_date,
-        date <= forecast_date + days_to_show_forecast
-      ),
+      data = quantiles_wide |>
+        filter(
+          date >= forecast_date,
+          date <= forecast_date + days_to_show_forecast
+        ),
       aes(
-        x = date, ymin = `0.25`, ymax = `0.75`,
-        fill = scenario, group = forecast_date
-      ), alpha = 0.1,
+        x = date,
+        ymin = `0.25`,
+        ymax = `0.75`,
+        fill = scenario,
+        group = forecast_date
+      ),
+      alpha = 0.1,
       show.legend = FALSE
     ) +
     facet_wrap(~scenario, nrow = n_scenarios) +
@@ -380,14 +430,17 @@ get_plot_quantile_comparison <- function(hosp_quantiles,
     theme_bw() +
     theme(
       axis.text.x = element_text(
-        size = 8, vjust = 1,
-        hjust = 1, angle = 45
+        size = 8,
+        vjust = 1,
+        hjust = 1,
+        angle = 45
       ),
       axis.title.x = element_text(size = 12),
       axis.title.y = element_text(size = 10),
       plot.title = element_text(
         size = 10,
-        vjust = 0.5, hjust = 0.5
+        vjust = 0.5,
+        hjust = 0.5
       )
     )
 
@@ -411,9 +464,7 @@ get_plot_quantile_comparison <- function(hosp_quantiles,
 }
 
 
-
-get_plot_ww_comparison <- function(ww_quantiles,
-                                   days_to_show_forecast = 28) {
+get_plot_ww_comparison <- function(ww_quantiles, days_to_show_forecast = 28) {
   location <- ww_quantiles |>
     pull(location) |>
     unique()
@@ -421,14 +472,18 @@ get_plot_ww_comparison <- function(ww_quantiles,
     pull(scenario) |>
     unique()
 
-
   quantiles_wide <- ww_quantiles |>
     dplyr::filter(period != "calibration") |>
     dplyr::filter(quantile %in% c(0.025, 0.25, 0.5, 0.75, 0.975)) |>
     tidyr::pivot_wider(
       id_cols = c(
-        forecast_date, period, scenario,
-        date, t, eval_data, site_lab_name
+        forecast_date,
+        period,
+        scenario,
+        date,
+        t,
+        eval_data,
+        site_lab_name
       ),
       names_from = quantile,
       values_from = value
@@ -436,44 +491,58 @@ get_plot_ww_comparison <- function(ww_quantiles,
 
   p <- ggplot(quantiles_wide) +
     geom_point(
-      data = quantiles_wide |> filter(
-        date >= forecast_date,
-        date <= forecast_date + days_to_show_forecast
-      ),
+      data = quantiles_wide |>
+        filter(
+          date >= forecast_date,
+          date <= forecast_date + days_to_show_forecast
+        ),
       aes(x = date, y = eval_data),
       color = "black"
     ) +
     geom_line(
-      data = quantiles_wide |> filter(
-        date >= forecast_date,
-        date <= forecast_date + days_to_show_forecast
-      ),
+      data = quantiles_wide |>
+        filter(
+          date >= forecast_date,
+          date <= forecast_date + days_to_show_forecast
+        ),
       aes(
-        x = date, y = `0.5`, group = forecast_date,
+        x = date,
+        y = `0.5`,
+        group = forecast_date,
         color = site_lab_name
       ),
       show.legend = FALSE
     ) +
     geom_ribbon(
-      data = quantiles_wide |> filter(
-        date >= forecast_date,
-        date <= forecast_date + days_to_show_forecast
-      ),
+      data = quantiles_wide |>
+        filter(
+          date >= forecast_date,
+          date <= forecast_date + days_to_show_forecast
+        ),
       aes(
-        x = date, ymin = `0.025`, ymax = `0.975`,
-        fill = site_lab_name, group = forecast_date
-      ), alpha = 0.1,
+        x = date,
+        ymin = `0.025`,
+        ymax = `0.975`,
+        fill = site_lab_name,
+        group = forecast_date
+      ),
+      alpha = 0.1,
       show.legend = FALSE
     ) +
     geom_ribbon(
-      data = quantiles_wide |> filter(
-        date >= forecast_date,
-        date <= forecast_date + days_to_show_forecast
-      ),
+      data = quantiles_wide |>
+        filter(
+          date >= forecast_date,
+          date <= forecast_date + days_to_show_forecast
+        ),
       aes(
-        x = date, ymin = `0.25`, ymax = `0.75`,
-        fill = site_lab_name, group = forecast_date
-      ), alpha = 0.1,
+        x = date,
+        ymin = `0.25`,
+        ymax = `0.75`,
+        fill = site_lab_name,
+        group = forecast_date
+      ),
+      alpha = 0.1,
       show.legend = FALSE
     ) +
     facet_wrap(~site_lab_name) +
@@ -493,14 +562,17 @@ get_plot_ww_comparison <- function(ww_quantiles,
     theme_bw() +
     theme(
       axis.text.x = element_text(
-        size = 8, vjust = 1,
-        hjust = 1, angle = 45
+        size = 8,
+        vjust = 1,
+        hjust = 1,
+        angle = 45
       ),
       axis.title.x = element_text(size = 12),
       axis.title.y = element_text(size = 10),
       plot.title = element_text(
         size = 8,
-        vjust = 0.5, hjust = 0.5
+        vjust = 0.5,
+        hjust = 0.5
       )
     )
 
@@ -508,11 +580,12 @@ get_plot_ww_comparison <- function(ww_quantiles,
 }
 
 
-get_plot_final_scores <- function(final_scores,
-                                  score_metric = "crps") {
+get_plot_final_scores <- function(final_scores, score_metric = "crps") {
   p <- ggplot(final_scores) +
-    geom_bar(aes(x = scenario, y = .data[[score_metric]], fill = scenario),
-      position = "dodge", stat = "identity"
+    geom_bar(
+      aes(x = scenario, y = .data[[score_metric]], fill = scenario),
+      position = "dodge",
+      stat = "identity"
     ) +
     theme_bw() +
     ylab(glue::glue("{score_metric} across forecast dates and locations"))
@@ -529,12 +602,13 @@ get_plot_final_scores <- function(final_scores,
 #' @return a ggplot object plotting all of the scores over time
 #' @export
 #'
-get_plot_raw_scores <- function(all_scores,
-                                score_metric = "crps") {
+get_plot_raw_scores <- function(all_scores, score_metric = "crps") {
   p <- ggplot(all_scores) +
     geom_point(aes(
-      x = date, y = .data[[score_metric]],
-      color = scenario, group = c(forecast_date)
+      x = date,
+      y = .data[[score_metric]],
+      color = scenario,
+      group = c(forecast_date)
     )) +
     facet_grid(forecast_date ~ location, scales = "free") +
     theme_bw()
@@ -558,15 +632,16 @@ get_plot_raw_scores <- function(all_scores,
 #' and scenario over time with the data overlaid
 #' @export
 #'
-get_plot_scores_w_data <- function(all_scores,
-                                   eval_data,
-                                   figure_file_path,
-                                   score_metric = "crps",
-                                   save_files = TRUE) {
+get_plot_scores_w_data <- function(
+  all_scores,
+  eval_data,
+  figure_file_path,
+  score_metric = "crps",
+  save_files = TRUE
+) {
   location <- all_scores |>
     pull(location) |>
     unique()
-
 
   eval_data_subsetted <- eval_data |>
     dplyr::filter(
@@ -574,13 +649,13 @@ get_plot_scores_w_data <- function(all_scores,
       date <= max(all_scores$date),
       date >= min(all_scores$forecast_date) - lubridate::days(10)
     )
-  coeff <- (
-    median(eval_data_subsetted$daily_hosp_admits, na.rm = TRUE) /
-      median(all_scores |>
+  coeff <- (median(eval_data_subsetted$daily_hosp_admits, na.rm = TRUE) /
+    median(
+      all_scores |>
         dplyr::select({{ score_metric }}) |> # nolint
-        dplyr::pull(), na.rm = TRUE)
-  )
-
+        dplyr::pull(),
+      na.rm = TRUE
+    ))
 
   scores <- all_scores |>
     dplyr::select(-tar_group) |>
@@ -599,33 +674,42 @@ get_plot_scores_w_data <- function(all_scores,
     rename(baseline_score = {{ score_metric }}) |>
     select(location, forecast_date, baseline_score)
 
-
   summary_across_dates <- all_scores |>
     data.table::as.data.table() |>
     scoringutils::summarize_scores(
       by = c("location", "scenario")
     )
 
-  coeff <- (
-    median(eval_data_subsetted$daily_hosp_admits, na.rm = TRUE) /
-      median(summarized_scores |>
+  coeff <- (median(eval_data_subsetted$daily_hosp_admits, na.rm = TRUE) /
+    median(
+      summarized_scores |>
         dplyr::select({{ score_metric }}) |> # nolint
-        dplyr::pull(), na.rm = TRUE)
-  )
+        dplyr::pull(),
+      na.rm = TRUE
+    ))
 
   p <- ggplot(summarized_scores) +
-    geom_bar(aes(x = forecast_date, y = .data[[score_metric]] * coeff, fill = scenario),
-      stat = "identity", position = "dodge", alpha = 0.5
+    geom_bar(
+      aes(
+        x = forecast_date,
+        y = .data[[score_metric]] * coeff,
+        fill = scenario
+      ),
+      stat = "identity",
+      position = "dodge",
+      alpha = 0.5
     ) +
     geom_point(
       data = eval_data_subsetted,
       aes(x = date, y = daily_hosp_admits),
-      color = "black", alpha = 0.3
+      color = "black",
+      alpha = 0.3
     ) +
     geom_line(
       data = eval_data_subsetted,
       aes(x = date, y = daily_hosp_admits),
-      color = "black", alpha = 0.3
+      color = "black",
+      alpha = 0.3
     ) +
     theme_bw() +
     xlab("") +
@@ -650,14 +734,17 @@ get_plot_scores_w_data <- function(all_scores,
     ) +
     theme(
       axis.text.x = element_text(
-        size = 8, vjust = 1,
-        hjust = 1, angle = 45
+        size = 8,
+        vjust = 1,
+        hjust = 1,
+        angle = 45
       ),
       axis.title.x = element_text(size = 12),
       axis.title.y = element_text(size = 10),
       plot.title = element_text(
         size = 10,
-        vjust = 0.5, hjust = 0.5
+        vjust = 0.5,
+        hjust = 0.5
       )
     )
 
@@ -690,8 +777,7 @@ get_plot_scores_w_data <- function(all_scores,
 #' and scenario over time
 #' @export
 #'
-get_plot_summarized_scores <- function(all_scores,
-                                       score_metric = "crps") {
+get_plot_summarized_scores <- function(all_scores, score_metric = "crps") {
   scores <- all_scores |>
     dplyr::select(-tar_group) |>
     data.table::as.data.table()
@@ -718,8 +804,11 @@ get_plot_summarized_scores <- function(all_scores,
     )
 
   p <- ggplot(summarized_scores) +
-    geom_bar(aes(x = forecast_date, y = .data[[score_metric]], fill = scenario),
-      stat = "identity", position = "dodge", alpha = 0.5
+    geom_bar(
+      aes(x = forecast_date, y = .data[[score_metric]], fill = scenario),
+      stat = "identity",
+      position = "dodge",
+      alpha = 0.5
     ) +
     geom_hline(
       data = summary_across_dates,
@@ -740,14 +829,17 @@ get_plot_summarized_scores <- function(all_scores,
     ) +
     theme(
       axis.text.x = element_text(
-        size = 8, vjust = 1,
-        hjust = 1, angle = 45
+        size = 8,
+        vjust = 1,
+        hjust = 1,
+        angle = 45
       ),
       axis.title.x = element_text(size = 12),
       axis.title.y = element_text(size = 12),
       plot.title = element_text(
         size = 10,
-        vjust = 0.5, hjust = 0.5
+        vjust = 0.5,
+        hjust = 0.5
       )
     )
 
@@ -766,8 +858,7 @@ get_plot_summarized_scores <- function(all_scores,
 #' forecast dates (x axis) and locations (y-axis)
 #' @export
 #'
-get_heatmap_scores <- function(mock_submission_scores,
-                               score_metric = "crps") {
+get_heatmap_scores <- function(mock_submission_scores, score_metric = "crps") {
   summary_across_forecast_dates <- mock_submission_scores |>
     data.table::as.data.table() |>
     scoringutils::summarize_scores(
@@ -784,14 +875,17 @@ get_heatmap_scores <- function(mock_submission_scores,
     theme_bw() +
     theme(
       axis.text.x = element_text(
-        size = 8, vjust = 1,
-        hjust = 1, angle = 45
+        size = 8,
+        vjust = 1,
+        hjust = 1,
+        angle = 45
       ),
       axis.title.x = element_text(size = 12),
       axis.title.y = element_text(size = 12),
       plot.title = element_text(
         size = 10,
-        vjust = 0.5, hjust = 0.5
+        vjust = 0.5,
+        hjust = 0.5
       )
     ) +
     scale_x_date(
@@ -818,11 +912,14 @@ get_heatmap_scores <- function(mock_submission_scores,
 #' scores by forecast date and scenario for each location
 #' @export
 #'
-get_box_plot <- function(all_scores,
-                         figure_file_path,
-                         baseline_scenario = "no_wastewater",
-                         save_files = TRUE) {
-  scores_by_date_scen_loc <- scoringutils::summarize_scores(all_scores,
+get_box_plot <- function(
+  all_scores,
+  figure_file_path,
+  baseline_scenario = "no_wastewater",
+  save_files = TRUE
+) {
+  scores_by_date_scen_loc <- scoringutils::summarize_scores(
+    all_scores,
     by = c(
       "scenario",
       "location",
@@ -836,9 +933,7 @@ get_box_plot <- function(all_scores,
     select(location, forecast_date, baseline_score)
 
   overall_scores <- scores_by_date_scen_loc |>
-    dplyr::left_join(baseline_only,
-      by = c("location", "forecast_date")
-    ) |>
+    dplyr::left_join(baseline_only, by = c("location", "forecast_date")) |>
     group_by(location, forecast_date, scenario) |>
     dplyr::summarize(
       relative_score = crps / baseline_score,
@@ -851,8 +946,10 @@ get_box_plot <- function(all_scores,
   p <- ggplot(
     overall_scores,
     aes(
-      x = factor(forecast_date), y = diff_in_score,
-      fill = scenario, color = scenario
+      x = factor(forecast_date),
+      y = diff_in_score,
+      fill = scenario,
+      color = scenario
     )
   ) +
     geom_boxplot(position = "dodge", alpha = 0.5) +
@@ -863,14 +960,17 @@ get_box_plot <- function(all_scores,
     theme_bw() +
     theme(
       axis.text.x = element_text(
-        size = 8, vjust = 1,
-        hjust = 1, angle = 45
+        size = 8,
+        vjust = 1,
+        hjust = 1,
+        angle = 45
       ),
       axis.title.x = element_text(size = 12),
       axis.title.y = element_text(size = 10),
       plot.title = element_text(
         size = 10,
-        vjust = 0.5, hjust = 0.5
+        vjust = 0.5,
+        hjust = 0.5
       )
     )
 
@@ -911,12 +1011,15 @@ get_box_plot <- function(all_scores,
 #' wastewater under each scenario.
 #' @export
 #'
-get_n_states_improved_plot <- function(all_scores,
-                                       figure_file_path,
-                                       baseline_scenario = "no_wastewater",
-                                       threshold_for_improvement = 1,
-                                       save_files = TRUE) {
-  scores_by_date_scen_loc <- scoringutils::summarize_scores(all_scores,
+get_n_states_improved_plot <- function(
+  all_scores,
+  figure_file_path,
+  baseline_scenario = "no_wastewater",
+  threshold_for_improvement = 1,
+  save_files = TRUE
+) {
+  scores_by_date_scen_loc <- scoringutils::summarize_scores(
+    all_scores,
     by = c(
       "scenario",
       "location",
@@ -930,9 +1033,7 @@ get_n_states_improved_plot <- function(all_scores,
     select(location, forecast_date, baseline_score)
 
   overall_scores <- scores_by_date_scen_loc |>
-    dplyr::left_join(baseline_only,
-      by = c("location", "forecast_date")
-    ) |>
+    dplyr::left_join(baseline_only, by = c("location", "forecast_date")) |>
     group_by(location, forecast_date, scenario) |>
     dplyr::summarize(
       relative_score = crps / baseline_score,
@@ -965,14 +1066,17 @@ get_n_states_improved_plot <- function(all_scores,
     theme_bw() +
     theme(
       axis.text.x = element_text(
-        size = 8, vjust = 1,
-        hjust = 1, angle = 45
+        size = 8,
+        vjust = 1,
+        hjust = 1,
+        angle = 45
       ),
       axis.title.x = element_text(size = 12),
       axis.title.y = element_text(size = 10),
       plot.title = element_text(
         size = 10,
-        vjust = 0.5, hjust = 0.5
+        vjust = 0.5,
+        hjust = 0.5
       )
     )
 
@@ -1013,43 +1117,55 @@ get_n_states_improved_plot <- function(all_scores,
 #' all time points
 #' @export
 #'
-get_plot_wis_over_time <- function(all_scores,
-                                   cfa_real_time_scores,
-                                   figure_file_path,
-                                   horizon_time_in_weeks = NULL,
-                                   save_files = TRUE) {
+get_plot_wis_over_time <- function(
+  all_scores,
+  cfa_real_time_scores,
+  figure_file_path,
+  horizon_time_in_weeks = NULL,
+  save_files = TRUE
+) {
   scores <- dplyr::bind_rows(all_scores, cfa_real_time_scores)
 
   if (!is.null(horizon_time_in_weeks)) {
     scores_by_forecast_date <- scores |>
       data.table::as.data.table() |>
-      scoringutils::summarise_scores(by = c(
-        "forecast_date",
-        "model", "horizon"
-      )) |>
-      dplyr::filter(horizon_weeks == {
-        horizon_time_in_weeks
-      })
+      scoringutils::summarise_scores(
+        by = c(
+          "forecast_date",
+          "model",
+          "horizon"
+        )
+      ) |>
+      dplyr::filter(
+        horizon_weeks ==
+          {
+            horizon_time_in_weeks
+          }
+      )
     title <- glue::glue(
       "Average {horizon_time_in_weeks}-week ahead weighted interval scores by model"
     )
   } else {
     scores_by_forecast_date <- scores |>
       data.table::as.data.table() |>
-      scoringutils::summarise_scores(by = c(
-        "forecast_date",
-        "model"
-      ))
+      scoringutils::summarise_scores(
+        by = c(
+          "forecast_date",
+          "model"
+        )
+      )
     title <- glue::glue("Average weighted interval scores by model")
   }
 
   p <- ggplot(scores_by_forecast_date) +
     geom_line(aes(
-      x = forecast_date, y = interval_score,
+      x = forecast_date,
+      y = interval_score,
       color = model
     )) +
     geom_point(aes(
-      x = forecast_date, y = interval_score,
+      x = forecast_date,
+      y = interval_score,
       color = model
     )) +
     xlab("Forecast date") +
@@ -1058,14 +1174,17 @@ get_plot_wis_over_time <- function(all_scores,
     theme(
       legend.position = "bottom",
       axis.text.x = element_text(
-        size = 8, vjust = 1,
-        hjust = 1, angle = 45
+        size = 8,
+        vjust = 1,
+        hjust = 1,
+        angle = 45
       ),
       axis.title.x = element_text(size = 12),
       axis.title.y = element_text(size = 10),
       plot.title = element_text(
         size = 10,
-        vjust = 0.5, hjust = 0.5
+        vjust = 0.5,
+        hjust = 0.5
       )
     ) +
     scale_x_date(
@@ -1116,13 +1235,15 @@ get_plot_wis_over_time <- function(all_scores,
 #' full distribution
 #' @export
 #'
-get_plot_hub_performance <- function(all_scores,
-                                     cfa_real_time_scores,
-                                     figure_file_path,
-                                     all_time_period,
-                                     real_time_period,
-                                     baseline_model = "COVIDhub-baseline",
-                                     save_files = TRUE) {
+get_plot_hub_performance <- function(
+  all_scores,
+  cfa_real_time_scores,
+  figure_file_path,
+  all_time_period,
+  real_time_period,
+  baseline_model = "COVIDhub-baseline",
+  save_files = TRUE
+) {
   scores_by_model_all_time <- all_scores |>
     data.table::as.data.table() |>
     scoringutils::summarise_scores(
@@ -1158,7 +1279,9 @@ get_plot_hub_performance <- function(all_scores,
       mean_score = interval_score
     ) |>
     dplyr::select(
-      model, period, mean_score
+      model,
+      period,
+      mean_score
     )
 
   baseline_scores <- scores |>
@@ -1168,20 +1291,23 @@ get_plot_hub_performance <- function(all_scores,
 
   scores_final <- scores |>
     dplyr::left_join(mean_scores, by = c("model", "period")) |>
-    dplyr::left_join(baseline_scores, by = c(
-      "forecast_date", "horizon",
-      "location"
-    )) |>
+    dplyr::left_join(
+      baseline_scores,
+      by = c(
+        "forecast_date",
+        "horizon",
+        "location"
+      )
+    ) |>
     dplyr::mutate(relative_wis = interval_score / baseline_score) |>
     dplyr::filter(model != {{ baseline_model }}) |>
     order_periods()
 
-
-
   p <- ggplot(scores_final) +
     tidybayes::stat_halfeye(
       aes(
-        x = period, y = relative_wis + 1e-8,
+        x = period,
+        y = relative_wis + 1e-8,
         fill = model
       ),
       point_interval = "mean_qi",
@@ -1197,13 +1323,15 @@ get_plot_hub_performance <- function(all_scores,
       axis.title.y = element_text(size = 10),
       plot.title = element_text(
         size = 10,
-        vjust = 0.5, hjust = 0.5
+        vjust = 0.5,
+        hjust = 0.5
       )
     ) +
     xlab("Time period") +
     ylab(glue::glue("Relative WIS compared to {baseline_model}")) +
-    ggtitle("Distribution of relative WIS across locations, horizons, and forecast dates")
-
+    ggtitle(
+      "Distribution of relative WIS across locations, horizons, and forecast dates"
+    )
 
   if (isTRUE(save_files)) {
     full_file_path <- file.path(figure_file_path, "hub_comparison")
@@ -1220,7 +1348,6 @@ get_plot_hub_performance <- function(all_scores,
       bg = "white"
     )
   }
-
 
   return(p)
 }
@@ -1241,17 +1368,20 @@ get_plot_hub_performance <- function(all_scores,
 #' and fill by relative WIS score across forecast dates and horizons
 #' @export
 #'
-get_heatmap_relative_wis <- function(scores,
-                                     figure_file_path,
-                                     time_period,
-                                     baseline_model = "COVIDhub-baseline",
-                                     save_files = TRUE) {
+get_heatmap_relative_wis <- function(
+  scores,
+  figure_file_path,
+  time_period,
+  baseline_model = "COVIDhub-baseline",
+  save_files = TRUE
+) {
   summarized_scores <- scores |>
     data.table::as.data.table() |>
     scoringutils::summarise_scores(
       by = c("model", "location")
     ) |>
-    dplyr::left_join(wweval::flusight_location_table,
+    dplyr::left_join(
+      wweval::flusight_location_table,
       by = c("location" = "location_code")
     )
 
@@ -1263,43 +1393,53 @@ get_heatmap_relative_wis <- function(scores,
     dplyr::select(location, baseline_wis)
 
   relative_scores <- summarized_scores |>
-    dplyr::left_join(baseline_score,
-      by = c("location")
-    ) |>
+    dplyr::left_join(baseline_score, by = c("location")) |>
     dplyr::mutate(
       relative_interval_score = interval_score / baseline_wis
     ) |>
     dplyr::filter(model != {{ baseline_model }})
 
-
   p <- ggplot(relative_scores) +
     geom_tile(aes(x = model, y = short_name, fill = relative_interval_score)) +
     scale_fill_gradient2(
-      high = "red", mid = "white", low = "blue", transform = "log2",
-      midpoint = 1, guide = "colourbar", aesthetics = "fill"
+      high = "red",
+      mid = "white",
+      low = "blue",
+      transform = "log2",
+      midpoint = 1,
+      guide = "colourbar",
+      aesthetics = "fill"
     ) +
-    geom_text(aes(
-      x = model, y = short_name,
-      label = round(relative_interval_score, 2)
-    ), size = 2.5) +
+    geom_text(
+      aes(
+        x = model,
+        y = short_name,
+        label = round(relative_interval_score, 2)
+      ),
+      size = 2.5
+    ) +
     theme_bw() +
     theme(
       axis.text.x = element_text(
-        size = 8, vjust = 1,
-        hjust = 1, angle = 45
+        size = 8,
+        vjust = 1,
+        hjust = 1,
+        angle = 45
       ),
       axis.title.x = element_text(size = 12),
       axis.title.y = element_text(size = 10),
       plot.title = element_text(
         size = 10,
-        vjust = 0.5, hjust = 0.5
+        vjust = 0.5,
+        hjust = 0.5
       )
     ) +
     xlab("") +
     ylab("") +
     labs(fill = "Relative WIS") +
-    ggtitle(glue::glue("Relative WIS compared to {baseline_model} from {time_period}"))
-
+    ggtitle(glue::glue(
+      "Relative WIS compared to {baseline_model} from {time_period}"
+    ))
 
   if (isTRUE(save_files)) {
     full_file_path <- file.path(figure_file_path, "hub_comparison")
@@ -1317,8 +1457,6 @@ get_heatmap_relative_wis <- function(scores,
     )
   }
 
-
-
   return(p)
 }
 
@@ -1335,16 +1473,17 @@ get_heatmap_relative_wis <- function(scores,
 #' each interval for each model.
 #' @export
 #'
-get_qq_plot <- function(scores,
-                        figure_file_path,
-                        time_period,
-                        save_files = TRUE) {
+get_qq_plot <- function(
+  scores,
+  figure_file_path,
+  time_period,
+  save_files = TRUE
+) {
   p <- scores |>
     data.table::as.data.table() |>
     scoringutils::summarise_scores(by = c("model", "range")) |>
     scoringutils::plot_interval_coverage() +
     ggtitle(glue::glue("QQ plot for {time_period}"))
-
 
   if (isTRUE(save_files)) {
     full_file_path <- file.path(figure_file_path, "hub_comparison")
@@ -1380,25 +1519,32 @@ get_plot_ww_data <- function(eval_data) {
     geom_point(
       data = eval_data |> dplyr::filter(flag_as_ww_outlier == 1),
       aes(x = date, y = log(ww)),
-      fill = "red", color = "red", size = 0.5
+      fill = "red",
+      color = "red",
+      size = 0.5
     ) +
     geom_point(
       data = eval_data |> dplyr::filter(below_LOD == 1),
       aes(x = date, y = log(ww)),
-      fill = "darkblue", color = "darkblue", size = 0.5
+      fill = "darkblue",
+      color = "darkblue",
+      size = 0.5
     ) +
     facet_wrap(~lab_site_name, scales = "free_y") +
     theme_bw() +
     theme(
       axis.text.x = element_text(
-        size = 8, vjust = 1,
-        hjust = 1, angle = 45
+        size = 8,
+        vjust = 1,
+        hjust = 1,
+        angle = 45
       ),
       axis.title.x = element_text(size = 12),
       axis.title.y = element_text(size = 10),
       plot.title = element_text(
         size = 10,
-        vjust = 0.5, hjust = 0.5
+        vjust = 0.5,
+        hjust = 0.5
       )
     ) +
     xlab("") +

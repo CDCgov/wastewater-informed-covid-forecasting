@@ -3,9 +3,11 @@ test_that("get_model_path returns correct paths", {
   stan_models_dir <- tempdir()
 
   # Create fake .stan files for testing purposes
-  file.create(file.path(stan_models_dir, "renewal_ww_hosp_site_level_inf_dynamics.stan"))
+  file.create(file.path(
+    stan_models_dir,
+    "renewal_ww_hosp_site_level_inf_dynamics.stan"
+  ))
   file.create(file.path(stan_models_dir, "renewal_ww_hosp.stan"))
-
 
   # Test for 'ww' model type
   expect_equal(

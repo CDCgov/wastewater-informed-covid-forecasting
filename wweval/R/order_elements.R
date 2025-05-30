@@ -21,10 +21,9 @@ order_horizons <- function(df) {
 
   if (!"horizon" %in% colnames(df)) {
     cli::cli_abort(
-      message =
-        c(
-          "Column named `horizon` is missing from the dataframe"
-        )
+      message = c(
+        "Column named `horizon` is missing from the dataframe"
+      )
     )
   }
 
@@ -35,21 +34,17 @@ order_horizons <- function(df) {
 
   if (any(!horizon_names %in% horizon_order)) {
     cli::cli_abort(
-      message =
-        c(
-          "Horizon names in dataframe differ from",
-          "expected names of: {horizon_order}"
-        )
+      message = c(
+        "Horizon names in dataframe differ from",
+        "expected names of: {horizon_order}"
+      )
     )
   }
-
 
   df_w_order <- df |>
     dplyr::mutate(
       horizon = factor(horizon, ordered = TRUE, levels = horizon_order)
     )
-
-
 
   return(df_w_order)
 }
@@ -71,10 +66,9 @@ order_periods <- function(df) {
 
   if (!"period" %in% colnames(df)) {
     cli::cli_abort(
-      message =
-        c(
-          "Column named `period` is missing from the dataframe"
-        )
+      message = c(
+        "Column named `period` is missing from the dataframe"
+      )
     )
   }
 
@@ -83,17 +77,14 @@ order_periods <- function(df) {
     dplyr::filter(!is.na(period)) |>
     dplyr::pull()
 
-
   if (any(!period_names %in% period_order)) {
     cli::cli_abort(
-      message =
-        c(
-          "Period names in dataframe differ from",
-          "expected names of: {period_order}"
-        )
+      message = c(
+        "Period names in dataframe differ from",
+        "expected names of: {period_order}"
+      )
     )
   }
-
 
   df_w_order <- df |>
     dplyr::mutate(
@@ -122,10 +113,9 @@ order_phases <- function(df) {
 
   if (!"phase" %in% colnames(df)) {
     cli::cli_abort(
-      message =
-        c(
-          "Column named `phase` is missing from the dataframe"
-        )
+      message = c(
+        "Column named `phase` is missing from the dataframe"
+      )
     )
   }
 
@@ -134,18 +124,14 @@ order_phases <- function(df) {
     dplyr::filter(!is.na(phase)) |>
     dplyr::pull()
 
-
   if (any(!phase_names %in% phase_order)) {
     cli::cli_abort(
-      message =
-        c(
-          "Phase names in dataframe differ from",
-          "expected names of: {phase_order}"
-        )
+      message = c(
+        "Phase names in dataframe differ from",
+        "expected names of: {phase_order}"
+      )
     )
   }
-
-
 
   df_w_order <- df |>
     dplyr::mutate(
@@ -168,20 +154,19 @@ order_phases <- function(df) {
 order_locations <- function(df, score_name) {
   loc_order <- df |>
     dplyr::group_by(location) |>
-    dplyr::summarize(geom_mean_rel_score = exp(mean(log(.data[[score_name]])))) |>
+    dplyr::summarize(
+      geom_mean_rel_score = exp(mean(log(.data[[score_name]])))
+    ) |>
     dplyr::arrange(geom_mean_rel_score, "desc") |>
     dplyr::pull(location)
 
   if (!"location" %in% colnames(df)) {
     cli::cli_abort(
-      message =
-        c(
-          "Column named `location` is missing from the dataframe"
-        )
+      message = c(
+        "Column named `location` is missing from the dataframe"
+      )
     )
   }
-
-
 
   df_w_order <- df |>
     dplyr::mutate(

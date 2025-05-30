@@ -19,13 +19,15 @@
 #' forecast date, conditioned on the presence of wastewater and model
 #' convergence
 #' @export
-score_real_time_outputs <- function(score_type,
-                                    real_time_output_dir,
-                                    table_of_run_ids,
-                                    locations,
-                                    dates,
-                                    eval_data,
-                                    hosp_only = FALSE) {
+score_real_time_outputs <- function(
+  score_type,
+  real_time_output_dir,
+  table_of_run_ids,
+  locations,
+  dates,
+  eval_data,
+  hosp_only = FALSE
+) {
   if (isTRUE(hosp_only)) {
     model_types <- c("hosp")
   } else {
@@ -37,69 +39,46 @@ score_real_time_outputs <- function(score_type,
   col_name <- ifelse(score_type == "crps", "draw", "quantile")
   for (i in seq_along(dates)) {
     date_to_pull <- dates[i]
-    metadata <- table_of_run_ids |> dplyr::filter(
-      forecast_date == date_to_pull
-    )
+    metadata <- table_of_run_ids |>
+      dplyr::filter(
+        forecast_date == date_to_pull
+      )
     run_id <- metadata$ids
     date_run <- metadata$dates_run
     for (j in seq_along(locations)) {
       for (m in seq_along(model_types)) {
-        model_long <- ifelse(model_types[m] == "ww",
+        model_long <- ifelse(
+          model_types[m] == "ww",
           "site-level infection dynamics",
           "hospital admissions only"
         )
-        if (date_to_pull %in% c("2024-02-05", "2024-02-12")) {
+        if (
+          date_to_pull %in%
+            c("2024-02-05", "2024-02-12")
+        ) {
           # Assume the old  file structure
           fp <- file.path(
             real_time_output_dir,
-            glue::glue("output_{date_to_pull}"),
+            glue::glue(
+              "output_{date_to_pull}"
+            ),
             "raw",
             locations[j],
             model_long,
             data_type,
             date_to_pull,
-            glue::glue("run-on-{date_run}-{run_id}-{data_type}.parquet")
+            glue::glue(
+              "run-on-{date_run}",
+              "-{run_id}-{data_type}",
+              ".parquet"
+            )
           )
           if (file.exists(fp)) {
             # The diagnostics are not flags here, just values.
             any_flags <- FALSE
 
-            these_preds <- arrow::read_parquet(fp) |>
-              dplyr::filter(
-                name == "pred_hosp",
-                period != "calibration"
-              ) |>
-              dplyr::select(
-                forecast_date,
-                date,
-                location,
-                value,
-                !!col_name
-              ) |>
-              dplyr::mutate(
-                model = model_types[m],
-                failed_convergence = any_flags
-              )
-          } else {
-            these_preds <- c()
-          }
-        } else {
-          # Assume the main newer file structure
-          dir <- file.path(
-            real_time_output_dir,
-            date_to_pull,
-            glue::glue("run-on-{date_run}-{run_id}"),
-            "raw",
-            locations[j],
-            model_long
-          )
-
-          if (file.exists(file.path(dir, glue::glue("{data_type}.parquet")))) {
-            this_flags <- readr::read_csv(file.path(dir, "diagnostics.csv"))
-            any_flags <- any(this_flags$value[20:23] == TRUE)
-
             these_preds <- arrow::read_parquet(
-              file.path(dir, glue::glue("{data_type}.parquet"))
+              fp
             ) |>
               dplyr::filter(
                 name == "pred_hosp",
@@ -113,7 +92,69 @@ score_real_time_outputs <- function(score_type,
                 !!col_name
               ) |>
               dplyr::mutate(
-                model = model_types[m],
+                model = model_types[
+                  m
+                ],
+                failed_convergence = any_flags
+              )
+          } else {
+            these_preds <- c()
+          }
+        } else {
+          # Assume the main newer file structure
+          dir <- file.path(
+            real_time_output_dir,
+            date_to_pull,
+            glue::glue(
+              "run-on-{date_run}-{run_id}"
+            ),
+            "raw",
+            locations[j],
+            model_long
+          )
+
+          if (
+            file.exists(file.path(
+              dir,
+              glue::glue(
+                "{data_type}.parquet"
+              )
+            ))
+          ) {
+            this_flags <- readr::read_csv(file.path(
+              dir,
+              "diagnostics.csv"
+            ))
+            any_flags <- any(
+              this_flags$value[
+                20:23
+              ] ==
+                TRUE
+            )
+
+            these_preds <- arrow::read_parquet(
+              file.path(
+                dir,
+                glue::glue(
+                  "{data_type}.parquet"
+                )
+              )
+            ) |>
+              dplyr::filter(
+                name == "pred_hosp",
+                period != "calibration"
+              ) |>
+              dplyr::select(
+                forecast_date,
+                date,
+                location,
+                value,
+                !!col_name
+              ) |>
+              dplyr::mutate(
+                model = model_types[
+                  m
+                ],
                 failed_convergence = any_flags
               )
           } else {
@@ -126,9 +167,16 @@ score_real_time_outputs <- function(score_type,
           preds_w_eval <- these_preds |>
             dplyr::left_join(
               eval_data |>
-                dplyr::select(-pop) |>
-                dplyr::rename(true_value = daily_hosp_admits),
-              by = c("location", "date")
+                dplyr::select(
+                  -pop
+                ) |>
+                dplyr::rename(
+                  true_value = daily_hosp_admits
+                ),
+              by = c(
+                "location",
+                "date"
+              )
             )
 
           # Pass to scoring utils
@@ -181,7 +229,6 @@ score_real_time_outputs <- function(score_type,
           scores <- c()
         }
 
-
         all_scores <- dplyr::bind_rows(
           all_scores,
           scores
@@ -189,7 +236,6 @@ score_real_time_outputs <- function(score_type,
       } # end loop around model types
     } # end loop around locs
   } # end loop around forecast dates
-
 
   return(all_scores)
 }
@@ -205,13 +251,13 @@ score_real_time_outputs <- function(score_type,
 #' @return a tibble formatted as the other real time scores for the real
 #' time hosp only model
 #' @export
-format_scores_for_comparison <- function(real_time_scores,
-                                         other_real_time_scores,
-                                         truth_data_path = "https://media.githubusercontent.com/media/reichlab/covid19-forecast-hub/master/data-truth/truth-Incident%20Hospitalizations.csv") { # nolint
-
+format_scores_for_comparison <- function(
+  real_time_scores,
+  other_real_time_scores,
+  truth_data_path = "https://media.githubusercontent.com/media/reichlab/covid19-forecast-hub/master/data-truth/truth-Incident%20Hospitalizations.csv" # nolint
+) {
   loc_to_loc_name_table <- readr::read_csv(truth_data_path) |>
     dplyr::distinct(location, location_name)
-
 
   formatted_scores <- real_time_scores |>
     dplyr::filter(
@@ -225,7 +271,8 @@ format_scores_for_comparison <- function(real_time_scores,
       days_ahead = as.numeric(date - forecast_date),
       target = glue::glue("{days_ahead} day ahead inc hosp"),
       horizon_days = as.integer(
-        lubridate::ymd(date) - lubridate::ymd(forecast_date)
+        lubridate::ymd(date) -
+          lubridate::ymd(forecast_date)
       ),
       horizon_weeks = ceiling(horizon_days / 7),
       horizon = glue::glue("{horizon_weeks} week ahead")
@@ -256,20 +303,23 @@ format_scores_for_comparison <- function(real_time_scores,
 #' but for both models
 #' @export
 combine_hub_and_local_wis <- function(
-    cfa_real_time_scores,
-    real_time_wis_hosp_only) {
+  cfa_real_time_scores,
+  real_time_wis_hosp_only
+) {
   real_time_wis_ho <- real_time_wis_hosp_only |>
     dplyr::select(-failed_convergence)
 
   loc_map_table <- cfa_real_time_scores |>
     dplyr::distinct(location) |>
-    dplyr::left_join(wweval::flusight_location_table,
+    dplyr::left_join(
+      wweval::flusight_location_table,
       by = c("location" = "location_code")
     )
 
   rt_reformatted <- cfa_real_time_scores |>
     dplyr::rename(location_code = location) |>
-    dplyr::left_join(loc_map_table,
+    dplyr::left_join(
+      loc_map_table,
       by = c("location_code" = "location")
     ) |>
     dplyr::rename(

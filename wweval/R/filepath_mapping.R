@@ -47,13 +47,15 @@ get_model_path <- function(model_type, stan_models_dir) {
 #' @return string of the full filepath
 #' @export
 #'
-get_filepath <- function(output_subdir,
-                         scenario,
-                         forecast_date,
-                         model_type,
-                         location,
-                         output_type,
-                         file_extension) {
+get_filepath <- function(
+  output_subdir,
+  scenario,
+  forecast_date,
+  model_type,
+  location,
+  output_type,
+  file_extension
+) {
   fp <- file.path(
     output_subdir,
     scenario,

@@ -28,15 +28,17 @@
 #' @return a tibble containing the pre-processed wastewater data ready to
 #' be passed into the wwinference function
 #' @export
-get_input_ww_data <- function(forecast_date_i,
-                              location_i,
-                              scenario_i,
-                              scenario_dir,
-                              ww_data_dir,
-                              calibration_time,
-                              last_hosp_data_date,
-                              ww_data_mapping,
-                              for_eval = FALSE) {
+get_input_ww_data <- function(
+  forecast_date_i,
+  location_i,
+  scenario_i,
+  scenario_dir,
+  ww_data_dir,
+  calibration_time,
+  last_hosp_data_date,
+  ww_data_mapping,
+  for_eval = FALSE
+) {
   # Load in the appropriate time-stamped NWSS dataset. This depends on
   # the date `ww_data_mapping` which is a string that we will specify
   # in the config
@@ -46,10 +48,9 @@ get_input_ww_data <- function(forecast_date_i,
     ww_data_dir
   )
 
-  first_calibration_date <- (
-    lubridate::ymd(last_hosp_data_date) -
-      lubridate::days(calibration_time) + lubridate::days(1)
-  )
+  first_calibration_date <- (lubridate::ymd(last_hosp_data_date) -
+    lubridate::days(calibration_time) +
+    lubridate::days(1))
 
   ww_data_path <- file.path(ww_data_dir, paste0(date_to_pull, ".csv"))
   raw_nwss_data <- readr::read_csv(ww_data_path, show_col_types = FALSE)
@@ -89,7 +90,6 @@ get_input_ww_data <- function(forecast_date_i,
     )) |>
     dplyr::ungroup()
 
-
   ww_data_preprocessed <- wwinference::preprocess_ww_data(
     subsetted_ww_data,
     conc_col_name = "log_genome_copies_per_ml",
@@ -126,9 +126,11 @@ get_input_ww_data <- function(forecast_date_i,
 #' @return a dataframe that only contains the ww data from
 #' the sites in the list pertaining to the scenario
 #' @export
-get_scenario_site_ids <- function(init_subset_nwss_data,
-                                  scenario = "status_quo",
-                                  scenario_dir = NA) {
+get_scenario_site_ids <- function(
+  init_subset_nwss_data,
+  scenario = "status_quo",
+  scenario_dir = NA
+) {
   list_of_wwtp_ids <- unique(init_subset_nwss_data$wwtp_name)
   if (scenario != "status_quo") {
     list_of_wwtp_ids <- read.table(
@@ -169,13 +171,15 @@ get_scenario_site_ids <- function(init_subset_nwss_data,
 #' @return a tibble containing the preprocessed hospital admissions data ready
 #' to be passed into the wwinference function
 #' @export
-get_input_hosp_data <- function(forecast_date_i,
-                                location_i,
-                                hosp_data_dir,
-                                calibration_time,
-                                for_eval = FALSE,
-                                load_from_epidatr = FALSE,
-                                population_data_path = NA) {
+get_input_hosp_data <- function(
+  forecast_date_i,
+  location_i,
+  hosp_data_dir,
+  calibration_time,
+  for_eval = FALSE,
+  load_from_epidatr = FALSE,
+  population_data_path = NA
+) {
   fp <- file.path(hosp_data_dir, paste0(forecast_date_i, ".csv"))
 
   # Load in the appropriate time-stamped hospital admissions dataset
@@ -219,11 +223,10 @@ get_input_hosp_data <- function(forecast_date_i,
     mutate(date = lubridate::ymd(date)) |>
     filter(
       location %in% c(!!location_i),
-      date >= (
-        ymd(!!last_hosp_data_date) -
+      date >=
+        (ymd(!!last_hosp_data_date) -
           lubridate::days(!!calibration_time) +
-          lubridate::days(1)
-      )
+          lubridate::days(1))
     )
 
   if (!isTRUE(for_eval)) {
@@ -254,14 +257,9 @@ get_input_hosp_data <- function(forecast_date_i,
 #'
 #' @return the date to get the ww data from
 #' @export
-date_of_ww_data <- function(forecast_date,
-                            ww_data_mapping,
-                            ww_data_dir) {
+date_of_ww_data <- function(forecast_date, ww_data_mapping, ww_data_dir) {
   if (ww_data_mapping == "most recent") {
-    dates <- fs::dir_ls(ww_data_dir,
-      type = "file",
-      glob = "*.csv"
-    ) |>
+    dates <- fs::dir_ls(ww_data_dir, type = "file", glob = "*.csv") |>
       fs::path_file() |>
       fs::path_ext_remove() |>
       unname() |>
@@ -277,8 +275,11 @@ date_of_ww_data <- function(forecast_date,
   } else if (ww_data_mapping == "Monday: Monday, Wednesday: Monday") {
     # Error if mapping is Monday to Wednesday and forecast date is neither
     stopifnot(
-      "Forecast date is not a Monday or Wednesday" =
-        lubridate::wday(forecast_date) == 2 || lubridate::wday(forecast_date) == 4
+      "Forecast date is not a Monday or Wednesday" = lubridate::wday(
+        forecast_date
+      ) ==
+        2 ||
+        lubridate::wday(forecast_date) == 4
     )
 
     if (lubridate::wday(forecast_date) == 2) {
@@ -288,14 +289,16 @@ date_of_ww_data <- function(forecast_date,
         ymd(forecast_date) - lubridate::days(2)
       )
     }
-  } else { # Anything else right now we don't have algorithm written for,
+  } else {
+    # Anything else right now we don't have algorithm written for,
     # so prompt
     date_to_pull <- NA
   }
 
   stopifnot(
-    "Need to write case to specify which wastewater data to pull" =
-      !is.na(date_to_pull)
+    "Need to write case to specify which wastewater data to pull" = !is.na(
+      date_to_pull
+    )
   )
 
   return(date_to_pull)
@@ -338,25 +341,40 @@ clean_and_filter_nwss_data <- function(raw_nwss_data) {
     #* Note, we need to figure out how to convert copies/g dry sludge to a WW concentration,
     #* but now now we're just going to exclude
     select(
-      lab_id, sample_collect_date, wwtp_name, pcr_target_avg_conc,
-      wwtp_jurisdiction, county_names, population_served, pcr_target_units,
-      pcr_target_below_lod, lod_sewage, quality_flag
+      lab_id,
+      sample_collect_date,
+      wwtp_name,
+      pcr_target_avg_conc,
+      wwtp_jurisdiction,
+      county_names,
+      population_served,
+      pcr_target_units,
+      pcr_target_below_lod,
+      lod_sewage,
+      quality_flag
     ) |>
     mutate(
       pcr_target_avg_conc = dplyr::case_when(
         pcr_target_units == "copies/l wastewater" ~ pcr_target_avg_conc / 1000,
-        pcr_target_units == "log10 copies/l wastewater" ~ (10^(pcr_target_avg_conc)) / 1000
+        pcr_target_units == "log10 copies/l wastewater" ~
+          (10^(pcr_target_avg_conc)) / 1000
       ),
       lod_sewage = dplyr::case_when(
         pcr_target_units == "copies/l wastewater" ~ lod_sewage / 1000,
-        pcr_target_units == "log10 copies/l wastewater" ~ (10^(lod_sewage)) / 1000
+        pcr_target_units == "log10 copies/l wastewater" ~
+          (10^(lod_sewage)) / 1000
       ),
     ) |>
-    dplyr::filter(!quality_flag %in% c(
-      "yes", "y", "result is not quantifiable",
-      "temperature not assessed upon arrival at the laboratory",
-      "> max temp and/or hold time"
-    ))
+    dplyr::filter(
+      !quality_flag %in%
+        c(
+          "yes",
+          "y",
+          "result is not quantifiable",
+          "temperature not assessed upon arrival at the laboratory",
+          "> max temp and/or hold time"
+        )
+    )
 
   # will treat data without LOD as uninformative
   conservative_lod <- as.numeric(
@@ -364,14 +382,9 @@ clean_and_filter_nwss_data <- function(raw_nwss_data) {
   )
   nwss_subset <- nwss_subset_raw |>
     mutate(
-      lod_sewage = ifelse(is.na(lod_sewage),
-        conservative_lod,
-        lod_sewage
-      ),
+      lod_sewage = ifelse(is.na(lod_sewage), conservative_lod, lod_sewage),
       sample_collect_date = lubridate::ymd(sample_collect_date)
     )
-
-
 
   # If there are multiple values per lab-site-day, replace with the mean
   nwss_subset_clean <- nwss_subset |>
@@ -388,10 +401,14 @@ clean_and_filter_nwss_data <- function(raw_nwss_data) {
       population_served = round(mean(population_served, na.rm = TRUE), 0),
     ) |>
     dplyr::select(
-      sample_collect_date, wwtp_name, lab_id, pcr_target_avg_conc,
-      wwtp_jurisdiction, lod_sewage, population_served
+      sample_collect_date,
+      wwtp_name,
+      lab_id,
+      pcr_target_avg_conc,
+      wwtp_jurisdiction,
+      lod_sewage,
+      population_served
     )
-
 
   return(nwss_subset_clean)
 }
@@ -405,8 +422,7 @@ clean_and_filter_nwss_data <- function(raw_nwss_data) {
 #' @return A site-lab level dataset with names and variables that can be used
 #' for model fitting
 #' @export
-clean_ww_data <- function(nwss_subset,
-                          log_offset = 1e-20) {
+clean_ww_data <- function(nwss_subset, log_offset = 1e-20) {
   ww_data <- nwss_subset |>
     ungroup() |>
     rename(
@@ -421,8 +437,13 @@ clean_ww_data <- function(nwss_subset,
       log_lod = log(lod_sewage)
     ) |>
     select(
-      date, site, lab, log_genome_copies_per_ml,
-      log_lod, site_pop, location
+      date,
+      site,
+      lab,
+      log_genome_copies_per_ml,
+      log_lod,
+      site_pop,
+      location
     )
 
   return(ww_data)

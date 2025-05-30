@@ -77,13 +77,15 @@ parsed <- arg_parser("Run eval pipeline for one forecast problem") |>
       "for prior hyperparameters."
     )
   ) |>
-  add_argument("--output-dir",
+  add_argument(
+    "--output-dir",
     help = paste0(
       "Path to a directory in which to save ",
       "processed output."
     )
   ) |>
-  add_argument("--raw-output-dir",
+  add_argument(
+    "--raw-output-dir",
     help = paste0(
       "Path to a directory in which to save ",
       "raw output as serialized .rds files."
@@ -93,7 +95,8 @@ parsed <- arg_parser("Run eval pipeline for one forecast problem") |>
     "--seed",
     help = "Seed for Stan's pseudorandom number generator."
   ) |>
-  add_argument("--iter-sampling",
+  add_argument(
+    "--iter-sampling",
     help = "Number of samples to draw per MCMC chain."
   ) |>
   add_argument(
@@ -117,12 +120,8 @@ parsed <- arg_parser("Run eval pipeline for one forecast problem") |>
   ) |>
   parse_args()
 
-checkmate::assert_names(parsed$model,
-  subset.of = c("ww", "hosp")
-)
-checkmate::assert_names(parsed$task_type,
-  subset.of = names(runner_functions)
-)
+checkmate::assert_names(parsed$model, subset.of = c("ww", "hosp"))
+checkmate::assert_names(parsed$task_type, subset.of = names(runner_functions))
 
 job_runner_function <- runner_functions[[parsed$task_type]]
 

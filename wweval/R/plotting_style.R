@@ -25,16 +25,18 @@
 #' @return a theme object to add to a [ggplot2::ggplot()] object to specify
 #' line size and formatting
 #' @export
-get_plot_theme <- function(x_axis_text_size = 8,
-                           y_axis_text_size = 8,
-                           x_axis_title_size = 12,
-                           y_axis_title_size = 12,
-                           legend_title_size = 10,
-                           legend_text_size = 8,
-                           facet_x_text_size = 8,
-                           facet_y_text_size = 8,
-                           plot_title_size = 10,
-                           x_axis_dates = FALSE) {
+get_plot_theme <- function(
+  x_axis_text_size = 8,
+  y_axis_text_size = 8,
+  x_axis_title_size = 12,
+  y_axis_title_size = 12,
+  legend_title_size = 10,
+  legend_text_size = 8,
+  facet_x_text_size = 8,
+  facet_y_text_size = 8,
+  plot_title_size = 10,
+  x_axis_dates = FALSE
+) {
   ww_theme <-
     cowplot::theme_half_open() +
     cowplot::background_grid() +
@@ -53,11 +55,11 @@ get_plot_theme <- function(x_axis_text_size = 8,
       axis.title.y = element_text(size = y_axis_title_size),
       plot.title = element_text(
         size = plot_title_size,
-        vjust = 0.5, hjust = 0.5
+        vjust = 0.5,
+        hjust = 0.5
       ),
       plot.background = element_rect(fill = "white")
     )
-
 
   if (isTRUE(x_axis_dates)) {
     # If x-axis are dates, default to 2 week date breaks
@@ -65,8 +67,10 @@ get_plot_theme <- function(x_axis_text_size = 8,
     ww_theme <- ww_theme +
       theme(
         axis.text.x = element_text(
-          size = x_axis_text_size - 2, vjust = 1,
-          hjust = 1, angle = 45
+          size = x_axis_text_size - 2,
+          vjust = 1,
+          hjust = 1,
+          angle = 45
         )
       )
   }

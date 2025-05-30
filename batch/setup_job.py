@@ -6,9 +6,10 @@ import azure.batch.models as batchmodels
 import yaml
 from azuretools.auth import EnvCredentialHandler
 from azuretools.client import get_batch_service_client
+from azuretools.job import create_job
 from azuretools.task import get_container_settings, get_task_config
 from azuretools.util import ensure_listlike
-from azuretools.job import create_job
+
 
 def main(
     eval_config_file: str,

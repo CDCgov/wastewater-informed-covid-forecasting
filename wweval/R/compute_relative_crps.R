@@ -11,8 +11,7 @@
 #' CRPS
 #' @export
 #'
-compute_relative_crps <- function(scores,
-                                  id_cols) {
+compute_relative_crps <- function(scores, id_cols) {
   # Make sure model and crps are present in scores
   if (!all(c("model", "crps") %in% colnames(scores))) {
     cli::cli_abort(
@@ -43,7 +42,6 @@ compute_relative_crps <- function(scores,
       c("Model names are not `ww` and `hosp` as function expects")
     )
   }
-
 
   rel_crps <- scores |>
     tidyr::pivot_wider(
