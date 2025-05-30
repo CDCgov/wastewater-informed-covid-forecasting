@@ -14,10 +14,12 @@
 #' in the `table_of_exclusions`
 #' @export
 #'
-exclude_hosp_outliers <- function(raw_input_hosp_data,
-                                  forecast_date,
-                                  table_of_exclusions,
-                                  col_name_dates_to_exclude = "dates_to_exclude") {
+exclude_hosp_outliers <- function(
+  raw_input_hosp_data,
+  forecast_date,
+  table_of_exclusions,
+  col_name_dates_to_exclude = "dates_to_exclude"
+) {
   # Filter table of exclusions to the relevant forecast date and location
 
   loc <- raw_input_hosp_data |>

@@ -18,11 +18,13 @@
 #' @return a ggplot object with all model forecasts plotted against
 #' observed data and models differentiated by fill/line color.
 #' @export
-plot_model_hosp_t_comparison <- function(hosp_quantiles,
-                                         loc_to_plot,
-                                         date_to_plot,
-                                         n_forecast_days = 28,
-                                         n_calib_days = 90) {
+plot_model_hosp_t_comparison <- function(
+  hosp_quantiles,
+  loc_to_plot,
+  date_to_plot,
+  n_forecast_days = 28,
+  n_calib_days = 90
+) {
   hosp <- hosp_quantiles |>
     dplyr::filter(location %in% c(!!loc_to_plot)) |>
     dplyr::filter(forecast_date == !!date_to_plot) |>
@@ -51,7 +53,8 @@ plot_model_hosp_t_comparison <- function(hosp_quantiles,
   colors <- plot_components()
 
   p <- ggplot(quantiles_wide) +
-    geom_point(aes(x = .data$date, y = .data$eval_data),
+    geom_point(
+      aes(x = .data$date, y = .data$eval_data),
       fill = "white",
       size = 1,
       shape = 21,
@@ -133,13 +136,15 @@ plot_model_hosp_t_comparison <- function(hosp_quantiles,
 #' calibrated and forecasted wastewater concentrations for 3 or fewer
 #' site-lab combinations for a single state
 #' @export
-plot_ww_conc_by_site <- function(ww_quantiles,
-                                 loc_to_plot,
-                                 date_to_plot,
-                                 n_forecast_days = 28,
-                                 n_calib_days = 90,
-                                 max_n_site_labs_to_show = 3,
-                                 site_lab_names_to_show = NULL) {
+plot_ww_conc_by_site <- function(
+  ww_quantiles,
+  loc_to_plot,
+  date_to_plot,
+  n_forecast_days = 28,
+  n_calib_days = 90,
+  max_n_site_labs_to_show = 3,
+  site_lab_names_to_show = NULL
+) {
   if (!is.null(site_lab_names_to_show)) {
     ww_quantiles <- ww_quantiles |>
       dplyr::filter(site_lab_name %in% c(site_lab_names_to_show))
@@ -157,8 +162,7 @@ plot_ww_conc_by_site <- function(ww_quantiles,
     )
 
   stopifnot(
-    "This function is meant for one location" =
-      length(unique(ww$location)) <= 1
+    "This function is meant for one location" = length(unique(ww$location)) <= 1
   )
 
   quantiles_wide <- ww |>
@@ -181,14 +185,12 @@ plot_ww_conc_by_site <- function(ww_quantiles,
     ) |>
     dplyr::mutate(
       model = "ww",
-      observation_status =
-        dplyr::case_when(
-          .data$flag_as_ww_outlier == 1 ~ "outlier",
-          .data$below_LOD == 1 ~ "below LOD",
-          TRUE ~ "standard"
-        )
+      observation_status = dplyr::case_when(
+        .data$flag_as_ww_outlier == 1 ~ "outlier",
+        .data$below_LOD == 1 ~ "below LOD",
+        TRUE ~ "standard"
+      )
     )
-
 
   colors <- plot_components()
   ## Set ribbon and line color for model fit,
@@ -196,8 +198,11 @@ plot_ww_conc_by_site <- function(ww_quantiles,
   model_color <- as.character(colors$model_colors["ww"])
 
   p <- ggplot(quantiles_wide) +
-    geom_point(aes(x = .data$date, y = .data$eval_data),
-      fill = "white", size = 1, shape = 21,
+    geom_point(
+      aes(x = .data$date, y = .data$eval_data),
+      fill = "white",
+      size = 1,
+      shape = 21,
       show.legend = FALSE
     ) +
     geom_point(
@@ -238,9 +243,7 @@ plot_ww_conc_by_site <- function(ww_quantiles,
       xintercept = lubridate::ymd(date_to_plot),
       linetype = "dashed"
     ) +
-    facet_grid(location ~ .data$site_lab_name,
-      scales = "free_y"
-    ) +
+    facet_grid(location ~ .data$site_lab_name, scales = "free_y") +
     xlab("") +
     ylab("Genome copies per mL") +
     scale_x_date(
@@ -256,7 +259,6 @@ plot_ww_conc_by_site <- function(ww_quantiles,
 }
 
 
-
 #' Make a figure showing three example hospital admissions
 #' forecast timeseries and associated wastewater concentration
 #' timeseries.
@@ -270,12 +272,14 @@ plot_ww_conc_by_site <- function(ww_quantiles,
 #'
 #' @return a combined grob, as the output of [patchwork::plot_layout()].
 #' @export
-three_location_forecast_fig <- function(hosp1,
-                                        hosp2,
-                                        hosp3,
-                                        ww_conc1,
-                                        ww_conc2,
-                                        ww_conc3) {
+three_location_forecast_fig <- function(
+  hosp1,
+  hosp2,
+  hosp3,
+  ww_conc1,
+  ww_conc2,
+  ww_conc3
+) {
   fig <- hosp1 +
     ww_conc1 +
     hosp2 +
@@ -284,7 +288,8 @@ three_location_forecast_fig <- function(hosp1,
     ww_conc3 +
     patchwork::plot_layout(
       guides = "collect",
-      nrow = 3, ncol = 2,
+      nrow = 3,
+      ncol = 2,
       axes = "collect",
       widths = c(1, 1.5)
     ) +
@@ -294,14 +299,18 @@ three_location_forecast_fig <- function(hosp1,
     )
 
   fs::dir_create(fig_file_dir)
-  ggsave(fig2,
+  ggsave(
+    fig2,
     filename = file.path(fig_file_dir, "fig2.png"),
-    width = 10, height = 7,
+    width = 10,
+    height = 7,
     create.dir = TRUE
   )
-  ggsave(fig2,
+  ggsave(
+    fig2,
     filename = file.path(fig_file_dir, "fig2.svg"),
-    width = 10, height = 7,
+    width = 10,
+    height = 7,
     create.dir = TRUE
   )
   return(fig2)

@@ -57,10 +57,14 @@ get_interval_coverage <- function(quantile_coverage) {
   return(ic)
 }
 
-ma_scores_raw |> dplyr::filter(
-  forecast_date == "2024-01-15", location == "MA",
-  range == 50, date == "2024-01-06", model == "ww"
-)
+ma_scores_raw |>
+  dplyr::filter(
+    forecast_date == "2024-01-15",
+    location == "MA",
+    range == 50,
+    date == "2024-01-06",
+    model == "ww"
+  )
 
 ma_scores_w_ic <- MA_scores_raw |>
   dplyr::group_by(date, forecast_date, location, range, model) |>
@@ -101,7 +105,9 @@ coverage_summarized <- scores_quantiles |>
 
 ggplot(coverage_summarized) +
   aes(
-    x = horizon, y = pct_coverage, color = model,
+    x = horizon,
+    y = pct_coverage,
+    color = model,
     group = model
   ) +
   geom_line() +

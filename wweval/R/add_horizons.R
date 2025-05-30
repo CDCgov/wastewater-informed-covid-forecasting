@@ -19,10 +19,12 @@
 #' @return a tibble containing the same columns as `df` plus
 #' `horizon_days` and `horizon`
 #' @export
-add_horizons <- function(df,
-                         target_end_date_col = "target_end_date",
-                         forecast_date_col = "forecast_date",
-                         last_data_date_col = "last_hosp_data_date") {
+add_horizons <- function(
+  df,
+  target_end_date_col = "target_end_date",
+  forecast_date_col = "forecast_date",
+  last_data_date_col = "last_hosp_data_date"
+) {
   df_w_horizons <- df |>
     dplyr::mutate(
       horizon_days = as.integer(as.numeric(
@@ -30,17 +32,21 @@ add_horizons <- function(df,
           as.Date(.data[[forecast_date_col]])
       ))
     ) |>
-    dplyr::mutate(horizon = dplyr::case_when(
-      .data[[target_end_date_col]] <= .data[[last_data_date_col]] & .data$horizon_days <= 0 ~
-        "calibration",
-      .data[[target_end_date_col]] > .data[[last_data_date_col]] & .data$horizon_days <= 0 ~
-        "nowcast",
-      .data$horizon_days > 0 & .data$horizon_days <= 7 ~ "1 wk",
-      .data$horizon_days > 7 & .data$horizon_days <= 14 ~ "2 wks",
-      .data$horizon_days > 14 & .data$horizon_days <= 21 ~ "3 wks",
-      .data$horizon_days > 21 & .data$horizon_days <= 28 ~ "4 wks",
-      TRUE ~ NA_character_
-    ))
+    dplyr::mutate(
+      horizon = dplyr::case_when(
+        .data[[target_end_date_col]] <= .data[[last_data_date_col]] &
+          .data$horizon_days <= 0 ~
+          "calibration",
+        .data[[target_end_date_col]] > .data[[last_data_date_col]] &
+          .data$horizon_days <= 0 ~
+          "nowcast",
+        .data$horizon_days > 0 & .data$horizon_days <= 7 ~ "1 wk",
+        .data$horizon_days > 7 & .data$horizon_days <= 14 ~ "2 wks",
+        .data$horizon_days > 14 & .data$horizon_days <= 21 ~ "3 wks",
+        .data$horizon_days > 21 & .data$horizon_days <= 28 ~ "4 wks",
+        TRUE ~ NA_character_
+      )
+    )
 
   return(df_w_horizons)
 }

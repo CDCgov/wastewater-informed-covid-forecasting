@@ -46,19 +46,20 @@
 #' @param ... other arguments passed to [nhsn_soda_query()]
 #' @return the pulled data, as a [tibble::tibble()].
 #' @export
-pull_daily_nhsn <- function(api_endpoint =
-                              "https://healthdata.gov/resource/g62h-syeh.json",
-                            api_key_id = NULL,
-                            api_key_secret = NULL,
-                            start_date = NULL,
-                            end_date = NULL,
-                            columns = NULL,
-                            states = NULL,
-                            order_by = c("state", "date"),
-                            desc = FALSE,
-                            limit = 1e5,
-                            error_on_limit = TRUE,
-                            ...) {
+pull_daily_nhsn <- function(
+  api_endpoint = "https://healthdata.gov/resource/g62h-syeh.json",
+  api_key_id = NULL,
+  api_key_secret = NULL,
+  start_date = NULL,
+  end_date = NULL,
+  columns = NULL,
+  states = NULL,
+  order_by = c("state", "date"),
+  desc = FALSE,
+  limit = 1e5,
+  error_on_limit = TRUE,
+  ...
+) {
   check_package_is_installed("httr")
 
   query <- nhsn_soda_query(
@@ -162,15 +163,17 @@ soql_is_in <- function(soql_list, column, match_values) {
 #' @param ... additional arguments (ignored for now)
 #' @return the query as [soql::soql()] output
 #' @export
-nhsn_soda_query <- function(api_endpoint,
-                            start_date = NULL,
-                            end_date = NULL,
-                            columns = NULL,
-                            states = NULL,
-                            limit = 1e5,
-                            order_by = c("state", "date"),
-                            desc = FALSE,
-                            ...) {
+nhsn_soda_query <- function(
+  api_endpoint,
+  start_date = NULL,
+  end_date = NULL,
+  columns = NULL,
+  states = NULL,
+  limit = 1e5,
+  order_by = c("state", "date"),
+  desc = FALSE,
+  ...
+) {
   query <- soql::soql() |>
     soql::soql_add_endpoint(api_endpoint)
 
@@ -201,15 +204,14 @@ nhsn_soda_query <- function(api_endpoint,
   if (!is.null(states)) {
     query <- query |>
       soql_is_in(
-        "state", states
+        "state",
+        states
       )
   }
 
   query <- query |>
     soql::soql_order(
-      paste(unique(order_by),
-        collapse = ","
-      ),
+      paste(unique(order_by), collapse = ","),
       desc = desc
     )
 
@@ -246,9 +248,11 @@ nhsn_soda_query <- function(api_endpoint,
 #' pull_and_write_hosp_data(locs, out)
 #' }
 #' @export
-pull_and_write_hosp_data <- function(location_data_path,
-                                     output_dir,
-                                     force = FALSE) {
+pull_and_write_hosp_data <- function(
+  location_data_path,
+  output_dir,
+  force = FALSE
+) {
   pull_date <- lubridate::today()
 
   location_data <- readr::read_csv(location_data_path) |>

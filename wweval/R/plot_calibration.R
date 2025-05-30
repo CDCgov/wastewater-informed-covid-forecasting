@@ -7,8 +7,7 @@
 #' @return a ggplot object containing a plot of the proportion of data within
 #' each interval for each model.
 #' @export
-forecast_qq_plot <- function(forecasts,
-                             time_period) {
+forecast_qq_plot <- function(forecasts, time_period) {
   colors <- plot_components()
   p <- scoringutils::get_coverage(forecasts) |>
     scoringutils::plot_quantile_coverage() +
@@ -33,10 +32,12 @@ forecast_qq_plot <- function(forecasts,
 #' argument to [scoringutils::get_coverage()]. Default `c("model", "horizon")`.
 #' @return A ggplot2 object
 #' @export
-forecast_interval_coverage_plot <- function(forecasts, # nolint
-                                            ranges,
-                                            time_period,
-                                            by = c("model", "horizon")) {
+forecast_interval_coverage_plot <- function(
+  forecasts, # nolint
+  ranges,
+  time_period,
+  by = c("model", "horizon")
+) {
   to_plot <- scoringutils::get_coverage(
     forecasts,
     by = by
@@ -55,17 +56,13 @@ forecast_interval_coverage_plot <- function(forecasts, # nolint
       color = .data$model
     )
   ) +
-    geom_line(aes(group = .data$model),
-      linetype = "dashed"
-    ) +
+    geom_line(aes(group = .data$model), linetype = "dashed") +
     geom_point() +
     geom_hline(
       aes(yintercept = .data$interval_range / 100),
       linetype = "dashed"
     ) +
-    facet_wrap(~ .data$named_facet,
-      scales = "free_y"
-    ) +
+    facet_wrap(~ .data$named_facet, scales = "free_y") +
     labs(
       y = "Proportion of data within interval",
       x = "Forecast horizon",

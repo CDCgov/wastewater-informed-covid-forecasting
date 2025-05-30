@@ -12,9 +12,12 @@ hub_average_score_table <- function(scores) {
       avg_bias = mean(.data$bias),
       avg_ae = mean(.data$ae_median)
     ) |>
-    dplyr::mutate(model = factor(.data$model,
-      levels = as.character(.data$model)[order(.data$avg_wis)]
-    )) |>
+    dplyr::mutate(
+      model = factor(
+        .data$model,
+        levels = as.character(.data$model)[order(.data$avg_wis)]
+      )
+    ) |>
     dplyr::arrange(.data$model)
 
   return(avg_scores)
@@ -44,15 +47,15 @@ hub_average_score_table <- function(scores) {
 #' full distribution
 #' @export
 #'
-plot_hub_performance_by_period <- function(scores,
-                                           figure_file_path,
-                                           all_time_period,
-                                           real_time_period,
-                                           models_to_show,
-                                           summarize_across_horizon =
-                                             FALSE,
-                                           baseline_model =
-                                             "COVIDhub-4_week_ensemble") {
+plot_hub_performance_by_period <- function(
+  scores,
+  figure_file_path,
+  all_time_period,
+  real_time_period,
+  models_to_show,
+  summarize_across_horizon = FALSE,
+  baseline_model = "COVIDhub-4_week_ensemble"
+) {
   subset_scores <- scores |>
     dplyr::filter(model %in% !!models_to_show)
 
@@ -104,7 +107,9 @@ plot_hub_performance_by_period <- function(scores,
       mean_score = .data$wis
     ) |>
     dplyr::select(
-      model, period, mean_score
+      model,
+      period,
+      mean_score
     )
 
   baseline_scores <- scores |>
@@ -114,21 +119,25 @@ plot_hub_performance_by_period <- function(scores,
 
   scores_final <- scores |>
     dplyr::left_join(mean_scores, by = c("model", "period")) |>
-    dplyr::left_join(baseline_scores, by = c(
-      "forecast_date", "horizon",
-      "location"
-    )) |>
+    dplyr::left_join(
+      baseline_scores,
+      by = c(
+        "forecast_date",
+        "horizon",
+        "location"
+      )
+    ) |>
     dplyr::mutate(relative_wis = .data$wis / .data$baseline_score) |>
     dplyr::filter(model != {{ baseline_model }}) |>
     order_periods()
-
 
   colors <- plot_components()
 
   p <- ggplot(scores_final) +
     tidybayes::stat_halfeye(
       aes(
-        x = period, y = relative_wis + 1e-8,
+        x = period,
+        y = relative_wis + 1e-8,
         fill = model
       ),
       point_interval = "mean_qi",
@@ -153,8 +162,6 @@ plot_hub_performance_by_period <- function(scores,
     xlab("") +
     ylab(glue::glue("Relative WIS compared \n to {baseline_model}"))
 
-
-
   return(p)
 }
 
@@ -163,10 +170,11 @@ plot_hub_performance_by_period <- function(scores,
 #' @param scores Table of raw scores to plot.
 #' @param models_to_show Character vector of models to plot.
 #' @export
-relative_wis_histogram <- function(scores,
-                                   models_to_show,
-                                   baseline_model =
-                                     "COVIDhub-4_week_ensemble") {
+relative_wis_histogram <- function(
+  scores,
+  models_to_show,
+  baseline_model = "COVIDhub-4_week_ensemble"
+) {
   scores <- scores |>
     dplyr::filter(.data$model %in% !!models_to_show) |>
     forecasttools::summarise_scores_with_baseline(
@@ -178,7 +186,6 @@ relative_wis_histogram <- function(scores,
     ) |>
     dplyr::filter(.data$model != !!baseline_model) |>
     dplyr::rename(relative_wis = "mean_scores_ratio")
-
 
   colors <- plot_components()
 
@@ -234,17 +241,20 @@ relative_wis_histogram <- function(scores,
 #' and fill by relative WIS score across forecast dates and horizons
 #' @export
 #'
-plot_heatmap_relative_wis <- function(scores,
-                                      time_period,
-                                      models_to_show,
-                                      baseline_model = "COVIDhub-4_week_ensemble") {
+plot_heatmap_relative_wis <- function(
+  scores,
+  time_period,
+  models_to_show,
+  baseline_model = "COVIDhub-4_week_ensemble"
+) {
   message("Computing relative scores. This may take time...")
   rel_scores <- scores |>
     dplyr::filter(
-      .data$model %in% c(
-        !!baseline_model,
-        !!models_to_show
-      ),
+      .data$model %in%
+        c(
+          !!baseline_model,
+          !!models_to_show
+        ),
       .data$location != "US"
     ) |>
     forecasttools::summarise_scores_with_baseline(
@@ -257,9 +267,7 @@ plot_heatmap_relative_wis <- function(scores,
       .data$model != !!baseline_model,
       .data$location != "US"
     ) |>
-    dplyr::mutate(display_score = format(.data$mean_scores_ratio,
-      digits = 2
-    ))
+    dplyr::mutate(display_score = format(.data$mean_scores_ratio, digits = 2))
 
   message("Plotting heatmap...")
   p <- ggplot(
@@ -290,7 +298,6 @@ plot_heatmap_relative_wis <- function(scores,
     labs(fill = "Relative WIS") +
     ggtitle(glue::glue("Relative WIS compared to \n {baseline_model}"))
 
-
   return(p)
 }
 
@@ -313,11 +320,13 @@ plot_heatmap_relative_wis <- function(scores,
 #' @return A ggplot object containing geomridges plots colored by density,
 #' indicating the standardized rank for each location-date combo
 #' @export
-density_plot_std_rank <- function(scores,
-                                  models_to_show,
-                                  time_period,
-                                  tp_fp,
-                                  fig_file_dir) {
+density_plot_std_rank <- function(
+  scores,
+  models_to_show,
+  time_period,
+  tp_fp,
+  fig_file_dir
+) {
   summarized_scores <- scores |>
     scoringutils::summarise_scores(
       by = c("model", "location", "forecast_date")
@@ -329,18 +338,17 @@ density_plot_std_rank <- function(scores,
       rank = dplyr::dense_rank(dplyr::desc(.data$wis)),
       std_rank = rank / max(rank)
     ) |>
-    dplyr::mutate(model = stats::reorder(.data$model, .data$rank,
-      FUN = function(x) {
+    dplyr::mutate(
+      model = stats::reorder(.data$model, .data$rank, FUN = function(x) {
         quantile(x, probs = 0.25, na.rm = TRUE)
-      }
-    ))
+      })
+    )
 
   fq <- scores_ranked |>
     dplyr::group_by(model) |>
-    dplyr::summarize(first_quantile = quantile(std_rank,
-      probs = 0.25,
-      na.rm = TRUE
-    )) |>
+    dplyr::summarize(
+      first_quantile = quantile(std_rank, probs = 0.25, na.rm = TRUE)
+    ) |>
     dplyr::arrange(first_quantile) |>
     dplyr::mutate(
       fig_order = dplyr::row_number()
@@ -355,30 +363,37 @@ density_plot_std_rank <- function(scores,
     ) |>
     dplyr::filter(model %in% !!models_to_show)
 
-
   p <- ggplot(
     scores_ranked_ordered,
     aes(
-      x = std_rank, y = model,
+      x = std_rank,
+      y = model,
       fill = factor(stat(quantile)),
       height = after_stat(density)
     )
   ) +
     ggridges::stat_density_ridges(
-      geom = "density_ridges_gradient", calc_ecdf = TRUE,
-      quantiles = 4, quantile_lines = TRUE,
+      geom = "density_ridges_gradient",
+      calc_ecdf = TRUE,
+      quantiles = 4,
+      quantile_lines = TRUE,
       jittered_points = TRUE,
       position = ggridges::position_points_jitter(width = 0.05, height = 0),
-      point_shape = "|", point_size = 3, point_alpha = 1, alpha = 0.7,
+      point_shape = "|",
+      point_size = 3,
+      point_alpha = 1,
+      alpha = 0.7,
     ) +
     scale_fill_viridis_d(guide = "none") +
     get_plot_theme() +
     scale_x_continuous(
-      name = "Standardized rank", limits = c(0, 1)
+      name = "Standardized rank",
+      limits = c(0, 1)
     ) +
     ylab("")
 
-  ggsave(p,
+  ggsave(
+    p,
     filename = file.path(
       fig_file_dir,
       glue::glue("sfig_density_rank_{time_period}.png")
@@ -409,11 +424,11 @@ summarize_std_rank <- function(scores) {
       rank = dplyr::dense_rank(dplyr::desc(.data$wis)),
       std_rank = rank / max(rank)
     ) |>
-    dplyr::mutate(model = stats::reorder(model, rank,
-      FUN = function(x) {
+    dplyr::mutate(
+      model = stats::reorder(model, rank, FUN = function(x) {
         quantile(x, probs = 0.25, na.rm = TRUE)
-      }
-    ))
+      })
+    )
 
   summarize_std_rank <- scores_ranked |>
     dplyr::group_by(model) |>

@@ -18,19 +18,23 @@
 #' forecasts produced for each state, comparing the wastewater and hospital
 #' admissions models
 #' @export
-plot_pred_actual_hosp <- function(hosp_quantiles,
-                                  loc_to_plot,
-                                  date_to_plot,
-                                  n_forecast_days = 28,
-                                  n_calib_days = 90) {
+plot_pred_actual_hosp <- function(
+  hosp_quantiles,
+  loc_to_plot,
+  date_to_plot,
+  n_forecast_days = 28,
+  n_calib_days = 90
+) {
   hosp <- hosp_quantiles |>
     dplyr::filter(.data$location %in% c(!!loc_to_plot)) |>
     dplyr::filter(.data$forecast_date == !!date_to_plot) |>
     dplyr::filter(
-      .data$date <= .data$forecast_date +
-        lubridate::days(!!n_forecast_days),
-      .data$date >= .data$forecast_date -
-        lubridate::days(!!n_calib_days)
+      .data$date <=
+        .data$forecast_date +
+          lubridate::days(!!n_forecast_days),
+      .data$date >=
+        .data$forecast_date -
+          lubridate::days(!!n_calib_days)
     ) |>
     dplyr::select(
       "model_type",
@@ -57,7 +61,9 @@ plot_pred_actual_hosp <- function(hosp_quantiles,
         x = .data$date,
         y = .data$observed
       ),
-      fill = "white", size = 1, shape = 21,
+      fill = "white",
+      size = 1,
+      shape = 21,
       show.legend = FALSE
     ) +
     geom_point(
@@ -93,7 +99,8 @@ plot_pred_actual_hosp <- function(hosp_quantiles,
       ),
       alpha = 0.2,
     ) +
-    geom_vline(aes(xintercept = lubridate::ymd(.data$forecast_date)),
+    geom_vline(
+      aes(xintercept = lubridate::ymd(.data$forecast_date)),
       linetype = "dashed"
     ) +
     scale_x_date(
@@ -110,7 +117,6 @@ plot_pred_actual_hosp <- function(hosp_quantiles,
       legend.justification = "left"
     ) +
     labs(color = "Model", fill = "Model")
-
 
   return(p)
 }
@@ -139,13 +145,15 @@ plot_pred_actual_hosp <- function(hosp_quantiles,
 #' calibrated and forecasted wastewater concentrations for 3 or fewer
 #' site-lab combinations for a single state
 #' @export
-plot_pred_actual_ww <- function(ww_quantiles,
-                                loc_to_plot,
-                                date_to_plot,
-                                n_forecast_days = 28,
-                                n_calib_days = 90,
-                                max_n_site_labs_to_show = 3,
-                                site_lab_names_to_show = NULL) {
+plot_pred_actual_ww <- function(
+  ww_quantiles,
+  loc_to_plot,
+  date_to_plot,
+  n_forecast_days = 28,
+  n_calib_days = 90,
+  max_n_site_labs_to_show = 3,
+  site_lab_names_to_show = NULL
+) {
   if (!is.null(site_lab_names_to_show)) {
     ww_quantiles <- ww_quantiles |>
       dplyr::filter(site_lab_name %in% c(site_lab_names_to_show))
@@ -162,11 +170,8 @@ plot_pred_actual_ww <- function(ww_quantiles,
       date >= forecast_date - lubridate::days(!!n_calib_days)
     )
 
-
-
   stopifnot(
-    "This function is meant for one location" =
-      length(unique(ww$location)) <= 1
+    "This function is meant for one location" = length(unique(ww$location)) <= 1
   )
 
   quantiles_wide <- ww |>
@@ -174,36 +179,45 @@ plot_pred_actual_ww <- function(ww_quantiles,
     dplyr::filter(quantile %in% c(0.025, 0.25, 0.5, 0.75, 0.975)) |>
     tidyr::pivot_wider(
       id_cols = c(
-        location, site_lab_name, forecast_date, period, scenario,
-        date, eval_data, calib_data, below_LOD, flag_as_ww_outlier
+        location,
+        site_lab_name,
+        forecast_date,
+        period,
+        scenario,
+        date,
+        eval_data,
+        calib_data,
+        below_LOD,
+        flag_as_ww_outlier
       ),
       names_from = "quantile",
       values_from = "log_conc"
     ) |>
     dplyr::mutate(
       model = "ww",
-      observation_status =
-        dplyr::case_when(
-          flag_as_ww_outlier == 1 ~ "outlier",
-          below_LOD == 1 ~ "below LOD",
-          TRUE ~ "standard"
-        )
+      observation_status = dplyr::case_when(
+        flag_as_ww_outlier == 1 ~ "outlier",
+        below_LOD == 1 ~ "below LOD",
+        TRUE ~ "standard"
+      )
     )
-
-
 
   colors <- plot_components()
   # Set ribbon and line color for model fit, in this case is always ww model
   model_color <- as.character(colors$model_colors["ww"])
 
   p <- ggplot(quantiles_wide) +
-    geom_point(aes(x = date, y = log(eval_data)),
-      fill = "white", size = 1, shape = 21,
+    geom_point(
+      aes(x = date, y = log(eval_data)),
+      fill = "white",
+      size = 1,
+      shape = 21,
       show.legend = FALSE
     ) +
     geom_point(
       aes(
-        x = date, y = log(calib_data),
+        x = date,
+        y = log(calib_data),
         color = observation_status,
         shape = observation_status
       ),
@@ -211,14 +225,17 @@ plot_pred_actual_ww <- function(ww_quantiles,
     ) +
     geom_line(
       aes(
-        x = date, y = `0.5`
+        x = date,
+        y = `0.5`
       ),
       color = model_color,
       show.legend = FALSE
     ) +
     geom_ribbon(
       aes(
-        x = date, ymin = `0.025`, ymax = `0.975`,
+        x = date,
+        ymin = `0.025`,
+        ymax = `0.975`,
       ),
       fill = model_color,
       alpha = 0.2,
@@ -226,18 +243,19 @@ plot_pred_actual_ww <- function(ww_quantiles,
     ) +
     geom_ribbon(
       aes(
-        x = date, ymin = `0.25`, ymax = `0.75`
+        x = date,
+        ymin = `0.25`,
+        ymax = `0.75`
       ),
       fill = model_color,
       alpha = 0.1,
       show.legend = FALSE
     ) +
-    geom_vline(aes(xintercept = lubridate::ymd(forecast_date)),
+    geom_vline(
+      aes(xintercept = lubridate::ymd(forecast_date)),
       linetype = "dashed"
     ) +
-    facet_grid(location ~ site_lab_name,
-      scales = "free_y"
-    ) +
+    facet_grid(location ~ site_lab_name, scales = "free_y") +
     xlab("") +
     ylab("Log(genome copies per mL)") +
     scale_x_date(
@@ -274,14 +292,16 @@ plot_pred_actual_ww <- function(ww_quantiles,
 #' calibrated and forecasted wastewater concentrations for 3 or fewer
 #' site-lab combinations for a single state
 #' @export
-make_fig2_ct_supp <- function(ww_quantiles,
-                              loc_to_plot,
-                              date_to_plot,
-                              ms_fig_dir,
-                              n_forecast_days = 28,
-                              n_calib_days = 90,
-                              max_n_site_labs_to_show = 3,
-                              site_lab_names_to_show = NULL) {
+make_fig2_ct_supp <- function(
+  ww_quantiles,
+  loc_to_plot,
+  date_to_plot,
+  ms_fig_dir,
+  n_forecast_days = 28,
+  n_calib_days = 90,
+  max_n_site_labs_to_show = 3,
+  site_lab_names_to_show = NULL
+) {
   if (!is.null(site_lab_names_to_show)) {
     ww_quantiles <- ww_quantiles |>
       dplyr::filter(site_lab_name %in% c(site_lab_names_to_show))
@@ -298,11 +318,8 @@ make_fig2_ct_supp <- function(ww_quantiles,
       date >= forecast_date - lubridate::days(!!n_calib_days)
     )
 
-
-
   stopifnot(
-    "This function is meant for one location" =
-      length(unique(ww$location)) <= 1
+    "This function is meant for one location" = length(unique(ww$location)) <= 1
   )
 
   quantiles_wide <- ww |>
@@ -310,36 +327,45 @@ make_fig2_ct_supp <- function(ww_quantiles,
     dplyr::filter(quantile %in% c(0.025, 0.25, 0.5, 0.75, 0.975)) |>
     tidyr::pivot_wider(
       id_cols = c(
-        location, site_lab_name, forecast_date, period, scenario,
-        date, eval_data, calib_data, below_LOD, flag_as_ww_outlier
+        location,
+        site_lab_name,
+        forecast_date,
+        period,
+        scenario,
+        date,
+        eval_data,
+        calib_data,
+        below_LOD,
+        flag_as_ww_outlier
       ),
       names_from = quantile,
       values_from = log_conc
     ) |>
     dplyr::mutate(
       model = "ww",
-      observation_status =
-        dplyr::case_when(
-          flag_as_ww_outlier == 1 ~ "outlier",
-          below_LOD == 1 ~ "below LOD",
-          TRUE ~ "standard"
-        )
+      observation_status = dplyr::case_when(
+        flag_as_ww_outlier == 1 ~ "outlier",
+        below_LOD == 1 ~ "below LOD",
+        TRUE ~ "standard"
+      )
     )
-
-
 
   colors <- plot_components()
   # Set ribbon and line color for model fit, in this case is always ww model
   model_color <- as.character(colors$model_colors["ww"])
 
   p <- ggplot(quantiles_wide) +
-    geom_point(aes(x = date, y = log(eval_data)),
-      fill = "white", size = 1, shape = 21,
+    geom_point(
+      aes(x = date, y = log(eval_data)),
+      fill = "white",
+      size = 1,
+      shape = 21,
       show.legend = FALSE
     ) +
     geom_point(
       aes(
-        x = date, y = log(calib_data),
+        x = date,
+        y = log(calib_data),
         color = observation_status,
         shape = observation_status
       ),
@@ -347,14 +373,17 @@ make_fig2_ct_supp <- function(ww_quantiles,
     ) +
     geom_line(
       aes(
-        x = date, y = `0.5`
+        x = date,
+        y = `0.5`
       ),
       color = model_color,
       show.legend = FALSE
     ) +
     geom_ribbon(
       aes(
-        x = date, ymin = `0.025`, ymax = `0.975`,
+        x = date,
+        ymin = `0.025`,
+        ymax = `0.975`,
       ),
       fill = model_color,
       alpha = 0.2,
@@ -362,18 +391,19 @@ make_fig2_ct_supp <- function(ww_quantiles,
     ) +
     geom_ribbon(
       aes(
-        x = date, ymin = `0.25`, ymax = `0.75`
+        x = date,
+        ymin = `0.25`,
+        ymax = `0.75`
       ),
       fill = model_color,
       alpha = 0.1,
       show.legend = FALSE
     ) +
-    geom_vline(aes(xintercept = lubridate::ymd(forecast_date)),
+    geom_vline(
+      aes(xintercept = lubridate::ymd(forecast_date)),
       linetype = "dashed"
     ) +
-    facet_wrap(~site_lab_name,
-      scales = "free_y"
-    ) +
+    facet_wrap(~site_lab_name, scales = "free_y") +
     xlab("") +
     ylab("Log(genome copies per mL)") +
     scale_x_date(
@@ -388,7 +418,8 @@ make_fig2_ct_supp <- function(ww_quantiles,
     scale_color_manual(values = colors$observation_status_colors) +
     scale_shape_manual(values = colors$observation_status_shapes)
 
-  ggsave(p,
+  ggsave(
+    p,
     height = 5,
     width = 7,
     filename = file.path(

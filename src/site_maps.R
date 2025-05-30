@@ -1,7 +1,8 @@
 # This script is used to generate the wwtp_name to site_id mapping
 
 ww_data_path_with_site_id <- file.path(
-  "input", "ww_data",
+  "input",
+  "ww_data",
   "nwss_data",
   "2024-04-09.csv"
 )
@@ -14,8 +15,11 @@ nwss_w_site_id <- readr::read_csv(ww_data_path_with_site_id) |>
 
 nwss_map <- nwss_w_site_id |>
   dplyr::select(
-    site_id, wwtp_name, lab_id,
-    reporting_jurisdiction, wwtp_jurisdiction
+    site_id,
+    wwtp_name,
+    lab_id,
+    reporting_jurisdiction,
+    wwtp_jurisdiction
   ) |>
   unique()
 

@@ -3,7 +3,12 @@ library(zoo)
 library(ggridges)
 library(magrittr)
 
-nwss <- readr::read_csv(here::here("input", "ww_data", "nwss_data", "2024-01-30.csv"))
+nwss <- readr::read_csv(here::here(
+  "input",
+  "ww_data",
+  "nwss_data",
+  "2024-01-30.csv"
+))
 
 test <- nwss %>% dplyr::filter(lab_id == 4702)
 
@@ -25,8 +30,15 @@ ww_data <- nwss_subset %>%
     # since we might expect to see
   ) %>%
   select(
-    date, location, ww, site, lab, lab_wwtp_unique_id, ww_pop,
-    below_LOD, lod_sewage
+    date,
+    location,
+    ww,
+    site,
+    lab,
+    lab_wwtp_unique_id,
+    ww_pop,
+    below_LOD,
+    lod_sewage
   )
 
 # Add the county names to the WW data
@@ -35,11 +47,10 @@ site_county_map <- get_site_county_map(
   county_site_map_path = file.path("input", "ww_data", "county_site_map.csv")
 )
 ww_data2 <- ww_data %>%
-  left_join(site_county_map,
-    by = "site"
-  ) %>%
+  left_join(site_county_map, by = "site") %>%
   mutate(
-    full_county_name = ifelse(is.na(full_county_name),
+    full_county_name = ifelse(
+      is.na(full_county_name),
       glue::glue("{county_codes}, {location}"),
       full_county_name
     )
@@ -61,8 +72,10 @@ ww_data_mod <- ww_data_outliers_flagged %>%
   mutate(
     exp_log_conc = mean(
       c(
-        log_conc_t_min_1, log_conc_t_min_2,
-        log_conc_t_plus_2, log_conc_t_plus_2
+        log_conc_t_min_1,
+        log_conc_t_min_2,
+        log_conc_t_plus_2,
+        log_conc_t_plus_2
       ),
       na.rm = TRUE
     )
@@ -103,9 +116,7 @@ ggplot(ww_data_mod) +
   guides(fill = guide_legend(title = "Outlier?")) +
   xlab("Difference expected and real")
 ggplot(ww_data_mod) +
-  geom_density(aes(x = dif_true_v_exp),
-    alpha = 0.3
-  ) +
+  geom_density(aes(x = dif_true_v_exp), alpha = 0.3) +
   scale_x_continuous(trans = "log") +
   theme_bw() +
   xlab("Difference expected and real")
@@ -121,10 +132,12 @@ ggplot(ww_data_mod) +
 ggplot(ww_data_mod) +
   geom_point(
     aes(
-      x = log_conc, y = norm_dif_true_v_exp,
+      x = log_conc,
+      y = norm_dif_true_v_exp,
       color = as.factor(flag_as_ww_outlier)
     ),
-    size = 0.1, alpha = 0.3
+    size = 0.1,
+    alpha = 0.3
   ) +
   scale_x_continuous(trans = "log") +
   scale_y_continuous(trans = "log") +
@@ -136,10 +149,12 @@ ggplot(ww_data_mod) +
 ggplot(ww_data_mod) +
   geom_point(
     aes(
-      x = log_conc, y = dif_true_v_exp,
+      x = log_conc,
+      y = dif_true_v_exp,
       color = as.factor(flag_as_ww_outlier)
     ),
-    size = 0.1, alpha = 0.3
+    size = 0.1,
+    alpha = 0.3
   ) +
   scale_x_continuous(trans = "log") +
   scale_y_continuous(trans = "log") +
@@ -149,16 +164,11 @@ ggplot(ww_data_mod) +
   xlab("log(conc)")
 
 
-
-
-
-
-
-
 # check for duplicates
 test <- nwss %>%
   select(
-    sample_collect_date, wwtp_name,
+    sample_collect_date,
+    wwtp_name,
     lab_id
   ) %>%
   unique()
@@ -173,9 +183,8 @@ unique_combos_map <- nwss %>%
   unique() %>%
   mutate(lab_wwtp_unique_id = row_number())
 
-nwss_w_unique_ids <- nwss %>% left_join(unique_combos_map,
-  by = c("wwtp_name", "lab_id")
-)
+nwss_w_unique_ids <- nwss %>%
+  left_join(unique_combos_map, by = c("wwtp_name", "lab_id"))
 
 test2 <- nwss %>%
   select(sample_collect_date, wwtp_name, lab_id) %>%
@@ -207,7 +216,11 @@ ww_data_summarized <- nwss %>%
 median(ww_data_summarized$n_recent_sites_per_state)
 
 ggplot(ww_data_summarized) +
-  geom_histogram(aes(x = n_recent_sites_per_state), fill = "blue", alpha = 0.3) +
+  geom_histogram(
+    aes(x = n_recent_sites_per_state),
+    fill = "blue",
+    alpha = 0.3
+  ) +
   geom_vline(aes(xintercept = 14), linetype = "dashed") +
   xlab("Number of sites per state") +
   ylab("Number of states") +
@@ -217,7 +230,8 @@ ggplot(ww_data_summarized) +
 ggplot(nwss %>% filter(wwtp_jurisdiction %in% c("nj"))) +
   geom_line(
     aes(
-      x = ymd(sample_collect_date), y = pcr_target_avg_conc,
+      x = ymd(sample_collect_date),
+      y = pcr_target_avg_conc,
       color = as.factor(wwtp_name)
     ),
     show.legend = FALSE
@@ -231,10 +245,12 @@ ggplot(nwss %>% filter(wwtp_jurisdiction %in% c("nj"))) +
 ggplot(nwss %>% filter(wwtp_jurisdiction %in% c("ca"))) +
   geom_line(
     aes(
-      x = ymd(sample_collect_date), y = pcr_target_avg_conc,
+      x = ymd(sample_collect_date),
+      y = pcr_target_avg_conc,
       color = as.factor(wwtp_name)
     ),
-    alpha = 0.5, size = 0.5,
+    alpha = 0.5,
+    size = 0.5,
     show.legend = FALSE
   ) +
   # facet_wrap(~wwtp_name, scales = 'free') +
@@ -245,21 +261,16 @@ ggplot(nwss %>% filter(wwtp_jurisdiction %in% c("ca"))) +
   ggtitle("CA WW broken down by unit type")
 
 
-
-
-
-
-
 nwss_subset_raw <- wweval::init_subset_nwss_data(nwss)
-
-
 
 
 ggplot(nwss_subset_raw %>% filter(wwtp_jurisdiction %in% c("ny"))) +
   geom_line(
     aes(
-      x = ymd(sample_collect_date), y = pcr_target_avg_conc,
-      group = wwtp_name, color = wwtp_name
+      x = ymd(sample_collect_date),
+      y = pcr_target_avg_conc,
+      group = wwtp_name,
+      color = wwtp_name
     ),
     show.legend = FALSE
   ) +
@@ -271,8 +282,10 @@ ggplot(nwss_subset_raw %>% filter(wwtp_jurisdiction %in% c("ny"))) +
 ggplot(nwss_subset_raw %>% filter(wwtp_name == 2023)) +
   geom_point(
     aes(
-      x = ymd(sample_collect_date), y = pcr_target_avg_conc,
-      group = wwtp_name, color = wwtp_name
+      x = ymd(sample_collect_date),
+      y = pcr_target_avg_conc,
+      group = wwtp_name,
+      color = wwtp_name
     ),
     show.legend = FALSE
   ) +
@@ -292,19 +305,27 @@ single_state_raw <- nwss_subset_raw %>%
     sample_collect_date <= "2022-12-26"
   )
 state <- "ma"
-ggplot(nwss_subset_raw %>% remove_outliers() %>% filter(wwtp_jurisdiction == state)) +
-  geom_density_ridges_gradient(aes(
-    y = ymd(sample_collect_date),
-    x = pcr_target_avg_conc,
-    group = sample_collect_date
-  ), jittered_points = TRUE) +
+ggplot(
+  nwss_subset_raw %>% remove_outliers() %>% filter(wwtp_jurisdiction == state)
+) +
+  geom_density_ridges_gradient(
+    aes(
+      y = ymd(sample_collect_date),
+      x = pcr_target_avg_conc,
+      group = sample_collect_date
+    ),
+    jittered_points = TRUE
+  ) +
   scale_fill_viridis_d() +
   coord_flip() +
   facet_wrap(~wwtp_jurisdiction) +
   xlab("Site specific pcr_target_avc_conc ") +
   ylab("") +
   theme_bw() +
-  ggtitle(paste0("Within state WW concentration distributions across sites in ", toupper(state)))
+  ggtitle(paste0(
+    "Within state WW concentration distributions across sites in ",
+    toupper(state)
+  ))
 
 
 ggplot(single_state_raw) +
@@ -314,7 +335,9 @@ ggplot(single_state_raw) +
       y = pcr_target_avg_conc,
       color = as.factor(wwtp_name)
     ),
-    show.legend = FALSE, size = 0.5, alpha = 0.5
+    show.legend = FALSE,
+    size = 0.5,
+    alpha = 0.5
   ) +
   theme_bw() +
   facet_wrap(~wwtp_jurisdiction, scales = "free") +
@@ -330,7 +353,9 @@ ggplot(single_state_raw) +
       y = pcr_target_flowpop_lin,
       color = as.factor(wwtp_name)
     ),
-    show.legend = FALSE, size = 0.5, alpha = 0.5
+    show.legend = FALSE,
+    size = 0.5,
+    alpha = 0.5
   ) +
   theme_bw() +
   facet_wrap(~wwtp_jurisdiction, scales = "free") +
@@ -338,7 +363,6 @@ ggplot(single_state_raw) +
   xlab("") +
   labs(color = "Site") +
   ggtitle(paste0("Distribution of concentrations across days and sites"))
-
 
 
 var_by_pop <- nwss_subset_raw %>%
@@ -358,21 +382,21 @@ ggplot(var_by_pop) +
   scale_x_log10()
 
 
-
-
-
 nwss_subset <- remove_outliers(nwss_subset_raw)
 
-omicron <- nwss_subset %>% filter(
-  sample_collect_date >= "2022-10-10",
-  sample_collect_date <= "2023-01-16"
-)
+omicron <- nwss_subset %>%
+  filter(
+    sample_collect_date >= "2022-10-10",
+    sample_collect_date <= "2023-01-16"
+  )
 
 ggplot(omicron %>% filter(wwtp_jurisdiction %in% c("ma"))) +
   geom_line(
     aes(
-      x = ymd(sample_collect_date), y = pcr_target_avg_conc,
-      group = wwtp_name, color = as.factor(wwtp_name)
+      x = ymd(sample_collect_date),
+      y = pcr_target_avg_conc,
+      group = wwtp_name,
+      color = as.factor(wwtp_name)
     ),
     show.legend = FALSE
   ) +
@@ -384,28 +408,33 @@ ggplot(omicron %>% filter(wwtp_jurisdiction %in% c("ma"))) +
   ) +
   theme(
     axis.text.x = element_text(
-      size = 10, vjust = 0.5,
-      hjust = 1, angle = 45
+      size = 10,
+      vjust = 0.5,
+      hjust = 1,
+      angle = 45
     ),
     axis.title.x = element_text(size = 10),
     axis.title.y = element_text(size = 10),
     plot.title = element_text(
       size = 9,
-      vjust = 0.5, hjust = 0.5
+      vjust = 0.5,
+      hjust = 0.5
     )
   ) +
   ggtitle("Site-level PCR concentration in Massachusetts winter 2022-2023") +
   theme_bw()
 
 
-
 ggplot(nwss_subset %>% filter(wwtp_name == 2023)) +
   geom_line(
     aes(
-      x = ymd(sample_collect_date), y = pcr_target_avg_conc,
-      group = wwtp_name, color = wwtp_name
+      x = ymd(sample_collect_date),
+      y = pcr_target_avg_conc,
+      group = wwtp_name,
+      color = wwtp_name
     ),
-    alpha = 0.3, show.legend = FALSE
+    alpha = 0.3,
+    show.legend = FALSE
   ) +
   facet_wrap(~wwtp_jurisdiction, scales = "free") +
   xlab("") +
@@ -415,10 +444,13 @@ ggplot(nwss_subset %>% filter(wwtp_name == 2023)) +
 ggplot(nwss_subset %>% filter(wwtp_jurisdiction %in% c("ny"))) +
   geom_line(
     aes(
-      x = ymd(sample_collect_date), y = pcr_target_avg_conc,
-      group = wwtp_name, color = wwtp_name
+      x = ymd(sample_collect_date),
+      y = pcr_target_avg_conc,
+      group = wwtp_name,
+      color = wwtp_name
     ),
-    alpha = 0.3, show.legend = FALSE
+    alpha = 0.3,
+    show.legend = FALSE
   ) +
   facet_wrap(~wwtp_jurisdiction, scales = "free") +
   xlab("") +
@@ -426,12 +458,7 @@ ggplot(nwss_subset %>% filter(wwtp_jurisdiction %in% c("ny"))) +
   theme_bw()
 
 
-
-
-
 nwss_by_week <- get_weekly_summary(nwss_subset)
-
-
 
 
 nwss_by_state <- get_state_level_summary(nwss_by_week)
@@ -439,19 +466,23 @@ nwss_by_state <- get_state_level_summary(nwss_by_week)
 ggplot(Omicron %>% filter(wwtp_jurisdiction %in% c("ma"))) +
   geom_line(
     aes(
-      x = ymd(sample_collect_date), y = pcr_target_avg_conc,
-      group = wwtp_name, color = as.factor(wwtp_name)
+      x = ymd(sample_collect_date),
+      y = pcr_target_avg_conc,
+      group = wwtp_name,
+      color = as.factor(wwtp_name)
     ),
     show.legend = FALSE
   ) +
   geom_point(
-    data = nwss_by_state %>% filter(
-      wwtp_jurisdiction == "ma",
-      midweek_date >= "2022-10-10",
-      midweek_date <= "2023-01-16"
-    ),
+    data = nwss_by_state %>%
+      filter(
+        wwtp_jurisdiction == "ma",
+        midweek_date >= "2022-10-10",
+        midweek_date <= "2023-01-16"
+      ),
     aes(x = midweek_date, y = pop_weighted_conc_w_thres),
-    shape = 24, fill = "black"
+    shape = 24,
+    fill = "black"
   ) +
   xlab("") +
   ylab("Avg PCR concentration") +
@@ -461,30 +492,45 @@ ggplot(Omicron %>% filter(wwtp_jurisdiction %in% c("ma"))) +
   ) +
   theme(
     axis.text.x = element_text(
-      size = 10, vjust = 0.5,
-      hjust = 1, angle = 45
+      size = 10,
+      vjust = 0.5,
+      hjust = 1,
+      angle = 45
     ),
     axis.title.x = element_text(size = 10),
     axis.title.y = element_text(size = 10),
     plot.title = element_text(
       size = 9,
-      vjust = 0.5, hjust = 0.5
+      vjust = 0.5,
+      hjust = 0.5
     )
   ) +
   ggtitle("Site-level PCR concentration in Massachusetts winter 2022-2023") +
   theme_bw()
 
 
-omicron_by_state <- nwss_by_state %>% filter(
-  midweek_date <= "2021-12-31",
-  midweek_date >= "2021-07-01"
-)
+omicron_by_state <- nwss_by_state %>%
+  filter(
+    midweek_date <= "2021-12-31",
+    midweek_date >= "2021-07-01"
+  )
 
-ggplot(omicron_by_state %>% filter(wwtp_jurisdiction %in% c(
-  "ny", "mo", "nc", "ca",
-  "va", "ma"
-))) +
-  geom_line(aes(x = ymd(midweek_date), y = pop_weighted_conc_w_thres),
+ggplot(
+  omicron_by_state %>%
+    filter(
+      wwtp_jurisdiction %in%
+        c(
+          "ny",
+          "mo",
+          "nc",
+          "ca",
+          "va",
+          "ma"
+        )
+    )
+) +
+  geom_line(
+    aes(x = ymd(midweek_date), y = pop_weighted_conc_w_thres),
     show.legend = FALSE
   ) +
   facet_wrap(~wwtp_jurisdiction, scales = "free") +
@@ -493,18 +539,34 @@ ggplot(omicron_by_state %>% filter(wwtp_jurisdiction %in% c(
   theme_bw()
 
 
-
-ggplot(nwss_by_state %>% filter(
-  wwtp_jurisdiction %in% c(
-    "ny", "va", "ca",
-    "tx", "fl", "ma"
-  ),
-  midweek_date >= "2023-01-01"
-)) +
+ggplot(
+  nwss_by_state %>%
+    filter(
+      wwtp_jurisdiction %in%
+        c(
+          "ny",
+          "va",
+          "ca",
+          "tx",
+          "fl",
+          "ma"
+        ),
+      midweek_date >= "2023-01-01"
+    )
+) +
   geom_line(aes(x = ymd(midweek_date), y = pop_weighted_conc), color = "gray") +
-  geom_line(aes(x = ymd(midweek_date), y = unweighted_avg_conc), color = "darkblue") +
-  geom_line(aes(x = ymd(midweek_date), y = pop_weighted_conc_w_thres), color = "darkred") +
-  geom_line(aes(x = ymd(midweek_date), y = rlng_avg_pop_weighted_conc_w_thres), color = "purple4") +
+  geom_line(
+    aes(x = ymd(midweek_date), y = unweighted_avg_conc),
+    color = "darkblue"
+  ) +
+  geom_line(
+    aes(x = ymd(midweek_date), y = pop_weighted_conc_w_thres),
+    color = "darkred"
+  ) +
+  geom_line(
+    aes(x = ymd(midweek_date), y = rlng_avg_pop_weighted_conc_w_thres),
+    color = "purple4"
+  ) +
   facet_wrap(~wwtp_jurisdiction, scales = "free") +
   coord_cartesian(xlim = c(ymd("2023-01-01"), ymd("2023-06-28"))) +
   xlab("") +
@@ -512,28 +574,40 @@ ggplot(nwss_by_state %>% filter(
   theme_bw()
 
 ggplot(nwss_by_state %>% filter(wwtp_jurisdiction %in% c("ny"))) +
-  geom_line(aes(x = ymd(midweek_date), y = pop_weighted_conc),
-    color = "gray", alpha = 0.5
+  geom_line(
+    aes(x = ymd(midweek_date), y = pop_weighted_conc),
+    color = "gray",
+    alpha = 0.5
   ) +
-  geom_line(aes(x = ymd(midweek_date), y = unweighted_avg_conc),
-    color = "darkblue", alpha = 0.5
+  geom_line(
+    aes(x = ymd(midweek_date), y = unweighted_avg_conc),
+    color = "darkblue",
+    alpha = 0.5
   ) +
-  geom_line(aes(x = ymd(midweek_date), y = pop_weighted_conc_w_thres),
-    color = "darkred", alpha = 0.5
+  geom_line(
+    aes(x = ymd(midweek_date), y = pop_weighted_conc_w_thres),
+    color = "darkred",
+    alpha = 0.5
   ) +
-  geom_line(aes(x = ymd(midweek_date), y = rlng_avg_pop_weighted_conc_w_thres),
-    color = "purple4", alpha = 0.5
+  geom_line(
+    aes(x = ymd(midweek_date), y = rlng_avg_pop_weighted_conc_w_thres),
+    color = "purple4",
+    alpha = 0.5
   ) +
-  geom_line(aes(x = ymd(midweek_date), y = ntl_pop_weighted_conc),
+  geom_line(
+    aes(x = ymd(midweek_date), y = ntl_pop_weighted_conc),
     color = "gray"
   ) +
-  geom_line(aes(x = ymd(midweek_date), y = ntl_unweighted_avg_conc),
+  geom_line(
+    aes(x = ymd(midweek_date), y = ntl_unweighted_avg_conc),
     color = "darkblue"
   ) +
-  geom_line(aes(x = ymd(midweek_date), y = ntl_pop_weighted_conc_w_thres),
+  geom_line(
+    aes(x = ymd(midweek_date), y = ntl_pop_weighted_conc_w_thres),
     color = "darkred"
   ) +
-  geom_line(aes(x = ymd(midweek_date), y = rlng_avg_ntl_pop_weighted_conc_w_thres),
+  geom_line(
+    aes(x = ymd(midweek_date), y = rlng_avg_ntl_pop_weighted_conc_w_thres),
     color = "purple4"
   ) +
   facet_wrap(~wwtp_jurisdiction, scales = "free") +
@@ -544,12 +618,19 @@ ggplot(nwss_by_state %>% filter(wwtp_jurisdiction %in% c("ny"))) +
   ggtitle("Viral concentration in WW calculated 3 ways")
 
 ggplot(nwss_by_state) +
-  geom_line(aes(
-    x = ymd(midweek_date), y = pop_weighted_conc_w_thres,
-    group = wwtp_jurisdiction
-  ), color = "darkred", alpha = 0.1) +
-  geom_line(aes(x = ymd(midweek_date), y = ntl_pop_weighted_conc_w_thres),
-    color = "black", alpha = 1
+  geom_line(
+    aes(
+      x = ymd(midweek_date),
+      y = pop_weighted_conc_w_thres,
+      group = wwtp_jurisdiction
+    ),
+    color = "darkred",
+    alpha = 0.1
+  ) +
+  geom_line(
+    aes(x = ymd(midweek_date), y = ntl_pop_weighted_conc_w_thres),
+    color = "black",
+    alpha = 1
   ) +
   coord_cartesian(xlim = c(ymd("2021-01-01"), ymd("2023-06-28"))) +
   xlab("") +
@@ -561,11 +642,14 @@ ggplot(nwss_by_state) +
 # across wwtps to see how they vary
 
 ggplot(nwss_by_week %>% filter(wwtp_jurisdiction == "nj")) +
-  geom_density_ridges_gradient(aes(
-    y = midweek_date,
-    x = site_weekly_avg_conc,
-    group = midweek_date
-  ), jittered_points = TRUE) +
+  geom_density_ridges_gradient(
+    aes(
+      y = midweek_date,
+      x = site_weekly_avg_conc,
+      group = midweek_date
+    ),
+    jittered_points = TRUE
+  ) +
   scale_fill_viridis_d() +
   coord_flip() +
   xlab("Site specific concentration") +

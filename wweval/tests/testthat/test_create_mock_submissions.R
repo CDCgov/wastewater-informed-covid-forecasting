@@ -6,7 +6,8 @@ withr::with_seed(123, {
     forecast_date = seq(as.Date("2024-01-01"), by = "month", length.out = 3),
     scenario = c("base", "no_wastewater", "optimistic", "pessimistic"),
     location = c("State1", "State2")
-  ) |> cbind(data.frame(score = runif(24, min = 0, max = 100)))
+  ) |>
+    cbind(data.frame(score = runif(24, min = 0, max = 100)))
 })
 # Remove an entire state for a scenario, and then remove a random row
 # simulating a scenario without WW in that location + a location with
@@ -40,7 +41,6 @@ test_that("All combinations of dates, locations, and scenarios are present", {
 })
 
 
-
 # Test that missing locations are filled with scores from the replacement model
 test_that("Missing locations are filled with scores from replacement model", {
   # Run the function on incomplete data
@@ -52,13 +52,30 @@ test_that("Missing locations are filled with scores from replacement model", {
 
   for (date in unique(no_wastewater_data$forecast_date)) {
     for (loc in unique(no_wastewater_data$location)) {
-      for (scen in setdiff(unique(mock_all_scores_full$scenario), "no_wastewater")) {
-        if (!any(mock_all_scores_incomplete$forecast_date == date &
-          mock_all_scores_incomplete$location == loc & # nolint
-          mock_all_scores_incomplete$scenario == scen)) { # nolint
+      for (scen in setdiff(
+        unique(mock_all_scores_full$scenario),
+        "no_wastewater"
+      )) {
+        if (
+          !any(
+            mock_all_scores_incomplete$forecast_date == date &
+              mock_all_scores_incomplete$location == loc & # nolint
+              mock_all_scores_incomplete$scenario == scen
+          )
+        ) {
+          # nolint
           # If data was missing, check that it has been replaced correctly
-          replaced_score <- filter(result, forecast_date == date, location == loc, scenario == scen)
-          original_score <- filter(no_wastewater_data, forecast_date == date, location == loc)
+          replaced_score <- filter(
+            result,
+            forecast_date == date,
+            location == loc,
+            scenario == scen
+          )
+          original_score <- filter(
+            no_wastewater_data,
+            forecast_date == date,
+            location == loc
+          )
 
           expect_equal(nrow(replaced_score), 1) # Ensure a replacement exists
           expect_equal(replaced_score$score, original_score$score)
@@ -86,7 +103,6 @@ test_that("Function fails when replacement model scores are unavailable", {
 test_that("Correct model_type labels are added", {
   result <- create_mock_submission_scores(mock_all_scores_incomplete) |>
     suppressMessages()
-
 
   # Check if all scenarios have their respective model types labeled correctly
   unique_scenarios <- unique(mock_all_scores_full$scenario)

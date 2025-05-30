@@ -1,7 +1,6 @@
 #' Functions for creating multi-panel
 #' composite figures
 
-
 #' Make a figure showing comparisons between CFA models
 #' and other COVIDHub models
 #'
@@ -15,11 +14,13 @@
 #' @param qq_plot qq plot comparing model coverage
 #' @return a patchwork object containing all the figures combined.
 #' @export
-compose_hub_fig <- function(plot_wis_t,
-                            hist_rwis,
-                            barplot_wis,
-                            heatmap_rel_wis,
-                            qq_plot) {
+compose_hub_fig <- function(
+  plot_wis_t,
+  hist_rwis,
+  barplot_wis,
+  heatmap_rel_wis,
+  qq_plot
+) {
   layout <- "
 AABBBB
 CCDDEE
@@ -35,12 +36,12 @@ CCDDEE
       design = layout,
       axes = "collect",
       guides = "collect"
-    ) & theme(
-    legend.position = "bottom"
-  )
+    ) &
+    theme(
+      legend.position = "bottom"
+    )
   return(composed_fig)
 }
-
 
 
 #' Compose figure showing predictions and observations
@@ -56,12 +57,7 @@ CCDDEE
 #'
 #' @return a combined ggplot object
 #' @export
-compose_pred_actual_fig <- function(hosp1,
-                                    hosp2,
-                                    hosp3,
-                                    ww1,
-                                    ww2,
-                                    ww3) {
+compose_pred_actual_fig <- function(hosp1, hosp2, hosp3, ww1, ww2, ww3) {
   fig <- patchwork::wrap_plots(
     hosp1,
     ww1,
@@ -74,15 +70,14 @@ compose_pred_actual_fig <- function(hosp1,
     ncol = 2,
     axes = "collect",
     widths = c(1, 1.5)
-  ) & theme(
-    legend.position = "top",
-    legend.justification = "left"
-  )
-
+  ) &
+    theme(
+      legend.position = "top",
+      legend.justification = "left"
+    )
 
   return(fig)
 }
-
 
 
 #' Compose figure showing examples of forecasts and their scores.
@@ -114,27 +109,29 @@ compose_pred_actual_fig <- function(hosp1,
 #' forecast comparisons across horizons with an underlay
 #' indicating the score.
 #' @export
-compose_example_scores_fig <- function(score_single_loc1,
-                                       forecast_comparison_nowcast1, # nolint
-                                       forecast_comparison_1wk1,
-                                       forecast_comparison_4wk1,
-                                       score_underlay_nowcast1,
-                                       score_underlay_1wk1,
-                                       score_underlay_4wk1,
-                                       score_single_loc2,
-                                       forecast_comparison_nowcast2, # nolint
-                                       forecast_comparison_1wk2,
-                                       forecast_comparison_4wk2,
-                                       score_underlay_nowcast2,
-                                       score_underlay_1wk2,
-                                       score_underlay_4wk2,
-                                       score_single_loc3,
-                                       forecast_comparison_nowcast3, # nolint
-                                       forecast_comparison_1wk3,
-                                       forecast_comparison_4wk3,
-                                       score_underlay_nowcast3,
-                                       score_underlay_1wk3,
-                                       score_underlay_4wk3) {
+compose_example_scores_fig <- function(
+  score_single_loc1,
+  forecast_comparison_nowcast1, # nolint
+  forecast_comparison_1wk1,
+  forecast_comparison_4wk1,
+  score_underlay_nowcast1,
+  score_underlay_1wk1,
+  score_underlay_4wk1,
+  score_single_loc2,
+  forecast_comparison_nowcast2, # nolint
+  forecast_comparison_1wk2,
+  forecast_comparison_4wk2,
+  score_underlay_nowcast2,
+  score_underlay_1wk2,
+  score_underlay_4wk2,
+  score_single_loc3,
+  forecast_comparison_nowcast3, # nolint
+  forecast_comparison_1wk3,
+  forecast_comparison_4wk3,
+  score_underlay_nowcast3,
+  score_underlay_1wk3,
+  score_underlay_4wk3
+) {
   layout <- "
 ABCD
 AEFG
@@ -168,10 +165,11 @@ OSTU
     design = layout,
     guides = "collect",
     axes = "collect"
-  ) & theme(
-    legend.position = "top",
-    legend.justification = "left"
-  )
+  ) &
+    theme(
+      legend.position = "top",
+      legend.justification = "left"
+    )
 
   return(fig)
 }
@@ -198,13 +196,15 @@ OSTU
 #'
 #' @return ggplot object with all the elements combined
 #' @export
-compose_rel_performance_fig <- function(rel_score_heatmap,
-                                        rel_score_dist,
-                                        abs_score_by_time,
-                                        total_admissions,
-                                        rel_score_dist_by_time,
-                                        rel_score_dist_by_location,
-                                        time_period) {
+compose_rel_performance_fig <- function(
+  rel_score_heatmap,
+  rel_score_dist,
+  abs_score_by_time,
+  total_admissions,
+  rel_score_dist_by_time,
+  rel_score_dist_by_location,
+  time_period
+) {
   layout <- "
 AACCC
 AADDD
@@ -221,11 +221,11 @@ BBFFF
     rel_score_dist_by_location,
     design = layout,
     axes = "collect"
-  ) & theme(
-    legend.position = "top",
-    legend.justification = "left"
-  )
-
+  ) &
+    theme(
+      legend.position = "top",
+      legend.justification = "left"
+    )
 
   return(fig)
 }

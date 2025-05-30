@@ -34,13 +34,15 @@
 #' locations
 #' @export
 #'
-create_hub_submissions <- function(hosp_quantiles_ww,
-                                   hosp_quantiles_hosp,
-                                   forecast_dates,
-                                   hub_subdir,
-                                   model_name,
-                                   scenario = "status_quo",
-                                   save_files = TRUE) {
+create_hub_submissions <- function(
+  hosp_quantiles_ww,
+  hosp_quantiles_hosp,
+  forecast_dates,
+  hub_subdir,
+  model_name,
+  scenario = "status_quo",
+  save_files = TRUE
+) {
   hosp_quantiles_ww <- hosp_quantiles_ww |>
     dplyr::filter(scenario == !!scenario)
   metadata_df <- data.frame()
@@ -68,7 +70,8 @@ create_hub_submissions <- function(hosp_quantiles_ww,
       if (all_locs[j] %in% c(unique(ww_quantiles$location))) {
         this_loc_quantiles <- ww_quantiles |>
           dplyr::filter(location == all_locs[j])
-      } else { # get from the hosp quantiles
+      } else {
+        # get from the hosp quantiles
         this_loc_quantiles <- hosp_quantiles |>
           dplyr::filter(location == all_locs[j])
       }
@@ -95,21 +98,24 @@ create_hub_submissions <- function(hosp_quantiles_ww,
       data.frame(forecast_date, n_models_ww, n_locs)
     )
 
-
     if (isTRUE(save_files)) {
       stopifnot(
-        "Don't have forecasts for all locations, not writing to disk" =
-          n_locs >= 51 # temporarily relax bc model convergence flags can
+        "Don't have forecasts for all locations, not writing to disk" = n_locs >=
+          51 # temporarily relax bc model convergence flags can
         # lead to missing models for hosp model as well, in which case we wouldn't
         # have submitted
       )
 
       wwinference::create_dir(file.path(hub_subdir, model_name))
 
-      readr::write_csv(submission_df, file.path(
-        hub_subdir, model_name,
-        glue::glue("{forecast_date}-{model_name}.csv")
-      ))
+      readr::write_csv(
+        submission_df,
+        file.path(
+          hub_subdir,
+          model_name,
+          glue::glue("{forecast_date}-{model_name}.csv")
+        )
+      )
     }
   } # end loop over forecast dates
 
@@ -137,12 +143,14 @@ create_hub_submissions <- function(hosp_quantiles_ww,
 #' @return a dataframe in Hub formatting
 #' @export
 #'
-format_for_hub <- function(quantiles,
-                           date_col_name = "date",
-                           value_col_name = "value",
-                           loc_col_name = "location",
-                           forecast_date_col_name = "forecast_date",
-                           quantile_col_name = "quantile") {
+format_for_hub <- function(
+  quantiles,
+  date_col_name = "date",
+  value_col_name = "value",
+  loc_col_name = "location",
+  forecast_date_col_name = "forecast_date",
+  quantile_col_name = "quantile"
+) {
   formatted_quantiles <- quantiles |>
     dplyr::rename(
       target_end_date = {{ date_col_name }},
@@ -156,7 +164,8 @@ format_for_hub <- function(quantiles,
       quantile = round(quantile, 4),
     ) |>
     dplyr::filter(
-      target_end_date >= lubridate::ymd(.data$forecast_date) + lubridate::days(1)
+      target_end_date >=
+        lubridate::ymd(.data$forecast_date) + lubridate::days(1)
     ) |>
     dplyr::mutate(days_ahead = as.numeric(target_end_date - forecast_date)) |>
     dplyr::mutate(
@@ -164,8 +173,13 @@ format_for_hub <- function(quantiles,
       type = "quantile"
     ) |>
     dplyr::select(
-      target, location, forecast_date, target_end_date,
-      quantile, value, type
+      target,
+      location,
+      forecast_date,
+      target_end_date,
+      quantile,
+      value,
+      type
     )
 
   return(formatted_quantiles)

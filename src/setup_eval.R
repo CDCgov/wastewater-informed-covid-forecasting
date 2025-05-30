@@ -4,24 +4,67 @@
 # pass to tar map to iterate over.
 source(file.path("src", "write_eval_config.R"))
 write_eval_config(
-  locations =
-    c(
-      "AK", "AL", "AR", "AZ", "CA",
-      "CO", "CT", "DC", "DE", "FL", "GA", "ND",
-      "HI", "IA", "ID", "IL", "IN", "KS", "KY", "LA", "MA",
-      "MD", "ME", "MI", "MN", "MO", "MS", "MT", "NC",
-      "NE", "NH", "NJ", "NM", "NV", "NY", "OH", "OK", "OR",
-      "PA", "PR", "RI", "SC", "SD", "TN", "TX", "UT", "VA",
-      "VT", "WA", "WI", "WV", "WY"
-    ),
-  forecast_dates =
-    as.character(
-      seq(
-        from = lubridate::ymd("2023-10-16"),
-        to = lubridate::ymd("2024-04-29"),
-        by = "week"
-      )
-    ),
+  locations = c(
+    "AK",
+    "AL",
+    "AR",
+    "AZ",
+    "CA",
+    "CO",
+    "CT",
+    "DC",
+    "DE",
+    "FL",
+    "GA",
+    "ND",
+    "HI",
+    "IA",
+    "ID",
+    "IL",
+    "IN",
+    "KS",
+    "KY",
+    "LA",
+    "MA",
+    "MD",
+    "ME",
+    "MI",
+    "MN",
+    "MO",
+    "MS",
+    "MT",
+    "NC",
+    "NE",
+    "NH",
+    "NJ",
+    "NM",
+    "NV",
+    "NY",
+    "OH",
+    "OK",
+    "OR",
+    "PA",
+    "PR",
+    "RI",
+    "SC",
+    "SD",
+    "TN",
+    "TX",
+    "UT",
+    "VA",
+    "VT",
+    "WA",
+    "WI",
+    "WV",
+    "WY"
+  ),
+  forecast_dates = as.character(
+    seq(
+      from = lubridate::ymd("2023-10-16"),
+      to = lubridate::ymd("2024-04-29"),
+      by = "week"
+    )
+  ),
   scenarios = c(
     "status_quo"
   ),

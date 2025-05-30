@@ -129,7 +129,7 @@ def main(
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(
-        description=("Upload files from a directory " "to Azure blob storage"),
+        description=("Upload files from a directory to Azure blob storage"),
         allow_abbrev=True,
     )
     parser.add_argument(
@@ -152,7 +152,7 @@ if __name__ == "__main__":
         "-r",
         "--recursive",
         action="store_true",
-        help=("Recursively search subdirectories " "for files to upload?"),
+        help=("Recursively search subdirectories for files to upload?"),
     )
     parser.add_argument(
         "-d",

@@ -5,18 +5,20 @@
 # We will select a subset of locations and forecast dates to benchmark on.
 source(file.path("src", "write_eval_config.R"))
 write_eval_config(
-  locations =
-    c(
-      "AK", "MA", "NJ", "NH", "WA"
-    ),
-  forecast_dates =
-    as.character(
-      seq(
-        from = lubridate::ymd("2023-10-16"),
-        to = lubridate::ymd("2024-03-11"),
-        by = "4 weeks"
-      )
-    ),
+  locations = c(
+    "AK",
+    "MA",
+    "NJ",
+    "NH",
+    "WA"
+  ),
+  forecast_dates = as.character(
+    seq(
+      from = lubridate::ymd("2023-10-16"),
+      to = lubridate::ymd("2024-03-11"),
+      by = "4 weeks"
+    )
+  ),
   scenarios = c(
     "status_quo"
   ),

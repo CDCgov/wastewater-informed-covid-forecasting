@@ -20,11 +20,13 @@
 #' if any flags are TRUE that indicates some model issue
 #' @export
 #'
-get_diagnostic_flags <- function(stan_fit_object,
-                                 ebfmi_tolerance = 0.2,
-                                 divergences_tolerance = 0.01,
-                                 p_high_rhat_tolerance = 0.05,
-                                 max_tree_depth_tol = 0.01) {
+get_diagnostic_flags <- function(
+  stan_fit_object,
+  ebfmi_tolerance = 0.2,
+  divergences_tolerance = 0.01,
+  p_high_rhat_tolerance = 0.05,
+  max_tree_depth_tol = 0.01
+) {
   meta <- stan_fit_object$metadata()
   n_draws <- meta$iter_sampling * meta$num_chains
   diagnostic_summary <- stan_fit_object$diagnostic_summary(quiet = TRUE)
@@ -33,11 +35,15 @@ get_diagnostic_flags <- function(stan_fit_object,
 
   flag_low_ebfmi <- mean(diagnostic_summary$ebfmi) <= ebfmi_tolerance
   max_n_divergences <- n_draws * divergences_tolerance
-  flag_too_many_divergences <- any(diagnostic_summary$num_divergent >= max_n_divergences)
+  flag_too_many_divergences <- any(
+    diagnostic_summary$num_divergent >= max_n_divergences
+  )
   p_high_rhat <- as.numeric(mean(summary[, "rhat"]$rhat > 1.05, na.rm = TRUE))
   flag_high_rhat <- p_high_rhat >= p_high_rhat_tolerance
   max_n_max_treedepth <- n_draws * max_tree_depth_tol
-  flag_high_max_treedepth <- any(diagnostic_summary$num_max_tree_depth >= max_n_max_treedepth)
+  flag_high_max_treedepth <- any(
+    diagnostic_summary$num_max_tree_depth >= max_n_max_treedepth
+  )
 
   flag_df <- data.frame(
     flag_high_max_treedepth,
@@ -65,8 +71,7 @@ get_diagnostic_flags <- function(stan_fit_object,
 #' flags in the original full descriptive set of congerence flags are TRUE.
 #' @export
 #'
-get_convergence_df <- function(all_flags,
-                               scenario) {
+get_convergence_df <- function(all_flags, scenario) {
   convergence_df <- all_flags |>
     dplyr::filter(scenario == {{ scenario }}) |>
     tidyr::gather(key, value, starts_with("flag")) |>
@@ -75,7 +80,9 @@ get_convergence_df <- function(all_flags,
     tidyr::spread(key, value) |>
     dplyr::ungroup() |>
     dplyr::select(
-      location, forecast_date, any_flags
+      location,
+      forecast_date,
+      any_flags
     )
 
   return(convergence_df)

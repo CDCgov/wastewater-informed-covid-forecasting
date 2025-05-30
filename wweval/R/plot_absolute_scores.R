@@ -17,10 +17,12 @@
 #' @return a ggplot object plotting the magnitude of the avg score across
 #' locations at each forecast date
 #' @export
-plot_score_t <- function(scores,
-                         metric,
-                         model_z_order = NULL,
-                         horizon_time_in_weeks = NULL) {
+plot_score_t <- function(
+  scores,
+  metric,
+  model_z_order = NULL,
+  horizon_time_in_weeks = NULL
+) {
   if (is.null(model_z_order)) {
     model_z_order <- scores |>
       scoringutils::summarise_scores(by = "model") |>
@@ -40,10 +42,12 @@ plot_score_t <- function(scores,
       dplyr::filter(horizon_weeks == !!horizon_time_in_weeks)
   } else {
     by_date <- scores |>
-      scoringutils::summarise_scores(by = c(
-        "forecast_date",
-        "model"
-      ))
+      scoringutils::summarise_scores(
+        by = c(
+          "forecast_date",
+          "model"
+        )
+      )
   }
 
   by_date <- order_col(by_date, "model", model_z_order)
@@ -90,10 +94,9 @@ plot_score_t <- function(scores,
 wis_barplot <- function(scores) {
   scores <- scores |>
     dplyr::arrange(.data$wis) |>
-    dplyr::mutate(model = factor(.data$model,
-      levels = unique(.data$model),
-      ordered = TRUE
-    ))
+    dplyr::mutate(
+      model = factor(.data$model, levels = unique(.data$model), ordered = TRUE)
+    )
 
   colors <- plot_components()
   p <- ggplot(scores) +

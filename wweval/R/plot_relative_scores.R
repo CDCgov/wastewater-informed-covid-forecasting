@@ -23,27 +23,29 @@
 #' [forecasttools::summarise_scores_with_baseline()].
 #' @return The relative scores for the target model, as a table.
 #' @keywords internal
-.target_model_relative_scores <- function(scores,
-                                          target_model,
-                                          baseline_model,
-                                          metric_to_compare,
-                                          by = NULL) {
+.target_model_relative_scores <- function(
+  scores,
+  target_model,
+  baseline_model,
+  metric_to_compare,
+  by = NULL
+) {
   checkmate::assert_scalar(metric_to_compare)
   metric_to_compare <- tolower(metric_to_compare)
-  checkmate::assert_names(metric_to_compare,
-    subset.of = c("wis", "crps")
-  )
-  return(dplyr::filter(
-    scores,
-    .data$model %in% c(!!target_model, !!baseline_model)
-  ) |>
-    forecasttools::summarise_scores_with_baseline(
-      compare = "model",
-      baseline = baseline_model,
-      by = by,
-      metric_to_compare = metric_to_compare
+  checkmate::assert_names(metric_to_compare, subset.of = c("wis", "crps"))
+  return(
+    dplyr::filter(
+      scores,
+      .data$model %in% c(!!target_model, !!baseline_model)
     ) |>
-    dplyr::filter(.data$model == !!target_model))
+      forecasttools::summarise_scores_with_baseline(
+        compare = "model",
+        baseline = baseline_model,
+        by = by,
+        metric_to_compare = metric_to_compare
+      ) |>
+      dplyr::filter(.data$model == !!target_model)
+  )
 }
 
 #' Make a dotsinterval plot of relative scores
@@ -67,13 +69,15 @@
 #' @return a ggplot object with the distributions plotted by
 #' forecast date.
 #' @export
-plot_rel_score_dists <- function(scores,
-                                 target_model,
-                                 baseline_model,
-                                 metric_to_compare,
-                                 x = NULL,
-                                 by = NULL,
-                                 order_x = FALSE) {
+plot_rel_score_dists <- function(
+  scores,
+  target_model,
+  baseline_model,
+  metric_to_compare,
+  x = NULL,
+  by = NULL,
+  order_x = FALSE
+) {
   relative_scores <- .target_model_relative_scores(
     scores = scores,
     target_model = target_model,
@@ -97,10 +101,7 @@ plot_rel_score_dists <- function(scores,
       dplyr::pull(!!x)
     relative_scores <- relative_scores |>
       dplyr::mutate(
-        !!x := factor(.data[[x]],
-          ordered = TRUE,
-          levels = x_levels
-        )
+        !!x := factor(.data[[x]], ordered = TRUE, levels = x_levels)
       )
   }
 
@@ -127,10 +128,12 @@ plot_rel_score_dists <- function(scores,
     xlab("") +
     ylab(.relative_metric_display_name(metric_to_compare)) +
     scale_y_continuous(transform = "log10") +
-    coord_cartesian(ylim = forecasttools::sym_limits(
-      relative_scores$mean_scores_ratio,
-      transform = "log10"
-    )) +
+    coord_cartesian(
+      ylim = forecasttools::sym_limits(
+        relative_scores$mean_scores_ratio,
+        transform = "log10"
+      )
+    ) +
     get_plot_theme(
       x_axis_dates = TRUE,
       y_axis_title_size = 8
@@ -153,10 +156,12 @@ plot_rel_score_dists <- function(scores,
 #' [forecasttools::summarise_scores_with_baseline()].
 #' @return a ggplot object
 #' @export
-plot_rel_score_heatmap <- function(scores,
-                                   target_model,
-                                   baseline_model,
-                                   metric_to_compare) {
+plot_rel_score_heatmap <- function(
+  scores,
+  target_model,
+  baseline_model,
+  metric_to_compare
+) {
   relative_scores <- .target_model_relative_scores(
     scores = scores,
     target_model = target_model,
@@ -201,10 +206,12 @@ plot_rel_score_heatmap <- function(scores,
     ) +
     xlab("") +
     ylab("Location") +
-    labs(fill = glue::glue(
-      "{rel_metric_name} by ",
-      "forecast date and location"
-    ))
+    labs(
+      fill = glue::glue(
+        "{rel_metric_name} by ",
+        "forecast date and location"
+      )
+    )
 
   return(p)
 }
@@ -224,10 +231,12 @@ plot_rel_score_heatmap <- function(scores,
 #'
 #' @return ggplot object of distribution of relative CRPS scores
 #' @export
-plot_rel_score_distribution <- function(scores,
-                                        target_model,
-                                        baseline_model,
-                                        metric_to_compare) {
+plot_rel_score_distribution <- function(
+  scores,
+  target_model,
+  baseline_model,
+  metric_to_compare
+) {
   relative_scores <- .target_model_relative_scores(
     scores = scores,
     target_model = target_model,
@@ -249,10 +258,12 @@ plot_rel_score_distribution <- function(scores,
     ylab(.relative_metric_display_name(metric_to_compare)) +
     xlab("Count") +
     scale_y_continuous(transform = "log10") +
-    coord_cartesian(ylim = forecastools::sym_limits(
-      relative_scores$mean_scores_ratio,
-      transform = "log10"
-    ))
+    coord_cartesian(
+      ylim = forecastools::sym_limits(
+        relative_scores$mean_scores_ratio,
+        transform = "log10"
+      )
+    )
 
   return(p)
 }
@@ -274,16 +285,18 @@ plot_rel_score_distribution <- function(scores,
 #' @return A ggplot object containing plots of the distribution
 #' of relative scores across location and forecast dates
 #' @export
-plot_rel_score_dists_by_horizon <- function(scores, # nolint
-                                            target_model,
-                                            baseline_model,
-                                            metric_to_compare,
-                                            horizons_to_show = c(
-                                              "nowcast",
-                                              "1 wk",
-                                              "4 wks",
-                                              "overall"
-                                            )) {
+plot_rel_score_dists_by_horizon <- function(
+  scores, # nolint
+  target_model,
+  baseline_model,
+  metric_to_compare,
+  horizons_to_show = c(
+    "nowcast",
+    "1 wk",
+    "4 wks",
+    "overall"
+  )
+) {
   scores_overall <- scores |>
     dplyr::mutate(
       horizon = "overall"
@@ -322,10 +335,12 @@ plot_rel_score_dists_by_horizon <- function(scores, # nolint
     xlab("Horizon") +
     ylab(.relative_metric_display_name(metric_to_compare)) +
     scale_y_continuous(transform = "log10") +
-    coord_cartesian(ylim = forecasttools::sym_limits(
-      relative_scores$mean_scores_ratio,
-      transform = "log10"
-    )) +
+    coord_cartesian(
+      ylim = forecasttools::sym_limits(
+        relative_scores$mean_scores_ratio,
+        transform = "log10"
+      )
+    ) +
     get_plot_theme(
       y_axis_title_size = 8,
       x_axis_title_size = 8

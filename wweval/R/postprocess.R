@@ -14,13 +14,15 @@
 #' @return a dataframe of model draws subsetted to only the specified output
 #' type, joined with the evaluation data and the input calibration data
 #' @export
-get_model_draws_w_data <- function(fit_obj_wwinference,
-                                   model_output = c("ww", "hosp"),
-                                   model_type = c("ww", "hosp"),
-                                   forecast_date,
-                                   scenario,
-                                   location,
-                                   eval_data) {
+get_model_draws_w_data <- function(
+  fit_obj_wwinference,
+  model_output = c("ww", "hosp"),
+  model_type = c("ww", "hosp"),
+  forecast_date,
+  scenario,
+  location,
+  eval_data
+) {
   model_type <- arg_match(model_type)
   model_output <- arg_match(model_output)
   if (is.null(eval_data) || is.null(fit_obj_wwinference)) {
@@ -29,10 +31,12 @@ get_model_draws_w_data <- function(fit_obj_wwinference,
   eval_data <- eval_data |>
     dplyr::filter(location == !!location)
   stopifnot(
-    "More than one location in eval data that is getting joined" =
-      eval_data |> dplyr::pull(location) |> unique() |> length() == 1
+    "More than one location in eval data that is getting joined" = eval_data |>
+      dplyr::pull(location) |>
+      unique() |>
+      length() ==
+      1
   )
-
 
   # Dataframe with columns
   if (model_output == "hosp") {
@@ -66,7 +70,6 @@ get_model_draws_w_data <- function(fit_obj_wwinference,
       fit_obj_wwinference,
       what = "predicted_ww"
     )$predicted_ww
-
 
     draws_w_data <- new_ww_draws |>
       dplyr::left_join(
@@ -109,10 +112,14 @@ get_model_draws_w_data <- function(fit_obj_wwinference,
       # Replace values below LOD with LOD in observations
       dplyr::mutate(
         "eval_data" = ifelse(
-          .data$below_lod_eval == 1, .data$lod_sewage_eval, .data$eval_data
+          .data$below_lod_eval == 1,
+          .data$lod_sewage_eval,
+          .data$eval_data
         ),
         "calib_data" = ifelse(
-          .data$below_LOD == 1, .data$lod_sewage, .data$eval_data
+          .data$below_LOD == 1,
+          .data$lod_sewage,
+          .data$eval_data
         )
       ) |>
       dplyr::select(
@@ -142,7 +149,6 @@ get_model_draws_w_data <- function(fit_obj_wwinference,
 
   return(draws_w_data)
 }
-
 
 
 #' Get quantiles for state-level generated quantities
@@ -236,13 +242,15 @@ get_state_level_ww_quantiles <- function(ww_draws) {
 #' @return `NULL`, invisibly.
 #' @export
 #'
-save_table <- function(data_to_save,
-                       type_of_output,
-                       output_dir,
-                       scenario,
-                       forecast_date,
-                       model_type = c("ww", "hosp"),
-                       location) {
+save_table <- function(
+  data_to_save,
+  type_of_output,
+  output_dir,
+  scenario,
+  forecast_date,
+  model_type = c("ww", "hosp"),
+  location
+) {
   model_type <- arg_match(model_type)
   if (!is.null(data_to_save)) {
     full_dir <- file.path(
@@ -263,13 +271,9 @@ save_table <- function(data_to_save,
       "tsv"
     )
 
-
-
     wwinference::create_dir(full_dir)
 
-    readr::write_tsv(as_tibble(data_to_save),
-      file = fp
-    )
+    readr::write_tsv(as_tibble(data_to_save), file = fp)
   }
 
   invisible()
@@ -298,18 +302,20 @@ save_table <- function(data_to_save,
 #' @param eval_ww_data Evaluation wastewater admissions data in newer `wwinference` format.
 #' @return Nothing, saving results to disk as a side effect.
 #' @export
-postprocess_successful_fit <- function(wwinference_fit_obj,
-                                       stan_fit_obj,
-                                       model,
-                                       location,
-                                       forecast_date,
-                                       scenario,
-                                       output_dir,
-                                       raw_output_dir,
-                                       input_hosp_data_wweval,
-                                       input_ww_data_wweval,
-                                       eval_hosp_data,
-                                       eval_ww_data) {
+postprocess_successful_fit <- function(
+  wwinference_fit_obj,
+  stan_fit_obj,
+  model,
+  location,
+  forecast_date,
+  scenario,
+  output_dir,
+  raw_output_dir,
+  input_hosp_data_wweval,
+  input_ww_data_wweval,
+  eval_hosp_data,
+  eval_ww_data
+) {
   checkmate::assert_names(model, subset.of = c("ww", "hosp"))
   ww_model <- model == "ww"
   raw_output_suffix <- get_raw_output_suffix(
@@ -333,18 +339,12 @@ postprocess_successful_fit <- function(wwinference_fit_obj,
   )
   fs::dir_create(fig_save_dir)
 
-  ggsave_plot <- function(plot,
-                          save_basename = NULL,
-                          ext = "png",
-                          ...) {
+  ggsave_plot <- function(plot, save_basename = NULL, ext = "png", ...) {
     if (is.null(save_basename)) {
       save_basename <- deparse(substitute(plot))
     }
     ggsave(
-      filename = fs::path(fig_save_dir,
-        save_basename,
-        ext = ext
-      ),
+      filename = fs::path(fig_save_dir, save_basename, ext = ext),
       plot = plot,
       ...
     )
@@ -352,15 +352,12 @@ postprocess_successful_fit <- function(wwinference_fit_obj,
 
   message("Saving raw draws and diagnostics...")
   raw_draws <- stan_fit_obj$draws()
-  save_object(raw_draws,
-    save_basename = glue::glue("{model}_raw_draws")
-  )
+  save_object(raw_draws, save_basename = glue::glue("{model}_raw_draws"))
   diagnostic_df <- stan_fit_obj$sampler_diagnostics(format = "df")
-  save_object(diagnostic_df,
-    save_basename = glue::glue("{model}_diagnostics")
-  )
+  save_object(diagnostic_df, save_basename = glue::glue("{model}_diagnostics"))
   diagnostic_summary <- stan_fit_obj$diagnostic_summary()
-  save_object(diagnostic_summary,
+  save_object(
+    diagnostic_summary,
     save_basename = glue::glue("{model}_diagnostic_summary")
   )
 
@@ -369,12 +366,13 @@ postprocess_successful_fit <- function(wwinference_fit_obj,
   )
   save_object(raw_flags)
 
-  flags <- raw_flags |> dplyr::mutate(
-    scenario = scenario,
-    forecast_date = forecast_date,
-    model_type = model,
-    location = location
-  )
+  flags <- raw_flags |>
+    dplyr::mutate(
+      scenario = scenario,
+      forecast_date = forecast_date,
+      model_type = model,
+      location = location
+    )
   # Save flags
   save_table(
     data_to_save = flags,
@@ -405,9 +403,7 @@ postprocess_successful_fit <- function(wwinference_fit_obj,
     param_plot <- param_draws |>
       ggplot(aes(x = .data[[param_name]])) +
       geom_histogram()
-    ggsave_plot(param_plot,
-      save_basename = save_name
-    )
+    ggsave_plot(param_plot, save_basename = save_name)
     save_table(
       data_to_save = param_draws,
       type_of_output = save_name,
@@ -538,7 +534,6 @@ postprocess_successful_fit <- function(wwinference_fit_obj,
     )
   }
 
-
   ### Plot the draw comparison-------------------------------------
   plot_hosp_draws <- {
     if (is.null(hosp_draws)) {
@@ -558,9 +553,7 @@ postprocess_successful_fit <- function(wwinference_fit_obj,
     "plot_hosp_draws_hosp_model"
   )
 
-  ggsave_plot(plot_hosp_draws,
-    save_basename = hosp_draw_plot_savename
-  )
+  ggsave_plot(plot_hosp_draws, save_basename = hosp_draw_plot_savename)
   save_object(plot_hosp_draws)
 
   plot_hosp_t <- plot_model_hosp_t_comparison(
@@ -583,7 +576,8 @@ postprocess_successful_fit <- function(wwinference_fit_obj,
       draws$subpop_rt,
       forecast_date
     )
-    ggsave_plot(plot_subpop_rt,
+    ggsave_plot(
+      plot_subpop_rt,
       width = max(0.5 * n_subpops, 7),
       height = max(0.5 * n_subpops, 7),
       limitsize = FALSE
@@ -597,7 +591,8 @@ postprocess_successful_fit <- function(wwinference_fit_obj,
         model_type = model
       )
 
-      ggsave_plot(plot_ww_draws,
+      ggsave_plot(
+        plot_ww_draws,
         width = max(0.5 * n_site_labs, 7),
         height = max(0.5 * n_site_labs, 7),
         limitsize = FALSE
@@ -707,18 +702,20 @@ postprocess_successful_fit <- function(wwinference_fit_obj,
 #' @return NULL, invisibly, saving plots and tables to disk as
 #' side effects.
 #' @export
-eval_postprocess <- function(forecast_date,
-                             eval_date,
-                             location,
-                             model,
-                             scenario,
-                             hosp_data_dir,
-                             ww_data_dir,
-                             ww_data_mapping,
-                             scenario_dir,
-                             output_dir,
-                             raw_output_dir,
-                             max_eval_data_days = 365) {
+eval_postprocess <- function(
+  forecast_date,
+  eval_date,
+  location,
+  model,
+  scenario,
+  hosp_data_dir,
+  ww_data_dir,
+  ww_data_mapping,
+  scenario_dir,
+  output_dir,
+  raw_output_dir,
+  max_eval_data_days = 365
+) {
   checkmate::assert_names(model, subset.of = c("ww", "hosp"))
   ww_model <- model == "ww"
   fit_obj_name <- glue::glue("{model}_fit_obj")
@@ -737,7 +734,8 @@ eval_postprocess <- function(forecast_date,
 
   load_object <- function(object_name) {
     return(readRDS(
-      fs::path(raw_output_dir,
+      fs::path(
+        raw_output_dir,
         glue::glue("{object_name}{raw_output_suffix}"),
         ext = "rds"
       )
@@ -746,7 +744,6 @@ eval_postprocess <- function(forecast_date,
 
   wwinference::create_dir(output_dir)
   wwinference::create_dir(raw_output_dir)
-
 
   input_hosp_data <- load_object("input_hosp_data")
   last_hosp_data_date <- get_last_hosp_data_date(input_hosp_data)
@@ -766,7 +763,6 @@ eval_postprocess <- function(forecast_date,
       daily_hosp_admits = "count",
       pop = "total_pop"
     )
-
 
   if (ww_model) {
     input_ww_data <- load_object("input_ww_data")
@@ -828,7 +824,6 @@ eval_postprocess <- function(forecast_date,
 
   fit_obj_wwinference <- load_object(fit_obj_name)
   fit_obj <- fit_obj_wwinference$fit$result
-
 
   # If model fit failed, dont produce any of the below outputs
   if (!is.null(fit_obj$error)) {

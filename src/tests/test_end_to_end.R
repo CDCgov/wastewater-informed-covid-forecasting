@@ -64,25 +64,35 @@ testthat::test_that("End to end test of the pipeline. Should run without error."
   targets_txt <- targets_txt[!grepl("setup_secrets", targets_txt)] |>
     paste0(collapse = "\n")
   stopifnot(
-    "Cannot find NULL location in _targets.R to replace with 2-state test." =
-      grepl("location = NULL,", targets_txt)
+    "Cannot find NULL location in _targets.R to replace with 2-state test." = grepl(
+      "location = NULL,",
+      targets_txt
+    )
   )
   stopifnot(
-    "Cannot find prod_run = FALSE in _targets.R to prod_run = TRUE." =
-      grepl("prod_run = FALSE,", targets_txt)
+    "Cannot find prod_run = FALSE in _targets.R to prod_run = TRUE." = grepl(
+      "prod_run = FALSE,",
+      targets_txt
+    )
   )
-  targets_txt <- gsub("location = NULL,", "location = c(\"AK\", \"AL\"),", targets_txt)
+  targets_txt <- gsub(
+    "location = NULL,",
+    "location = c(\"AK\", \"AL\"),",
+    targets_txt
+  )
   targets_txt <- gsub("prod_run = FALSE,", "prod_run = TRUE,", targets_txt)
   cat(targets_txt, file = tmp_targets)
 
   #######
   # try running pipeline
   #######
-  testthat::expect_no_error(!!{
-    withr::with_dir(tmp_dir, {
-      targets::tar_make()
-    })
-  })
+  testthat::expect_no_error(
+    !!{
+      withr::with_dir(tmp_dir, {
+        targets::tar_make()
+      })
+    }
+  )
 
   #######
   # cleanup

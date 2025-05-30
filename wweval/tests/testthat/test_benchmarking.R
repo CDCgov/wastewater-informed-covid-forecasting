@@ -34,7 +34,8 @@ test_that("benchmarking writes files correctly", {
     intern = TRUE
   )
 
-  write_files <- benchmark_performance(ww_scores,
+  write_files <- benchmark_performance(
+    ww_scores,
     hosp_scores,
     benchmark_dir,
     benchmark_scope = "all",
@@ -45,7 +46,8 @@ test_that("benchmarking writes files correctly", {
   df <- readr::read_tsv(file.path(benchmark_dir, "all_by_location.tsv"))
 
   # append
-  write_files_again <- benchmark_performance(ww_scores,
+  write_files_again <- benchmark_performance(
+    ww_scores,
     hosp_scores,
     benchmark_dir,
     benchmark_scope = "all",

@@ -28,9 +28,7 @@ sample_metrics <- scoringutils::get_metrics(
 #' @return a dataframe containing a score for each day in the nowcast
 #' and forecast period
 #' @export
-score_samples <- function(draws,
-                          scenario,
-                          metrics = sample_metrics) {
+score_samples <- function(draws, scenario, metrics = sample_metrics) {
   if (is.null(draws)) {
     scores <- NULL
   } else {
@@ -63,19 +61,16 @@ score_samples <- function(draws,
       metrics <- scoringutils::get_metrics(to_score)
     }
 
-    scores <- scoringutils::score(to_score,
-      metrics = metrics
-    ) |>
+    scores <- scoringutils::score(to_score, metrics = metrics) |>
       dplyr::mutate(
-        period =
-          ifelse(.data$date <= .data$forecast_date,
-            "nowcast",
-            "forecast"
-          ),
+        period = ifelse(
+          .data$date <= .data$forecast_date,
+          "nowcast",
+          "forecast"
+        ),
         scenario = !!scenario
       )
   }
-
 
   return(scores)
 }
@@ -98,9 +93,7 @@ score_samples <- function(draws,
 #' @return a dataframe containing a score for each day in the nowcast
 #' and forecast period
 #' @export
-score_quantiles <- function(quantiles,
-                            scenario,
-                            metrics = quantile_metrics) {
+score_quantiles <- function(quantiles, scenario, metrics = quantile_metrics) {
   if (is.null(quantiles)) {
     scores <- NULL
   } else {
@@ -130,11 +123,10 @@ score_quantiles <- function(quantiles,
       metrics <- scoringutils::get_metrics(to_score)
     }
 
-    scores <- scoringutils::score(to_score,
-      metrics = metrics
-    ) |>
+    scores <- scoringutils::score(to_score, metrics = metrics) |>
       dplyr::mutate(
-        period = ifelse(.data$date <= .data$forecast_date,
+        period = ifelse(
+          .data$date <= .data$forecast_date,
           "nowcast",
           "forecast"
         ),
@@ -166,9 +158,11 @@ score_quantiles <- function(quantiles,
 #' wastewater model across dates and locations
 #' @export
 #'
-make_baseline_score_table <- function(all_ww_scores,
-                                      baseline_score_table_dir,
-                                      overwrite_table = FALSE) {
+make_baseline_score_table <- function(
+  all_ww_scores,
+  baseline_score_table_dir,
+  overwrite_table = FALSE
+) {
   # Get metadata
   locations <- all_ww_scores |>
     dplyr::pull(location) |>
@@ -180,9 +174,9 @@ make_baseline_score_table <- function(all_ww_scores,
     dplyr::pull(scenario) |>
     unique()
 
-
   # Score forecasts
-  scores <- scoringutils::summarize_scores(all_ww_scores,
+  scores <- scoringutils::summarize_scores(
+    all_ww_scores,
     by = c(
       "scenario",
       "forecast_date"
@@ -197,20 +191,23 @@ make_baseline_score_table <- function(all_ww_scores,
     # Check that is only one scenario
     stopifnot("more than one scenario" = length(unique(scores$scenario)) == 1)
     # Check that is only one forecast_date
-    stopifnot("more than one forecast_date" = length(unique(scores$forecast_date)) == 1)
+    stopifnot(
+      "more than one forecast_date" = length(unique(scores$forecast_date)) == 1
+    )
 
     wwinference::create_dir(baseline_score_table_dir)
 
-    write.table(scores, file.path(
-      baseline_score_table_dir,
-      glue::glue("baseline_scores_{model_type}.tsv")
-    ))
+    write.table(
+      scores,
+      file.path(
+        baseline_score_table_dir,
+        glue::glue("baseline_scores_{model_type}.tsv")
+      )
+    )
   }
 
   return(scores)
 }
-
-
 
 
 #' Clean flags from a real-time forecast
@@ -221,23 +218,19 @@ make_baseline_score_table <- function(all_ww_scores,
 #' @return A cleaned version of the data frame,
 #' with flag names corrected.
 clean_flag_df <- function(df) {
-  return(dplyr::mutate(df,
-    diagnostic =
-      dplyr::case_match(
-        .data$diagnostic,
-        "flag_low_embfi" ~
-          "flag_low_ebfmi",
-        .default = .data$diagnostic
-      )
+  return(dplyr::mutate(
+    df,
+    diagnostic = dplyr::case_match(
+      .data$diagnostic,
+      "flag_low_embfi" ~ "flag_low_ebfmi",
+      .default = .data$diagnostic
+    )
   ))
 }
 
 #' Compute diagnostic flags from raw stanfit objects
 #'
-compute_flags <- function(forecast_dir,
-                          forecast_date,
-                          run_on_date,
-                          run_id) {
+compute_flags <- function(forecast_dir, forecast_date, run_on_date, run_id) {
   cli::cli_inform(c(
     "Recomputing flags from raw stanfit objects. ",
     "This may take a moment."
@@ -253,7 +246,8 @@ compute_flags <- function(forecast_dir,
   stan_csvs <- fs::path(
     forecast_dir,
     "stan_objects",
-    ifelse(old_file_structure,
+    ifelse(
+      old_file_structure,
       fs::path(
         forecast_date,
         run_on_date,
@@ -273,10 +267,7 @@ compute_flags <- function(forecast_dir,
   return(flags)
 }
 
-check_any_flags <- function(forecast_dir,
-                            forecast_date,
-                            run_on_date,
-                            run_id) {
+check_any_flags <- function(forecast_dir, forecast_date, run_on_date, run_id) {
   flags_to_check <- c(
     "flag_low_ebfmi",
     "flag_too_many_divergences",
@@ -284,11 +275,9 @@ check_any_flags <- function(forecast_dir,
     "flag_high_max_treedepth"
   )
 
-  real_time_flag_path <- fs::path(forecast_dir,
-    "diagnostics",
-    ext = "csv"
-  )
-  post_hoc_flag_path <- fs::path(forecast_dir,
+  real_time_flag_path <- fs::path(forecast_dir, "diagnostics", ext = "csv")
+  post_hoc_flag_path <- fs::path(
+    forecast_dir,
     "post_hoc_diagnostics",
     ext = "csv"
   )
@@ -297,10 +286,9 @@ check_any_flags <- function(forecast_dir,
   if (fs::file_exists(real_time_flag_path)) {
     flag_tab <- readr::read_csv(real_time_flag_path) |>
       clean_flag_df()
-    checkmate::assert_names(names(flag_tab),
-      must.include = "diagnostic"
-    )
-    flags_found <- checkmate::test_names(na.omit(flag_tab$diagnostic),
+    checkmate::assert_names(names(flag_tab), must.include = "diagnostic")
+    flags_found <- checkmate::test_names(
+      na.omit(flag_tab$diagnostic),
       must.include = flags_to_check
     )
     if (flags_found) {
@@ -310,10 +298,9 @@ check_any_flags <- function(forecast_dir,
   if (!flags_found && fs::file_exists(post_hoc_flag_path)) {
     flag_tab <- readr::read_csv(post_hoc_flag_path) |>
       clean_flag_df()
-    checkmate::assert_names(names(flag_tab),
-      must.include = "diagnostic"
-    )
-    flags_found <- checkmate::test_names(na.omit(flag_tab$diagnostic),
+    checkmate::assert_names(names(flag_tab), must.include = "diagnostic")
+    flags_found <- checkmate::test_names(
+      na.omit(flag_tab$diagnostic),
       must.include = flags_to_check
     )
 
@@ -351,8 +338,8 @@ check_any_flags <- function(forecast_dir,
     readr::write_csv(flag_tab, post_hoc_flag_path)
   }
 
-
-  checkmate::assert_names(na.omit(flag_tab$diagnostic),
+  checkmate::assert_names(
+    na.omit(flag_tab$diagnostic),
     must.include = flags_to_check
   )
   flags <- flag_tab |>
@@ -381,22 +368,23 @@ check_any_flags <- function(forecast_dir,
 #' @return The forecast, as a tibble.
 #'
 #' @export
-load_real_time_forecast <- function(output_dir,
-                                    forecast_date,
-                                    location,
-                                    model_type,
-                                    forecast_output_type,
-                                    table_of_run_ids) {
+load_real_time_forecast <- function(
+  output_dir,
+  forecast_date,
+  location,
+  model_type,
+  forecast_output_type,
+  table_of_run_ids
+) {
   checkmate::assert_scalar(model_type)
   checkmate::assert_names(model_type, subset.of = c("ww", "hosp"))
   checkmate::assert_scalar(forecast_output_type)
-  checkmate::assert_names(forecast_output_type,
+  checkmate::assert_names(
+    forecast_output_type,
     subset.of = c("quantiles", "draws")
   )
   ## remove trailing s from output type, col name is singular
-  output_id_col <- stringr::str_sub(forecast_output_type,
-    end = -2
-  )
+  output_id_col <- stringr::str_sub(forecast_output_type, end = -2)
 
   metadata <- table_of_run_ids |>
     dplyr::filter(.data$forecast_date == !!forecast_date)
@@ -437,10 +425,7 @@ load_real_time_forecast <- function(output_dir,
     forecast_filename <- forecast_output_type
   }
 
-  forecast_path <- fs::path(dir,
-    forecast_filename,
-    ext = "parquet"
-  )
+  forecast_path <- fs::path(dir, forecast_filename, ext = "parquet")
   cli::cli_inform("Looking for forecast at {forecast_path}...")
   forecast_exists <- fs::file_exists(forecast_path)
   forecast <- NULL
@@ -490,16 +475,17 @@ load_real_time_forecast <- function(output_dir,
 #' @return The forecasts, as the output of
 #' [scoringutils::as_forecast_quantile()]
 #' @export
-load_real_time_quantile_fcsts <- function(real_time_output_dir,
-                                          table_of_run_ids,
-                                          locations,
-                                          eval_data,
-                                          model_type) {
+load_real_time_quantile_fcsts <- function(
+  real_time_output_dir,
+  table_of_run_ids,
+  locations,
+  eval_data,
+  model_type
+) {
   checkmate::assert_scalar(model_type)
   checkmate::assert_names(model_type, subset.of = c("ww", "hosp"))
 
-  load_forecast <- function(forecast_date,
-                            location) {
+  load_forecast <- function(forecast_date, location) {
     forecast <- load_real_time_forecast(
       real_time_output_dir,
       forecast_date,
@@ -513,7 +499,9 @@ load_real_time_quantile_fcsts <- function(real_time_output_dir,
       forecast <- forecast |>
         format_for_hub() |>
         dplyr::filter(!is.na(.data$quantile)) |>
-        dplyr::mutate(location = forecasttools::us_loc_code_to_abbr(.data$location)) |>
+        dplyr::mutate(
+          location = forecasttools::us_loc_code_to_abbr(.data$location)
+        ) |>
         dplyr::inner_join(
           eval_data |>
             dplyr::select(
@@ -541,7 +529,6 @@ load_real_time_quantile_fcsts <- function(real_time_output_dir,
 }
 
 
-
 #' Load in and score the real-time outputs
 #'
 #' @param score_type A string indicating which score to generate, either
@@ -565,12 +552,14 @@ load_real_time_quantile_fcsts <- function(real_time_output_dir,
 #' forecast date, conditioned on the presence of wastewater and model
 #' convergence
 #' @export
-score_real_time_outputs <- function(score_type,
-                                    real_time_output_dir,
-                                    table_of_run_ids,
-                                    locations,
-                                    eval_data,
-                                    model_types = c("ww", "hosp")) {
+score_real_time_outputs <- function(
+  score_type,
+  real_time_output_dir,
+  table_of_run_ids,
+  locations,
+  eval_data,
+  model_types = c("ww", "hosp")
+) {
   checkmate::assert_scalar(score_type)
   checkmate::assert_names(score_type, subset.of = c("wis", "crps"))
   model_types <- unique(model_types)
@@ -581,13 +570,9 @@ score_real_time_outputs <- function(score_type,
     "crps" = "draws"
   )[[score_type]]
   ## remove trailing s from output type, col name is singular
-  output_id_col <- stringr::str_sub(forecast_output_type,
-    end = -2
-  )
+  output_id_col <- stringr::str_sub(forecast_output_type, end = -2)
 
-  score_problem <- function(forecast_date,
-                            location,
-                            model_type) {
+  score_problem <- function(forecast_date, location, model_type) {
     scores <- NULL
 
     forecast <- load_real_time_forecast(
@@ -648,7 +633,6 @@ score_real_time_outputs <- function(score_type,
     return(scores)
   }
 
-
   to_score <- tidyr::crossing(
     forecast_date = table_of_run_ids$forecast_date,
     location = locations,
@@ -705,22 +689,22 @@ format_scores_for_comparison <- function(real_time_scores) {
 #' but for both models
 #' @export
 combine_hub_and_local_wis <- function(
-    cfa_real_time_scores,
-    real_time_wis_hosp_only) {
+  cfa_real_time_scores,
+  real_time_wis_hosp_only
+) {
   real_time_wis_ho <- real_time_wis_hosp_only |>
     dplyr::select(-failed_convergence)
 
   loc_map_table <- cfa_real_time_scores |>
     dplyr::distinct(location) |>
-    dplyr::left_join(wweval::flusight_location_table,
+    dplyr::left_join(
+      wweval::flusight_location_table,
       by = c("location" = "location_code")
     )
 
   rt_reformatted <- cfa_real_time_scores |>
     dplyr::rename(location_code = location) |>
-    dplyr::left_join(loc_map_table,
-      by = c("location_code" = "location")
-    ) |>
+    dplyr::left_join(loc_map_table, by = c("location_code" = "location")) |>
     dplyr::rename(
       location = short_name,
       date = target_end_date,
