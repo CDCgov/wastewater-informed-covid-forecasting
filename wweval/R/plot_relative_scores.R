@@ -269,6 +269,7 @@ plot_rel_score_distribution <- function(
 }
 
 
+# nolint start
 #' Make figure that stratifies across location and forecast dates
 #'
 #' @param scores output of [scoringutils::score()].
@@ -286,7 +287,8 @@ plot_rel_score_distribution <- function(
 #' of relative scores across location and forecast dates
 #' @export
 plot_rel_score_dists_by_horizon <- function(
-  scores, # nolint
+  # nolint end
+  scores,
   target_model,
   baseline_model,
   metric_to_compare,
