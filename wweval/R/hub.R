@@ -28,90 +28,90 @@
 #' unique model names that fit the inclusion criteria
 #' @export
 query_and_select_models <- function(
-        prop_dates_for_incl_hub,
-        prop_locs_for_incl_hub,
-        forecast_dates,
-        locations,
-        project_name = "COVID-19 Forecasts"
+  prop_dates_for_incl_hub,
+  prop_locs_for_incl_hub,
+  forecast_dates,
+  locations,
+  project_name = "COVID-19 Forecasts"
 ) {
-        assert_needed_env_vars(c("ZOLTAR_USERNAME", "ZOLTAR_PASSWORD"))
-        # get state abbreviation codes
-        state_codes <- forecasttools::us_loc_abbr_to_code(
-                unique(locations)
-        )
+  assert_needed_env_vars(c("ZOLTAR_USERNAME", "ZOLTAR_PASSWORD"))
+  # get state abbreviation codes
+  state_codes <- forecasttools::us_loc_abbr_to_code(
+    unique(locations)
+  )
 
-        if (prop_dates_for_incl_hub > 1 || prop_dates_for_incl_hub <= 0) {
-                cli::cli_abort(c(
-                        "Proportion of forecast dates required for hub inclusion",
-                        "must be greater than 0 and less than or equal to 1."
-                ))
-        }
+  if (prop_dates_for_incl_hub > 1 || prop_dates_for_incl_hub <= 0) {
+    cli::cli_abort(c(
+      "Proportion of forecast dates required for hub inclusion",
+      "must be greater than 0 and less than or equal to 1."
+    ))
+  }
 
-        if (prop_locs_for_incl_hub > 1 || prop_locs_for_incl_hub <= 0) {
-                cli::cli_abort(c(
-                        "Proportion of locations required for hub inclusion",
-                        "must be greater than 0 and less than or equal to 1."
-                ))
-        }
+  if (prop_locs_for_incl_hub > 1 || prop_locs_for_incl_hub <= 0) {
+    cli::cli_abort(c(
+      "Proportion of locations required for hub inclusion",
+      "must be greater than 0 and less than or equal to 1."
+    ))
+  }
 
-        zoltar_connection <- zoltr::new_connection()
-        zoltr::zoltar_authenticate(
-                zoltar_connection,
-                Sys.getenv("ZOLTAR_USERNAME"),
-                Sys.getenv("ZOLTAR_PASSWORD")
-        )
+  zoltar_connection <- zoltr::new_connection()
+  zoltr::zoltar_authenticate(
+    zoltar_connection,
+    Sys.getenv("ZOLTAR_USERNAME"),
+    Sys.getenv("ZOLTAR_PASSWORD")
+  )
 
-        # list of project on zoltar
-        the_projects <- zoltr::projects(zoltar_connection)
+  # list of project on zoltar
+  the_projects <- zoltr::projects(zoltar_connection)
 
-        # Grabbing a specific project
-        project_url <- the_projects[the_projects$name == project_name, "url"]
-        the_project_info <- zoltr::project_info(zoltar_connection, project_url)
+  # Grabbing a specific project
+  project_url <- the_projects[the_projects$name == project_name, "url"]
+  the_project_info <- zoltr::project_info(zoltar_connection, project_url)
 
-        # get the models
-        the_models <- zoltr::models(zoltar_connection, project_url)
+  # get the models
+  the_models <- zoltr::models(zoltar_connection, project_url)
 
-        # Submit query, poll job, get job data
+  # Submit query, poll job, get job data
 
-        forecast_data <- zoltr::do_zoltar_query(
-                zoltar_connection = zoltar_connection,
-                project_url = project_url,
-                query_type = "forecasts",
-                models = NULL, # all models by default
-                units = state_codes,
-                # We could query all of them, but this was very slow. This ensures
-                # that the forecasts submitted have at least reached 28 days.
-                targets = c("28 day ahead inc hosp"),
-                types = "quantile",
-                timezeros = forecast_dates
-        )
+  forecast_data <- zoltr::do_zoltar_query(
+    zoltar_connection = zoltar_connection,
+    project_url = project_url,
+    query_type = "forecasts",
+    models = NULL, # all models by default
+    units = state_codes,
+    # We could query all of them, but this was very slow. This ensures
+    # that the forecasts submitted have at least reached 28 days.
+    targets = c("28 day ahead inc hosp"),
+    types = "quantile",
+    timezeros = forecast_dates
+  )
 
-        n_unique_forecasts <- forecast_data |>
-                dplyr::distinct(timezero) |>
-                dplyr::pull() |>
-                length()
+  n_unique_forecasts <- forecast_data |>
+    dplyr::distinct(timezero) |>
+    dplyr::pull() |>
+    length()
 
-        forecasts_present_per_model <- forecast_data |>
-                dplyr::distinct(timezero, model, unit) |>
-                dplyr::group_by(model, timezero) |>
-                dplyr::summarize(
-                        n_locs = dplyr::n(),
-                        prop_locs = n_locs / length(state_codes)
-                ) |>
-                # Exclude any forecast dates/models with too few locations submitted
-                dplyr::filter(prop_locs >= !!prop_locs_for_incl_hub) |>
-                dplyr::group_by(model) |>
-                dplyr::summarize(
-                        n_forecast_dates = dplyr::n(),
-                        prop_present = n_forecast_dates / !!n_unique_forecasts
-                )
+  forecasts_present_per_model <- forecast_data |>
+    dplyr::distinct(timezero, model, unit) |>
+    dplyr::group_by(model, timezero) |>
+    dplyr::summarize(
+      n_locs = dplyr::n(),
+      prop_locs = n_locs / length(state_codes)
+    ) |>
+    # Exclude any forecast dates/models with too few locations submitted
+    dplyr::filter(prop_locs >= !!prop_locs_for_incl_hub) |>
+    dplyr::group_by(model) |>
+    dplyr::summarize(
+      n_forecast_dates = dplyr::n(),
+      prop_present = n_forecast_dates / !!n_unique_forecasts
+    )
 
-        models <- forecasts_present_per_model |>
-                dplyr::filter(prop_present > !!prop_dates_for_incl_hub) |>
-                dplyr::filter(model != "COVIDhub_CDC-ensemble") |>
-                dplyr::pull(model)
+  models <- forecasts_present_per_model |>
+    dplyr::filter(prop_present > !!prop_dates_for_incl_hub) |>
+    dplyr::filter(model != "COVIDhub_CDC-ensemble") |>
+    dplyr::pull(model)
 
-        return(models)
+  return(models)
 }
 
 #' Pull hub submissions and create a scorable table
@@ -138,98 +138,98 @@ query_and_select_models <- function(
 #' @export
 #'
 pull_hub_forecasts <- function(
-        model_name,
-        dates,
-        eval_data,
-        locations = NULL,
-        hub_subdir = NA,
-        pull_from_github = TRUE,
-        submissions_path = "https://raw.githubusercontent.com/reichlab/covid19-forecast-hub/master/data-processed/" # nolint
+  model_name,
+  dates,
+  eval_data,
+  locations = NULL,
+  hub_subdir = NA,
+  pull_from_github = TRUE,
+  submissions_path = "https://raw.githubusercontent.com/reichlab/covid19-forecast-hub/master/data-processed/" # nolint
 ) {
-        to_pull <- tidyr::crossing(
-                model_name = model_name,
-                forecast_date = dates
-        )
+  to_pull <- tidyr::crossing(
+    model_name = model_name,
+    forecast_date = dates
+  )
 
-        pull_model_date <- function(model_name, forecast_date) {
-                if (isTRUE(pull_from_github)) {
-                        gh_path <- glue::glue(
-                                "{submissions_path}{model_name}/",
-                                "{forecast_date}-{model_name}.csv"
-                        )
-                        quantiles <- tryCatch(
-                                readr::read_csv(
-                                        gh_path,
-                                        show_col_types = FALSE
-                                ) |>
-                                        dplyr::filter(type == "quantile"),
-                                error = function(e) {
-                                        NULL
-                                }
-                        )
-                } else {
-                        quantiles <- readr::read_csv(
-                                file.path(
-                                        hub_subdir,
-                                        model_name,
-                                        glue::glue(
-                                                "{forecast_date}-{model_name}.csv"
-                                        )
-                                ),
-                                show_col_types = FALSE
-                        )
-                }
-
-                if (is.null(quantiles)) {
-                        quantiles_w_truth <- tibble::tibble()
-                } else {
-                        quantiles_w_truth <- quantiles |>
-                                dplyr::filter(!is.na(.data$quantile)) |>
-                                dplyr::rename(
-                                        predicted = "value",
-                                        quantile_level = "quantile"
-                                ) |>
-                                dplyr::mutate(
-                                        model = !!model_name,
-                                        location = forecasttools::us_loc_code_to_abbr(
-                                                .data$location
-                                        )
-                                ) |>
-                                dplyr::inner_join(
-                                        eval_data |>
-                                                dplyr::select(
-                                                        observed = "daily_hosp_admits",
-                                                        target_end_date = "date",
-                                                        location = "location"
-                                                ),
-                                        by = c("target_end_date", "location")
-                                )
-                }
-
-                ## Filter locations if they are specified,
-                ## otherwise leave them all in
-                if (!is.null(locations)) {
-                        quantiles_w_truth <- quantiles_w_truth |>
-                                dplyr::filter(.data$location %in% !!locations)
-                }
-
-                if (nrow(quantiles_w_truth) > 0) {
-                        result <- quantiles_w_truth |>
-                                scoringutils::as_forecast_quantile(
-                                        predicted = "predicted",
-                                        observed = "observed",
-                                        quantile_level = "quantile_level"
-                                )
-                } else {
-                        result <- NULL
-                }
-
-                return(result)
+  pull_model_date <- function(model_name, forecast_date) {
+    if (isTRUE(pull_from_github)) {
+      gh_path <- glue::glue(
+        "{submissions_path}{model_name}/",
+        "{forecast_date}-{model_name}.csv"
+      )
+      quantiles <- tryCatch(
+        readr::read_csv(
+          gh_path,
+          show_col_types = FALSE
+        ) |>
+          dplyr::filter(type == "quantile"),
+        error = function(e) {
+          NULL
         }
+      )
+    } else {
+      quantiles <- readr::read_csv(
+        file.path(
+          hub_subdir,
+          model_name,
+          glue::glue(
+            "{forecast_date}-{model_name}.csv"
+          )
+        ),
+        show_col_types = FALSE
+      )
+    }
 
-        all_forecasts <- purrr::pmap_df(to_pull, pull_model_date)
+    if (is.null(quantiles)) {
+      quantiles_w_truth <- tibble::tibble()
+    } else {
+      quantiles_w_truth <- quantiles |>
+        dplyr::filter(!is.na(.data$quantile)) |>
+        dplyr::rename(
+          predicted = "value",
+          quantile_level = "quantile"
+        ) |>
+        dplyr::mutate(
+          model = !!model_name,
+          location = forecasttools::us_loc_code_to_abbr(
+            .data$location
+          )
+        ) |>
+        dplyr::inner_join(
+          eval_data |>
+            dplyr::select(
+              observed = "daily_hosp_admits",
+              target_end_date = "date",
+              location = "location"
+            ),
+          by = c("target_end_date", "location")
+        )
+    }
 
-        return(all_forecasts)
+    ## Filter locations if they are specified,
+    ## otherwise leave them all in
+    if (!is.null(locations)) {
+      quantiles_w_truth <- quantiles_w_truth |>
+        dplyr::filter(.data$location %in% !!locations)
+    }
+
+    if (nrow(quantiles_w_truth) > 0) {
+      result <- quantiles_w_truth |>
+        scoringutils::as_forecast_quantile(
+          predicted = "predicted",
+          observed = "observed",
+          quantile_level = "quantile_level"
+        )
+    } else {
+      result <- NULL
+    }
+
+    return(result)
+  }
+
+  all_forecasts <- purrr::pmap_df(to_pull, pull_model_date)
+
+  return(all_forecasts)
 }
 
 
@@ -241,23 +241,23 @@ pull_hub_forecasts <- function(
 #' @return Data frame of scores, as the output of [scoringutils::score()].
 #' @export
 score_hub_forecasts <- function(hub_forecasts) {
-        scores <- hub_forecasts |>
-                scoringutils::transform_forecasts(
-                        fun = scoringutils::log_shift,
-                        offset = 1,
-                        append = FALSE
-                ) |>
-                scoringutils::score() |>
-                dplyr::mutate(
-                        horizon_days = as.integer(
-                                lubridate::ymd(.data$target_end_date) -
-                                        lubridate::ymd(.data$forecast_date)
-                        )
-                ) |>
-                dplyr::mutate(
-                        horizon_weeks = .data$horizon_days %/% 7 + 1,
-                        horizon = glue::glue("{horizon_weeks} week ahead")
-                ) |>
-                dplyr::select(-"horizon_weeks", -"horizon_days")
-        return(scores)
+  scores <- hub_forecasts |>
+    scoringutils::transform_forecasts(
+      fun = scoringutils::log_shift,
+      offset = 1,
+      append = FALSE
+    ) |>
+    scoringutils::score() |>
+    dplyr::mutate(
+      horizon_days = as.integer(
+        lubridate::ymd(.data$target_end_date) -
+          lubridate::ymd(.data$forecast_date)
+      )
+    ) |>
+    dplyr::mutate(
+      horizon_weeks = .data$horizon_days %/% 7 + 1,
+      horizon = glue::glue("{horizon_weeks} week ahead")
+    ) |>
+    dplyr::select(-"horizon_weeks", -"horizon_days")
+  return(scores)
 }
