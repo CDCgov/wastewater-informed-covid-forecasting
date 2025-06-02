@@ -162,9 +162,5 @@ fit_trend(
   ww_lookback_days = parsed$ww_lookback_days,
   seed = parsed$seed,
   chains = parsed$n_chains,
-  iter = parsed$iter_sampling,
-  control = list(
-    adapt_delta = parsed$adapt_delta,
-    max_treedepth = parsed$max_treedepth
-  )
+  iter = parsed$iter_sampling
 )
