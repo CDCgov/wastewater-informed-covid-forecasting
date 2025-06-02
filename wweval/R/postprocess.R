@@ -318,19 +318,16 @@ postprocess_successful_fit <- function(
 ) {
   checkmate::assert_names(model, subset.of = c("ww", "hosp"))
   ww_model <- model == "ww"
-  raw_output_suffix <- get_raw_output_suffix(
+
+  ## get function for saving raw .rds files with the appropriate structure.
+  save_object <- get_object_saver(
     location,
     forecast_date,
-    scenario
+    scenario,
+    raw_output_dir
   )
 
-  save_object <- purrr::partial(
-    to_rds_with_suffix,
-    output_dir = raw_output_dir,
-    save_suffix = raw_output_suffix
-  )
-
-  fig_save_dir <- fs::path(
+  fig_save_dir <- forecast_output_path(
     output_dir,
     scenario,
     forecast_date,
@@ -339,12 +336,12 @@ postprocess_successful_fit <- function(
   )
   fs::dir_create(fig_save_dir)
 
-  ggsave_plot <- function(plot, save_basename = NULL, ext = "png", ...) {
-    if (is.null(save_basename)) {
-      save_basename <- deparse(substitute(plot))
+  ggsave_plot <- function(plot, basename = NULL, ext = "png", ...) {
+    if (is.null(basename)) {
+      basename <- deparse(substitute(plot))
     }
     ggsave(
-      filename = fs::path(fig_save_dir, save_basename, ext = ext),
+      filename = fs::path(fig_save_dir, basename, ext = ext),
       plot = plot,
       ...
     )
@@ -352,13 +349,13 @@ postprocess_successful_fit <- function(
 
   message("Saving raw draws and diagnostics...")
   raw_draws <- stan_fit_obj$draws()
-  save_object(raw_draws, save_basename = glue::glue("{model}_raw_draws"))
+  save_object(raw_draws, basename = glue::glue("{model}_raw_draws"))
   diagnostic_df <- stan_fit_obj$sampler_diagnostics(format = "df")
-  save_object(diagnostic_df, save_basename = glue::glue("{model}_diagnostics"))
+  save_object(diagnostic_df, basename = glue::glue("{model}_diagnostics"))
   diagnostic_summary <- stan_fit_obj$diagnostic_summary()
   save_object(
     diagnostic_summary,
-    save_basename = glue::glue("{model}_diagnostic_summary")
+    basename = glue::glue("{model}_diagnostic_summary")
   )
 
   metadata <- stan_fit_obj$metadata()
@@ -406,7 +403,7 @@ postprocess_successful_fit <- function(
     param_plot <- param_draws |>
       ggplot(aes(x = .data[[param_name]])) +
       geom_histogram()
-    ggsave_plot(param_plot, save_basename = save_name)
+    ggsave_plot(param_plot, basename = save_name)
     save_table(
       data_to_save = param_draws,
       type_of_output = save_name,
@@ -556,7 +553,7 @@ postprocess_successful_fit <- function(
     "plot_hosp_draws_hosp_model"
   )
 
-  ggsave_plot(plot_hosp_draws, save_basename = hosp_draw_plot_savename)
+  ggsave_plot(plot_hosp_draws, basename = hosp_draw_plot_savename)
   save_object(plot_hosp_draws)
 
   plot_hosp_t <- make_fig2_hosp_t(
@@ -667,7 +664,7 @@ postprocess_successful_fit <- function(
 #' Raw output is saved to disk in the `raw_output_dir` specified in the eval config
 #' as serialized `.rds` files. Processed output is saved in a structured directory
 #' format in the `output_dir` specified in the eval config. See the [save_table()],
-#' [to_rds_with_suffix()], and [get_raw_output_suffix()] functions for more details.
+#' [get_object_saver()], and [get_object_loader()] functions for more details.
 #'
 #' The bulk of the postprocessing for successful model fits is handled
 #' by the [postprocess_successful_fit()] function, which is called within this
@@ -716,27 +713,21 @@ eval_postprocess <- function(
   ww_model <- model == "ww"
   fit_obj_name <- glue::glue("{model}_fit_obj")
 
-  raw_output_suffix <- get_raw_output_suffix(
+  ## generate functions for saving and loading
+  ## raw output .rds files
+  save_object <- get_object_saver(
     location,
     forecast_date,
-    scenario
+    scenario,
+    raw_output_dir
   )
 
-  save_object <- purrr::partial(
-    to_rds_with_suffix,
-    output_dir = raw_output_dir,
-    save_suffix = raw_output_suffix
+  load_object <- get_object_loader(
+    location,
+    forecast_date,
+    scenario,
+    raw_output_dir
   )
-
-  load_object <- function(object_name) {
-    return(readRDS(
-      fs::path(
-        raw_output_dir,
-        glue::glue("{object_name}{raw_output_suffix}"),
-        ext = "rds"
-      )
-    ))
-  }
 
   wwinference::create_dir(output_dir)
   wwinference::create_dir(raw_output_dir)

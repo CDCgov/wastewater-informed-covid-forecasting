@@ -62,10 +62,12 @@ eval_fit <- function(
   )
   table_of_exclusions <- tibble::as_tibble(table_of_exclusions)
 
-  save_object <- purrr::partial(
-    to_rds_with_suffix,
-    output_dir = raw_output_dir,
-    save_suffix = raw_output_suffix
+  ## generate a function for saving raw output .rds files
+  save_object <- get_object_saver(
+    location,
+    forecast_date,
+    scenario,
+    raw_output_dir
   )
 
   wwinference::create_dir(raw_output_dir)
@@ -160,5 +162,5 @@ eval_fit <- function(
     fit_obj <- list(fit = list(result = list(error = err_msg)))
   }
 
-  save_object(fit_obj, save_basename = glue::glue("{model}_fit_obj"))
+  save_object(fit_obj, basename = glue::glue("{model}_fit_obj"))
 }

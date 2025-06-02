@@ -43,7 +43,8 @@ test_that("benchmarking writes files correctly", {
     overwrite_benchmark = TRUE
   )
 
-  df <- readr::read_tsv(file.path(benchmark_dir, "all_by_location.tsv"))
+  df <- readr::read_tsv(file.path(benchmark_dir, "all_by_location.tsv")) |>
+    suppressMessages()
 
   # append
   write_files_again <- benchmark_performance(
@@ -55,6 +56,7 @@ test_that("benchmarking writes files correctly", {
     overwrite_benchmark = TRUE
   )
 
-  df2 <- readr::read_tsv(file.path(benchmark_dir, "all_by_location.tsv"))
+  df2 <- readr::read_tsv(file.path(benchmark_dir, "all_by_location.tsv")) |>
+    suppressMessages()
   expect_equal(nrow(df) * 2, nrow(df2))
 })

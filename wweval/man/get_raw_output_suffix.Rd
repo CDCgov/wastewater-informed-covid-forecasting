@@ -2,7 +2,7 @@
 % Please edit documentation in R/utils.R
 \name{get_raw_output_suffix}
 \alias{get_raw_output_suffix}
-\title{Generate a standard format output suffix for saving raw output
+\title{Generate a standard-format output suffix for saving raw output
 for a location/forecast date/scenario trio.}
 \usage{
 get_raw_output_suffix(location, forecast_date, scenario)
@@ -19,6 +19,6 @@ in a format coercible by \code{\link[=as.Date]{as.Date()}}.}
 The output suffix, as a string.
 }
 \description{
-Generate a standard format output suffix for saving raw output
+Generate a standard-format output suffix for saving raw output
 for a location/forecast date/scenario trio.
 }

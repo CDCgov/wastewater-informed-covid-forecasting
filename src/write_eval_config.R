@@ -86,8 +86,6 @@ write_eval_config <- function(
   hosp_data_dir <- file.path("input", "hosp_data", "vintage_datasets")
   population_data_path <- file.path("input", "locations.csv")
   baseline_score_table_dir <- file.path("output", "baseline_score")
-  # stan_models_dir <- system.file("stan", package = "cfaforecastrenewalww") #nolint
-  stan_models_dir <- file.path("cfaforecastrenewalww", "inst", "stan")
   init_dir <- file.path("input", "init_lists")
   output_dir <- file.path("output", "eval_latest")
   figure_dir <- file.path("output", "eval_latest", "plots")
@@ -108,6 +106,7 @@ write_eval_config <- function(
   ww_data_mapping <- "Monday: Monday, Wednesday: Monday"
   calibration_time <- 90
   forecast_time <- 28
+  trend_lookback_days <- 14
 
   iter_warmup <- 750
   iter_sampling <- 500
@@ -225,7 +224,9 @@ write_eval_config <- function(
     # Input delay distributions
     generation_interval = generation_interval,
     infection_feedback_pmf = generation_interval,
-    inf_to_hosp = inf_to_hosp
+    inf_to_hosp = inf_to_hosp,
+    trend_hosp_lookback_days = trend_lookback_days,
+    trend_ww_lookback_days = trend_lookback_days
   )
 
   wwinference::create_dir(config_dir)
