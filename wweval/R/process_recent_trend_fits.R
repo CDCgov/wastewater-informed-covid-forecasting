@@ -20,7 +20,7 @@ process_recent_trend_fits <- function(
   ) |>
     head(10)
   ww_plot <- brms::conditional_effects(
-    fit,
+    ww_fit,
     "time",
     re_formula = NULL,
     conditions = conditions
@@ -30,7 +30,7 @@ process_recent_trend_fits <- function(
   ww_plot <- ww_plot$time + theme_minimal()
 
   hosp_plot <- brms::conditional_effects(
-    fit,
+    hosp_fit,
     "time",
   ) |>
     plot(points = TRUE)

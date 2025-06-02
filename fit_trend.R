@@ -32,7 +32,7 @@ fit_trend <- function(
 
   hosp_fit <- fits$hosp
   ww_fit <- fits$ww
-  savedir <- forecast_output_dir(
+  savedir <- wweval::forecast_output_path(
     processed_output_dir,
     scenario,
     forecast_date,
@@ -162,5 +162,6 @@ fit_trend(
   ww_lookback_days = parsed$ww_lookback_days,
   seed = parsed$seed,
   chains = parsed$n_chains,
-  iter = parsed$iter_sampling
+  iter = parsed$iter_sampling,
+  control = NULL
 )
