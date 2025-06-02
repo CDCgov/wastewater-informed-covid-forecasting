@@ -15,6 +15,7 @@ fit_recent_trends(
   hosp_lookback_days,
   ww_lookback_days,
   seed,
+  control,
   ...
 )
 }
@@ -45,6 +46,9 @@ trend in hospital admissions.}
 trend in wastewater concentrations.}
 
 \item{seed}{Seed for Stan's pseudorandom number generator.}
+
+\item{control}{list of control parameters passed to stan via
+\code{\link[brms:brm]{brms::brm()}}. Default \code{NULL}.}
 
 \item{...}{Additional keyword arguments passed to \code{\link[brms:brm]{brms::brm()}}
 via \code{\link[=fit_hosp_trend]{fit_hosp_trend()}}.}

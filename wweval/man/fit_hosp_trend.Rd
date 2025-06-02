@@ -11,6 +11,7 @@ fit_hosp_trend(
   log_nb_conc_prior_mean,
   log_nb_conc_prior_sd,
   seed,
+  control,
   ...
 )
 }
@@ -30,6 +31,9 @@ the log of the negative binomial concentration parameter ("phi").}
 the log of the negative binomial concentration parameter ("phi").}
 
 \item{seed}{Seed for cmdnstan's pseudorandom number generator.}
+
+\item{control}{list of control parameters passed to stan via
+\code{\link[brms:brm]{brms::brm()}}. Default \code{NULL}.}
 
 \item{...}{Additional keyword arguments passed to \code{\link[brms:brm]{brms::brm()}}}
 }

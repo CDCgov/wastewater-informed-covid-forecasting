@@ -19,6 +19,7 @@ fit_ww_trend(
   sd_log_sd_obs_prior_mode,
   sd_log_sd_obs_prior_sd,
   seed,
+  control,
   ...
 )
 }
@@ -83,6 +84,9 @@ observation error standard deviations (which governs the variability
 in observation error scale among lab-sites).}
 
 \item{seed}{Seed for cmdnstan's pseudorandom number generator.}
+
+\item{control}{list of control parameters passed to stan via
+\code{\link[brms:brm]{brms::brm()}}. Default \code{NULL}.}
 
 \item{...}{Additional keyword arguments passed to \code{\link[brms:brm]{brms::brm()}}}
 }
