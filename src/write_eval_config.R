@@ -199,7 +199,6 @@ write_eval_config <- function(
     ww_data_dir = ww_data_dir,
     scenario_dir = scenario_dir,
     hosp_data_dir = hosp_data_dir,
-    stan_models_dir = stan_models_dir,
     baseline_score_table_dir = baseline_score_table_dir,
     output_dir = output_dir,
     hub_subdir = hub_subdir,
