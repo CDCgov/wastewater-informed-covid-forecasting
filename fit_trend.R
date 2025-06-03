@@ -1,6 +1,7 @@
 #' Fit a log-linear trend in recent data
 
 library(argparser)
+options(mc.cores = 4)
 
 fit_trend <- function(
   forecast_date,
