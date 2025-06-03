@@ -263,7 +263,7 @@ plot_rel_score_distribution <- function(
     xlab("Count") +
     scale_y_continuous(transform = "log10") +
     coord_cartesian(
-      ylim = forecastools::sym_limits(
+      ylim = forecasttools::sym_limits(
         relative_scores$mean_scores_ratio,
         transform = "log10"
       )
