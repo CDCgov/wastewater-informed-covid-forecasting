@@ -9,9 +9,9 @@
 #' out
 #' @noRd
 quiet <- function(code) {
-        sink(nullfile())
-        on.exit(sink())
-        suppressMessages(code)
+  sink(nullfile())
+  on.exit(sink())
+  suppressMessages(code)
 }
 
 #' Check whether a required package is installed
@@ -19,14 +19,14 @@ quiet <- function(code) {
 #' @return If the package is not available, it returns an error.
 #' @noRd
 check_package_is_installed <- function(pkg_name) {
-        if (!requireNamespace(pkg_name)) {
-                stop(
-                        glue::glue(
-                                "The R package `{pkg_name}` is not available. "
-                        ),
-                        glue::glue("Use `install.packages(\"{pkg_name}\")`.")
-                )
-        }
+  if (!requireNamespace(pkg_name)) {
+    stop(
+      glue::glue(
+        "The R package `{pkg_name}` is not available. "
+      ),
+      glue::glue("Use `install.packages(\"{pkg_name}\")`.")
+    )
+  }
 }
 
 #' Helper function to note targets dependencies not explicitly
@@ -41,7 +41,7 @@ check_package_is_installed <- function(pkg_name) {
 #'
 #' @export
 with_dependencies <- function(x, ...) {
-        x
+  x
 }
 
 #' Construct a path to a serialized object
@@ -55,11 +55,11 @@ with_dependencies <- function(x, ...) {
 #' @param ext file extension for the object
 #' @keywords internal
 .path_with_suffix <- function(dir, basename, suffix, ext) {
-        return(fs::path(
-                dir,
-                glue::glue("{basename}{suffix}"),
-                ext = ext
-        ))
+  return(fs::path(
+    dir,
+    glue::glue("{basename}{suffix}"),
+    ext = ext
+  ))
 }
 
 #' Save an object to .rds in a given `dir`,
@@ -86,24 +86,24 @@ with_dependencies <- function(x, ...) {
 #' @return Nothing, saving the object as a side effect.
 #' @export
 save_rds_with_suffix <- function(
-        object,
-        dir,
-        basename = NULL,
-        suffix = "",
-        ext = "rds"
+  object,
+  dir,
+  basename = NULL,
+  suffix = "",
+  ext = "rds"
 ) {
-        if (is.null(basename)) {
-                basename <- deparse(substitute(object))
-        }
-        saveRDS(
-                object = object,
-                file = .path_with_suffix(
-                        dir,
-                        basename,
-                        suffix,
-                        ext
-                )
-        )
+  if (is.null(basename)) {
+    basename <- deparse(substitute(object))
+  }
+  saveRDS(
+    object = object,
+    file = .path_with_suffix(
+      dir,
+      basename,
+      suffix,
+      ext
+    )
+  )
 }
 
 #' Load an object from an `.rds` serialized file
@@ -119,19 +119,19 @@ save_rds_with_suffix <- function(
 #' @return The loaded object.
 #' @export
 read_rds_with_suffix <- function(
-        object_basename,
-        dir,
-        suffix = "",
-        ext = "rds"
+  object_basename,
+  dir,
+  suffix = "",
+  ext = "rds"
 ) {
-        return(
-                readRDS(.path_with_suffix(
-                        dir,
-                        object_basename,
-                        suffix,
-                        ext
-                ))
-        )
+  return(
+    readRDS(.path_with_suffix(
+      dir,
+      object_basename,
+      suffix,
+      ext
+    ))
+  )
 }
 
 #' Generate a standard-format output suffix for saving raw output
@@ -144,13 +144,13 @@ read_rds_with_suffix <- function(
 #' @return The output suffix, as a string.
 #' @export
 get_raw_output_suffix <- function(location, forecast_date, scenario) {
-        return(paste(
-                "",
-                location,
-                format(as.Date(forecast_date), "%Y.%m.%d"),
-                scenario,
-                sep = "_"
-        ))
+  return(paste(
+    "",
+    location,
+    format(as.Date(forecast_date), "%Y.%m.%d"),
+    scenario,
+    sep = "_"
+  ))
 }
 
 #' Assert that needed environment variables are set
@@ -171,16 +171,16 @@ get_raw_output_suffix <- function(location, forecast_date, scenario) {
 #'
 #' @export
 assert_needed_env_vars <- function(needed_vars) {
-        vars <- Sys.getenv(needed_vars)
-        checkmate::assert_character(vars)
-        which_missing <- vars == ""
-        if (any(which_missing)) {
-                cli::cli_abort(c(
-                        "Could not find required environment variables ",
-                        "{names(vars)[which_missing]}"
-                ))
-        }
-        invisible()
+  vars <- Sys.getenv(needed_vars)
+  checkmate::assert_character(vars)
+  which_missing <- vars == ""
+  if (any(which_missing)) {
+    cli::cli_abort(c(
+      "Could not find required environment variables ",
+      "{names(vars)[which_missing]}"
+    ))
+  }
+  invisible()
 }
 
 
@@ -195,7 +195,7 @@ assert_needed_env_vars <- function(needed_vars) {
 #' `template_df` can be found.
 #' @export
 select_like <- function(df, template_df) {
-        return(dplyr::select(df, tidyselect::all_of(colnames(template_df))))
+  return(dplyr::select(df, tidyselect::all_of(colnames(template_df))))
 }
 
 
@@ -225,11 +225,11 @@ select_like <- function(df, template_df) {
 #' new_df
 #' @export
 order_col <- function(df, col, levels) {
-        checkmate::assert_vector(levels, unique = TRUE)
-        return(dplyr::mutate(
-                df,
-                !!col := factor(.data[[col]], ordered = TRUE, levels = levels)
-        ))
+  checkmate::assert_vector(levels, unique = TRUE)
+  return(dplyr::mutate(
+    df,
+    !!col := factor(.data[[col]], ordered = TRUE, levels = levels)
+  ))
 }
 
 #' Generate a function for saving raw output objects for a
@@ -246,25 +246,25 @@ order_col <- function(df, col, levels) {
 #'
 #' @export
 get_object_saver <- function(
-        location,
-        forecast_date,
-        scenario,
-        raw_output_dir
+  location,
+  forecast_date,
+  scenario,
+  raw_output_dir
 ) {
-        raw_output_suffix <- get_raw_output_suffix(
-                location,
-                forecast_date,
-                scenario
-        )
+  raw_output_suffix <- get_raw_output_suffix(
+    location,
+    forecast_date,
+    scenario
+  )
 
-        return(
-                purrr::partial(
-                        save_rds_with_suffix,
-                        dir = raw_output_dir,
-                        suffix = raw_output_suffix,
-                        ext = "rds"
-                )
-        )
+  return(
+    purrr::partial(
+      save_rds_with_suffix,
+      dir = raw_output_dir,
+      suffix = raw_output_suffix,
+      ext = "rds"
+    )
+  )
 }
 
 #' Generate a function for loading raw output objects
@@ -281,25 +281,25 @@ get_object_saver <- function(
 #' [read_rds_with_suffix()].
 #' @export
 get_object_loader <- function(
-        location,
-        forecast_date,
-        scenario,
-        raw_output_dir
+  location,
+  forecast_date,
+  scenario,
+  raw_output_dir
 ) {
-        raw_output_suffix <- get_raw_output_suffix(
-                location,
-                forecast_date,
-                scenario
-        )
+  raw_output_suffix <- get_raw_output_suffix(
+    location,
+    forecast_date,
+    scenario
+  )
 
-        return(
-                purrr::partial(
-                        read_rds_with_suffix,
-                        dir = raw_output_dir,
-                        suffix = raw_output_suffix,
-                        ext = "rds"
-                )
-        )
+  return(
+    purrr::partial(
+      read_rds_with_suffix,
+      dir = raw_output_dir,
+      suffix = raw_output_suffix,
+      ext = "rds"
+    )
+  )
 }
 
 #' Standard path to an output directory for a specific forecast
@@ -314,17 +314,17 @@ get_object_loader <- function(
 #' @return The path
 #' @export
 forecast_output_path <- function(
-        output_dir,
-        scenario,
-        forecast_date,
-        model,
-        location
+  output_dir,
+  scenario,
+  forecast_date,
+  model,
+  location
 ) {
-        return(fs::path(
-                output_dir,
-                scenario,
-                forecast_date,
-                model,
-                location
-        ))
+  return(fs::path(
+    output_dir,
+    scenario,
+    forecast_date,
+    model,
+    location
+  ))
 }
