@@ -129,7 +129,11 @@ upstream_targets <- list(
         fig_output_dir,
         glue::glue("eval_ww_data.pdf")
       ),
-      plot = gridExtra::marrangeGrob(plot_ww_eval_data, nrow = 1, ncol = 1),
+      plot = gridExtra::marrangeGrob(
+        plot_ww_eval_data,
+        nrow = 1,
+        ncol = 1
+      ),
       width = 8.5,
       height = 11,
       create.dir = TRUE
@@ -156,7 +160,9 @@ combined_targets <- list(
           "hosp" = "cfa-hosponlyrenewal(retro)"
         )
       ) |>
-      scoringutils:::as_scores(metrics = names(wweval::sample_metrics))
+      scoringutils:::as_scores(
+        metrics = names(wweval::sample_metrics)
+      )
   ),
   tar_target(
     name = all_hosp_scores,
@@ -175,7 +181,9 @@ combined_targets <- list(
           "hosp" = "cfa-hosponlyrenewal(retro)"
         )
       ) |>
-      scoringutils:::as_scores(metrics = names(wweval::sample_metrics))
+      scoringutils:::as_scores(
+        metrics = names(wweval::sample_metrics)
+      )
   ),
   tar_target(
     name = all_flags_ww,
@@ -213,7 +221,10 @@ combined_targets <- list(
   ),
   tar_target(
     name = convergence_df_hosp,
-    command = get_convergence_df(all_flags_hosp, scenario = "no_wastewater") |>
+    command = get_convergence_df(
+      all_flags_hosp,
+      scenario = "no_wastewater"
+    ) |>
       dplyr::rename(any_flags_hosp = "any_flags")
   ),
   tar_target(
@@ -255,7 +266,9 @@ combined_targets <- list(
           "hosp" = "cfa-hosponlyrenewal(retro)"
         )
       ) |>
-      scoringutils:::as_scores(metrics = names(wweval::quantile_metrics))
+      scoringutils:::as_scores(
+        metrics = names(wweval::quantile_metrics)
+      )
   ),
   tar_target(
     name = all_hosp_scores_quantiles,
@@ -274,7 +287,9 @@ combined_targets <- list(
           "hosp" = "cfa-hosponlyrenewal(retro)"
         )
       ) |>
-      scoringutils:::as_scores(metrics = names(wweval::quantile_metrics))
+      scoringutils:::as_scores(
+        metrics = names(wweval::quantile_metrics)
+      )
   ),
   tar_target(
     name = all_ww_hosp_quantiles,
@@ -330,12 +345,19 @@ head_to_head_targets <- list(
   tar_target(
     name = convergence_df,
     command = convergence_df_hosp |>
-      dplyr::left_join(convergence_df_ww, by = c("location", "forecast_date"))
+      dplyr::left_join(
+        convergence_df_ww,
+        by = c("location", "forecast_date")
+      )
   ),
   tar_target(
     name = ww_forecast_date_locs_to_excl,
-    command = as.data.frame(eval_config$ww_forecast_date_locs_to_excl) |>
-      dplyr::mutate(forecast_date = lubridate::ymd(forecast_date))
+    command = as.data.frame(
+      eval_config$ww_forecast_date_locs_to_excl
+    ) |>
+      dplyr::mutate(
+        forecast_date = lubridate::ymd(forecast_date)
+      )
   ),
   tar_target(
     name = last_hosp_data_date_map,
@@ -421,7 +443,9 @@ head_to_head_targets <- list(
           "ww_sufficient"
         )
       ) |>
-      scoringutils:::as_scores(metrics = names(wweval::sample_metrics))
+      scoringutils:::as_scores(
+        metrics = names(wweval::sample_metrics)
+      )
   )
 )
 
@@ -789,7 +813,8 @@ manuscript_figures <- list(
     name = fig_crps_t_cfa_models,
     command = plot_score_t(
       scores_filtered,
-      metric = "crps"
+      metric = "crps",
+      model_z_order = models_to_plot
     )
   ),
   tar_target(
@@ -911,12 +936,18 @@ scenario_targets <- list(
   tar_target(
     name = mock_submission_scores,
     command = create_mock_submission_scores(all_raw_scores) |>
-      scoringutils:::as_scores(metrics = names(wweval::sample_metrics))
+      scoringutils:::as_scores(
+        metrics = names(wweval::sample_metrics)
+      )
   ),
   tar_target(
     name = mock_submission_scores_quantiles,
-    command = create_mock_submission_scores(all_raw_scores_quantiles) |>
-      scoringutils:::as_scores(metrics = names(wweval::quantile_metrics))
+    command = create_mock_submission_scores(
+      all_raw_scores_quantiles
+    ) |>
+      scoringutils:::as_scores(
+        metrics = names(wweval::quantile_metrics)
+      )
   ),
   tar_target(
     name = summarized_scores,
@@ -951,7 +982,10 @@ scenario_targets <- list(
   ## Plots----------------------------------------------------
   tar_target(
     name = plot_raw_scores,
-    command = get_plot_raw_scores(all_raw_scores, score_metric = "crps"),
+    command = get_plot_raw_scores(
+      all_raw_scores,
+      score_metric = "crps"
+    ),
     deployment = "main"
   ),
   tar_target(
@@ -1045,7 +1079,9 @@ real_time_rel_targets <- list(
     command = score_real_time_outputs(
       score_type = "crps",
       real_time_output_dir = eval_config$real_time_output_dir,
-      table_of_run_ids = as.data.frame(eval_config$table_of_run_ids),
+      table_of_run_ids = as.data.frame(
+        eval_config$table_of_run_ids
+      ),
       locations = unique(eval_config$location_ww),
       eval_data = eval_hosp_data,
       model_types = c("ww", "hosp")
@@ -1059,7 +1095,9 @@ real_time_rel_targets <- list(
     command = score_real_time_outputs(
       score_type = "wis",
       real_time_output_dir = eval_config$real_time_output_dir,
-      table_of_run_ids = as.data.frame(eval_config$table_of_run_ids),
+      table_of_run_ids = as.data.frame(
+        eval_config$table_of_run_ids
+      ),
       locations = unique(eval_config$location_ww),
       eval_data = eval_hosp_data,
       model_types = c("ww", "hosp")
@@ -1085,7 +1123,9 @@ real_time_rel_targets <- list(
   tar_target(
     name = rel_wis_real_time_locs,
     command = wis_cfa_models_real_time |>
-      dplyr::filter(location %in% c("TX", "FL", "IL", "MI")) |>
+      dplyr::filter(
+        location %in% c("TX", "FL", "IL", "MI")
+      ) |>
       forecasttools::summarise_scores_with_baseline(
         compare = "model",
         baseline = "hosp",
@@ -1164,7 +1204,9 @@ hub_targets <- list(
           "cfa-hosponlyrenewal" = "cfa-hosponlyrenewal(retro)"
         )
       ) |>
-      dplyr::filter(!location %in% .env$hub_locations_to_exclude) |>
+      dplyr::filter(
+        !location %in% .env$hub_locations_to_exclude
+      ) |>
       with_dependencies(hub_locations_to_exclude)
   ),
   tar_target(
@@ -1181,20 +1223,28 @@ hub_targets <- list(
           "cfa-wwrenewal" = "cfa-wwrenewal(real-time)"
         )
       ) |>
-      dplyr::filter(!location %in% .env$hub_locations_to_exclude) |>
+      dplyr::filter(
+        !location %in% .env$hub_locations_to_exclude
+      ) |>
       with_dependencies(hub_locations_to_exclude)
   ),
   tar_target(
     name = hub_forecasts_cfa_hosp_real_time,
     command = load_real_time_quantile_fcsts(
       real_time_output_dir = eval_config$real_time_output_dir,
-      table_of_run_ids = as.data.frame(eval_config$table_of_run_ids),
+      table_of_run_ids = as.data.frame(
+        eval_config$table_of_run_ids
+      ),
       locations = unique(eval_config$location_ww),
       eval_data = eval_hosp_data,
       model_type = "hosp"
     ) |>
-      dplyr::mutate(model = "cfa-hosponlyrenewal(real-time)*") |>
-      dplyr::filter(!location %in% .env$hub_locations_to_exclude) |>
+      dplyr::mutate(
+        model = "cfa-hosponlyrenewal(real-time)*"
+      ) |>
+      dplyr::filter(
+        !location %in% .env$hub_locations_to_exclude
+      ) |>
       with_dependencies(hub_locations_to_exclude)
   ),
   tar_target(
@@ -1213,7 +1263,9 @@ hub_targets <- list(
       eval_data = eval_hosp_data,
       pull_from_github = TRUE
     ) |>
-      dplyr::filter(!location %in% .env$hub_locations_to_exclude) |>
+      dplyr::filter(
+        !location %in% .env$hub_locations_to_exclude
+      ) |>
       with_dependencies(hub_locations_to_exclude)
   ),
   tar_target(
@@ -1263,7 +1315,10 @@ hub_targets <- list(
         "hub_scores_real_time",
         ext = "parquet"
       )
-      forecasttools::write_tabular_file(hub_scores_real_time, fp)
+      forecasttools::write_tabular_file(
+        hub_scores_real_time,
+        fp
+      )
       fp
     },
     format = "file"
@@ -1292,13 +1347,13 @@ hub_comparison_plots <- list(
   tar_target(
     name = models_to_plot,
     command = c(
+      "COVIDhub-4_week_ensemble",
       "UMass-sarix",
       "CMU-TimeSeries",
-      "COVIDhub-4_week_ensemble",
-      "cfa-wwrenewal(real-time)",
-      "cfa-hosponlyrenewal(real-time)*",
+      "cfa-hosponlyrenewal(retro)",
       "cfa-wwrenewal(retro)",
-      "cfa-hosponlyrenewal(retro)"
+      "cfa-hosponlyrenewal(real-time)*",
+      "cfa-wwrenewal(real-time)"
     )
   ),
   tar_target(
@@ -1339,7 +1394,8 @@ hub_comparison_plots <- list(
     name = abs_wis_by_date_real_time,
     command = plot_score_t(
       wis_cfa_models_real_time,
-      metric = "wis"
+      metric = "wis",
+      model_z_order = models_to_plot
     )
   ),
   tar_target(
@@ -1421,10 +1477,12 @@ hub_comparison_plots <- list(
     name = hub_wis_t_all_time,
     command = plot_score_t(
       scores = hub_scores |>
-        dplyr::filter(.data$model %in% .env$models_to_plot),
-      metric = "wis"
-    ) |>
-      with_dependencies(models_to_plot)
+        dplyr::filter(
+          .data$model %in% .env$models_to_plot
+        ),
+      metric = "wis",
+      model_z_order = models_to_plot
+    )
   ),
   tar_target(
     name = hub_wis_t_real_time,
@@ -1438,9 +1496,9 @@ hub_comparison_plots <- list(
             ),
           .data$model %in% .env$models_to_plot
         ),
-      metric = "wis"
-    ) |>
-      with_dependencies(models_to_plot)
+      metric = "wis",
+      model_z_order = models_to_plot
+    )
   ),
   tar_target(
     name = hub_heatmap_rel_wis_all_time,
@@ -1476,7 +1534,9 @@ hub_comparison_plots <- list(
     name = hub_qq_plot_all_time,
     command = forecast_qq_plot(
       hub_forecasts |>
-        dplyr::filter(.data$model %in% .env$models_to_plot),
+        dplyr::filter(
+          .data$model %in% .env$models_to_plot
+        ),
       time_period = "Oct 2023-Mar 2024"
     ) |>
       with_dependencies(models_to_plot)
