@@ -25,218 +25,231 @@
 #'
 #' @examples
 write_eval_config <- function(
-  locations,
-  forecast_dates,
-  scenarios,
-  config_dir,
-  scenario_dir,
-  benchmark_dir,
-  eval_date,
-  overwrite_summary_table,
-  wwinference_version = sessioninfo::package_info(
-    "wwinference",
-    dependencies = FALSE
-  )$source, # nolint
-  name_of_config = "eval_config",
-  overwrite_benchmark = FALSE
+        locations,
+        forecast_dates,
+        scenarios,
+        config_dir,
+        scenario_dir,
+        benchmark_dir,
+        eval_date,
+        overwrite_summary_table,
+        wwinference_version = sessioninfo::package_info(
+                "wwinference",
+                dependencies = FALSE
+        )$source, # nolint
+        name_of_config = "eval_config",
+        overwrite_benchmark = FALSE
 ) {
-  # Will need to load in the files corresponding to the input scenarios, so we
-  # get the list of locations that are relevant for each scenario. We will bind
-  # these all together to create the full eval config.
-  df_ww <- data.frame(row.names = c("location", "forecast_date", "scenario"))
+        # Will need to load in the files corresponding to the input scenarios, so we
+        # get the list of locations that are relevant for each scenario. We will bind
+        # these all together to create the full eval config.
+        df_ww <- data.frame(
+                row.names = c("location", "forecast_date", "scenario")
+        )
 
-  # This is a "manual" way of generating the dataframe we need to pass to targets
-  # It does not handle the case of missing wastewater data.
-  for (i in seq_along(scenarios)) {
-    if (scenarios[i] == "status_quo") {
-      locs <- locations
-    } else {
-      scenario_df <- read.table(
-        file.path(
-          scenario_dir,
-          glue::glue("{scenarios[i]}.tsv")
-        ),
-        header = TRUE
-      )
-      locs <- scenario_df |>
-        dplyr::filter(wwtp_jurisdiction %in% !!locations) |>
-        dplyr::pull(wwtp_jurisdiction) |>
-        unique()
-    }
+        # This is a "manual" way of generating the dataframe we need to pass to targets
+        # It does not handle the case of missing wastewater data.
+        for (i in seq_along(scenarios)) {
+                if (scenarios[i] == "status_quo") {
+                        locs <- locations
+                } else {
+                        scenario_df <- read.table(
+                                file.path(
+                                        scenario_dir,
+                                        glue::glue("{scenarios[i]}.tsv")
+                                ),
+                                header = TRUE
+                        )
+                        locs <- scenario_df |>
+                                dplyr::filter(
+                                        wwtp_jurisdiction %in% !!locations
+                                ) |>
+                                dplyr::pull(wwtp_jurisdiction) |>
+                                unique()
+                }
 
-    df_i <- expand.grid(
-      location = locs,
-      forecast_date = forecast_dates,
-      scenario = scenarios[i]
-    )
+                df_i <- expand.grid(
+                        location = locs,
+                        forecast_date = forecast_dates,
+                        scenario = scenarios[i]
+                )
 
-    df_ww <- rbind(df_ww, df_i)
-  }
+                df_ww <- rbind(df_ww, df_i)
+        }
 
-  # No scenarios for the hosp admissions only, so we just need all combos
-  # of locations and forecast dates
-  df_hosp <- expand.grid(
-    location = locations,
-    forecast_date = forecast_dates
-  )
+        # No scenarios for the hosp admissions only, so we just need all combos
+        # of locations and forecast dates
+        df_hosp <- expand.grid(
+                location = locations,
+                forecast_date = forecast_dates
+        )
 
-  # Specify other variables
-  ww_data_dir <- file.path("input", "ww_data", "monday_datasets")
-  scenario_dir <- file.path("input", "config", "eval", "scenarios")
-  hosp_data_dir <- file.path("input", "hosp_data", "vintage_datasets")
-  population_data_path <- file.path("input", "locations.csv")
-  baseline_score_table_dir <- file.path("output", "baseline_score")
-  init_dir <- file.path("input", "init_lists")
-  output_dir <- file.path("output", "eval_latest")
-  figure_dir <- file.path("output", "eval_latest", "plots")
-  ms_fig_dir <- file.path(
-    "output",
-    "eval_latest",
-    "plots",
-    "manuscript"
-  )
-  hub_subdir <- file.path("output", "eval_latest", "hub")
-  retro_rt_path <- file.path("input", "retro_Rt", "Rt_draws.parquet")
-  score_subdir <- file.path("output", "eval_latest", "hub")
-  # Proportion of forecast dates that a model must have submitted for to be
-  # included in the Hub analysis
-  prop_dates_for_incl_hub <- 18 / 22
-  prop_locs_for_incl_hub <- 40 / 52
-  raw_output_dir <- file.path(output_dir, "raw_output")
-  ww_data_mapping <- "Monday: Monday, Wednesday: Monday"
-  calibration_time <- 90
-  forecast_time <- 28
-  trend_lookback_days <- 14
+        # Specify other variables
+        ww_data_dir <- file.path("input", "ww_data", "monday_datasets")
+        scenario_dir <- file.path("input", "config", "eval", "scenarios")
+        hosp_data_dir <- file.path("input", "hosp_data", "vintage_datasets")
+        population_data_path <- file.path("input", "locations.csv")
+        baseline_score_table_dir <- file.path("output", "baseline_score")
+        init_dir <- file.path("input", "init_lists")
+        output_dir <- file.path("output", "eval_latest")
+        figure_dir <- file.path("output", "eval_latest", "plots")
+        ms_fig_dir <- file.path(
+                "output",
+                "eval_latest",
+                "plots",
+                "manuscript"
+        )
+        hub_subdir <- file.path("output", "eval_latest", "hub")
+        retro_rt_path <- file.path("input", "retro_Rt", "Rt_draws.parquet")
+        score_subdir <- file.path("output", "eval_latest", "hub")
+        # Proportion of forecast dates that a model must have submitted for to be
+        # included in the Hub analysis
+        prop_dates_for_incl_hub <- 18 / 22
+        prop_locs_for_incl_hub <- 40 / 52
+        raw_output_dir <- file.path(output_dir, "raw_output")
+        ww_data_mapping <- "Monday: Monday, Wednesday: Monday"
+        calibration_time <- 90
+        forecast_time <- 28
+    trend_lookback_days <- 14 + 9
+                                        # two weeks from the last admission date
 
-  iter_warmup <- 750
-  iter_sampling <- 500
-  n_chains <- 4
-  n_parallel_chains <- 4
-  adapt_delta <- 0.95
-  max_treedepth <- 12
-  seed <- 123
+        iter_warmup <- 750
+        iter_sampling <- 500
+        n_chains <- 4
+        n_parallel_chains <- 4
+        adapt_delta <- 0.95
+        max_treedepth <- 12
+        seed <- 123
 
-  init_fps <- c()
-  for (i in 1:n_chains) {
-    init_fps <- c(init_fps, file.path(init_dir, glue::glue("init_{i}.json")))
-  }
+        init_fps <- c()
+        for (i in 1:n_chains) {
+                init_fps <- c(
+                        init_fps,
+                        file.path(init_dir, glue::glue("init_{i}.json"))
+                )
+        }
 
-  # Pre-specified delay distributions
-  generation_interval <- wwinference::default_covid_gi
+        # Pre-specified delay distributions
+        generation_interval <- wwinference::default_covid_gi
 
-  inf_to_hosp <- wwinference::default_covid_inf_to_hosp
+        inf_to_hosp <- wwinference::default_covid_inf_to_hosp
 
-  # Table of hospital admissions outliers by location-forecast-date-admissions-date:
-  # This is currently fake/a test. We will replace with a load in to a path
-  # to a saved csv eventually.
-  table_of_exclusions <- data.frame(
-    location = c(),
-    forecast_date = c(),
-    dates_to_exclude = c()
-  )
+        # Table of hospital admissions outliers by location-forecast-date-admissions-date:
+        # This is currently fake/a test. We will replace with a load in to a path
+        # to a saved csv eventually.
+        table_of_exclusions <- data.frame(
+                location = c(),
+                forecast_date = c(),
+                dates_to_exclude = c()
+        )
 
-  forecast_dates <- df_ww |>
-    dplyr::filter(
-      lubridate::ymd(forecast_date) >= lubridate::ymd("2024-02-05")
-    ) |>
-    dplyr::pull(forecast_date) |>
-    as.vector() |>
-    unique()
+        forecast_dates <- df_ww |>
+                dplyr::filter(
+                        lubridate::ymd(forecast_date) >=
+                                lubridate::ymd("2024-02-05")
+                ) |>
+                dplyr::pull(forecast_date) |>
+                as.vector() |>
+                unique()
 
-  real_time_output_dir <- file.path("output", "real_time_outputs")
-  path_to_table_of_run_ids <- file.path(
-    "output",
-    "real_time_outputs",
-    "table_of_run_ids.rds"
-  )
-  if (file.exists(path_to_table_of_run_ids)) {
-    table_of_run_ids <- readRDS(path_to_table_of_run_ids)
-    table_of_run_ids$forecast_date <- as.character(
-      table_of_run_ids$forecast_date
-    )
-  } else {
-    table_of_run_ids <- NULL
-  }
+        real_time_output_dir <- file.path("output", "real_time_outputs")
+        path_to_table_of_run_ids <- file.path(
+                "output",
+                "real_time_outputs",
+                "table_of_run_ids.rds"
+        )
+        if (file.exists(path_to_table_of_run_ids)) {
+                table_of_run_ids <- readRDS(path_to_table_of_run_ids)
+                table_of_run_ids$forecast_date <- as.character(
+                        table_of_run_ids$forecast_date
+                )
+        } else {
+                table_of_run_ids <- NULL
+        }
 
-  # These come from the yaml files we saved in the forecast folders,
-  # documentation which location-forecast dates we chose to use the hospital
-  # admissions only model for in real-time
-  # Example: https://github.com/CDCgov/wastewater-informed-covid-forecasting/blob/e6e4e1980e13c15036a4e0e1c5af72b40e8f728e/output/forecasts/2024-02-05/metadata.yaml#L12 #nolint
-  dates_we_excluded <- wweval::get_date_locs_excluded(forecast_dates)
-  add_to_exclude <- data.frame(
-    location = c("MN", "MN", "MN"),
-    forecast_date = c(
-      "2024-01-15",
-      "2024-01-22",
-      "2024-01-29"
-    )
-  )
+        # These come from the yaml files we saved in the forecast folders,
+        # documentation which location-forecast dates we chose to use the hospital
+        # admissions only model for in real-time
+        # Example: https://github.com/CDCgov/wastewater-informed-covid-forecasting/blob/e6e4e1980e13c15036a4e0e1c5af72b40e8f728e/output/forecasts/2024-02-05/metadata.yaml#L12 #nolint
+        dates_we_excluded <- wweval::get_date_locs_excluded(forecast_dates)
+        add_to_exclude <- data.frame(
+                location = c("MN", "MN", "MN"),
+                forecast_date = c(
+                        "2024-01-15",
+                        "2024-01-22",
+                        "2024-01-29"
+                )
+        )
 
-  ww_forecast_date_locs_to_excl <- dplyr::bind_rows(
-    dates_we_excluded,
-    add_to_exclude
-  )
+        ww_forecast_date_locs_to_excl <- dplyr::bind_rows(
+                dates_we_excluded,
+                add_to_exclude
+        )
 
-  config <- list(
-    location_ww = df_ww |> dplyr::pull(location) |> as.vector(),
-    forecast_date_ww = df_ww |> dplyr::pull(forecast_date) |> as.vector(),
-    scenario = df_ww |> dplyr::pull(scenario) |> as.vector(),
-    location_hosp = df_hosp |> dplyr::pull(location) |> as.vector(),
-    forecast_date_hosp = df_hosp |> dplyr::pull(forecast_date) |> as.vector(),
-    eval_date = eval_date,
-    ww_data_dir = ww_data_dir,
-    scenario_dir = scenario_dir,
-    hosp_data_dir = hosp_data_dir,
-    stan_models_dir = stan_models_dir,
-    baseline_score_table_dir = baseline_score_table_dir,
-    output_dir = output_dir,
-    hub_subdir = hub_subdir,
-    benchmark_dir = benchmark_dir,
-    overwrite_benchmark = overwrite_benchmark,
-    wwinference_version = wwinference_version,
-    retro_rt_path = retro_rt_path,
-    score_subdir = score_subdir,
-    raw_output_dir = raw_output_dir,
-    figure_dir = figure_dir,
-    ms_fig_dir = ms_fig_dir,
-    prop_dates_for_incl_hub = prop_dates_for_incl_hub,
-    prop_locs_for_incl_hub = prop_locs_for_incl_hub,
-    population_data_path = population_data_path,
-    init_dir = init_dir,
-    init_fps = init_fps,
-    overwrite_summary_table = overwrite_summary_table,
-    calibration_time = calibration_time,
-    forecast_time = forecast_time,
-    ww_data_mapping = ww_data_mapping,
-    table_of_exclusions = table_of_exclusions,
-    table_of_run_ids = table_of_run_ids,
-    real_time_output_dir = real_time_output_dir,
-    ww_forecast_date_locs_to_excl = ww_forecast_date_locs_to_excl,
-    # MCMC settings
-    iter_warmup = iter_warmup,
-    iter_sampling = iter_sampling,
-    n_chains = n_chains,
-    n_parallel_chains = n_parallel_chains,
-    adapt_delta = adapt_delta,
-    max_treedepth = max_treedepth,
-    seed = seed,
-    name_of_config = name_of_config,
-    # Input delay distributions
-    generation_interval = generation_interval,
-    infection_feedback_pmf = generation_interval,
-    inf_to_hosp = inf_to_hosp,
-    trend_hosp_lookback_days = trend_lookback_days,
-    trend_ww_lookback_days = trend_lookback_days
-  )
+        config <- list(
+                location_ww = df_ww |> dplyr::pull(location) |> as.vector(),
+                forecast_date_ww = df_ww |>
+                        dplyr::pull(forecast_date) |>
+                        as.vector(),
+                scenario = df_ww |> dplyr::pull(scenario) |> as.vector(),
+                location_hosp = df_hosp |> dplyr::pull(location) |> as.vector(),
+                forecast_date_hosp = df_hosp |>
+                        dplyr::pull(forecast_date) |>
+                        as.vector(),
+                eval_date = eval_date,
+                ww_data_dir = ww_data_dir,
+                scenario_dir = scenario_dir,
+                hosp_data_dir = hosp_data_dir,
+                stan_models_dir = stan_models_dir,
+                baseline_score_table_dir = baseline_score_table_dir,
+                output_dir = output_dir,
+                hub_subdir = hub_subdir,
+                benchmark_dir = benchmark_dir,
+                overwrite_benchmark = overwrite_benchmark,
+                wwinference_version = wwinference_version,
+                retro_rt_path = retro_rt_path,
+                score_subdir = score_subdir,
+                raw_output_dir = raw_output_dir,
+                figure_dir = figure_dir,
+                ms_fig_dir = ms_fig_dir,
+                prop_dates_for_incl_hub = prop_dates_for_incl_hub,
+                prop_locs_for_incl_hub = prop_locs_for_incl_hub,
+                population_data_path = population_data_path,
+                init_dir = init_dir,
+                init_fps = init_fps,
+                overwrite_summary_table = overwrite_summary_table,
+                calibration_time = calibration_time,
+                forecast_time = forecast_time,
+                ww_data_mapping = ww_data_mapping,
+                table_of_exclusions = table_of_exclusions,
+                table_of_run_ids = table_of_run_ids,
+                real_time_output_dir = real_time_output_dir,
+                ww_forecast_date_locs_to_excl = ww_forecast_date_locs_to_excl,
+                # MCMC settings
+                iter_warmup = iter_warmup,
+                iter_sampling = iter_sampling,
+                n_chains = n_chains,
+                n_parallel_chains = n_parallel_chains,
+                adapt_delta = adapt_delta,
+                max_treedepth = max_treedepth,
+                seed = seed,
+                name_of_config = name_of_config,
+                # Input delay distributions
+                generation_interval = generation_interval,
+                infection_feedback_pmf = generation_interval,
+                inf_to_hosp = inf_to_hosp,
+                trend_hosp_lookback_days = trend_lookback_days,
+                trend_ww_lookback_days = trend_lookback_days
+        )
 
-  wwinference::create_dir(config_dir)
-  yaml::write_yaml(
-    config,
-    file = file.path(
-      config_dir,
-      glue::glue("{name_of_config}.yaml")
-    )
-  )
+        wwinference::create_dir(config_dir)
+        yaml::write_yaml(
+                config,
+                file = file.path(
+                        config_dir,
+                        glue::glue("{name_of_config}.yaml")
+                )
+        )
 
-  return(config)
+        return(config)
 }
