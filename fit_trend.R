@@ -125,8 +125,8 @@ parsed <- arg_parser(
   parse_args()
 
 message(glue::glue(
-  "Starting a {parsed$task_type} task for location {parsed$location} ",
-  "and forecast date {parsed$forecast_date} for {parsed$signal}"
+  "Starting a trendfit task for location {parsed$location} ",
+  "and as-of date {parsed$as_of_date}"
 ))
 
 hosp_prior_params <- list(
