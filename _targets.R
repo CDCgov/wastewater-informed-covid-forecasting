@@ -1108,7 +1108,9 @@ real_time_rel_targets <- list(
     ) |>
       dplyr::anti_join(ww_forecast_date_locs_to_excl) |>
       dplyr::left_join(table_of_loc_dates_w_ww) |>
-      dplyr::filter(ww_sufficient) |>
+      dplyr::filter(.data$ww_sufficient) |>
+        dplyr::select(-c("ww_sufficient",
+                         "failed_convergence")) |>
       scoringutils:::as_scores(
         metrics = names(
           wweval::quantile_metrics
