@@ -22,7 +22,8 @@ test_that("fit_hosp_trend() works as expected", {
     0.05,
     0,
     1,
-    10
+    10,
+    control = NULL
   ) |>
     quiet()
 
