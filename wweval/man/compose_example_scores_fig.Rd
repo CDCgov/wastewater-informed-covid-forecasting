@@ -41,6 +41,8 @@ compose_example_scores_fig(
 
 \item{score_underlay_1wk1}{first states score 1 wk underlay}
 
+\item{score_underlay_4wk1}{first states score 4wk underlay}
+
 \item{score_single_loc2}{second states score density plot}
 
 \item{forecast_comparison_nowcast2}{second states nowcast comparison}
@@ -67,9 +69,7 @@ compose_example_scores_fig(
 
 \item{score_underlay_1wk3}{third states score 1 wk underlay}
 
-\item{score_underlay_4wks1}{first states score 4wk underlay}
-
-\item{score_underlay_4wks3}{third states score 4wk underlay}
+\item{score_underlay_4wk3}{third states score 4wk underlay}
 }
 \value{
 ggplot object that is a combination of 3 states overall score

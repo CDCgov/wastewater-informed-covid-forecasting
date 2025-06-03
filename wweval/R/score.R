@@ -189,10 +189,18 @@ make_baseline_score_table <- function(
   if (isTRUE(overwrite_table)) {
     model_type <- if (scenario == "status_quo") "ww" else "hosp"
     # Check that is only one scenario
-    stopifnot("more than one scenario" = length(unique(scores$scenario)) == 1)
+    stopifnot(
+      "more than one scenario" = length(unique(
+        scores$scenario
+      )) ==
+        1
+    )
     # Check that is only one forecast_date
     stopifnot(
-      "more than one forecast_date" = length(unique(scores$forecast_date)) == 1
+      "more than one forecast_date" = length(unique(
+        scores$forecast_date
+      )) ==
+        1
     )
 
     wwinference::create_dir(baseline_score_table_dir)
@@ -230,6 +238,12 @@ clean_flag_df <- function(df) {
 
 #' Compute diagnostic flags from raw stanfit objects
 #'
+#' @param forecast_dir Path to a top-level forecast directory.
+#' @param forecast_date Forecast date, as a string in YYYY-MM-DD format.
+#' @param run_on_date Date the model was run, as a string in
+#' YYYY-MM-DD format.
+#' @param run_id run UUID, as a string.
+#' @return The flags, as the output of [get_diagnostic_flags()].
 compute_flags <- function(forecast_dir, forecast_date, run_on_date, run_id) {
   cli::cli_inform(c(
     "Recomputing flags from raw stanfit objects. ",
@@ -267,6 +281,15 @@ compute_flags <- function(forecast_dir, forecast_date, run_on_date, run_id) {
   return(flags)
 }
 
+#' Check whether a model run had any flags.
+#'
+#' @param forecast_dir Path to a top-level forecast directory.
+#' @param forecast_date Forecast date, as a string in YYYY-MM-DD format.
+#' @param run_on_date Date the model was run, as a string in
+#' YYYY-MM-DD format.
+#' @param run_id run UUID, as a string.
+#' @return `FALSE` if there were no flags, `TRUE` if there were
+#' any flags.
 check_any_flags <- function(forecast_dir, forecast_date, run_on_date, run_id) {
   flags_to_check <- c(
     "flag_low_ebfmi",
@@ -275,7 +298,11 @@ check_any_flags <- function(forecast_dir, forecast_date, run_on_date, run_id) {
     "flag_high_max_treedepth"
   )
 
-  real_time_flag_path <- fs::path(forecast_dir, "diagnostics", ext = "csv")
+  real_time_flag_path <- fs::path(
+    forecast_dir,
+    "diagnostics",
+    ext = "csv"
+  )
   post_hoc_flag_path <- fs::path(
     forecast_dir,
     "post_hoc_diagnostics",
@@ -286,19 +313,27 @@ check_any_flags <- function(forecast_dir, forecast_date, run_on_date, run_id) {
   if (fs::file_exists(real_time_flag_path)) {
     flag_tab <- readr::read_csv(real_time_flag_path) |>
       clean_flag_df()
-    checkmate::assert_names(names(flag_tab), must.include = "diagnostic")
+    checkmate::assert_names(
+      names(flag_tab),
+      must.include = "diagnostic"
+    )
     flags_found <- checkmate::test_names(
       na.omit(flag_tab$diagnostic),
       must.include = flags_to_check
     )
     if (flags_found) {
-      cli::cli_inform("Using archived flags computed in real time...")
+      cli::cli_inform(
+        "Using archived flags computed in real time..."
+      )
     }
   }
   if (!flags_found && fs::file_exists(post_hoc_flag_path)) {
     flag_tab <- readr::read_csv(post_hoc_flag_path) |>
       clean_flag_df()
-    checkmate::assert_names(names(flag_tab), must.include = "diagnostic")
+    checkmate::assert_names(
+      names(flag_tab),
+      must.include = "diagnostic"
+    )
     flags_found <- checkmate::test_names(
       na.omit(flag_tab$diagnostic),
       must.include = flags_to_check
@@ -467,7 +502,6 @@ load_real_time_forecast <- function(
 #' and date run for each of the production runs
 #' @param locations A vector of character strings indicating
 #' the locations to pull, this should be all jurisdictions
-#' @param dates A vector of forecast dates to pull
 #' @param eval_data a tibble of hospital admissions evaluation
 #' data to be used for scoring.
 #' @param model_type String indicating model type to load.
@@ -500,7 +534,9 @@ load_real_time_quantile_fcsts <- function(
         format_for_hub() |>
         dplyr::filter(!is.na(.data$quantile)) |>
         dplyr::mutate(
-          location = forecasttools::us_loc_code_to_abbr(.data$location)
+          location = forecasttools::us_loc_code_to_abbr(
+            .data$location
+          )
         ) |>
         dplyr::inner_join(
           eval_data |>
@@ -541,13 +577,11 @@ load_real_time_quantile_fcsts <- function(
 #' @param locations A vector of character strings indicating
 #' the locations to
 #' pull, this should be all jurisdictions
-#' @param dates A vector of forecast dates to pull
 #' @param eval_data a tibble of hospital admissions evaluation
 #' data to be used
 #' for scoring.
 #' @param model_types Character vector of model types to score.
 #' One or both of `"ww"` and `"hosp"`. Default both: `c("ww", "hosp")`
-#'
 #' @return A tibble containing scores for every location and
 #' forecast date, conditioned on the presence of wastewater and model
 #' convergence
@@ -589,7 +623,9 @@ score_real_time_outputs <- function(
         dplyr::inner_join(
           eval_data |>
             dplyr::select(-"pop") |>
-            dplyr::rename(true_value = "daily_hosp_admits"),
+            dplyr::rename(
+              true_value = "daily_hosp_admits"
+            ),
           by = c("location", "date")
         ) |>
         dplyr::select(
@@ -612,7 +648,9 @@ score_real_time_outputs <- function(
           )
       } else if (score_type == "wis") {
         for_scoring <- preds_w_eval |>
-          dplyr::filter(.data$date > .data$forecast_date) |>
+          dplyr::filter(
+            .data$date > .data$forecast_date
+          ) |>
           scoringutils::as_forecast_quantile(
             predicted = "value",
             observed = "true_value",
@@ -647,8 +685,6 @@ score_real_time_outputs <- function(
 #'
 #' @param real_time_scores the set of real time scores gathered from local
 #' pull
-#' @param other_real_time_scores the set we want them to be formatted like
-#'
 #' @return a tibble formatted as the other real time scores for the real
 #' time hosp only model
 #' @export
@@ -665,7 +701,8 @@ format_scores_for_comparison <- function(real_time_scores) {
       days_ahead = as.numeric(date - forecast_date),
       target = glue::glue("{days_ahead} day ahead inc hosp"),
       horizon_days = as.integer(
-        lubridate::ymd(date) - lubridate::ymd(forecast_date)
+        lubridate::ymd(date) -
+          lubridate::ymd(forecast_date)
       ),
       horizon_weeks = ceiling(horizon_days / 7),
       horizon = glue::glue("{horizon_weeks} week ahead")
@@ -704,7 +741,10 @@ combine_hub_and_local_wis <- function(
 
   rt_reformatted <- cfa_real_time_scores |>
     dplyr::rename(location_code = location) |>
-    dplyr::left_join(loc_map_table, by = c("location_code" = "location")) |>
+    dplyr::left_join(
+      loc_map_table,
+      by = c("location_code" = "location")
+    ) |>
     dplyr::rename(
       location = short_name,
       date = target_end_date,

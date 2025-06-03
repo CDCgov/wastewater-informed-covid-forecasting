@@ -53,8 +53,6 @@ CCDDEE
 #' @param ww1 first wastewater predicted-actual figure
 #' @param ww2 second wastewater predicted-actual figure
 #' @param ww3 third wastewater predicted-actual figure
-#' @param fig_file_dir Path to save figures
-#'
 #' @return a combined ggplot object
 #' @export
 compose_pred_actual_fig <- function(hosp1, hosp2, hosp3, ww1, ww2, ww3) {
@@ -88,7 +86,7 @@ compose_pred_actual_fig <- function(hosp1, hosp2, hosp3, ww1, ww2, ww3) {
 #' @param forecast_comparison_4wk1 first states 4 wk forecast comparison
 #' @param score_underlay_nowcast1 first states score nowcast underlay
 #' @param score_underlay_1wk1 first states score 1 wk underlay
-#' @param score_underlay_4wks1 first states score 4wk underlay
+#' @param score_underlay_4wk1 first states score 4wk underlay
 #' @param score_single_loc2 second states score density plot
 #' @param forecast_comparison_nowcast2 second states nowcast comparison
 #' @param forecast_comparison_1wk2 second states 1 wk forecast comparison
@@ -102,7 +100,7 @@ compose_pred_actual_fig <- function(hosp1, hosp2, hosp3, ww1, ww2, ww3) {
 #' @param forecast_comparison_4wk3 third states 4 wk forecast comparison
 #' @param score_underlay_nowcast3 third states score nowcast underlay
 #' @param score_underlay_1wk3 third states score 1 wk underlay
-#' @param score_underlay_4wks3 third states score 4wk underlay
+#' @param score_underlay_4wk3 third states score 4wk underlay
 #'
 #' @return ggplot object that is a combination of 3 states overall score
 #' distributions comparing the two model types +
@@ -184,16 +182,14 @@ OSTU
 #' of relative scores across forecast_date, date, location, and model
 #' @param abs_score_by_time timeseries plot of absolute score across
 #' by forecast date
-#' @param natl_admissions timeseries plot of total hospital
+#' @param total_admissions timeseries plot of total hospital
 #' admissions by day
-#' @param rel_score_dist_by_date plot of the distribution of (location
+#' @param rel_score_dist_by_time plot of the distribution of (location
 #' -specific) relative score values by forecast_dat.
 #' @param rel_score_dist_by_location plot of the distribution of (date-
 #' specific) relative score values by location.
 #' @param time_period string to save fig as, either "real_time" or
 #' "all_time"
-#' @param fig_file_dir Path to save figures
-#'
 #' @return ggplot object with all the elements combined
 #' @export
 compose_rel_performance_fig <- function(

@@ -15,7 +15,9 @@ hub_average_score_table <- function(scores) {
     dplyr::mutate(
       model = factor(
         .data$model,
-        levels = as.character(.data$model)[order(.data$avg_wis)]
+        levels = as.character(.data$model)[order(
+          .data$avg_wis
+        )]
       )
     ) |>
     dplyr::arrange(.data$model)
@@ -63,14 +65,21 @@ plot_hub_performance_by_period <- function(
     scores_by_model_all_time <- subset_scores |>
       data.table::as.data.table() |>
       scoringutils::summarise_scores(
-        by = c("model", "forecast_date", "location", "horizon")
+        by = c(
+          "model",
+          "forecast_date",
+          "location",
+          "horizon"
+        )
       ) |>
       dplyr::mutate(
         period = {{ all_time_period }}
       )
 
     scores_by_model_real_time <- subset_scores |>
-      dplyr::filter(forecast_date >= lubridate::ymd("2024-02-05")) |>
+      dplyr::filter(
+        forecast_date >= lubridate::ymd("2024-02-05")
+      ) |>
       data.table::as.data.table() |>
       scoringutils::summarise_scores(
         by = c("model", "forecast_date", "location")
@@ -86,7 +95,9 @@ plot_hub_performance_by_period <- function(
       )
     scores_by_model_real_time <- subset_scores |>
       data.table::as.data.table() |>
-      dplyr::filter(forecast_date >= lubridate::ymd("2024-02-05")) |>
+      dplyr::filter(
+        forecast_date >= lubridate::ymd("2024-02-05")
+      ) |>
       dplyr::mutate(
         period = {{ real_time_period }}
       )
@@ -127,7 +138,9 @@ plot_hub_performance_by_period <- function(
         "location"
       )
     ) |>
-    dplyr::mutate(relative_wis = .data$wis / .data$baseline_score) |>
+    dplyr::mutate(
+      relative_wis = .data$wis / .data$baseline_score
+    ) |>
     dplyr::filter(model != {{ baseline_model }}) |>
     order_periods()
 
@@ -169,6 +182,8 @@ plot_hub_performance_by_period <- function(
 #'
 #' @param scores Table of raw scores to plot.
 #' @param models_to_show Character vector of models to plot.
+#' @param baseline_model Name of the baseline model against
+#' which to compute relative scores. Default `"COVIDhub-4_week_ensemble"`.
 #' @export
 relative_wis_histogram <- function(
   scores,
@@ -267,7 +282,12 @@ plot_heatmap_relative_wis <- function(
       .data$model != !!baseline_model,
       .data$location != "US"
     ) |>
-    dplyr::mutate(display_score = format(.data$mean_scores_ratio, digits = 2))
+    dplyr::mutate(
+      display_score = format(
+        .data$mean_scores_ratio,
+        digits = 2
+      )
+    )
 
   message("Plotting heatmap...")
   p <- ggplot(
@@ -296,7 +316,9 @@ plot_heatmap_relative_wis <- function(
     xlab("") +
     ylab("") +
     labs(fill = "Relative WIS") +
-    ggtitle(glue::glue("Relative WIS compared to \n {baseline_model}"))
+    ggtitle(glue::glue(
+      "Relative WIS compared to \n {baseline_model}"
+    ))
 
   return(p)
 }
@@ -339,15 +361,23 @@ density_plot_std_rank <- function(
       std_rank = rank / max(rank)
     ) |>
     dplyr::mutate(
-      model = stats::reorder(.data$model, .data$rank, FUN = function(x) {
-        quantile(x, probs = 0.25, na.rm = TRUE)
-      })
+      model = stats::reorder(
+        .data$model,
+        .data$rank,
+        FUN = function(x) {
+          quantile(x, probs = 0.25, na.rm = TRUE)
+        }
+      )
     )
 
   fq <- scores_ranked |>
     dplyr::group_by(model) |>
     dplyr::summarize(
-      first_quantile = quantile(std_rank, probs = 0.25, na.rm = TRUE)
+      first_quantile = quantile(
+        std_rank,
+        probs = 0.25,
+        na.rm = TRUE
+      )
     ) |>
     dplyr::arrange(first_quantile) |>
     dplyr::mutate(
@@ -378,7 +408,10 @@ density_plot_std_rank <- function(
       quantiles = 4,
       quantile_lines = TRUE,
       jittered_points = TRUE,
-      position = ggridges::position_points_jitter(width = 0.05, height = 0),
+      position = ggridges::position_points_jitter(
+        width = 0.05,
+        height = 0
+      ),
       point_shape = "|",
       point_size = 3,
       point_alpha = 1,

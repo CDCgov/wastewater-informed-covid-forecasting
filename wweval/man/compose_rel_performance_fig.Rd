@@ -25,19 +25,17 @@ of relative scores across forecast_date, date, location, and model}
 \item{abs_score_by_time}{timeseries plot of absolute score across
 by forecast date}
 
+\item{total_admissions}{timeseries plot of total hospital
+admissions by day}
+
+\item{rel_score_dist_by_time}{plot of the distribution of (location
+-specific) relative score values by forecast_dat.}
+
 \item{rel_score_dist_by_location}{plot of the distribution of (date-
 specific) relative score values by location.}
 
 \item{time_period}{string to save fig as, either "real_time" or
 "all_time"}
-
-\item{natl_admissions}{timeseries plot of total hospital
-admissions by day}
-
-\item{rel_score_dist_by_date}{plot of the distribution of (location
--specific) relative score values by forecast_dat.}
-
-\item{fig_file_dir}{Path to save figures}
 }
 \value{
 ggplot object with all the elements combined

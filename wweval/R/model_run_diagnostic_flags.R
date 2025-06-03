@@ -9,7 +9,7 @@
 #'
 #'
 #' @param stan_fit_object The R6 Cmdstan Object fit object
-#' @param ebmfi_tolerance Tolerance for EBMFI (bayesian missing information)
+#' @param ebfmi_tolerance Tolerance for EBFMI (bayesian missing information)
 #' @param divergences_tolerance tolerance for proportion of sampling iterations
 #' that are divergent
 #' @param p_high_rhat_tolerance tolerance for proportion of parameters rhats>1.05
@@ -38,7 +38,10 @@ get_diagnostic_flags <- function(
   flag_too_many_divergences <- any(
     diagnostic_summary$num_divergent >= max_n_divergences
   )
-  p_high_rhat <- as.numeric(mean(summary[, "rhat"]$rhat > 1.05, na.rm = TRUE))
+  p_high_rhat <- as.numeric(mean(
+    summary[, "rhat"]$rhat > 1.05,
+    na.rm = TRUE
+  ))
   flag_high_rhat <- p_high_rhat >= p_high_rhat_tolerance
   max_n_max_treedepth <- n_draws * max_tree_depth_tol
   flag_high_max_treedepth <- any(
@@ -61,7 +64,6 @@ get_diagnostic_flags <- function(
 #' the flags are TRUE, and returns a dataframe with just a column indicating
 #' whether any flags are true
 #'
-#'
 #' @param all_flags a dataframe containing the flags for each location,
 #' forecast_date, and scenario
 #' @param scenario The scenario to filter to, since some eval output will include multiple
@@ -75,7 +77,12 @@ get_convergence_df <- function(all_flags, scenario) {
   convergence_df <- all_flags |>
     dplyr::filter(scenario == {{ scenario }}) |>
     tidyr::gather(key, value, starts_with("flag")) |>
-    dplyr::group_by(location, forecast_date, scenario, model_type) |>
+    dplyr::group_by(
+      location,
+      forecast_date,
+      scenario,
+      model_type
+    ) |>
     dplyr::mutate(any_flags = any(value == TRUE)) |>
     tidyr::spread(key, value) |>
     dplyr::ungroup() |>

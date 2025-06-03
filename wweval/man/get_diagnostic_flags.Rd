@@ -15,6 +15,8 @@ get_diagnostic_flags(
 \arguments{
 \item{stan_fit_object}{The R6 Cmdstan Object fit object}
 
+\item{ebfmi_tolerance}{Tolerance for EBFMI (bayesian missing information)}
+
 \item{divergences_tolerance}{tolerance for proportion of sampling iterations
 that are divergent}
 
@@ -22,8 +24,6 @@ that are divergent}
 
 \item{max_tree_depth_tol}{tolerance for proportion of iterations that exceed
 the maximum tree depth}
-
-\item{ebmfi_tolerance}{Tolerance for EBMFI (bayesian missing information)}
 }
 \value{
 flag_df: dataframe containing columns for each of the flags,

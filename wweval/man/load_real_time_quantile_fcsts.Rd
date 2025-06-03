@@ -27,8 +27,6 @@ data to be used for scoring.}
 
 \item{model_type}{String indicating model type to load.
 One of \code{"ww"} or \code{"hosp"}.}
-
-\item{dates}{A vector of forecast dates to pull}
 }
 \value{
 The forecasts, as the output of

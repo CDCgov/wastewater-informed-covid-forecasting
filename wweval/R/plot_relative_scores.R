@@ -9,7 +9,7 @@
 
 #' internal function for two-model relative score computations
 #'
-#' @param score table of scores, as the output of
+#' @param scores table of scores, as the output of
 #' [scoringutils::score()]
 #' @param target_model Target model (numerator for the relative scores)
 #' @param baseline_model Baseline model

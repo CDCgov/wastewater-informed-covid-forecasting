@@ -19,8 +19,6 @@ compose_pred_actual_fig(hosp1, hosp2, hosp3, ww1, ww2, ww3)
 \item{ww2}{second wastewater predicted-actual figure}
 
 \item{ww3}{third wastewater predicted-actual figure}
-
-\item{fig_file_dir}{Path to save figures}
 }
 \value{
 a combined ggplot object

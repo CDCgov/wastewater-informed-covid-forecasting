@@ -34,8 +34,6 @@ for scoring.}
 
 \item{model_types}{Character vector of model types to score.
 One or both of \code{"ww"} and \code{"hosp"}. Default both: \code{c("ww", "hosp")}}
-
-\item{dates}{A vector of forecast dates to pull}
 }
 \value{
 A tibble containing scores for every location and

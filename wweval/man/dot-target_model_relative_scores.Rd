@@ -13,6 +13,9 @@
 )
 }
 \arguments{
+\item{scores}{table of scores, as the output of
+\code{\link[scoringutils:score]{scoringutils::score()}}}
+
 \item{target_model}{Target model (numerator for the relative scores)}
 
 \item{baseline_model}{Baseline model
@@ -26,9 +29,6 @@ to \code{\link[scoringutils:get_pairwise_comparisons]{scoringutils::get_pairwise
 
 \item{by}{columns to summarize by. Passed as the \code{by} argument
 to \code{\link[forecasttools:summarise_scores_with_baseline]{forecasttools::summarise_scores_with_baseline()}}.}
-
-\item{score}{table of scores, as the output of
-\code{\link[scoringutils:score]{scoringutils::score()}}}
 }
 \value{
 The relative scores for the target model, as a table.

@@ -14,6 +14,9 @@ relative_wis_histogram(
 \item{scores}{Table of raw scores to plot.}
 
 \item{models_to_show}{Character vector of models to plot.}
+
+\item{baseline_model}{Name of the baseline model against
+which to compute relative scores. Default \code{"COVIDhub-4_week_ensemble"}.}
 }
 \description{
 Plot a histogram of individual forecast relative WIS values

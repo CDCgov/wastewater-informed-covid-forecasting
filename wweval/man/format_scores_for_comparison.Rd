@@ -10,8 +10,6 @@ format_scores_for_comparison(real_time_scores)
 \arguments{
 \item{real_time_scores}{the set of real time scores gathered from local
 pull}
-
-\item{other_real_time_scores}{the set we want them to be formatted like}
 }
 \value{
 a tibble formatted as the other real time scores for the real

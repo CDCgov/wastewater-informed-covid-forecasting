@@ -8,11 +8,12 @@ noted in the function call}
 with_dependencies(x, ...)
 }
 \arguments{
+\item{x}{output to be passed along
+(typically the output of a function call).}
+
 \item{...}{additional arguments, which can be used to indicate additiona
 l upstream targets to treat as dependencies when this function is used
 in a target \code{command}}
-
-\item{output}{to be passed along (typically the output of a function call}
 }
 \value{
 the first argument

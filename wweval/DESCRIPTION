@@ -82,6 +82,7 @@ Imports:
     checkmate,
     scoringutils,
     stringr,
+    tidyselect,
     forecasttools (>= 0.1.6),
     brms
 Suggests:

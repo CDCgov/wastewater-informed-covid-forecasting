@@ -73,7 +73,10 @@ get_plot_scores_and_forecasts <- function(
       dplyr::summarize(avg_crps = mean(crps))
 
     p_scores_t <- ggplot(scores_single_loc_date) +
-      geom_line(aes(x = date, y = crps, color = model), show.legend = FALSE) +
+      geom_line(
+        aes(x = date, y = crps, color = model),
+        show.legend = FALSE
+      ) +
       get_plot_theme(
         x_axis_dates = TRUE
       ) +
@@ -83,7 +86,10 @@ get_plot_scores_and_forecasts <- function(
       ) +
       xlab(NULL) +
       ylab("CRPS") +
-      geom_vline(aes(xintercept = forecast_date), linetype = "dashed") +
+      geom_vline(
+        aes(xintercept = forecast_date),
+        linetype = "dashed"
+      ) +
       scale_color_manual(values = colors$model_colors)
 
     p_scores_avg <- ggplot(scores_avg) +
@@ -139,7 +145,11 @@ get_plot_scores_and_forecasts <- function(
         alpha = 0.2,
       ) +
       geom_vline(
-        aes(xintercept = lubridate::ymd(this_forecast_date)),
+        aes(
+          xintercept = lubridate::ymd(
+            this_forecast_date
+          )
+        ),
         linetype = "dashed"
       ) +
       scale_x_date(
@@ -156,7 +166,9 @@ get_plot_scores_and_forecasts <- function(
         legend.justification = "left"
       ) +
       labs(color = "Model", fill = "Model") +
-      ggtitle(glue::glue("{this_forecast_date} in {this_location}"))
+      ggtitle(glue::glue(
+        "{this_forecast_date} in {this_location}"
+      ))
 
     fig <- patchwork::wrap_plots(
       p_forecasts,
@@ -189,7 +201,10 @@ get_plot_scores_and_forecasts <- function(
 
     ggsave(
       fig,
-      filename = file.path(fig_file_dir, "forecast_and_score_comp_fig.png"),
+      filename = file.path(
+        fig_file_dir,
+        "forecast_and_score_comp_fig.png"
+      ),
       width = 7,
       height = 10
     )
@@ -277,7 +292,9 @@ get_plot_scores_and_forecasts <- function(
     p_forecasts_all,
     filename = file.path(
       alt_fig_file_dir,
-      glue::glue("calib_and_forecasts_{this_forecast_date}.png")
+      glue::glue(
+        "calib_and_forecasts_{this_forecast_date}.png"
+      )
     )
   )
 }
@@ -296,7 +313,7 @@ get_plot_wis_t <- function(
     dplyr::distinct(location) |>
     dplyr::pull()
 
-  loc_code <- wweval::loc_abbr_to_flusight_code(this_location)
+  loc_code <- forecasttools::us_loc_abbr_to_code(this_location)
 
   this_forecast_date <- hosp_quantiles |>
     dplyr::distinct(forecast_date) |>
@@ -387,7 +404,9 @@ get_plot_wis_t <- function(
       legend.position = "top",
       legend.justification = "left"
     ) +
-    coord_cartesian(ylim = c(0, 2 * max(hosp_quantiles$eval_data))) +
+    coord_cartesian(
+      ylim = c(0, 2 * max(hosp_quantiles$eval_data))
+    ) +
     ggtitle(glue::glue(
       "{this_forecast_date} in {this_location} {hub_comparison_model}"
     ))
@@ -472,7 +491,9 @@ get_plot_wis_t <- function(
       legend.justification = "left"
     ) +
     labs(color = "Model", fill = "Model") +
-    coord_cartesian(ylim = c(0, 2 * max(hosp_quantiles$eval_data))) +
+    coord_cartesian(
+      ylim = c(0, 2 * max(hosp_quantiles$eval_data))
+    ) +
     ggtitle(glue::glue("{this_forecast_date} in {this_location}"))
 
   scores_to_plot <- scores |>
@@ -514,7 +535,11 @@ get_plot_wis_t <- function(
     )
 
   scores_t <- ggplot(scores_to_plot) +
-    geom_line(aes(x = target_end_date, y = avg_wis, color = model)) +
+    geom_line(aes(
+      x = target_end_date,
+      y = avg_wis,
+      color = model
+    )) +
     get_plot_theme(x_axis_dates = TRUE) +
     theme(
       legend.position = "top",
@@ -653,7 +678,9 @@ get_plot_bias_over_time <- function(scores, fig_subscript, fig_file_dir) {
 get_plot_score_by_horizon_t <- function(scores, score_type, fig_file_dir) {
   scores_by_horizon_and_t <- scores |>
     # hack, will fix upstream
-    dplyr::filter(!horizon %in% c("0 week ahead", "5 week ahead")) |>
+    dplyr::filter(
+      !horizon %in% c("0 week ahead", "5 week ahead")
+    ) |>
     dplyr::group_by(horizon, forecast_date, model) |>
     dplyr::filter(!is.na(horizon)) |>
     dplyr::summarize(
@@ -663,7 +690,11 @@ get_plot_score_by_horizon_t <- function(scores, score_type, fig_file_dir) {
   colors <- plot_components()
 
   p <- ggplot(scores_by_horizon_and_t) +
-    geom_line(aes(x = forecast_date, y = mean_score, color = model)) +
+    geom_line(aes(
+      x = forecast_date,
+      y = mean_score,
+      color = model
+    )) +
     get_plot_theme(
       x_axis_dates = TRUE,
       y_axis_title_size = 8
@@ -676,7 +707,9 @@ get_plot_score_by_horizon_t <- function(scores, score_type, fig_file_dir) {
     scale_color_manual(values = colors$model_colors) +
     xlab(NULL) +
     ylab(glue::glue("Average {score_type}")) +
-    ggtitle(glue::glue("Average {score_type} over time, across locations"))
+    ggtitle(glue::glue(
+      "Average {score_type} over time, across locations"
+    ))
 
   fs::dir_create(fig_file_dir)
   ggsave(
@@ -792,7 +825,10 @@ get_stats_improved_forecasts <- function(
     nrow()
 
   stopifnot(
-    n_forecasts == n_forecasts_better + n_forecasts_worse + n_forecasts_equal
+    n_forecasts ==
+      n_forecasts_better +
+        n_forecasts_worse +
+        n_forecasts_equal
   )
 
   stats <- tibble::tibble(
@@ -824,7 +860,10 @@ get_plot_sites_vs_performance <- function(scores, ww_metadata, fig_file_dir) {
     dplyr::summarise(avg_crps = mean(crps))
 
   scores_joined <- scores_summarized |>
-    dplyr::left_join(ww_metadata, by = c("forecast_date", "location"))
+    dplyr::left_join(
+      ww_metadata,
+      by = c("forecast_date", "location")
+    )
 
   p_n_sites <- ggplot(scores_joined) +
     geom_point(aes(x = n_sites, y = avg_crps))
@@ -864,7 +903,11 @@ heatmap_scores_by_loc_date <- function(scores, metric, fig_file_dir) {
   checkmate::assert_names(metric, subset.of = c("wis", "crps"))
   scores_summary <- scores |>
     dplyr::filter(
-      model %in% c("cfa-wwrenewal(retro)", "cfa-hosponlyrenewal(retro)")
+      model %in%
+        c(
+          "cfa-wwrenewal(retro)",
+          "cfa-hosponlyrenewal(retro)"
+        )
     ) |>
     scoringutils::summarise_scores(
       by = c(
@@ -944,7 +987,8 @@ get_summary_metadata <- function(metadata) {
   metadata_remove_insuff_ww <- metadata_summarized |>
     dplyr::filter(ww_data_present == 1, ww_sufficient == TRUE)
 
-  n_insuff_ww <- nrow(metadata_summarized) - nrow(metadata_remove_insuff_ww)
+  n_insuff_ww <- nrow(metadata_summarized) -
+    nrow(metadata_remove_insuff_ww)
 
   metadata_remove_conv_issues <- metadata_remove_insuff_ww |>
     dplyr::filter(any_flags_hosp == FALSE, any_flags_ww == FALSE)
@@ -1007,7 +1051,11 @@ get_heatmap_metadata <- function(metadata, type_of_analysis, fig_file_dir) {
   }
 
   p <- ggplot(metadata_final) +
-    geom_tile(aes(x = forecast_date, y = location, fill = metadata_cat)) +
+    geom_tile(aes(
+      x = forecast_date,
+      y = location,
+      fill = metadata_cat
+    )) +
     scale_fill_discrete() +
     get_plot_theme(
       x_axis_dates = TRUE,
@@ -1020,7 +1068,9 @@ get_heatmap_metadata <- function(metadata, type_of_analysis, fig_file_dir) {
     xlab("") +
     ylab("Location") +
     labs(fill = "Metadata Information") +
-    ggtitle(glue::glue("Summary of retrospective comparison analysis"))
+    ggtitle(glue::glue(
+      "Summary of retrospective comparison analysis"
+    ))
 
   ggsave(
     p,
@@ -1088,13 +1138,20 @@ get_heatmap_metadata_hub <- function(metadata, analysis_type, fig_file_dir) {
         model_submitted = "hosp"
       )
     locs <- unique(metadata$location)
-    metadata_grid <- expand.grid(location = locs, forecast_date = dates)
+    metadata_grid <- expand.grid(
+      location = locs,
+      forecast_date = dates
+    )
     metadata_ww <- metadata_grid |>
       dplyr::left_join(
         df_replacements
       ) |>
       dplyr::mutate(
-        model_submitted = ifelse(is.na(model_submitted), "ww", "hosp"),
+        model_submitted = ifelse(
+          is.na(model_submitted),
+          "ww",
+          "hosp"
+        ),
         model_name = "cfa-wwrenewal(real-time)"
       )
     metadata_hosp <- metadata_grid |>
@@ -1107,7 +1164,11 @@ get_heatmap_metadata_hub <- function(metadata, analysis_type, fig_file_dir) {
 
   colors <- plot_components()
   p <- ggplot(all_metadata) +
-    geom_tile(aes(x = forecast_date, y = location, fill = model_submitted)) +
+    geom_tile(aes(
+      x = forecast_date,
+      y = location,
+      fill = model_submitted
+    )) +
     scale_fill_discrete() +
     facet_wrap(~model_name) +
     get_plot_theme(
@@ -1130,7 +1191,9 @@ get_heatmap_metadata_hub <- function(metadata, analysis_type, fig_file_dir) {
     width = 12,
     filename = file.path(
       fig_file_dir,
-      glue::glue("fig_heatmap_hub_metadata_{analysis_type}.png")
+      glue::glue(
+        "fig_heatmap_hub_metadata_{analysis_type}.png"
+      )
     )
   )
 }
@@ -1166,7 +1229,10 @@ get_rel_wis_real_time <- function(all_scores) {
     dplyr::distinct(location, forecast_date)
 
   scores_filtered <- all_scores |>
-    dplyr::anti_join(date_locs_to_exclude, by = c("location", "forecast_date"))
+    dplyr::anti_join(
+      date_locs_to_exclude,
+      by = c("location", "forecast_date")
+    )
 
   rel_scores <- scores_filtered |>
     dplyr::filter(scale == "log") |>
@@ -1174,7 +1240,13 @@ get_rel_wis_real_time <- function(all_scores) {
     scoringutils::summarise_scores(
       by = c("forecast_date", "model", "date", "location")
     ) |>
-    dplyr::select(location, forecast_date, date, model, interval_score) |>
+    dplyr::select(
+      location,
+      forecast_date,
+      date,
+      model,
+      interval_score
+    ) |>
     tidyr::pivot_wider(
       names_from = model,
       values_from = interval_score
@@ -1277,7 +1349,11 @@ get_growth_rate_plot <- function(
   ww_data <- input_ww_data |>
     dplyr::group_by(lab, site, lab_site_index) |>
     tidyr::complete(
-      date = seq.Date(min(hosp_data$date), max(hosp_data$date), by = "day")
+      date = seq.Date(
+        min(hosp_data$date),
+        max(hosp_data$date),
+        by = "day"
+      )
     ) |>
     dplyr::mutate(
       ww_interpolated = zoo::na.approx(ww, na.rm = FALSE)
@@ -1315,7 +1391,11 @@ get_growth_rate_plot <- function(
     )
 
   daily_p <- ggplot(comb_data) +
-    geom_line(aes(x = date, y = daily_r_ww, color = lab_site_name)) +
+    geom_line(aes(
+      x = date,
+      y = daily_r_ww,
+      color = lab_site_name
+    )) +
     geom_line(aes(x = date, y = daily_r_hosp)) +
     facet_wrap(~lab_site_name) +
     theme(
@@ -1337,7 +1417,11 @@ get_growth_rate_plot <- function(
   ))
 
   weekly_p <- ggplot(comb_data) +
-    geom_line(aes(x = date, y = weekly_r_ww, color = lab_site_name)) +
+    geom_line(aes(
+      x = date,
+      y = weekly_r_ww,
+      color = lab_site_name
+    )) +
     geom_line(aes(x = date, y = weekly_r_hosp)) +
     facet_wrap(~lab_site_name) +
     theme(
@@ -1394,7 +1478,12 @@ get_plot_ww_data_comparison <- function(
 
   p <- ggplot(draws_w_data_subsetted) +
     geom_line(
-      aes(x = date, y = value, group = draw, color = site_lab_name),
+      aes(
+        x = date,
+        y = value,
+        group = draw,
+        color = site_lab_name
+      ),
       linewidth = 0.1,
       alpha = 0.1,
       show.legend = FALSE
@@ -1424,7 +1513,8 @@ get_plot_ww_data_comparison <- function(
       size = 1.1
     ) +
     geom_point(
-      data = draws_w_data_subsetted |> filter(flag_as_ww_outlier == 1),
+      data = draws_w_data_subsetted |>
+        filter(flag_as_ww_outlier == 1),
       aes(x = date, y = calib_data),
       color = "blue",
       size = 1.1
@@ -1579,7 +1669,10 @@ get_plot_quantile_comparison <- function(
     dplyr::filter(
       location == !!location,
       date <= max(hosp_quantiles$date),
-      date >= min(hosp_quantiles$date[hosp_quantiles$period == "nowcast"])
+      date >=
+        min(hosp_quantiles$date[
+          hosp_quantiles$period == "nowcast"
+        ])
     )
 
   quantiles_wide <- hosp_quantiles |>
@@ -1614,7 +1707,9 @@ get_plot_quantile_comparison <- function(
       data = quantiles_wide |>
         filter(
           date >= forecast_date,
-          date <= forecast_date + days_to_show_forecast
+          date <=
+            forecast_date +
+              days_to_show_forecast
         ),
       aes(
         x = date,
@@ -1627,7 +1722,9 @@ get_plot_quantile_comparison <- function(
       data = quantiles_wide |>
         filter(
           date >= forecast_date,
-          date <= forecast_date + days_to_show_forecast
+          date <=
+            forecast_date +
+              days_to_show_forecast
         ),
       aes(
         x = date,
@@ -1643,7 +1740,9 @@ get_plot_quantile_comparison <- function(
       data = quantiles_wide |>
         filter(
           date >= forecast_date,
-          date <= forecast_date + days_to_show_forecast
+          date <=
+            forecast_date +
+              days_to_show_forecast
         ),
       aes(
         x = date,
@@ -1686,7 +1785,10 @@ get_plot_quantile_comparison <- function(
     )
 
   if (isTRUE(save_files)) {
-    full_file_path <- file.path(figure_file_path, "quantile_comparison")
+    full_file_path <- file.path(
+      figure_file_path,
+      "quantile_comparison"
+    )
     wwinference::create_dir(full_file_path)
     ggsave(
       file.path(
@@ -1735,7 +1837,9 @@ get_plot_ww_comparison <- function(ww_quantiles, days_to_show_forecast = 28) {
       data = quantiles_wide |>
         filter(
           date >= forecast_date,
-          date <= forecast_date + days_to_show_forecast
+          date <=
+            forecast_date +
+              days_to_show_forecast
         ),
       aes(x = date, y = eval_data),
       color = "black"
@@ -1744,7 +1848,9 @@ get_plot_ww_comparison <- function(ww_quantiles, days_to_show_forecast = 28) {
       data = quantiles_wide |>
         filter(
           date >= forecast_date,
-          date <= forecast_date + days_to_show_forecast
+          date <=
+            forecast_date +
+              days_to_show_forecast
         ),
       aes(
         x = date,
@@ -1758,7 +1864,9 @@ get_plot_ww_comparison <- function(ww_quantiles, days_to_show_forecast = 28) {
       data = quantiles_wide |>
         filter(
           date >= forecast_date,
-          date <= forecast_date + days_to_show_forecast
+          date <=
+            forecast_date +
+              days_to_show_forecast
         ),
       aes(
         x = date,
@@ -1774,7 +1882,9 @@ get_plot_ww_comparison <- function(ww_quantiles, days_to_show_forecast = 28) {
       data = quantiles_wide |>
         filter(
           date >= forecast_date,
-          date <= forecast_date + days_to_show_forecast
+          date <=
+            forecast_date +
+              days_to_show_forecast
         ),
       aes(
         x = date,
@@ -1839,7 +1949,9 @@ plot_scores_by_scenario <- function(scenario_scores, score_metric = "crps") {
       stat = "identity"
     ) +
     theme_bw() +
-    ylab(glue::glue("{score_metric} across forecast dates and locations"))
+    ylab(glue::glue(
+      "{score_metric} across forecast dates and locations"
+    ))
   return(p)
 }
 
@@ -1898,7 +2010,9 @@ get_plot_scores_w_data <- function(
     dplyr::filter(
       location == !!location,
       date <= max(all_scores$date),
-      date >= min(all_scores$forecast_date) - lubridate::days(10)
+      date >=
+        min(all_scores$forecast_date) -
+          lubridate::days(10)
     )
   coeff <- (median(eval_data_subsetted$daily_hosp_admits, na.rm = TRUE) /
     median(
@@ -1974,7 +2088,9 @@ get_plot_scores_w_data <- function(
       # Add a second axis and specify its features
       sec.axis = sec_axis(
         trans = ~ . / coeff,
-        name = glue::glue("{score_metric} by forecast date and scenario")
+        name = glue::glue(
+          "{score_metric} by forecast date and scenario"
+        )
       )
     ) +
     scale_color_discrete() +
@@ -2000,7 +2116,10 @@ get_plot_scores_w_data <- function(
     )
 
   if (isTRUE(save_files)) {
-    full_file_path <- file.path(figure_file_path, "scores_w_data_overlaid")
+    full_file_path <- file.path(
+      figure_file_path,
+      "scores_w_data_overlaid"
+    )
     wwinference::create_dir(full_file_path)
     ggsave(
       file.path(
@@ -2037,7 +2156,12 @@ get_plot_summarized_scores <- function(all_scores, score_metric = "crps") {
     mutate(forecast_date = lubridate::ymd(forecast_date)) |>
     data.table::as.data.table() |>
     scoringutils::summarize_scores(
-      by = c("scenario", "period", "forecast_date", "location")
+      by = c(
+        "scenario",
+        "period",
+        "forecast_date",
+        "location"
+      )
     )
 
   n_periods <- summarized_scores |>
@@ -2056,19 +2180,28 @@ get_plot_summarized_scores <- function(all_scores, score_metric = "crps") {
 
   p <- ggplot(summarized_scores) +
     geom_bar(
-      aes(x = forecast_date, y = .data[[score_metric]], fill = scenario),
+      aes(
+        x = forecast_date,
+        y = .data[[score_metric]],
+        fill = scenario
+      ),
       stat = "identity",
       position = "dodge",
       alpha = 0.5
     ) +
     geom_hline(
       data = summary_across_dates,
-      aes(yintercept = .data[[score_metric]], color = scenario)
+      aes(
+        yintercept = .data[[score_metric]],
+        color = scenario
+      )
     ) +
     facet_wrap(~period, nrow = n_periods) +
     theme_bw() +
     xlab("") +
-    ylab(glue::glue("{score_metric} by forecast date and scenario")) +
+    ylab(glue::glue(
+      "{score_metric} by forecast date and scenario"
+    )) +
     ggtitle(glue::glue(
       "Score comparison over time in {location}"
     )) +
@@ -2184,7 +2317,10 @@ get_box_plot <- function(
     select(location, forecast_date, baseline_score)
 
   overall_scores <- scores_by_date_scen_loc |>
-    dplyr::left_join(baseline_only, by = c("location", "forecast_date")) |>
+    dplyr::left_join(
+      baseline_only,
+      by = c("location", "forecast_date")
+    ) |>
     group_by(location, forecast_date, scenario) |>
     dplyr::summarize(
       relative_score = crps / baseline_score,
@@ -2284,7 +2420,10 @@ get_n_states_improved_plot <- function(
     select(location, forecast_date, baseline_score)
 
   overall_scores <- scores_by_date_scen_loc |>
-    dplyr::left_join(baseline_only, by = c("location", "forecast_date")) |>
+    dplyr::left_join(
+      baseline_only,
+      by = c("location", "forecast_date")
+    ) |>
     group_by(location, forecast_date, scenario) |>
     dplyr::summarize(
       relative_score = crps / baseline_score,
@@ -2292,7 +2431,11 @@ get_n_states_improved_plot <- function(
       mean_crps = mean(crps)
     ) |>
     dplyr::mutate(
-      is_improved = ifelse(relative_score < threshold_for_improvement, 1, 0)
+      is_improved = ifelse(
+        relative_score < threshold_for_improvement,
+        1,
+        0
+      )
     )
 
   summarize_scenarios <- overall_scores |>
@@ -2360,7 +2503,9 @@ get_n_states_improved_plot <- function(
 get_plot_ww_data <- function(eval_data) {
   eval_data <- eval_data |>
     dplyr::mutate(
-      lab_site_name = glue::glue("Site: {.data$site}, lab: {.data$lab}"),
+      lab_site_name = glue::glue(
+        "Site: {.data$site}, lab: {.data$lab}"
+      ),
       ww = exp(.data$log_genome_copies_per_ml)
     )
 
@@ -2372,7 +2517,8 @@ get_plot_ww_data <- function(eval_data) {
     geom_point(aes(x = .data$date, y = .data$ww), size = 0.5) +
     geom_line(aes(x = .data$date, y = .data$ww), size = 0.5) +
     geom_point(
-      data = eval_data |> dplyr::filter(.data$flag_as_ww_outlier == 1),
+      data = eval_data |>
+        dplyr::filter(.data$flag_as_ww_outlier == 1),
       aes(x = .data$date, y = .data$ww),
       fill = "red",
       color = "red",
