@@ -696,7 +696,7 @@ format_scores_for_comparison <- function(real_time_scores) {
     ) |>
     dplyr::mutate(
       location = loc_abbr_to_flusight_code(location),
-      model = "cfa-hosponlyrenewal(real-time)*",
+      model = "cfa-hosponlyrenewal(real-time*)",
       type = "quantile",
       days_ahead = as.numeric(date - forecast_date),
       target = glue::glue("{days_ahead} day ahead inc hosp"),
