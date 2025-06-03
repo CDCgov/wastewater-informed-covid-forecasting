@@ -166,6 +166,12 @@ fit_hosp_trend <- function(
     names(data),
     must.include = c("hosp", "time")
   )
+
+  if (nrow(data) == 0) {
+    message("No recent admissions data for which to fit a trend")
+    return(NULL)
+  }
+
   fit <- brms::brm(
     formula = brms::bf(hosp ~ time),
     data = data,
@@ -282,6 +288,11 @@ fit_ww_trend <- function(
       "cens"
     )
   )
+
+  if (nrow(data) == 0) {
+    message("No recent wastewater data for which to fit a trend")
+    return(NULL)
+  }
 
   ww_formula <- brms::bf(
     conc | cens(cens) ~ time + (time || lab_site_index),
