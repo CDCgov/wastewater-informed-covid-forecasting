@@ -1,0 +1,14 @@
+[project]
+name = "wastewater-informed-covid-forecasting"
+version = "0.1.0"
+description = "Add your description here"
+readme = "README.md"
+requires-python = ">=3.12"
+dependencies = [
+    "azure-batch>=14.2.0",
+    "azuretools",
+    "pyyaml>=6.0.2",
+]
+
+[tool.uv.sources]
+azuretools = { git = "https://github.com/cdcgov/cfa-azuretools" }

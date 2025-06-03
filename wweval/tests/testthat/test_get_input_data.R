@@ -5,13 +5,18 @@ test_that("Test date_of_ww_data returns the correct date to pull the wastewater 
   }
   # Create fake wastewater data files for specific dates
   sample_dates <- c("2024-03-16", "2024-03-17", "2024-03-18")
-  temp_dir <- tempdir()
-  create_fake_ww_files(temp_dir, sample_dates)
+  tmpdir_ww <- withr::local_tempdir()
+
+  create_fake_ww_files(tmpdir_ww, sample_dates)
 
   # Test case where ww_data_mapping is "most recent"
   forecast_date <- "2024-03-18"
   expect_equal(
-    date_of_ww_data(forecast_date, "most recent", temp_dir),
+    date_of_ww_data(
+      forecast_date,
+      "most recent",
+      tmpdir_ww
+    ),
     "2024-03-17" # Most recent date
   )
 
@@ -21,7 +26,7 @@ test_that("Test date_of_ww_data returns the correct date to pull the wastewater 
     date_of_ww_data(
       forecast_date,
       "Monday: Monday, Wednesday: Monday",
-      temp_dir
+      tmpdir_ww
     ),
     "2024-03-18" # Previous Monday
   )
@@ -31,7 +36,7 @@ test_that("Test date_of_ww_data returns the correct date to pull the wastewater 
     date_of_ww_data(
       forecast_date,
       "Monday: Monday, Wednesday: Monday",
-      temp_dir
+      tmpdir_ww
     ),
     "2024-03-18" # Same day (Monday)
   )
@@ -39,7 +44,11 @@ test_that("Test date_of_ww_data returns the correct date to pull the wastewater 
   # Test case where ww_data_mapping is something else and should return NA
   forecast_date <- "2024-03-18"
   expect_error(
-    date_of_ww_data(forecast_date, "Some other mapping", temp_dir),
+    date_of_ww_data(
+      forecast_date,
+      "Some other mapping",
+      tmpdir_ww
+    ),
     "Need to write case to specify which wastewater data to pull"
   )
 
@@ -49,7 +58,7 @@ test_that("Test date_of_ww_data returns the correct date to pull the wastewater 
     date_of_ww_data(
       forecast_date,
       "Monday: Monday, Wednesday: Monday",
-      temp_dir
+      tmpdir_ww
     ),
     "Forecast date is not a Monday or Wednesday"
   )

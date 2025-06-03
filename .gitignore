@@ -76,3 +76,6 @@ lib/*
 lib64
 pyvenv.cfg
 bin/*
+
+# uv venv
+.lock

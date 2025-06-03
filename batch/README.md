@@ -45,27 +45,7 @@ sudo apt install -y python3-pip
 Confirm you have working installations with `which python3` and `which pip`
 
 #### Python virtual environments
-If you would like to isolate this project's required dependencies from the rest of your system Python 3 installation, you can use a Python [virtual environment](https://docs.python.org/3/library/venv.html).
-
-With an up-to-date Python installation, you can create one by running the following command in the top-level project directory.
-```bash
-python3 -m venv .
-```
-
-Then activate it by running the following command, also from the top-level project directory.
-```bash
-source bin/activate
-```
-
-Note that if you close and reopen your Terminal window, you may need to reactivate that virtual environment by again running `source bin/activate`.
-
-### Installing Python dependencies.
-
-Once you have your Python virtual environment set up, install needed Python dependencies by running the following from the top-level project directory.
-
-```bash
-pip install -r batch/requirements.txt
-```
+If you would like to isolate this project's required dependencies from the rest of your system Python 3 installation, you can use a Python virtual environment. This project is set up to use [`uv`](https://docs.astral.sh/uv/). Follow official instructions there to download and install it, and confirm you have it with `which uv`. The rest of this tutorial will assume you are using `uv`. If you are not, you will have to install dependencies against your system Python (or in your preferred virtual environment of choice), and replace all `uv run python` commands the appropriate `python`/`python3` etc command for your environment.
 
 ### Set up environment variables
 We'll use the `EnvCredentialHandler` from the [`azuretools`](https://github.com/CDCgov/cfa-azuretools) Python library to handle credentials for CFA Azure resources. It looks for key configuration in your environment variables. CFA's STF Team provide a secret-free (but private) `azureconfig.sh` script to configure environment variables appropriately in their [SharePoint](https://cdc.sharepoint.com/:u:/r/teams/CenterforForecastingandOutbreakAnalytics/Shared%20Documents/General/02%20-%20Predict/Real%20Time%20Monitoring%20(RTM)%20Branch/Short%20Term%20Forecasts/azure/azureconfig.sh?csf=1&web=1&e=e7YBqr). Contact @dylanhmorris if you believe you should have access and do not. We recommend setting these environment variables as part of your Terminal setup.
@@ -131,7 +111,7 @@ We provide an `example_eval_config.yaml` within this repo at `input/config/eval/
 
 We'll create a pool named `wastewater-demo-pool`:
 ```bash
-python3 batch/setup_pool.py wastewater-demo-pool
+uv run python batch/setup_pool.py wastewater-demo-pool
 ```
 
 We can now run compute jobs on our `wastewater-demo-pool`.
@@ -160,13 +140,13 @@ The file [`input/params.toml`](../input/params.toml) specifies hyperparameters f
 
 To save you writing this all out by hand for each forecasting problem, `setup_job.py` loops over all the forecast problems in `input/config/eval/example_eval_config.yaml`, creating tasks for each one.
 
-By default, it creates a set of model fitting tasks and their associated postprocessing tasks for all entries in the specified config file. It can be configured to set up only fitting jobs, only postprocessing jobs, or only jobs for certian locations. Running `python3 batch/setup_job.py --help` displays a full help message.
+By default, it creates a set of model fitting tasks and their associated postprocessing tasks for all entries in the specified config file. It can be configured to set up only fitting jobs, only postprocessing jobs, or only jobs for certian locations. Running `uv run python batch/setup_job.py --help` displays a full help message.
 
 #### Model fitting and postprocessing
 Let's run `setup_job.py` to create a model fitting and postprocessing job. We'll name our job `my-demo-job` and have it run on the `wastewater-demo-pool` we just created. We'll use our local copy of the example configuration file (`example_eval_config.yaml`) and the corresponding copy of it Blob storage container `wastewater-input`.
 
 ```bash
-python3 batch/setup_job.py input/config/eval/example_eval_config.yaml my-demo-job wastewater-demo-pool
+uv run python batch/setup_job.py input/config/eval/example_eval_config.yaml my-demo-job wastewater-demo-pool
 ```
 
 This should create a job named `my-demo-job` consisting of tasks that are named by forecast dates, locations, scenarios and task type. (either `fit` or `postprocess`). Confirm that this has happened by looking for the job and its tasks in the Azure Batch Explorer or in the Batch section of the Azure web portal.
@@ -223,7 +203,7 @@ options:
 As the message suggests, you can view this help message by running
 
 ```bash
-python setup_job.py -h
+uv run python setup_job.py -h
 ```
 
 #### Custom container images and versions.
@@ -233,13 +213,13 @@ The default values of `--container-image-name` and `--container-image-version` a
 The default `--job-type`, `both`, means running fitting followed by postprocessing tasks. We could override it to set up a fitting-only job:
 
 ```bash
-python3 batch/setup_job.py input/config/eval/example_eval_config.yaml my-demo-fit-job wastewater-demo-pool --job-type fit
+uv run python batch/setup_job.py input/config/eval/example_eval_config.yaml my-demo-fit-job wastewater-demo-pool --job-type fit
 ```
 
 or a manual postprocessing-only job:
 
 ```bash
-python3 batch/setup_job.py input/config/eval/example_eval_config.yaml my-demo-postprocess-job wastewater-demo-pool --job-type postprocess
+uv run python batch/setup_job.py input/config/eval/example_eval_config.yaml my-demo-postprocess-job wastewater-demo-pool --job-type postprocess
 ```
 
 Note that if you run a manual `fit`-only job followed by a manual `postprocess`-only job, you will need to confirm manually that fitting tasks have finished before kicking off their associated postprocessing tasks. In general, only kick off a manual postprocessing job once the entire associated manual fitting job has completed.
@@ -253,7 +233,7 @@ The [walkthrough](#walkthrough-running-an-evaluation-job-on-azure-batch) uses da
 For example
 
 ```bash
-python3 batch/upload_data.py -g *.csv input/hosp_data wastewater-input
+uv run python batch/upload_data.py -g *.csv input/hosp_data wastewater-input
 ```
 
 will give you the option to upload anything with the `.csv` extension in your local folder `input/hosp_data` to a blob storage container (bucket) named `wastewater-input`. It will use the blob storage account specified `azureconfig.sh`.

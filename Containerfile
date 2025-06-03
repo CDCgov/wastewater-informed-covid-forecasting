@@ -1,7 +1,4 @@
-FROM docker.io/rocker/r-base:latest
-ENV R_BUILD_REPOS="'https://packagemanager.posit.co/cran/__linux__/jammy/latest'"
-
-ADD ./.ContainerBuildRprofile /.Rprofile
+FROM docker.io/rocker/r-ver:4.5.0
 
 RUN Rscript -e "install.packages('pak')"
 RUN Rscript -e "pak::pkg_install('github::stan-dev/cmdstanr')"

@@ -9,9 +9,9 @@
 #' out
 #' @noRd
 quiet <- function(code) {
-  sink(nullfile())
-  on.exit(sink())
-  suppressMessages(code)
+        sink(nullfile())
+        on.exit(sink())
+        suppressMessages(code)
 }
 
 #' Check whether a required package is installed
@@ -19,12 +19,14 @@ quiet <- function(code) {
 #' @return If the package is not available, it returns an error.
 #' @noRd
 check_package_is_installed <- function(pkg_name) {
-  if (!requireNamespace(pkg_name)) {
-    stop(
-      glue::glue("The R package `{pkg_name}` is not available. "),
-      glue::glue("Use `install.packages(\"{pkg_name}\")`.")
-    )
-  }
+        if (!requireNamespace(pkg_name)) {
+                stop(
+                        glue::glue(
+                                "The R package `{pkg_name}` is not available. "
+                        ),
+                        glue::glue("Use `install.packages(\"{pkg_name}\")`.")
+                )
+        }
 }
 
 #' Helper function to note targets dependencies not explicitly
@@ -39,10 +41,28 @@ check_package_is_installed <- function(pkg_name) {
 #'
 #' @export
 with_dependencies <- function(x, ...) {
-  x
+        x
 }
 
-#' Save an object to .rds in a given `output_dir`,
+#' Construct a path to a serialized object
+#'
+#' Helper function for [save_rds_with_suffix()]
+#' and [read_rds_with_suffix()].
+#'
+#' @param dir directory containing the object
+#' @param basename basename of the object
+#' @param suffix suffix for the object
+#' @param ext file extension for the object
+#' @keywords internal
+.path_with_suffix <- function(dir, basename, suffix, ext) {
+        return(fs::path(
+                dir,
+                glue::glue("{basename}{suffix}"),
+                ext = ext
+        ))
+}
+
+#' Save an object to .rds in a given `dir`,
 #' with programmatic naming.
 #'
 #' By default, names the `.rds` file according to
@@ -51,42 +71,70 @@ with_dependencies <- function(x, ...) {
 #' So for example a variable named `my_var` with
 #' suffix equal to `"my_suffix"` would be saved to disk
 #' as `<output_dir>/my_var_my_suffix.rds`. Alternatively,
-#' a custom `save_basename` can be supplied. The `suffix`
+#' a custom `basename` can be supplied. The `suffix`
 #' will still be added.
 #'
 #' @param object Object to save as an `.rds` file.
-#' @param output_dir Directory in which to save the `.rds` file.
-#' @param save_basename Base name for the `.rds`, before any
+#' @param dir Directory in which to save the `.rds` file.
+#' @param basename Base name for the `.rds`, before any
 #' `suffix` or the file extension, as a string. If `NULL`,
 #' use the name of the object in the R environment. Default `NULL`.
-#' @param save_suffix Suffix to append to the save_basename. Default
-#' `""` (no suffix).
+#' @param suffix Suffix to append to the `basename` before
+#' the file extension. Default `""` (no suffix).
 #' @param ext Extension for the saved file, without the `.`.
 #' Default `rds`.
 #' @return Nothing, saving the object as a side effect.
 #' @export
-to_rds_with_suffix <- function(
-  object,
-  output_dir,
-  save_basename = NULL,
-  save_suffix = "",
-  ext = "rds"
+save_rds_with_suffix <- function(
+        object,
+        dir,
+        basename = NULL,
+        suffix = "",
+        ext = "rds"
 ) {
-  if (is.null(save_basename)) {
-    save_basename <- deparse(substitute(object))
-  }
-  saveRDS(
-    object = object,
-    file = fs::path(
-      output_dir,
-      glue::glue("{save_basename}{save_suffix}"),
-      ext = ext
-    )
-  )
+        if (is.null(basename)) {
+                basename <- deparse(substitute(object))
+        }
+        saveRDS(
+                object = object,
+                file = .path_with_suffix(
+                        dir,
+                        basename,
+                        suffix,
+                        ext
+                )
+        )
 }
 
+#' Load an object from an `.rds` serialized file
+#' in a given `output_dir`, with programmatic naming.
+#'
+#' @param object_basename Base name for the object `.rds`, before any
+#' `suffix` or the file extension, as a string.
+#' @param dir Directory from which to load the object.
+#' @param suffix Suffix to append to the `object_basename` before
+#' the file extension. Default `""` (no suffix).
+#' @param ext Extension for the saved file, without the `.`.
+#' Default `rds`.
+#' @return The loaded object.
+#' @export
+read_rds_with_suffix <- function(
+        object_basename,
+        dir,
+        suffix = "",
+        ext = "rds"
+) {
+        return(
+                readRDS(.path_with_suffix(
+                        dir,
+                        object_basename,
+                        suffix,
+                        ext
+                ))
+        )
+}
 
-#' Generate a standard format output suffix for saving raw output
+#' Generate a standard-format output suffix for saving raw output
 #' for a location/forecast date/scenario trio.
 #'
 #' @param location Name of the location, as a string.
@@ -96,13 +144,13 @@ to_rds_with_suffix <- function(
 #' @return The output suffix, as a string.
 #' @export
 get_raw_output_suffix <- function(location, forecast_date, scenario) {
-  return(paste(
-    "",
-    location,
-    format(as.Date(forecast_date), "%Y.%m.%d"),
-    scenario,
-    sep = "_"
-  ))
+        return(paste(
+                "",
+                location,
+                format(as.Date(forecast_date), "%Y.%m.%d"),
+                scenario,
+                sep = "_"
+        ))
 }
 
 #' Assert that needed environment variables are set
@@ -123,16 +171,16 @@ get_raw_output_suffix <- function(location, forecast_date, scenario) {
 #'
 #' @export
 assert_needed_env_vars <- function(needed_vars) {
-  vars <- Sys.getenv(needed_vars)
-  checkmate::assert_character(vars)
-  which_missing <- vars == ""
-  if (any(which_missing)) {
-    cli::cli_abort(c(
-      "Could not find required environment variables ",
-      "{names(vars)[which_missing]}"
-    ))
-  }
-  invisible()
+        vars <- Sys.getenv(needed_vars)
+        checkmate::assert_character(vars)
+        which_missing <- vars == ""
+        if (any(which_missing)) {
+                cli::cli_abort(c(
+                        "Could not find required environment variables ",
+                        "{names(vars)[which_missing]}"
+                ))
+        }
+        invisible()
 }
 
 
@@ -147,7 +195,7 @@ assert_needed_env_vars <- function(needed_vars) {
 #' `template_df` can be found.
 #' @export
 select_like <- function(df, template_df) {
-  return(dplyr::select(df, tidyselect::all_of(colnames(template_df))))
+        return(dplyr::select(df, tidyselect::all_of(colnames(template_df))))
 }
 
 
@@ -177,9 +225,106 @@ select_like <- function(df, template_df) {
 #' new_df
 #' @export
 order_col <- function(df, col, levels) {
-  checkmate::assert_vector(levels, unique = TRUE)
-  return(dplyr::mutate(
-    df,
-    !!col := factor(.data[[col]], ordered = TRUE, levels = levels)
-  ))
+        checkmate::assert_vector(levels, unique = TRUE)
+        return(dplyr::mutate(
+                df,
+                !!col := factor(.data[[col]], ordered = TRUE, levels = levels)
+        ))
+}
+
+#' Generate a function for saving raw output objects for a
+#' location/forecast date/scenario trio.
+#'
+#' @param location Name of the location, as a string.
+#' @param forecast_date The forecast date, as a date or
+#' in a format coercible by [as.Date()].
+#' @param scenario Name of the scenario, as a string.
+#' @return A function for saving objects as `.rds` files,
+#' as the output of calling [purrr::partial()] on
+#' [save_rds_with_suffix()].
+#' @param raw_output_dir Directory in which to save the `.rds` file.
+#'
+#' @export
+get_object_saver <- function(
+        location,
+        forecast_date,
+        scenario,
+        raw_output_dir
+) {
+        raw_output_suffix <- get_raw_output_suffix(
+                location,
+                forecast_date,
+                scenario
+        )
+
+        return(
+                purrr::partial(
+                        save_rds_with_suffix,
+                        dir = raw_output_dir,
+                        suffix = raw_output_suffix,
+                        ext = "rds"
+                )
+        )
+}
+
+#' Generate a function for loading raw output objects
+#' for a location/forecast date/scenario trio.
+#'
+#' @param location Name of the location, as a string.
+#' @param forecast_date The forecast date, as a date or
+#' in a format coercible by [as.Date()].
+#' @param scenario Name of the scenario, as a string.
+#' @param raw_output_dir Directory in which to look for
+#' the `.rds` file.
+#' @return A function for loading objects from `.rds` files,
+#' as the output of calling [purrr::partial()] on
+#' [read_rds_with_suffix()].
+#' @export
+get_object_loader <- function(
+        location,
+        forecast_date,
+        scenario,
+        raw_output_dir
+) {
+        raw_output_suffix <- get_raw_output_suffix(
+                location,
+                forecast_date,
+                scenario
+        )
+
+        return(
+                purrr::partial(
+                        read_rds_with_suffix,
+                        dir = raw_output_dir,
+                        suffix = raw_output_suffix,
+                        ext = "rds"
+                )
+        )
+}
+
+#' Standard path to an output directory for a specific forecast
+#'
+#' @param output_dir Path to the general output directory.
+#' @param scenario Wastewater data availability scenario to analyze
+#' @param forecast_date Forecast date, in as a string in
+#' YYYY-MM-DD format.
+#' @param model Name of the model fit.
+#' @param location Forecast location, as as a two-letter USPS
+#' code.
+#' @return The path
+#' @export
+forecast_output_path <- function(
+        output_dir,
+        scenario,
+        forecast_date,
+        model,
+        location
+) {
+        return(fs::path(
+                output_dir,
+                scenario,
+                forecast_date,
+                model,
+                location
+        ))
 }

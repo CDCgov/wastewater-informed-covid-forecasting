@@ -43,7 +43,9 @@ write_eval_config <- function(
   # Will need to load in the files corresponding to the input scenarios, so we
   # get the list of locations that are relevant for each scenario. We will bind
   # these all together to create the full eval config.
-  df_ww <- data.frame(row.names = c("location", "forecast_date", "scenario"))
+  df_ww <- data.frame(
+    row.names = c("location", "forecast_date", "scenario")
+  )
 
   # This is a "manual" way of generating the dataframe we need to pass to targets
   # It does not handle the case of missing wastewater data.
@@ -59,7 +61,9 @@ write_eval_config <- function(
         header = TRUE
       )
       locs <- scenario_df |>
-        dplyr::filter(wwtp_jurisdiction %in% !!locations) |>
+        dplyr::filter(
+          wwtp_jurisdiction %in% !!locations
+        ) |>
         dplyr::pull(wwtp_jurisdiction) |>
         unique()
     }
@@ -86,8 +90,6 @@ write_eval_config <- function(
   hosp_data_dir <- file.path("input", "hosp_data", "vintage_datasets")
   population_data_path <- file.path("input", "locations.csv")
   baseline_score_table_dir <- file.path("output", "baseline_score")
-  # stan_models_dir <- system.file("stan", package = "cfaforecastrenewalww") #nolint
-  stan_models_dir <- file.path("cfaforecastrenewalww", "inst", "stan")
   init_dir <- file.path("input", "init_lists")
   output_dir <- file.path("output", "eval_latest")
   figure_dir <- file.path("output", "eval_latest", "plots")
@@ -108,6 +110,8 @@ write_eval_config <- function(
   ww_data_mapping <- "Monday: Monday, Wednesday: Monday"
   calibration_time <- 90
   forecast_time <- 28
+  trend_lookback_days <- 14 + 9
+  # two weeks from the last admission date
 
   iter_warmup <- 750
   iter_sampling <- 500
@@ -119,7 +123,10 @@ write_eval_config <- function(
 
   init_fps <- c()
   for (i in 1:n_chains) {
-    init_fps <- c(init_fps, file.path(init_dir, glue::glue("init_{i}.json")))
+    init_fps <- c(
+      init_fps,
+      file.path(init_dir, glue::glue("init_{i}.json"))
+    )
   }
 
   # Pre-specified delay distributions
@@ -195,15 +202,18 @@ write_eval_config <- function(
 
   config <- list(
     location_ww = df_ww |> dplyr::pull(location) |> as.vector(),
-    forecast_date_ww = df_ww |> dplyr::pull(forecast_date) |> as.vector(),
+    forecast_date_ww = df_ww |>
+      dplyr::pull(forecast_date) |>
+      as.vector(),
     scenario = df_ww |> dplyr::pull(scenario) |> as.vector(),
     location_hosp = df_hosp |> dplyr::pull(location) |> as.vector(),
-    forecast_date_hosp = df_hosp |> dplyr::pull(forecast_date) |> as.vector(),
+    forecast_date_hosp = df_hosp |>
+      dplyr::pull(forecast_date) |>
+      as.vector(),
     eval_date = eval_date,
     ww_data_dir = ww_data_dir,
     scenario_dir = scenario_dir,
     hosp_data_dir = hosp_data_dir,
-    stan_models_dir = stan_models_dir,
     baseline_score_table_dir = baseline_score_table_dir,
     output_dir = output_dir,
     hub_subdir = hub_subdir,
@@ -240,7 +250,9 @@ write_eval_config <- function(
     # Input delay distributions
     generation_interval = generation_interval,
     infection_feedback_pmf = generation_interval,
-    inf_to_hosp = inf_to_hosp
+    inf_to_hosp = inf_to_hosp,
+    trend_hosp_lookback_days = trend_lookback_days,
+    trend_ww_lookback_days = trend_lookback_days
   )
 
   wwinference::create_dir(config_dir)
