@@ -800,7 +800,8 @@ manuscript_figures <- list(
       baseline_model = "cfa-hosponlyrenewal(retro)",
       metric_to_compare = "crps",
       x = "location",
-      by = "forecast_date"
+      by = "forecast_date",
+      order_x = TRUE
     )
   ),
   tar_target(
