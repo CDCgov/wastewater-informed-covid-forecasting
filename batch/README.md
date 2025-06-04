@@ -140,7 +140,7 @@ The file [`input/params.toml`](../input/params.toml) specifies hyperparameters f
 
 To save you writing this all out by hand for each forecasting problem, `setup_job.py` loops over all the forecast problems in `input/config/eval/example_eval_config.yaml`, creating tasks for each one.
 
-By default, it creates a set of model fitting tasks and their associated postprocessing tasks for all entries in the specified config file. It can be configured to set up only fitting jobs, only postprocessing jobs, or only jobs for certian locations. Running `uv run python batch/setup_job.py --help` displays a full help message.
+By default, it creates a set of model fitting tasks and their associated postprocessing tasks for all entries in the specified config file. It can be configured to set up only fitting jobs, only postprocessing jobs, or only jobs for certain locations. Running `uv run python batch/setup_job.py --help` displays a full help message.
 
 #### Model fitting and postprocessing
 Let's run `setup_job.py` to create a model fitting and postprocessing job. We'll name our job `my-demo-job` and have it run on the `wastewater-demo-pool` we just created. We'll use our local copy of the example configuration file (`example_eval_config.yaml`) and the corresponding copy of it Blob storage container `wastewater-input`.
