@@ -150,7 +150,7 @@ def main(
     creds = EnvCredentialHandler()
 
     batch_service_client = get_batch_service_client(creds)
-    uses_deps = job_type == "both"
+    uses_deps = job_type == "all"
     job = batchmodels.JobAddParameter(
         id=job_id,
         pool_info=batchmodels.PoolInformation(pool_id=pool_id),
@@ -286,8 +286,8 @@ if __name__ == "__main__":
     parser.add_argument(
         "--job-type",
         type=str,
-        default="both",
-        help="Type(s) of job to run (`fit`, `trendfit`, `postprocess`, or `all`)",
+        default="all",
+        help="Type(s) of job to run (`fit`, `trendfit`, `postprocess`, or `all`.)",
     )
 
     parser.add_argument(
