@@ -6,7 +6,6 @@
 #' and exist in `raw_output_dir`.
 #' @param location Location for which to fit trends.
 #' @param scenario Wastewater data availability scenario to analyze.
-#' the trend in admissions data.
 #' @param raw_output_dir Directory containing raw output `.rds` files.
 #' Used to obtain the admissions and wastewater data used in fitting
 #' the forecasting model.
