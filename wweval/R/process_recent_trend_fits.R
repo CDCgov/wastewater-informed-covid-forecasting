@@ -5,6 +5,8 @@
 #' @param figure_save_dir Directory in which to save output figures
 #' @param figure_ext File extension for figures, without the `.`,
 #' e.g. `"pdf"` or `"png"`.
+#' @param n_lab_sites_plot Maximum number of lab-sites for which to
+#' plot wastewater trends. Default `10`.
 #' @return NULL, invisibly saving postprocessing results to
 #' disk as a side effect.
 #' @export
@@ -12,14 +14,15 @@ process_recent_trend_fits <- function(
   hosp_fit,
   ww_fit,
   figure_save_dir,
-  figure_ext = "pdf"
+  figure_ext = "pdf",
+  n_lab_sites_plot = 10
 ) {
   if (!is.null(ww_fit)) {
     conditions <- dplyr::distinct(
       ww_fit$data,
       .data$lab_site_index
     ) |>
-      head(10)
+      head(n_lab_sites_plot)
     ww_plot <- brms::conditional_effects(
       ww_fit,
       "time",
