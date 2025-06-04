@@ -5,18 +5,37 @@
 \title{Functions for plots that assess forecast calibration
 Get quantile-quantile plot}
 \usage{
-forecast_qq_plot(forecasts, time_period)
+forecast_qq_plot(
+  forecasts,
+  linewidth = 2,
+  reference_linecolor = "gray",
+  reference_linewidth = 2,
+  reference_linetype = "dashed",
+  ...
+)
 }
 \arguments{
 \item{forecasts}{df of granular (daily) quantile forecasts}
 
-\item{time_period}{time period that scores are summarized over}
+\item{linewidth}{\code{width} parameter for the Q-Q lines for
+individual models. Default 2.}
+
+\item{reference_linecolor}{\code{color} parameter for the r
+eference y = x line. Default \code{"gray"}.}
+
+\item{reference_linewidth}{\code{width} parameter for the
+reference y = x line. Default \code{2}.}
+
+\item{reference_linetype}{\code{linetype} parameter for the
+reference y = x line. Default \code{"dashed"}.}
+
+\item{...}{additional keyword arguments passed to \code{\link[ggplot2:geom_path]{ggplot2::geom_line()}}
+for the Q-Q lines for individual models.}
 }
 \value{
-a ggplot object containing a plot of the proportion of data within
-each interval for each model.
+a ggplot object containing a plot of the proportion of data
+within each interval for each model.
 }
 \description{
-Functions for plots that assess forecast calibration
-Get quantile-quantile plot
+Adapted from MIT-licensed \code{\link[scoringutils:plot_quantile_coverage]{scoringutils::plot_quantile_coverage()}}.
 }

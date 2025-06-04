@@ -2,22 +2,85 @@
 
 #' Get quantile-quantile plot
 #'
+#' Adapted from MIT-licensed [scoringutils::plot_quantile_coverage()].
+#'
 #' @param forecasts df of granular (daily) quantile forecasts
-#' @param time_period time period that scores are summarized over
-#' @return a ggplot object containing a plot of the proportion of data within
-#' each interval for each model.
+#' @param linewidth `width` parameter for the Q-Q lines for
+#' individual models. Default 2.
+#' @param reference_linecolor `color` parameter for the r
+#' eference y = x line. Default `"gray"`.
+#' @param reference_linewidth `width` parameter for the
+#' reference y = x line. Default `2`.
+#' @param reference_linetype `linetype` parameter for the
+#' reference y = x line. Default `"dashed"`.
+#' @param ... additional keyword arguments passed to [ggplot2::geom_line()]
+#' for the Q-Q lines for individual models.
+#' @return a ggplot object containing a plot of the proportion of data
+#' within each interval for each model.
 #' @export
-forecast_qq_plot <- function(forecasts, time_period) {
+forecast_qq_plot <- function(
+  forecasts,
+  linewidth = 2,
+  reference_linecolor = "gray",
+  reference_linewidth = 2,
+  reference_linetype = "dashed",
+  ...
+) {
   colors <- plot_components()
   p <- scoringutils::get_coverage(forecasts) |>
-    scoringutils::plot_quantile_coverage() +
+    ggplot(
+      aes(x = .data$quantile_level / 100, color = .data$model)
+    ) +
+    geom_polygon(
+      data = data.frame(
+        x = c(
+          0,
+          0.5,
+          0.5,
+          0.5,
+          0.5,
+          1
+        ),
+        y = c(
+          0,
+          0,
+          0.5,
+          0.5,
+          1,
+          1
+        ),
+        g = c("o", "o", "o"),
+        stringsAsFactors = TRUE
+      ),
+      aes(
+        x = .data$x,
+        y = .data$y,
+        group = .data$g,
+        fill = .data$g
+      ),
+      alpha = 0.05,
+      colour = "white",
+      fill = "olivedrab3"
+    ) +
+    geom_abline(
+      color = reference_linecolor,
+      linetype = reference_linetype,
+      intercept = 0,
+      slope = 1,
+      linewidth = reference_linewidth
+    ) +
+    geom_line(aes(y = .data$quantile_coverage), linewidth = linewidth, ...) +
+    xlab("Quantile level") +
+    ylab("% Obs below quantile level") +
     scale_y_continuous(
       labels = scales::label_percent()
     ) +
-    ggtitle(glue::glue("QQ plot for {time_period}")) +
+    scale_x_continuous(
+      labels = scales::label_percent()
+    ) +
     get_plot_theme() +
     scale_color_manual(values = colors$model_colors) +
-    coord_fixed()
+    coord_fixed(expand = FALSE)
   return(p)
 }
 
