@@ -306,7 +306,7 @@ if __name__ == "__main__":
         type=str,
         help=(
             "Models to include in the job, as a whitespace-"
-            "sepearated string containing 'ww', 'hosp', "
+            "separated string containing 'ww', 'hosp', "
             "or both. Useful for troubleshooting or rerunning. "
             "If not provided, use both models."
         ),
