@@ -26,8 +26,7 @@ and exist in \code{raw_output_dir}.}
 
 \item{location}{Location for which to fit trends.}
 
-\item{scenario}{Wastewater data availability scenario to analyze.
-the trend in admissions data.}
+\item{scenario}{Wastewater data availability scenario to analyze.}
 
 \item{raw_output_dir}{Directory containing raw output \code{.rds} files.
 Used to obtain the admissions and wastewater data used in fitting
