@@ -29,7 +29,7 @@ forecast_qq_plot <- function(
   colors <- plot_components()
   p <- scoringutils::get_coverage(forecasts) |>
     ggplot(
-      aes(x = .data$quantile_level / 100, color = .data$model)
+      aes(x = .data$quantile_level, color = .data$model)
     ) +
     geom_polygon(
       data = data.frame(
@@ -71,7 +71,7 @@ forecast_qq_plot <- function(
     ) +
     geom_line(aes(y = .data$quantile_coverage), linewidth = linewidth, ...) +
     xlab("Quantile level") +
-    ylab("% Obs below quantile level") +
+    ylab("Obs below quantile level") +
     scale_y_continuous(
       labels = scales::label_percent()
     ) +
