@@ -8,7 +8,8 @@ process_recent_trend_fits(
   hosp_fit,
   ww_fit,
   figure_save_dir,
-  figure_ext = "pdf"
+  figure_ext = "pdf",
+  n_lab_sites_plot = 10
 )
 }
 \arguments{
@@ -20,6 +21,9 @@ process_recent_trend_fits(
 
 \item{figure_ext}{File extension for figures, without the \code{.},
 e.g. \code{"pdf"} or \code{"png"}.}
+
+\item{n_lab_sites_plot}{Maximum number of lab-sites for which to
+plot wastewater trends. Default \code{10}.}
 }
 \value{
 NULL, invisibly saving postprocessing results to
