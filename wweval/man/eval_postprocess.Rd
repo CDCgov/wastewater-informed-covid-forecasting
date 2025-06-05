@@ -59,7 +59,7 @@ side effects.
 Raw output is saved to disk in the \code{raw_output_dir} specified in the eval config
 as serialized \code{.rds} files. Processed output is saved in a structured directory
 format in the \code{output_dir} specified in the eval config. See the \code{\link[=save_table]{save_table()}},
-\code{\link[=to_rds_with_suffix]{to_rds_with_suffix()}}, and \code{\link[=get_raw_output_suffix]{get_raw_output_suffix()}} functions for more details.
+\code{\link[=get_object_saver]{get_object_saver()}}, and \code{\link[=get_object_loader]{get_object_loader()}} functions for more details.
 }
 \details{
 The bulk of the postprocessing for successful model fits is handled
