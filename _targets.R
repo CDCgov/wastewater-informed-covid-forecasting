@@ -1812,7 +1812,6 @@ additional_figures <- list(
   tar_map(
     list(
       by = list(
-        c("location", "forecast_date"),
         "location",
         "forecast_date"
       )
