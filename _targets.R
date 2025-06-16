@@ -728,8 +728,7 @@ figures <- list(
         dplyr::filter(
           calibration_input_cfa_all_time,
           .data$location == loc
-        ),
-        time_period = "Oct 2023-Mar 2024"
+        )
       )
     )
   ),
@@ -866,8 +865,7 @@ figures <- list(
   tar_target(
     name = qq_plot_retro_all_time,
     command = forecast_qq_plot(
-      calibration_input_cfa_all_time,
-      time_period = "retro_all_time"
+      calibration_input_cfa_all_time
     )
   ),
   tar_target(
@@ -1439,8 +1437,7 @@ hub_comparison_plots <- list(
   tar_target(
     name = qq_plot_real_time,
     command = forecast_qq_plot(
-      hub_forecasts_cfa_real_time,
-      time_period = "real_time"
+      hub_forecasts_cfa_real_time
     )
   ),
   tar_target(
@@ -1552,9 +1549,8 @@ hub_comparison_plots <- list(
         dplyr::filter(
           .data$model %in% .env$models_to_plot
         ),
-      time_period = "Oct 2023-Mar 2024"
-    ) |>
-      with_dependencies(models_to_plot)
+      model_z_order = models_to_plot
+    )
   ),
   tar_target(
     name = hub_qq_plot_real_time,
@@ -1571,10 +1567,9 @@ hub_comparison_plots <- list(
               )
             )
         ),
-      time_period = "Feb-Mar 2024"
+      model_z_order = models_to_plot
     ) |>
       with_dependencies(
-        models_to_plot,
         first_real_time_forecast_date
       )
   ),

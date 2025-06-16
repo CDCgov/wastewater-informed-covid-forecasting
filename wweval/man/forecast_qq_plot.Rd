@@ -7,6 +7,7 @@ Get quantile-quantile plot}
 \usage{
 forecast_qq_plot(
   forecasts,
+  model_z_order = NULL,
   linewidth = 2,
   reference_linecolor = "gray",
   reference_linewidth = 2,
@@ -16,6 +17,11 @@ forecast_qq_plot(
 }
 \arguments{
 \item{forecasts}{df of granular (daily) quantile forecasts}
+
+\item{model_z_order}{z-order in which to overplot the individual models,
+ascending (so the last named model is plotted on top).
+If \code{NULL} (default), plot the models in the order they appear in
+\code{forecasts}.}
 
 \item{linewidth}{\code{width} parameter for the Q-Q lines for
 individual models. Default 2.}

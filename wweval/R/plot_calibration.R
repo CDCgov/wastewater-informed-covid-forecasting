@@ -5,6 +5,10 @@
 #' Adapted from MIT-licensed [scoringutils::plot_quantile_coverage()].
 #'
 #' @param forecasts df of granular (daily) quantile forecasts
+#' @param model_z_order z-order in which to overplot the individual models,
+#' ascending (so the last named model is plotted on top).
+#' If `NULL` (default), plot the models in the order they appear in
+#' `forecasts`.
 #' @param linewidth `width` parameter for the Q-Q lines for
 #' individual models. Default 2.
 #' @param reference_linecolor `color` parameter for the r
@@ -20,6 +24,7 @@
 #' @export
 forecast_qq_plot <- function(
   forecasts,
+  model_z_order = NULL,
   linewidth = 2,
   reference_linecolor = "gray",
   reference_linewidth = 2,
@@ -27,10 +32,16 @@ forecast_qq_plot <- function(
   ...
 ) {
   colors <- plot_components()
-  p <- scoringutils::get_coverage(forecasts) |>
-    ggplot(
-      aes(x = .data$quantile_level, color = .data$model)
-    ) +
+  coverage <- scoringutils::get_coverage(forecasts)
+
+  if (!is.null(model_z_order)) {
+    coverage <- order_col(coverage, "model", model_z_order)
+  }
+
+  p <- ggplot(
+    data = coverage,
+    mapping = aes(x = .data$quantile_level, color = .data$model)
+  ) +
     geom_polygon(
       data = data.frame(
         x = c(
@@ -58,8 +69,8 @@ forecast_qq_plot <- function(
         group = .data$g,
         fill = .data$g
       ),
-      alpha = 0.05,
-      colour = "white",
+      alpha = 0.15,
+      colour = "olivedrab3",
       fill = "olivedrab3"
     ) +
     geom_abline(
@@ -71,7 +82,7 @@ forecast_qq_plot <- function(
     ) +
     geom_line(aes(y = .data$quantile_coverage), linewidth = linewidth, ...) +
     xlab("Quantile level") +
-    ylab("Obs below quantile level") +
+    ylab("Obs < level") +
     scale_y_continuous(
       labels = scales::label_percent()
     ) +
