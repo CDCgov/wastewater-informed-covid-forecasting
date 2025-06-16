@@ -453,7 +453,7 @@ head_to_head_targets <- list(
   )
 )
 
-manuscript_figures <- list(
+figures <- list(
   tar_target(
     name = table_of_forecast_date_locs,
     command = scores_filtered |>
@@ -1687,7 +1687,6 @@ hub_comparison_plots <- list(
 )
 
 
-# Miscellaneous additional figures
 additional_figures <- list(
   tar_target(
     plot_hub_perf_heatmap,
@@ -1814,6 +1813,25 @@ additional_figures <- list(
       max_n_site_labs_to_show = 12,
       date_to_plot = "2024-02-12"
     )
+  ),
+  tar_map(
+    list(
+      by = list(
+        c("location", "forecast_date"),
+        "location",
+        "forecast_date"
+      )
+    ),
+    tar_target(
+      name = plot_score_scatter_real_time,
+      command = plot_score_scatter(
+        wis_cfa_models_real_time,
+        metric = "wis",
+        model_x = "cfa-hosponlyrenewal(real-time*)",
+        model_y = "cfa-wwrenewal(real-time)",
+        by = by
+      )
+    )
   )
 )
 
@@ -1860,7 +1878,7 @@ list(
   upstream_targets,
   combined_targets,
   head_to_head_targets,
-  manuscript_figures,
+  figures,
   scenario_targets,
   hub_targets,
   hub_comparison_plots,
