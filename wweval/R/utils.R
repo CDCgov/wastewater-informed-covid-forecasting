@@ -154,6 +154,7 @@ get_raw_output_suffix <- function(location, forecast_date, scenario) {
   ))
 }
 
+
 #' Assert that needed environment variables are set
 #'
 #' @param needed_vars Vector of needed environment
@@ -232,6 +233,7 @@ order_col <- function(df, col, levels) {
     !!col := factor(.data[[col]], ordered = TRUE, levels = levels)
   ))
 }
+
 
 #' Generate a function for saving raw output objects for a
 #' location/forecast date/scenario trio.
