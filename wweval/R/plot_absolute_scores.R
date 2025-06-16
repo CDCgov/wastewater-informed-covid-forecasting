@@ -137,26 +137,44 @@ wis_barplot <- function(scores) {
 #' @param ... keyword arguments passed to [ggplot2::geom_point()].
 #' @return The scatterplot, as ggplot object
 #' @export
-plot_score_scatter <- function(scores, metric, model_x, model_y, by = NULL) {
+plot_score_scatter <- function(
+  scores,
+  metric,
+  model_x,
+  model_y,
+  by = NULL,
+  ...
+) {
   to_plot <- scores |>
     forecasttools::filter_to_shared_forecasts(
-      scores,
-      c(model_x, model_y)
+      comparator_values = c(model_x, model_y),
+      compare = "model"
     ) |>
     forecasttools::summarise_scores_with_baseline(
       baseline = model_x,
       by = by
     ) |>
+    dplyr::filter(.data$model == !!model_y) |>
     dplyr::mutate(
-      score_x = .data[[metric]],
-      score_y = .data[[metric]] * .data$mean_scores_ratio
+      score_y = .data[[metric]],
+      score_x = .data[[metric]] / .data$mean_scores_ratio
     )
 
-  p <- ggplot(aes(x = score_x, y = score_y)) +
-    geom_abline(linetype = "dashed", size = 2) +
+  maxval <- max(c(to_plot$score_x, to_plot$score_y))
+
+  p <- ggplot(
+    data = to_plot,
+    mapping = aes(x = score_x, y = score_y)
+  ) +
+    geom_abline(
+      slope = 1,
+      intercept = 0,
+      linetype = "dashed",
+      linewidth = 2
+    ) +
     geom_point(...) +
     get_plot_theme() +
-    coord_fixed() +
+    coord_fixed(xlim = c(0, maxval), ylim = c(0, maxval)) +
     labs(
       x = glue::glue("{metric} ({model_x})"),
       y = glue::glue("{metric} ({model_y})")
