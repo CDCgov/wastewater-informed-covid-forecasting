@@ -1810,12 +1810,15 @@ additional_figures <- list(
     )
   ),
   tar_map(
-    list(
+    tibble::tibble(
       by = list(
-        "location",
-        "forecast_date"
-      )
+        c("forecast_date", "location"),
+        "forecast_date",
+        "location"
+      ),
+      by_suffix = c("forecast_date_location", "forecast_date", "location")
     ),
+    names = "by_suffix",
     tar_target(
       name = plot_score_scatter_real_time,
       command = plot_score_scatter(
@@ -1823,13 +1826,46 @@ additional_figures <- list(
         metric = "wis",
         model_x = "cfa-hosponlyrenewal(real-time*)",
         model_y = "cfa-wwrenewal(real-time)",
-        by = by
+        by = by,
+        shape = 21,
+        size = 3,
+        color = "black",
+        fill = "darkblue",
+        alpha = 0.5
+      )
+    )
+  ),
+  tar_map(
+    tibble::tibble(
+      by = list(
+        c("forecast_date", "location"),
+        "forecast_date",
+        "location"
+      ),
+      label = c(FALSE, TRUE, TRUE),
+      by_suffix = c("forecast_date_location", "forecast_date", "location")
+    ),
+    names = "by_suffix",
+    tar_target(
+      name = plot_score_scatter_retro,
+      command = plot_score_scatter(
+        scores_filtered,
+        metric = "crps",
+        model_x = "cfa-hosponlyrenewal(retro)",
+        model_y = "cfa-wwrenewal(retro)",
+        by = by,
+        label = label,
+        shape = 21,
+        size = 3,
+        color = "black",
+        fill = "darkblue",
+        alpha = 0.5
       )
     )
   )
 )
 
-save_composite_fig <- function(fig, fig_output_dir, fig_name = NULL, ...) {
+save_fig <- function(fig, fig_output_dir, fig_name = NULL, ...) {
   if (is.null(fig_name)) {
     fig_name <- deparse(substitute(fig))
   }
@@ -1844,7 +1880,7 @@ save_composite_fig <- function(fig, fig_output_dir, fig_name = NULL, ...) {
 
 save_figures_to_disk <- list(
   tar_target(
-    name = save_composite_figures,
+    name = save_figures,
     command = purrr::imap_vec(
       list(
         figure_real_time_rel_performance = figure_real_time_rel_performance,
@@ -1855,7 +1891,7 @@ save_figures_to_disk <- list(
         figure_example_scores = figure_example_scores
       ),
       \(figure, name) {
-        save_composite_fig(
+        save_fig(
           figure,
           fig_output_dir,
           fig_name = name,

@@ -134,6 +134,8 @@ wis_barplot <- function(scores) {
 #' @param by Summize scores by these columns. Passed as the
 #' `by` argument to [forecasttools::summarise_scores_with_baseline()].
 #' Default `NULL`.
+#' @param label Label the points according to the columns in `by`?
+#' Default `FALSE`.
 #' @param ... keyword arguments passed to [ggplot2::geom_point()].
 #' @return The scatterplot, as ggplot object
 #' @export
@@ -143,6 +145,7 @@ plot_score_scatter <- function(
   model_x,
   model_y,
   by = NULL,
+  label = FALSE,
   ...
 ) {
   to_plot <- scores |>
@@ -157,14 +160,17 @@ plot_score_scatter <- function(
     dplyr::filter(.data$model == !!model_y) |>
     dplyr::mutate(
       score_y = .data[[metric]],
-      score_x = .data[[metric]] / .data$mean_scores_ratio
+      score_x = .data[[metric]] / .data$mean_scores_ratio,
+      label = ifelse(label, interaction(dplyr::across(data, by)), "")
     )
 
-  maxval <- max(c(to_plot$score_x, to_plot$score_y))
+  all_vals <- c(to_plot$score_x, to_plot$score_y)
+  minval <- min(all_vals)
+  maxval <- max(all_vals)
 
   p <- ggplot(
     data = to_plot,
-    mapping = aes(x = score_x, y = score_y)
+    mapping = aes(x = .data$score_x, y = .data$score_y, label = .data$label)
   ) +
     geom_abline(
       slope = 1,
@@ -174,7 +180,7 @@ plot_score_scatter <- function(
     ) +
     geom_point(...) +
     get_plot_theme() +
-    coord_fixed(xlim = c(0, maxval), ylim = c(0, maxval)) +
+    coord_fixed(xlim = c(minval, maxval), ylim = c(minval, maxval)) +
     labs(
       x = glue::glue("{metric} ({model_x})"),
       y = glue::glue("{metric} ({model_y})")

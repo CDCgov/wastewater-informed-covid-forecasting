@@ -5,7 +5,15 @@
 \title{Plot a scatterplot of scores comparing those of one model
 to those of another, for a given stratification.}
 \usage{
-plot_score_scatter(scores, metric, model_x, model_y, by = NULL, ...)
+plot_score_scatter(
+  scores,
+  metric,
+  model_x,
+  model_y,
+  by = NULL,
+  label = FALSE,
+  ...
+)
 }
 \arguments{
 \item{scores}{Table of unsummarized scores, as the output of
@@ -20,6 +28,9 @@ plot_score_scatter(scores, metric, model_x, model_y, by = NULL, ...)
 \item{by}{Summize scores by these columns. Passed as the
 \code{by} argument to \code{\link[forecasttools:summarise_scores_with_baseline]{forecasttools::summarise_scores_with_baseline()}}.
 Default \code{NULL}.}
+
+\item{label}{Label the points according to the columns in \code{by}?
+Default \code{FALSE}.}
 
 \item{...}{keyword arguments passed to \code{\link[ggplot2:geom_point]{ggplot2::geom_point()}}.}
 }
