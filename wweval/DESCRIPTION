@@ -98,6 +98,6 @@ RoxygenNote: 7.3.2
 Remotes:
     stan-dev/cmdstanr,
     wwinference=CDCgov/ww-inference-model@v0.1.1,
-    github::cdcgov/forecasttools
+    forecasttools=CDCgov/forecasttools@dhm-filter-forecasts-to-overlap
 LazyData: true
 Config/testthat/edition: 3
