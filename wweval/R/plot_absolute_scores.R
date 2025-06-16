@@ -121,3 +121,46 @@ wis_barplot <- function(scores) {
 
   return(p)
 }
+
+
+#' Plot a scatterplot of scores comparing those of one model
+#' to those of another, for a given stratification.
+#'
+#' @param scores Table of unsummarized scores, as the output of
+#' [scoringutils::score().
+#' @param metric Metric to plot.
+#' @param model_x Model whose score should be plotted on the x axis.
+#' @param model_y Model whose score should be plotted on the y axis.
+#' @param by Summize scores by these columns. Passed as the
+#' `by` argument to [forecasttools::summarise_scores_with_baseline()].
+#' Default `NULL`.
+#' @param ... keyword arguments passed to [ggplot2::geom_point()].
+#' @return The scatterplot, as ggplot object
+#' @export
+plot_score_scatter <- function(scores, metric, model_x, model_y, by = NULL) {
+  to_plot <- scores |>
+    forecasttools::filter_to_shared_forecasts(
+      scores,
+      c(model_x, model_y)
+    ) |>
+    forecasttools::summarise_scores_with_baseline(
+      baseline = model_x,
+      by = by
+    ) |>
+    dplyr::mutate(
+      score_x = .data[[metric]],
+      score_y = .data[[metric]] * .data$mean_scores_ratio
+    )
+
+  p <- ggplot(aes(x = score_x, y = score_y)) +
+    geom_abline(linetype = "dashed", size = 2) +
+    geom_point(...) +
+    get_plot_theme() +
+    coord_fixed() +
+    labs(
+      x = glue::glue("{metric} ({model_x})"),
+      y = glue::glue("{metric} ({model_y})")
+    )
+
+  return(p)
+}
