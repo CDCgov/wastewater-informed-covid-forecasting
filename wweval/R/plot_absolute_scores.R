@@ -188,6 +188,7 @@ plot_score_scatter <- function(
       linetype = "dashed",
       linewidth = 2
     ) +
+    geom_point(...) +
     get_plot_theme() +
     coord_fixed(xlim = c(minval, maxval), ylim = c(minval, maxval)) +
     labs(
@@ -195,10 +196,10 @@ plot_score_scatter <- function(
       y = glue::glue("{metric} ({model_y})")
     )
 
-  if (!is.null(label_col)) {
+  if (!is.null(label)) {
     p <- p +
       geom_text(
-        mapping = aes(label = .data[[label_col]]),
+        mapping = aes(label = .data[[label]]),
         nudge_x = nudge_x,
         nudge_y = nudge_y,
         size = label_size,
