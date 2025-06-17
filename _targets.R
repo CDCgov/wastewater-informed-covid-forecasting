@@ -1816,7 +1816,7 @@ additional_figures <- list(
         "forecast_date",
         "location"
       ),
-      label = c(NULL, "forecast_date", "location"),
+      label = c(NA, "forecast_date", "location"),
       by_suffix = c("forecast_date_location", "forecast_date", "location")
     ),
     names = "by_suffix",
@@ -1844,7 +1844,7 @@ additional_figures <- list(
         "forecast_date",
         "location"
       ),
-      label = c(NULL, "forecast_date", "location"),
+      label = c(NA, "forecast_date", "location"),
       by_suffix = c("forecast_date_location", "forecast_date", "location")
     ),
     names = "by_suffix",

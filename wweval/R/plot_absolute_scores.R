@@ -134,7 +134,7 @@ wis_barplot <- function(scores) {
 #' @param by Summize scores by these columns. Passed as the
 #' `by` argument to [forecasttools::summarise_scores_with_baseline()].
 #' Default `NULL`.
-#' @param label Column to use for labeling points. If `NULL`,
+#' @param label Column to use for labeling points. If `NA` or `NULL`,
 #' do not label.
 #' @param nudge_x Passed to [geom_text()]. Default `0`.
 #' @param nudge_y Passed to [geom_text()]. Default `0`.
@@ -196,7 +196,7 @@ plot_score_scatter <- function(
       y = glue::glue("{metric} ({model_y})")
     )
 
-  if (!is.null(label)) {
+  if (!is.null(label) && !is.na(label)) {
     p <- p +
       geom_text(
         mapping = aes(label = .data[[label]]),
