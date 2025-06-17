@@ -134,10 +134,16 @@ wis_barplot <- function(scores) {
 #' @param by Summize scores by these columns. Passed as the
 #' `by` argument to [forecasttools::summarise_scores_with_baseline()].
 #' Default `NULL`.
-#' @param label_col If provided, plot the value of this column
-#' via [geom_text()] in lieu of points. Default `NULL` (plot points).
-#' @param ... keyword arguments passed to [ggplot2::geom_point()]
-#' or [ggplot2::geom_text()], depending on the value of label_col.
+#' @param label Column to use for labeling points. If `NULL`,
+#' do not label.
+#' @param nudge_x Passed to [geom_text()]. Default `0`.
+#' @param nudge_y Passed to [geom_text()]. Default `0`.
+#' @param label_color Passed as the `"color"` argument to [geom_text()].
+#' Default `"black"`.
+#' @param label_size Passed as the `"size"` argument to [geom_text()].
+#' Default `2`.
+#' @param ... Keyword arguments
+#' passed to [ggplot2::geom_point()].
 #' @return The scatterplot, as ggplot object
 #' @export
 plot_score_scatter <- function(
@@ -146,7 +152,11 @@ plot_score_scatter <- function(
   model_x,
   model_y,
   by = NULL,
-  label_col = NULL,
+  label = NULL,
+  nudge_x = 0,
+  nudge_y = 0,
+  label_size = 2,
+  label_color = "black",
   ...
 ) {
   to_plot <- scores |>
@@ -168,15 +178,6 @@ plot_score_scatter <- function(
   minval <- min(all_vals)
   maxval <- max(all_vals)
 
-  if (!is.null(label_col)) {
-    geom_to_plot <- geom_text(
-      mapping = aes(label = .data[[label_col]]),
-      ...
-    )
-  } else {
-    geom_to_plot <- geom_point(...)
-  }
-
   p <- ggplot(
     data = to_plot,
     mapping = aes(x = .data$score_x, y = .data$score_y)
@@ -187,13 +188,23 @@ plot_score_scatter <- function(
       linetype = "dashed",
       linewidth = 2
     ) +
-    geom_to_plot +
     get_plot_theme() +
     coord_fixed(xlim = c(minval, maxval), ylim = c(minval, maxval)) +
     labs(
       x = glue::glue("{metric} ({model_x})"),
       y = glue::glue("{metric} ({model_y})")
     )
+
+  if (!is.null(label_col)) {
+    p <- p +
+      geom_text(
+        mapping = aes(label = .data[[label_col]]),
+        nudge_x = nudge_x,
+        nudge_y = nudge_y,
+        size = label_size,
+        color = label_color
+      )
+  }
 
   return(p)
 }

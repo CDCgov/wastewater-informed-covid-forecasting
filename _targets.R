@@ -1816,6 +1816,7 @@ additional_figures <- list(
         "forecast_date",
         "location"
       ),
+      label = c(NULL, "forecast_date", "location"),
       by_suffix = c("forecast_date_location", "forecast_date", "location")
     ),
     names = "by_suffix",
@@ -1827,6 +1828,7 @@ additional_figures <- list(
         model_x = "cfa-hosponlyrenewal(real-time*)",
         model_y = "cfa-wwrenewal(real-time)",
         by = by,
+        label = label,
         shape = 21,
         size = 3,
         color = "black",
@@ -1842,7 +1844,7 @@ additional_figures <- list(
         "forecast_date",
         "location"
       ),
-      label = c(FALSE, TRUE, TRUE),
+      label = c(NULL, "forecast_date", "location"),
       by_suffix = c("forecast_date_location", "forecast_date", "location")
     ),
     names = "by_suffix",
