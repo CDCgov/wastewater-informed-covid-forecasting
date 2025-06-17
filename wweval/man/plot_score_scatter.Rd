@@ -11,7 +11,11 @@ plot_score_scatter(
   model_x,
   model_y,
   by = NULL,
-  label = FALSE,
+  label = NULL,
+  nudge_x = 0,
+  nudge_y = 0,
+  label_size = 2,
+  label_color = "black",
   ...
 )
 }
@@ -29,10 +33,21 @@ plot_score_scatter(
 \code{by} argument to \code{\link[forecasttools:summarise_scores_with_baseline]{forecasttools::summarise_scores_with_baseline()}}.
 Default \code{NULL}.}
 
-\item{label}{Label the points according to the columns in \code{by}?
-Default \code{FALSE}.}
+\item{label}{Column to use for labeling points. If \code{NA} or \code{NULL},
+do not label.}
 
-\item{...}{keyword arguments passed to \code{\link[ggplot2:geom_point]{ggplot2::geom_point()}}.}
+\item{nudge_x}{Passed to \code{\link[=geom_text]{geom_text()}}. Default \code{0}.}
+
+\item{nudge_y}{Passed to \code{\link[=geom_text]{geom_text()}}. Default \code{0}.}
+
+\item{label_size}{Passed as the \code{"size"} argument to \code{\link[=geom_text]{geom_text()}}.
+Default \code{2}.}
+
+\item{label_color}{Passed as the \code{"color"} argument to \code{\link[=geom_text]{geom_text()}}.
+Default \code{"black"}.}
+
+\item{...}{Keyword arguments
+passed to \code{\link[ggplot2:geom_point]{ggplot2::geom_point()}}.}
 }
 \value{
 The scatterplot, as ggplot object
