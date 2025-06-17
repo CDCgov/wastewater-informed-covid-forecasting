@@ -10,7 +10,7 @@
 #' the forecasting model.
 #' @return The posterior of the difference, as a table..
 #' @export
-compute_foreacst_difference <- function(
+compute_forecast_difference <- function(
   forecast_date,
   location,
   scenario,
@@ -38,6 +38,24 @@ compute_foreacst_difference <- function(
 
   message("Loading posteriors...")
 
-  preds_hosp <- load_object_hosp("hosp_draws")
-  preds_ww <- load_object_ww("hosp_draws")
+  preds_hosp <- load_object_hosp("hosp_draws") |>
+    dplyr::filter(is.na(.data$calib_data)) |>
+    dplyr::select("date", "draw", hosp_model_pred = "value")
+  preds_ww <- load_object_ww("hosp_draws") |>
+    dplyr::filter(is.na(.data$calib_data)) |>
+    dplyr::rename(ww_model_pred = "value") |>
+    dplyr::select(-c("pop", "name", "model_type", "calib_data"))
+
+  message("Joining posteriors...")
+  preds <- dplyr::inner_join(
+    preds_hosp,
+    preds_ww,
+    by = c("date", "draw")
+  ) |>
+    dplyr::mutate(
+      log_diff_pred = log(ww_model_pred) -
+        log(hosp_model_pred)
+    )
+
+  return(preds)
 }
