@@ -8,7 +8,10 @@
 #' @param raw_output_dir Directory containing raw output `.rds` files.
 #' Used to obtain the admissions and wastewater data used in fitting
 #' the forecasting model.
-#' @return The posterior of the difference, as a table..
+#' @return List containing two tables, one containing
+#' posteriors for the difference by target date, the other
+#' containing the posterior for the total difference across
+#' all target dates.
 #' @export
 compute_forecast_difference <- function(
   forecast_date,
@@ -47,15 +50,24 @@ compute_forecast_difference <- function(
     dplyr::select(-c("pop", "name", "model_type", "calib_data"))
 
   message("Joining posteriors...")
-  preds <- dplyr::inner_join(
+  by_date <- dplyr::inner_join(
     preds_hosp,
     preds_ww,
     by = c("date", "draw")
   ) |>
     dplyr::mutate(
-      log_diff_pred = log(ww_model_pred) -
+      log_diff_ww_hosp = log(ww_model_pred) -
         log(hosp_model_pred)
     )
 
-  return(preds)
+  overall <- dplyr::summarise(
+    by_date,
+    log_diff_ww_hosp_total = log(
+      sum(ww_model_pred)
+    ) -
+      log(sum(hosp_model_pred)),
+    .by = c("draw", "forecast_date", "location")
+  )
+
+  return(list(by_date = by_date, overall = overall))
 }
