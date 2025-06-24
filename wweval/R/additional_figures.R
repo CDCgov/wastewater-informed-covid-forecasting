@@ -1479,43 +1479,43 @@ get_plot_ww_data_comparison <- function(
   p <- ggplot(draws_w_data_subsetted) +
     geom_line(
       aes(
-        x = date,
-        y = value,
-        group = draw,
-        color = site_lab_name
+        x = .data$date,
+        y = .data$value,
+        group = .data$draw,
+        color = .data$site_lab_name
       ),
       linewidth = 0.1,
       alpha = 0.1,
       show.legend = FALSE
     ) +
     geom_point(
-      aes(x = date, y = eval_data),
+      aes(x = .data$date, y = .data$eval_data),
       fill = "white",
       size = 1,
       shape = 21,
       show.legend = FALSE
     ) +
     geom_point(
-      aes(x = date, y = calib_data),
+      aes(x = .data$date, y = .data$calib_data),
       color = "black",
       show.legend = FALSE
     ) +
     geom_vline(
-      aes(xintercept = lubridate::ymd(forecast_date)),
+      aes(xintercept = lubridate::ymd(.data$forecast_date)),
       linetype = "dashed"
     ) +
     scale_y_continuous(trans = "log10") +
     facet_wrap(~site_lab_name, scales = "free_y") +
     geom_point(
-      data = draws_w_data_subsetted |> filter(below_lod == 1),
-      aes(x = date, y = calib_data),
+      data = draws_w_data_subsetted |> filter(.data$below_LOD == 1),
+      aes(x = .data$date, y = .data$calib_data),
       color = "red",
       size = 1.1
     ) +
     geom_point(
       data = draws_w_data_subsetted |>
-        filter(flag_as_ww_outlier == 1),
-      aes(x = date, y = calib_data),
+        filter(.data$flag_as_ww_outlier == 1),
+      aes(x = .data$date, y = .data$calib_data),
       color = "blue",
       size = 1.1
     ) +
