@@ -62,3 +62,73 @@ test_that(
     })
   }
 )
+
+
+test_that("assert_needed_env_vars() works as expected", {
+  withr::with_envvar(
+    c(
+      "TEST_ENV_VAR_ONE" = "a",
+      "TEST_ENV_VAR_TWO" = "b"
+    ),
+    {
+      expect_no_warning(
+        assert_needed_env_vars(c(
+          "TEST_ENV_VAR_ONE",
+          "TEST_ENV_VAR_TWO"
+        ))
+      )
+      expect_error(
+        assert_needed_env_vars(
+          "THIS_SHOULD_BE_MISSING_UEFDJIREX"
+        ),
+        "Could not find required"
+      )
+      expect_error(
+        assert_needed_env_vars(
+          c(
+            "TEST_ENV_VAR_ONE",
+            "TEST_ENV_VAR_TWO",
+            "THIS_SHOULD_BE_MISSING_UEFDJIREX"
+          )
+        ),
+        "Could not find required"
+      )
+    }
+  )
+})
+
+test_that("order_col behavior corresponds to manual expectation", {
+  df <- tibble::tibble(
+    x = c("b", "c", "a", "c", "b", "a", "a"),
+    y = rnorm(7),
+    z = 5
+  )
+
+  df_ordered <- order_col(df, "x", c("c", "b", "a")) |>
+    dplyr::arrange(.data$x)
+  df_ordered_desc <- order_col(df, "x", rev(c("c", "b", "a"))) |>
+    dplyr::arrange(.data$x)
+
+  expect_equal(
+    df_ordered$x,
+    factor(
+      c("c", "c", "b", "b", "a", "a", "a"),
+      levels = c("c", "b", "a"),
+      ordered = TRUE
+    )
+  )
+
+  expect_equal(
+    df_ordered_desc$x,
+    factor(
+      c("a", "a", "a", "b", "b", "c", "c"),
+      levels = c("a", "b", "c"),
+      ordered = TRUE
+    )
+  )
+
+  expect_error(
+    order_col(df, "x", c("c", "b", "a", "a")),
+    "duplicated"
+  )
+})

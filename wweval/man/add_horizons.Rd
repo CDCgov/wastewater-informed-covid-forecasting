@@ -2,22 +2,36 @@
 % Please edit documentation in R/add_horizons.R
 \name{add_horizons}
 \alias{add_horizons}
-\title{Add columns indicating the horizon to the scores}
+\title{Add columns indicating the horizon to forecasts or scores}
 \usage{
-add_horizons(df)
+add_horizons(
+  df,
+  target_end_date_col = "target_end_date",
+  forecast_date_col = "forecast_date",
+  last_data_date_col = "last_hosp_data_date"
+)
 }
 \arguments{
 \item{df}{A tibble containing either forecasts or scores (or both)
-and the following required columns: \code{date},\code{forecast_date},
-\code{last_hosp_data_date}}
+and columns corresponding to the target end date, the forecast_date,
+and the last data date (which defines the boundary between the
+calibration period and the nowcast period.}
+
+\item{target_end_date_col}{Name of the column containing target end
+dates. Default \code{"target_end_date"}.}
+
+\item{forecast_date_col}{Name of the column containing forecast dates.
+Default \code{"forecast_date"}.}
+
+\item{last_data_date_col}{column containing last data dates. Default
+\code{"last_hosp_data_date"}}
 }
 \value{
 a tibble containing the same columns as \code{df} plus
 \code{horizon_days} and \code{horizon}
 }
 \description{
-This function takes in a tibble of scores on the nowcasts/forecasts
-containing the columns \code{date}, \code{forecast_date}, and \code{last_hosp_data_date},
-and adds the following columns: \code{horizon_days} (an integer) and
+This function takes in a tibble of forecasts or scores and
+adds the following columns: \code{horizon_days} (an integer) and
 \code{horizon} (a string to be used for categorical grouping of horizons)
 }

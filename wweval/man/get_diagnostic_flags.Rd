@@ -6,9 +6,7 @@
 \usage{
 get_diagnostic_flags(
   stan_fit_object,
-  n_chains,
-  iter_sampling,
-  ebmfi_tolerance = 0.2,
+  ebfmi_tolerance = 0.2,
   divergences_tolerance = 0.01,
   p_high_rhat_tolerance = 0.05,
   max_tree_depth_tol = 0.01
@@ -17,11 +15,7 @@ get_diagnostic_flags(
 \arguments{
 \item{stan_fit_object}{The R6 Cmdstan Object fit object}
 
-\item{n_chains}{number of chains fun}
-
-\item{iter_sampling}{number of sampling iterations}
-
-\item{ebmfi_tolerance}{Tolerance for EBMFI (bayesian missing information)}
+\item{ebfmi_tolerance}{Tolerance for EBFMI (bayesian missing information)}
 
 \item{divergences_tolerance}{tolerance for proportion of sampling iterations
 that are divergent}

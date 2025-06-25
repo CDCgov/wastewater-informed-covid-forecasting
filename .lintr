@@ -1,6 +1,6 @@
 linters: linters_with_defaults(
-    object_usage_linter = NULL,
     line_length_linter(length = 100),
+    object_usage_linter = NULL,
     return_linter = NULL,
     indentation_linter = NULL,
     brace_linter = NULL
@@ -8,4 +8,3 @@ linters: linters_with_defaults(
 exclusions: list(
     ".Rprofile"
   )
-encoding: "UTF-8"

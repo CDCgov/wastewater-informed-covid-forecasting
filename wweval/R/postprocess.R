@@ -162,7 +162,7 @@ get_model_draws_w_data <- function(
 get_state_level_quantiles <- function(draws) {
   quantiles <- draws |>
     dplyr::select("date", "value") |>
-    trajectories_to_quantiles(
+    forecasttools::trajectories_to_quantiles(
       timepoint_cols = "date",
       value_col = "value",
       quantile_level_name = "quantile",
@@ -197,7 +197,7 @@ get_state_level_quantiles <- function(draws) {
 get_state_level_ww_quantiles <- function(ww_draws) {
   quantiles <- ww_draws |>
     dplyr::select("date", "value", "lab_site_index") |>
-    trajectories_to_quantiles(
+    forecasttools::trajectories_to_quantiles(
       timepoint_cols = "date",
       value_col = "value",
       id_cols = "lab_site_index",
@@ -358,11 +358,8 @@ postprocess_successful_fit <- function(
     basename = glue::glue("{model}_diagnostic_summary")
   )
 
-  metadata <- stan_fit_obj$metadata()
   raw_flags <- get_diagnostic_flags(
-    stan_fit_obj,
-    metadata$num_chains,
-    metadata$iter_sampling
+    stan_fit_obj
   )
   save_object(raw_flags)
 
@@ -556,7 +553,7 @@ postprocess_successful_fit <- function(
   ggsave_plot(plot_hosp_draws, basename = hosp_draw_plot_savename)
   save_object(plot_hosp_draws)
 
-  plot_hosp_t <- make_fig2_hosp_t(
+  plot_hosp_t <- plot_model_hosp_t_comparison(
     hosp_quantiles = full_hosp_quantiles,
     loc_to_plot = location,
     date_to_plot = forecast_date
@@ -604,7 +601,7 @@ postprocess_successful_fit <- function(
 
     if (!is.null(full_ww_quantiles)) {
       n_site_labs <- dplyr::n_distinct(full_ww_quantiles$lab_site_index)
-      plot_ww_t <- make_fig2_ct(
+      plot_ww_t <- plot_ww_conc_by_site(
         full_ww_quantiles,
         loc_to_plot = location,
         date_to_plot = forecast_date,
@@ -635,7 +632,10 @@ postprocess_successful_fit <- function(
   ggsave_plot(plot_state_rt)
 
   message("Scoring admissions forecasts...")
-  hosp_scores <- get_full_scores(hosp_draws, scenario)
+  hosp_scores <- score_samples(
+    hosp_draws,
+    scenario
+  )
   save_object(hosp_scores)
   save_table(
     data_to_save = hosp_scores,
@@ -646,7 +646,10 @@ postprocess_successful_fit <- function(
     model_type = model,
     location = location
   )
-  hosp_scores_quantiles <- get_scores_from_quantiles(hosp_quantiles, scenario)
+  hosp_scores_quantiles <- score_quantiles(
+    hosp_quantiles,
+    scenario
+  )
   save_object(hosp_scores_quantiles)
   save_table(
     data_to_save = hosp_scores_quantiles,

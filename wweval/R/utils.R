@@ -32,14 +32,15 @@ check_package_is_installed <- function(pkg_name) {
 #' Helper function to note targets dependencies not explicitly
 #' noted in the function call
 #'
-#' @param output to be passed along (typically the output of a function call
+#' @param x output to be passed along
+#' (typically the output of a function call).
 #' @param ... additional arguments, which can be used to indicate additiona
 #' l upstream targets to treat as dependencies when this function is used
 #' in a target `command`
 #'
 #' @return the first argument
 #'
-#' @noRd
+#' @export
 with_dependencies <- function(x, ...) {
   x
 }
@@ -152,6 +153,87 @@ get_raw_output_suffix <- function(location, forecast_date, scenario) {
     sep = "_"
   ))
 }
+
+
+#' Assert that needed environment variables are set
+#'
+#' @param needed_vars Vector of needed environment
+#' variables.
+#'
+#' @return `NULL`, invisibly on success or raise an error.
+#' @examples
+#'
+#' tryCatch(
+#'   assert_needed_env_vars(c(
+#'     "WWEVAL_EXAMPLE_ONE",
+#'     "WWEVAL_EXAMPLE_TWO"
+#'   )),
+#'   error = \(e) print(e)
+#' )
+#'
+#' @export
+assert_needed_env_vars <- function(needed_vars) {
+  vars <- Sys.getenv(needed_vars)
+  checkmate::assert_character(vars)
+  which_missing <- vars == ""
+  if (any(which_missing)) {
+    cli::cli_abort(c(
+      "Could not find required environment variables ",
+      "{names(vars)[which_missing]}"
+    ))
+  }
+  invisible()
+}
+
+
+#' Select columns from one dataframe based on the column
+#' spec of a second dataframe
+#'
+#' @param df Dataframe from which to select columns
+#' @param template_df Dataframe to use as a template
+#' for the column specification
+#' @return The result of calling [dplyr::select()] on
+#' `df`, raising an error if not all of the columns from
+#' `template_df` can be found.
+#' @export
+select_like <- function(df, template_df) {
+  return(dplyr::select(df, tidyselect::all_of(colnames(template_df))))
+}
+
+
+#' Light wrapper function for converting a dataframe column
+#' to an ordered factors.
+#'
+#' Wraps [dplyr::mutate()]. Useful for pipe chains.
+#'
+#' @param df Data frame to transform
+#' @param col column to transform
+#' @param levels levels for the column, in ascending order..
+#' @return A copy of the data frame with the `col` column transformed
+#' into an ordered factor with levels given by `levels`.
+#' @examples
+#'
+#' df <- tibble::tibble(
+#'   x = c("b", "c", "a", "c", "b", "a", "a"),
+#'   y = rnorm(7),
+#'   z = 5
+#' )
+#'
+#' new_df <- df |>
+#'   order_col("x", c("c", "b", "a")) |>
+#'   dplyr::select("x", "z") |>
+#'   dplyr::arrange(x)
+#'
+#' new_df
+#' @export
+order_col <- function(df, col, levels) {
+  checkmate::assert_vector(levels, unique = TRUE)
+  return(dplyr::mutate(
+    df,
+    !!col := factor(.data[[col]], ordered = TRUE, levels = levels)
+  ))
+}
+
 
 #' Generate a function for saving raw output objects for a
 #' location/forecast date/scenario trio.
