@@ -650,14 +650,14 @@ figures <- list(
     list(loc = c("CA", "VA", "WA")),
     tar_target(
       name = plot_score_single_loc,
-      command = make_fig3_single_loc_comp(
+      command = plot_rel_crps_by_horizon(
         scores_filtered,
         loc_to_plot = loc
       )
     ),
     tar_target(
       name = plot_forecast_comparison_nowcast,
-      command = make_fig3_forecast_comp_fig(
+      command = plot_forecast_comparison_t(
         hosp_quantiles_filtered,
         loc_to_plot = loc,
         horizon_to_plot = "nowcast",
@@ -666,7 +666,7 @@ figures <- list(
     ),
     tar_target(
       name = plot_forecast_comparison_1wk,
-      command = make_fig3_forecast_comp_fig(
+      command = plot_forecast_comparison_t(
         hosp_quantiles_filtered,
         loc_to_plot = loc,
         horizon_to_plot = "1 wk",
@@ -675,7 +675,7 @@ figures <- list(
     ),
     tar_target(
       name = plot_forecast_comparison_4wk,
-      command = make_fig3_forecast_comp_fig(
+      command = plot_forecast_comparison_t(
         hosp_quantiles_filtered,
         loc_to_plot = loc,
         horizon_to_plot = "4 wks",
@@ -684,7 +684,7 @@ figures <- list(
     ),
     tar_target(
       name = plot_score_underlay_nowcast,
-      command = make_fig3_crps_underlay_fig(
+      command = plot_crps_underlay(
         scores_filtered,
         loc_to_plot = loc,
         horizon_to_plot = "nowcast",
@@ -694,7 +694,7 @@ figures <- list(
     ),
     tar_target(
       name = plot_score_underlay_1wk,
-      command = make_fig3_crps_underlay_fig(
+      command = plot_crps_underlay(
         scores_filtered,
         loc_to_plot = loc,
         horizon_to_plot = "1 wk",
@@ -704,7 +704,7 @@ figures <- list(
     ),
     tar_target(
       name = plot_score_underlay_4wk,
-      command = make_fig3_crps_underlay_fig(
+      command = plot_crps_underlay(
         scores_filtered,
         loc_to_plot = loc,
         horizon_to_plot = "4 wks",
