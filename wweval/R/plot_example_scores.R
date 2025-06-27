@@ -1,8 +1,9 @@
-#' Generate a bar plots of CRPS for each model in different locations
+#' Generate bar plots of CRPS for each model in different locations
 #'
 #' @param scores tibble of crps scores by location, forecast date, model,
 #' horizon day
-#' @param locs_to_plot the locations we want summaries for
+#' @param locs_to_plot Vector of strings indicating the locations to plot,
+#' as two-letter USPS abbreviations.
 #' @param fig_file_dir string indicating directory to save fig in
 #' @return Figure showing CRPS for multiple locations.
 #' @export
@@ -52,7 +53,8 @@ multi_location_crps_figure <- function(scores, locs_to_plot, fig_file_dir) {
 #'
 #' @param scores A tibble of all forecast date- location- model
 #' forecast perfomance scores
-#' @param loc the location of interest
+#' @param loc A string indicating the location to plot, as a
+#' two-letter USPS abbreviation.
 #' @param this_forecast_date the forecast date of interest
 #'
 #' @return A tibble of mean scores by models
@@ -71,24 +73,27 @@ get_ind_forecast_score <- function(scores, loc, this_forecast_date) {
 }
 
 
-#' Make head to head CRPS distribution comparison plot for a single location
+#' Make head to head CRPS distribution comparison
+#' plot for a single location
 #'
-#' @param scores A tibble of scores by location, forecast date, date and model,
-#' containing the outputs of `scoringutils::score()` on samples plus metadata
+#' @param scores A tibble of scores by location, forecast date,
+#' date and model,
+#' containing the outputs of `scoringutils::score()` on samples
+#' plus metadata
 #' transformed into a tibble.
-#' @param loc_to_plot A  string indicating the state abbreviations of the state
-#' to plot
-#' @param baseline Name of the model to use a sa baseline. Default
+#' @param loc_to_plot A string indicating the location to plot, as a
+#' two-letter USPS abbreviation.
+#' @param baseline Name of the model to use as a baseline. Default
 #' `"cfa-hosponlyrenewal(retro)"`
 #' @param horizons_to_show A vector of strings indicating the names of the
 #' `horizon` that we want to show on the plot, must be a subset of
 #' `nowcast`, `1 wk`, `2 wks`,`3 wks`, `4 wks` and `overall`
 #'
-#' @return a ggplot object containing violin plots comparing the distribution
-#' of crps scores across forecast dates for a single location, grouped by
-#' horizon and colored by model
+#' @return a ggplot object containing violin plots comparing the
+#' distribution of crps across forecast dates for a single location,
+#' grouped by horizon and colored by model
 #' @export
-make_fig3_single_loc_comp <- function(
+plot_rel_crps_by_horizon <- function(
   scores,
   loc_to_plot,
   baseline = "cfa-hosponlyrenewal(retro)",
@@ -150,13 +155,14 @@ make_fig3_single_loc_comp <- function(
   return(p)
 }
 
-#' Make hospital forecast comparison figure
+
+#' Compare two hospital admissions forecasts over time.
 #'
-#' @param hosp_quantiles A tibble containing the calibrated hospital admissions
-#' data, the evaluation hospital admissions data, and the quantiles of the
-#' calibrated and forecasted admissions
-#' @param loc_to_plot A  string indicating the state abbreviations of the state
-#' to plot
+#' @param hosp_quantiles A tibble containing the calibrated hospital
+#' admissions data, the evaluation hospital admissions data, and
+#' the quantiles of the calibrated and forecasted admissions
+#' @param loc_to_plot A string indicating the location to plot, as a
+#' two-letter USPS abbreviation.
 #' @param horizon_to_plot A string indicating what horizon period to plot,
 #' one of `nowcast`, `1 wk`, or `4 wks`
 #' @param horizon_days_ahead An integer corresponding to the horizon days to
@@ -168,13 +174,17 @@ make_fig3_single_loc_comp <- function(
 #' admissions data compared to the nowcasted/forecasted quantiles and median
 #' for the specified horizon to plot, colored by the model type
 #' @export
-make_fig3_forecast_comp_fig <- function(
+plot_forecast_comparison_t <- function(
   hosp_quantiles,
   loc_to_plot,
   horizon_to_plot,
   horizon_days_ahead,
   days_to_show_prev_data = 14
 ) {
+  checkmate::assert_names(
+    horizon_to_plot,
+    subset.of = c("nowcast", "1 wk", "4 wks")
+  )
   needed_quantiles <- c(0.025, 0.25, 0.5, 0.75, 0.975)
   hosp_quants_horizons <- hosp_quantiles |>
     dplyr::filter(location == !!loc_to_plot) |>
@@ -294,7 +304,7 @@ make_fig3_forecast_comp_fig <- function(
 #' @return A ggplot object containing a bar chart of the crps score averaged
 #' across the horizon for each forecast date, colored by the model type
 #' @export
-make_fig3_crps_underlay_fig <- function(
+plot_crps_underlay <- function(
   scores,
   loc_to_plot,
   horizon_to_plot,
@@ -302,8 +312,7 @@ make_fig3_crps_underlay_fig <- function(
   days_to_shift = 0
 ) {
   scores_filtered <- scores |>
-    dplyr::filter(location == !!loc_to_plot) |>
-    data.table::as.data.table() |>
+    dplyr::filter(.data$location == !!loc_to_plot) |>
     scoringutils::summarise_scores(
       by = c(
         "forecast_date",
@@ -312,7 +321,6 @@ make_fig3_crps_underlay_fig <- function(
         "horizon"
       )
     )
-  max_crps <- max(scores_filtered$crps)
 
   scores_by_horizon <- scores_filtered |>
     dplyr::filter(horizon == !!horizon_to_plot) |>
@@ -321,35 +329,17 @@ make_fig3_crps_underlay_fig <- function(
         lubridate::days(days_to_shift)
     )
 
-  colors <- plot_components()
   date_lims <- c(
     min(scores$forecast_date) + lubridate::days(horizon_days_ahead - 9),
     max(scores$forecast_date) +
       lubridate::days(horizon_days_ahead + 5)
   )
 
-  p <- ggplot(scores_by_horizon) +
-    geom_bar(
-      aes(x = forecast_date_shifted, y = crps, fill = model),
-      stat = "identity",
-      position = "dodge",
-      show.legend = FALSE
-    ) +
-    xlab("") +
-    ylab("CRPS") +
-    theme_bw() +
-    scale_fill_manual(values = colors$model_colors) +
-    scale_x_date(
-      date_breaks = "2 weeks",
-      labels = scales::date_format("%Y-%m-%d"),
-      limits = date_lims
-    ) +
-    coord_cartesian(ylim = c(0, 1)) +
-    get_plot_theme(
-      x_axis_dates = TRUE,
-      y_axis_title_size = 8,
-      y_axis_text_size = 6
-    )
-
+  p <- plot_score_decomposed_bars(
+    scores_by_horizon,
+    x = "forecast_date_shifted",
+    position = position_dodge2(padding = 0),
+    width = 5
+  )
   return(p)
 }
