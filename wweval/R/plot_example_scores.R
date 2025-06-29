@@ -313,6 +313,7 @@ plot_crps_underlay <- function(
 ) {
   scores_filtered <- scores |>
     dplyr::filter(.data$location == !!loc_to_plot) |>
+
     scoringutils::summarise_scores(
       by = c(
         "forecast_date",
@@ -341,5 +342,6 @@ plot_crps_underlay <- function(
     position = position_dodge2(padding = 0),
     width = 5
   )
+
   return(p)
 }
