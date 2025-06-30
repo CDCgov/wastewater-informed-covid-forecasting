@@ -312,8 +312,8 @@ plot_crps_underlay <- function(
   days_to_shift = 0
 ) {
   scores_filtered <- scores |>
-    dplyr::filter(location == !!loc_to_plot) |>
-    data.table::as.data.table() |>
+    dplyr::filter(.data$location == !!loc_to_plot) |>
+
     scoringutils::summarise_scores(
       by = c(
         "forecast_date",
@@ -322,7 +322,6 @@ plot_crps_underlay <- function(
         "horizon"
       )
     )
-  max_crps <- max(scores_filtered$crps)
 
   scores_by_horizon <- scores_filtered |>
     dplyr::filter(horizon == !!horizon_to_plot) |>
@@ -331,35 +330,18 @@ plot_crps_underlay <- function(
         lubridate::days(days_to_shift)
     )
 
-  colors <- plot_components()
   date_lims <- c(
     min(scores$forecast_date) + lubridate::days(horizon_days_ahead - 9),
     max(scores$forecast_date) +
       lubridate::days(horizon_days_ahead + 5)
   )
 
-  p <- ggplot(scores_by_horizon) +
-    geom_bar(
-      aes(x = forecast_date_shifted, y = crps, fill = model),
-      stat = "identity",
-      position = "dodge",
-      show.legend = FALSE
-    ) +
-    xlab("") +
-    ylab("CRPS") +
-    theme_bw() +
-    scale_fill_manual(values = colors$model_colors) +
-    scale_x_date(
-      date_breaks = "2 weeks",
-      labels = scales::date_format("%Y-%m-%d"),
-      limits = date_lims
-    ) +
-    coord_cartesian(ylim = c(0, 1)) +
-    get_plot_theme(
-      x_axis_dates = TRUE,
-      y_axis_title_size = 8,
-      y_axis_text_size = 6
-    )
+  p <- plot_score_decomposed_bars(
+    scores_by_horizon,
+    x = "forecast_date_shifted",
+    position = position_dodge2(padding = 0),
+    width = 5
+  )
 
   return(p)
 }

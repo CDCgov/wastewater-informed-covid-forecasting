@@ -90,7 +90,7 @@ forecast_qq_plot <- function(
       labels = scales::label_percent()
     ) +
     get_plot_theme() +
-    scale_color_manual(values = colors$model_colors) +
+    scale_color_model() +
     coord_fixed(expand = FALSE)
   return(p)
 }
@@ -152,7 +152,7 @@ forecast_interval_coverage_plot <- function(
     get_plot_theme(
       x_axis_dates = TRUE
     ) +
-    scale_color_manual(values = colors$model_colors)
+    scale_color_model()
 
   return(p)
 }

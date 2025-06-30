@@ -26,7 +26,7 @@ plot_score_t <- function(
   if (is.null(model_z_order)) {
     model_z_order <- scores |>
       scoringutils::summarise_scores(by = "model") |>
-      dplyr::arrange(desc(.data[[metric]])) |> # want lowest overall score => plotted on top
+      dplyr::arrange(desc(.data[[metric]])) |> # want lowest (best) overall score plotted on top
       dplyr::pull("model")
   }
 
@@ -52,7 +52,6 @@ plot_score_t <- function(
 
   by_date <- order_col(by_date, "model", model_z_order)
 
-  colors <- plot_components()
   p <- ggplot(
     by_date,
     aes(
@@ -80,44 +79,49 @@ plot_score_t <- function(
       date_labels = "%Y-%m-%d"
     ) +
     ylab(toupper(metric)) +
-    scale_color_manual(values = colors$model_colors)
+    scale_color_model()
 
   return(p)
 }
 
-#' Make plot of WIS scores in Hub models overall
+#' Barplot of WIS or CRPS decomposed into
+#' overprediction, underprediction, and dispersion
 #'
 #' @param scores quantile based scores from the hub
-#'
-#' @return A plot ordered by WIS over the time period
+#' @param x Column containing x values. Default "model".
+#' @param width width for the bars. Passed to [geom_decomposed_scores()].
+#' Default 0.8.
+#' @param position Position for the bars. Passed to
+#' [geom_decomposed_scores()]. Default `"dodge2"`.
+#' @param ... keyword arguments passed to [geom_decomposed_scores()].
+#' @return A plot of decomposed probabilistic scores.
 #' @export
-wis_barplot <- function(scores) {
-  scores <- scores |>
-    dplyr::arrange(.data$wis) |>
-    dplyr::mutate(
-      model = factor(.data$model, levels = unique(.data$model), ordered = TRUE)
-    )
+plot_score_decomposed_bars <- function(
+  scores,
+  x = "model",
+  width = 0.8,
+  position = "dodge2",
+  ...
+) {
+  components <- c("overprediction", "dispersion", "underprediction")
+  ## want order along the x or y axis to be under < disp < over,
+  ## which requires the factor levels be in the above order.
 
-  colors <- plot_components()
-  p <- ggplot(scores) +
-    geom_bar(
-      aes(
-        x = .data$model,
-        y = .data$wis,
-        fill = .data$model
-      ),
-      stat = "identity",
-      position = "dodge",
-      show.legend = FALSE
-    ) +
+  checkmate::assert_names(names(scores), must.include = components)
+
+  p <- ggplot(
+    data = scores,
+    mapping = aes(x = .data[[x]], fill = .data$model)
+  ) +
+    geom_decomposed_scores(position = position, width = width, ...) +
     get_plot_theme(
       x_axis_dates = TRUE,
       y_axis_title_size = 8
     ) +
     theme(legend.position = "none") +
-    scale_fill_manual(values = colors$model_colors) +
+    scale_fill_model() +
     xlab("") +
-    ylab("WIS")
+    ylab("Score")
 
   return(p)
 }
