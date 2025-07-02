@@ -8,9 +8,12 @@
 #' @param raw_output_dir Directory containing raw output `.rds` files.
 #' Used to obtain the admissions and wastewater data used in fitting
 #' the forecasting model.
-#' @return Posteriors of the differences, by target date.
+#' @return Posteriors of the differences for total incidence
+#' across the full nowcast/forecast period, by target date. Saves
+#' the incidence differences by day and the total incidence difference
+#' to disk as a side effect.
 #' @export
-compute_forecast_difference <- function(
+compute_forecast_differences <- function(
   forecast_date,
   location,
   scenario,
@@ -56,17 +59,30 @@ compute_forecast_difference <- function(
     dplyr::select(-c("pop", "name", "model_type", "calib_data"))
 
   message("Joining posteriors...")
-  diffs <- dplyr::inner_join(
+  joined_preds <- dplyr::inner_join(
     preds_hosp,
     preds_ww,
     by = c("date", "draw")
-  ) |>
-    dplyr::mutate(
-      log_diff_ww_hosp = log(ww_model_pred) -
-        log(hosp_model_pred)
+  )
+
+  total_preds <- joined_preds |>
+    dplyr::summarise(
+      preds_hosp = sum(.data$preds_hosp),
+      preds_ww = sum(.data$preds_ww),
+      eval_data = sum(.data$eval_data),
+      by = c("forecast_date", "draw")
     )
 
-  save_object(diffs, "forecast_posterior_diffs")
+  diffs <- purrr::map(list(joined_preds, total_preds), \(df) {
+    dplyr::mutate(
+      df,
+      log_diff_ww_hosp = log(.data$preds_ww) -
+        log(.data$preds_hosp)
+    )
+  })
 
-  return(diffs)
+  save_object(diffs[[1]], "forecast_posterior_diffs")
+  save_object(diffs[[2]], "forecast_posterior_total_diffs")
+
+  return(diffs[[2]])
 }

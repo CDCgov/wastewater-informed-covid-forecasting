@@ -57,7 +57,7 @@ upstream_targets <- list(
   ),
   tar_target(
     name = last_real_time_forecast_date,
-    command = lubridate::ymd("2024-04-29")
+    command = lubridate::ymd("2024-03-25")
   ),
   tar_target(
     name = fig_output_dir,
@@ -294,6 +294,21 @@ combined_targets <- list(
       scoringutils:::as_scores(
         metrics = names(wweval::quantile_metrics)
       )
+  ),
+
+  tar_target(
+    name = forecast_total_difference_posteriors,
+    command = purrr::pmap_df(
+      list(
+        forecast_date = eval_config$forecast_date_ww,
+        location = eval_config$location_ww,
+        scenario = eval_config$scenario
+      ),
+      purrr::partial(
+        compute_forecast_differences,
+        raw_output_dir = eval_config$raw_output_dir
+      )
+    )
   ),
   tar_target(
     name = all_ww_hosp_quantiles,
