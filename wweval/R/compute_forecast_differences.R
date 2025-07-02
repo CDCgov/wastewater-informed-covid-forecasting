@@ -68,7 +68,7 @@ compute_forecast_differences <- function(
   total_preds <- joined_preds |>
     dplyr::summarise(
       dplyr::across(c("hosp_model_pred", "ww_model_pred", "eval_data"), sum),
-      by = c("forecast_date", "draw")
+      .by = c("forecast_date", "draw")
     )
 
   diffs <- purrr::map(list(joined_preds, total_preds), \(df) {
