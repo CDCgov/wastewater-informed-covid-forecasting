@@ -42,7 +42,7 @@ compute_forecast_difference <- function(
     return(dplyr::filter(
       tbl,
       .data$name == "pred_hosp",
-      !is.na(.data$calib_data)
+      is.na(.data$calib_data)
       ## this is how things are filtered to the nowcast/forecast period
       ## elsewhere in the codebase
     ))
