@@ -19,6 +19,19 @@ compute_forecast_differences <- function(
   scenario,
   raw_output_dir
 ) {
+  exists_hosp_object <- get_object_existence_checker(
+    location,
+    forecast_date,
+    "no_wastewater",
+    raw_output_dir
+  )
+  exists_ww_object <- get_object_existence_checker(
+    location,
+    forecast_date,
+    scenario,
+    raw_output_dir
+  )
+
   load_object_hosp <- get_object_loader(
     location,
     forecast_date,
@@ -50,6 +63,21 @@ compute_forecast_differences <- function(
       ## elsewhere in the codebase
     ))
   }
+
+  if (
+    !(exists_hosp_object("hosp_draws") &&
+      exists_ww_object("hosp_draws"))
+  ) {
+    warning(glue::glue(
+      "Posterior draws not found for ",
+      "location {location}, forecast date ",
+      "{forecast_date}, and scenario ",
+      "{scenario}"
+    ))
+
+    return(NULL)
+  }
+
   preds_hosp <- load_object_hosp("hosp_draws") |>
     filter_to_hosp_forecasts() |>
     dplyr::select("date", "draw", hosp_model_pred = "value")

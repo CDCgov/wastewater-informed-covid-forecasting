@@ -47,8 +47,9 @@ with_dependencies <- function(x, ...) {
 
 #' Construct a path to a serialized object
 #'
-#' Helper function for [save_rds_with_suffix()]
-#' and [read_rds_with_suffix()].
+#' Helper function for [save_rds_with_suffix()],
+#' [read_rds_with_suffix()], and
+#' [file_exists_object_with_suffix()].
 #'
 #' @param dir directory containing the object
 #' @param basename basename of the object
@@ -127,6 +128,34 @@ read_rds_with_suffix <- function(
 ) {
   return(
     readRDS(.path_with_suffix(
+      dir,
+      object_basename,
+      suffix,
+      ext
+    ))
+  )
+}
+#' Check that a file for corresponding to a
+#' programmatically-named project output object
+#' exists.
+#'
+#' @param object_basename Base name for the object, before any
+#' `suffix` or the file extension, as a string.
+#' @param dir Directory in which to look for the object.
+#' @param suffix Suffix to append to the `object_basename` before
+#' the file extension. Default `""` (no suffix).
+#' @param ext Extension for the saved file, without the `.`.
+#' Default `rds`.
+#' @return `TRUE` if the file exists, else `FALSE`.
+#' @export
+file_exists_object_with_suffix <- function(
+  object_basename,
+  dir,
+  suffix = "",
+  ext = "rds"
+) {
+  return(
+    fs::file_exists(.path_with_suffix(
       dir,
       object_basename,
       suffix,
@@ -298,6 +327,42 @@ get_object_loader <- function(
   return(
     purrr::partial(
       read_rds_with_suffix,
+      dir = raw_output_dir,
+      suffix = raw_output_suffix,
+      ext = "rds"
+    )
+  )
+}
+
+#' Generate a function for checking whether `.rds` files for
+#' raw output objects exist for a location/forecast date/scenario
+#' trio.
+#'
+#' @param location Name of the location, as a string.
+#' @param forecast_date The forecast date, as a date or
+#' in a format coercible by [as.Date()].
+#' @param scenario Name of the scenario, as a string.
+#' @param raw_output_dir Directory in which to look for
+#' the `.rds` file.
+#' @return A function for loading objects from `.rds` files,
+#' as the output of calling [purrr::partial()] on
+#' [file_exists_object_with_suffix()].
+#' @export
+get_object_existence_checker <- function(
+  location,
+  forecast_date,
+  scenario,
+  raw_output_dir
+) {
+  raw_output_suffix <- get_raw_output_suffix(
+    location,
+    forecast_date,
+    scenario
+  )
+
+  return(
+    purrr::partial(
+      file_exists_object_with_suffix,
       dir = raw_output_dir,
       suffix = raw_output_suffix,
       ext = "rds"
