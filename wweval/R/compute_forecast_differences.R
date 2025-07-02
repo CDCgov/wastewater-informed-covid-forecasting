@@ -65,8 +65,10 @@ compute_forecast_differences <- function(
   }
 
   if (
-    !(exists_hosp_object("hosp_draws") &&
-      exists_ww_object("hosp_draws"))
+    !all(c(
+      exists_hosp_object("hosp_draws"),
+      exists_ww_object("hosp_draws")
+    ))
   ) {
     warning(glue::glue(
       "Posterior draws not found for ",
