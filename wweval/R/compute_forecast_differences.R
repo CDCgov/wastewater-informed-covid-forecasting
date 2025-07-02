@@ -8,10 +8,10 @@
 #' @param raw_output_dir Directory containing raw output `.rds` files.
 #' Used to obtain the admissions and wastewater data used in fitting
 #' the forecasting model.
-#' @return Posteriors of the differences for total incidence
-#' across the full nowcast/forecast period, by target date. Saves
-#' the incidence differences by day and the total incidence difference
-#' to disk as a side effect.
+#' @return Posterior of the difference in total incidence
+#' across the full nowcast/forecast period. Saves
+#' the incidence differences by day and the total
+#' incidence difference to disk as a side effect.
 #' @export
 compute_forecast_differences <- function(
   forecast_date,
