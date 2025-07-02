@@ -8,10 +8,7 @@
 #' @param raw_output_dir Directory containing raw output `.rds` files.
 #' Used to obtain the admissions and wastewater data used in fitting
 #' the forecasting model.
-#' @return List containing two tables, one containing
-#' posteriors for the difference by target date, the other
-#' containing the posterior for the total difference across
-#' all target dates.
+#' @return Posteriors of the differences, by target date.
 #' @export
 compute_forecast_difference <- function(
   forecast_date,
@@ -41,16 +38,25 @@ compute_forecast_difference <- function(
 
   message("Loading posteriors...")
 
+  filter_to_hosp_forecasts <- function(tbl) {
+    return(dplyr::filter(
+      tbl,
+      .data$name == "pred_hosp",
+      !is.na(.data$calib_data)
+      ## this is how things are filtered to the nowcast/forecast period
+      ## elsewhere in the codebase
+    ))
+  }
   preds_hosp <- load_object_hosp("hosp_draws") |>
-    dplyr::filter(is.na(.data$calib_data)) |>
+    filter_to_hosp_forecasts() |>
     dplyr::select("date", "draw", hosp_model_pred = "value")
   preds_ww <- load_object_ww("hosp_draws") |>
-    dplyr::filter(is.na(.data$calib_data)) |>
+    filter_to_hosp_forecasts() |>
     dplyr::rename(ww_model_pred = "value") |>
     dplyr::select(-c("pop", "name", "model_type", "calib_data"))
 
   message("Joining posteriors...")
-  by_date <- dplyr::inner_join(
+  diffs <- dplyr::inner_join(
     preds_hosp,
     preds_ww,
     by = c("date", "draw")
@@ -60,14 +66,7 @@ compute_forecast_difference <- function(
         log(hosp_model_pred)
     )
 
-  overall <- dplyr::summarise(
-    by_date,
-    log_diff_ww_hosp_total = log(
-      sum(ww_model_pred)
-    ) -
-      log(sum(hosp_model_pred)),
-    .by = c("draw", "forecast_date", "location")
-  )
+  save_object(diffs, "forecast_posterior_diffs")
 
-  return(list(by_date = by_date, overall = overall))
+  return(diffs)
 }
