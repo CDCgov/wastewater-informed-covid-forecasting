@@ -649,7 +649,8 @@ postprocess_successful_fit <- function(
   )
   hosp_scores_quantiles <- score_quantiles(
     hosp_quantiles,
-    scenario
+    scenario,
+    metrics = metrics_quantiles
   )
   save_object(hosp_scores_quantiles)
   save_table(

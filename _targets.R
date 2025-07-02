@@ -820,7 +820,7 @@ figures <- list(
     )
   ),
   tar_target(
-    name = fig_total_admissions,
+    name = total_admissions_plot,
     command = plot_total_admissions(
       eval_hosp_data,
       first_forecast_date = min(eval_config$forecast_date_ww),
@@ -828,12 +828,42 @@ figures <- list(
     )
   ),
   tar_target(
-    name = fig_crps_t_cfa_models,
+    name = crps_t_cfa_models,
     command = plot_score_t(
       scores_filtered,
       metric = "crps",
       model_z_order = models_to_plot
     )
+  ),
+  tar_target(
+    name = decomposed_crps_t_cfa_models,
+    command = scores_filtered |>
+      scoringutils::summarise_scores(
+        by = c("forecast_date", "model")
+      ) |>
+      plot_score_decomposed_bars(
+        x = "forecast_date",
+        width = 5
+      )
+  ),
+  tar_target(
+    name = crps_loc_cfa_models,
+    command = scores_filtered |>
+      scoringutils::summarise_scores(
+        by = c("location", "model")
+      ) |>
+      dplyr::arrange(.data$model, .data$crps) |>
+      dplyr::mutate(
+        location = factor(
+          .data$location,
+          levels = unique(.data$location),
+          ordered = TRUE
+        )
+      ) |>
+      plot_score_decomposed_bars(
+        x = "location",
+        width = 0.5
+      )
   ),
   tar_target(
     name = rel_crps_by_location_cfa_models,
@@ -896,8 +926,8 @@ figures <- list(
     command = compose_rel_performance_fig(
       rel_score_heatmap = rel_crps_heatmap_cfa_models,
       rel_score_dist = rel_crps_distribution_overall_cfa_models,
-      abs_score_by_time = fig_crps_t_cfa_models,
-      total_admissions = fig_total_admissions,
+      abs_score_by_time = crps_t_cfa_models,
+      total_admissions = total_admissions_plot,
       rel_score_dist_by_time = rel_crps_distribution_t_cfa_models,
       rel_score_dist_by_location = rel_crps_by_location_cfa_models
     )
@@ -1419,12 +1449,39 @@ hub_comparison_plots <- list(
     )
   ),
   tar_target(
-    name = abs_wis_by_date_real_time,
+    name = wis_t_cfa_models,
     command = plot_score_t(
       wis_cfa_models_real_time,
       metric = "wis",
       model_z_order = models_to_plot
     )
+  ),
+  tar_target(
+    name = decomposed_wis_t_cfa_models,
+    command = wis_cfa_models_real_time |>
+      scoringutils::summarise_scores(
+        by = c("forecast_date", "model")
+      ) |>
+      plot_score_decomposed_bars(x = "forecast_date")
+  ),
+  tar_target(
+    name = wis_loc_cfa_models,
+    command = wis_cfa_models_real_time |>
+      scoringutils::summarise_scores(
+        by = c("location", "model")
+      ) |>
+      dplyr::arrange(.data$model, .data$wis) |>
+      dplyr::mutate(
+        location = factor(
+          .data$location,
+          levels = unique(.data$location),
+          ordered = TRUE
+        )
+      ) |>
+      plot_score_decomposed_bars(
+        x = "location",
+        width = 0.5
+      )
   ),
   tar_target(
     name = rel_wis_distrib_by_date_real_time,
@@ -1473,7 +1530,7 @@ hub_comparison_plots <- list(
     command = compose_rel_performance_fig(
       rel_score_heatmap = rel_wis_heatmap_real_time,
       rel_score_dist = rel_wis_dist_real_time,
-      abs_score_by_time = abs_wis_by_date_real_time,
+      abs_score_by_time = wis_t_cfa_models,
       total_admissions = admissions_timeseries_real_time,
       rel_score_dist_by_time = rel_wis_distrib_by_date_real_time,
       rel_score_dist_by_location = rel_wis_distrib_by_location_real_time
@@ -1598,8 +1655,12 @@ hub_comparison_plots <- list(
             "cfa-hosponlyrenewal(real-time*)"
           )
       ) |>
-      scoringutils::summarise_scores() |>
-      wis_barplot()
+      scoringutils::summarise_scores(by = "model") |>
+      dplyr::arrange(.data$wis) |>
+      dplyr::mutate(
+        model = factor(.data$model, levels = .data$model, ordered = TRUE)
+      ) |>
+      plot_score_decomposed_bars(color = "black")
   ),
   tar_target(
     name = hub_barplot_wis_real_time,
@@ -1611,8 +1672,12 @@ hub_comparison_plots <- list(
             "cfa-hosponlyrenewal(retro)"
           )
       ) |>
-      scoringutils::summarise_scores() |>
-      wis_barplot()
+      scoringutils::summarise_scores(by = "model") |>
+      dplyr::arrange(.data$wis) |>
+      dplyr::mutate(
+        model = factor(.data$model, levels = .data$model, ordered = TRUE)
+      ) |>
+      plot_score_decomposed_bars(color = "black")
   ),
   tar_target(
     name = hub_wis_t_all_time_all_models,
