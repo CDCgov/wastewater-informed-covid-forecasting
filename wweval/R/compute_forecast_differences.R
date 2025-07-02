@@ -67,17 +67,15 @@ compute_forecast_differences <- function(
 
   total_preds <- joined_preds |>
     dplyr::summarise(
-      preds_hosp = sum(.data$preds_hosp),
-      preds_ww = sum(.data$preds_ww),
-      eval_data = sum(.data$eval_data),
+      dplyr::across(c("hosp_model_pred", "ww_model_pred", "eval_data"), sum),
       by = c("forecast_date", "draw")
     )
 
   diffs <- purrr::map(list(joined_preds, total_preds), \(df) {
     dplyr::mutate(
       df,
-      log_diff_ww_hosp = log(.data$preds_ww) -
-        log(.data$preds_hosp)
+      log_diff_ww_hosp = log(.data$ww_model_pred) -
+        log(.data$hosp_model_pred)
     )
   })
 
