@@ -179,7 +179,7 @@ get_state_level_quantiles <- function(draws) {
         !is.na(.data$calib_data) ~ "calibration",
         date <= .data$forecast_date ~ "nowcast",
         date > .data$forecast_date ~ "forecast",
-        TRUE ~ NA
+        TRUE ~ NA_character_
       ),
       quantile = round(quantile, 4)
     )
