@@ -16,7 +16,8 @@
 \item{ext}{file extension for the object}
 }
 \description{
-Helper function for \code{\link[=save_rds_with_suffix]{save_rds_with_suffix()}}
-and \code{\link[=read_rds_with_suffix]{read_rds_with_suffix()}}.
+Helper function for \code{\link[=save_rds_with_suffix]{save_rds_with_suffix()}},
+\code{\link[=read_rds_with_suffix]{read_rds_with_suffix()}}, and
+\code{\link[=file_exists_object_with_suffix]{file_exists_object_with_suffix()}}.
 }
 \keyword{internal}
