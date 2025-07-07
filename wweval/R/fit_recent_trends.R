@@ -35,7 +35,7 @@ fit_recent_trends <- function(
   hosp_lookback_days,
   ww_lookback_days,
   seed,
-  control,
+  control = NULL,
   ...
 ) {
   general_fit_params <- c("data", "seed", "control", "...")
@@ -158,7 +158,7 @@ fit_hosp_trend <- function(
   log_nb_conc_prior_mean,
   log_nb_conc_prior_sd,
   seed,
-  control,
+  control = NULL,
   ...
 ) {
   checkmate::assert_names(
@@ -275,7 +275,7 @@ fit_ww_trend <- function(
   sd_log_sd_obs_prior_mode,
   sd_log_sd_obs_prior_sd,
   seed,
-  control,
+  control = NULL,
   ...
 ) {
   checkmate::assert_names(

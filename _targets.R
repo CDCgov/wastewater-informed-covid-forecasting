@@ -237,7 +237,6 @@ combined_targets <- list(
       model_type = "ww"
     )
   ),
-  ## Wastewater metadata
   tar_target(
     name = granular_ww_metadata,
     command = combine_and_summarize_ww_data(
@@ -246,8 +245,6 @@ combined_targets <- list(
       eval_output_subdir = eval_config$output_dir
     )
   ),
-
-  ## Scores from quantiles
   tar_target(
     name = all_ww_scores_quantiles,
     command = combine_outputs(
@@ -292,21 +289,6 @@ combined_targets <- list(
         metrics = names(wweval::quantile_metrics)
       )
   ),
-
-  tar_target(
-    name = forecast_total_difference_posteriors,
-    command = purrr::pmap_df(
-      list(
-        forecast_date = eval_config$forecast_date_ww,
-        location = eval_config$location_ww,
-        scenario = eval_config$scenario
-      ),
-      purrr::partial(
-        compute_forecast_differences,
-        raw_output_dir = eval_config$raw_output_dir
-      )
-    )
-  ),
   tar_target(
     name = all_ww_hosp_quantiles,
     command = combine_outputs(
@@ -327,6 +309,32 @@ combined_targets <- list(
       locations = eval_config$location_hosp,
       eval_output_subdir = eval_config$output_dir,
       model_type = "hosp"
+    )
+  ),
+
+  tar_target(
+    name = forecast_total_difference_posteriors,
+    command = purrr::pmap_df(
+      list(
+        forecast_date = eval_config$forecast_date_ww,
+        location = eval_config$location_ww,
+        scenario = eval_config$scenario
+      ),
+      purrr::partial(
+        compute_forecast_differences,
+        raw_output_dir = eval_config$raw_output_dir
+      )
+    )
+  ),
+  tar_target(
+    name = trend_draws,
+    command = combine_outputs(
+      output_type = "trend_draws",
+      scenarios = eval_config$scenario,
+      forecast_dates = eval_config$forecast_date_ww,
+      locations = eval_config$location_ww,
+      eval_output_subdir = eval_config$output_dir,
+      model_type = "ww"
     )
   ),
   tar_target(

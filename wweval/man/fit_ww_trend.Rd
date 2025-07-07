@@ -19,7 +19,7 @@ fit_ww_trend(
   sd_log_sd_obs_prior_mode,
   sd_log_sd_obs_prior_sd,
   seed,
-  control,
+  control = NULL,
   ...
 )
 }

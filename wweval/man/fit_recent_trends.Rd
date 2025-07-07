@@ -15,7 +15,7 @@ fit_recent_trends(
   hosp_lookback_days,
   ww_lookback_days,
   seed,
-  control,
+  control = NULL,
   ...
 )
 }

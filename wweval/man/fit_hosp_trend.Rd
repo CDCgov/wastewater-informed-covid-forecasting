@@ -11,7 +11,7 @@ fit_hosp_trend(
   log_nb_conc_prior_mean,
   log_nb_conc_prior_sd,
   seed,
-  control,
+  control = NULL,
   ...
 )
 }
