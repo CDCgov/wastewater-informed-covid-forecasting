@@ -46,6 +46,9 @@ fit_trend <- function(
   wweval::process_recent_trend_fits(
     hosp_fit = hosp_fit,
     ww_fit = ww_fit,
+    forecast_date = forecast_date,
+    location = location,
+    scenario = scenario,
     save_dir = savedir,
     figure_ext = "pdf"
   )

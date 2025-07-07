@@ -1,7 +1,7 @@
 #' Fit recent hospital admission and wastewater
 #' trends using BRMS
 #'
-#' @param forecast_date forecast_date for which to fits recent data
+#' @param forecast_date forecast_date for which to fit recent data
 #' trends. Data for an actual forecast must already have been produced
 #' and exist in `raw_output_dir`.
 #' @param location Location for which to fit trends.

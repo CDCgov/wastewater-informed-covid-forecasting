@@ -41,7 +41,8 @@ combine_outputs <- function(
       "hosp_quantiles",
       "flags",
       "errors",
-      "ww_data_flags"
+      "ww_data_flags",
+      "trend_draws"
     )
   )
   to_combine <- tibble::tibble(

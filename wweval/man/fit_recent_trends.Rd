@@ -20,7 +20,7 @@ fit_recent_trends(
 )
 }
 \arguments{
-\item{forecast_date}{forecast_date for which to fits recent data
+\item{forecast_date}{forecast_date for which to fit recent data
 trends. Data for an actual forecast must already have been produced
 and exist in \code{raw_output_dir}.}
 

@@ -81,8 +81,10 @@
 #'
 #' @param hosp_fit [brms::brmsfit] object for the hospital admissions trend.
 #' @param ww_fit [brms::brmsfit] object for the wastewater trend.
-#' @param save_dir Directory in which to save output
-#' (figures and tidy posterior draws).
+#' @param forecast_date forecast_date fpr the trend fits.
+#' @param location Location for the trend fits.
+#' @param scenario Wastewater data availability scenario for the
+#' trend fits.
 #' @param figure_ext File extension for figures, without the `.`,
 #' e.g. `"pdf"` or `"png"`. Default `"pdf"`.
 #' @param n_lab_sites_plot Maximum number of lab-sites for which to
@@ -93,10 +95,20 @@
 process_recent_trend_fits <- function(
   hosp_fit,
   ww_fit,
-  save_dir,
+  forecast_date,
+  location,
+  scenario,
   figure_ext = "pdf",
   n_lab_sites_plot = 10
 ) {
+  save_dir <- forecast_output_path(
+    processed_output_dir,
+    scenario,
+    forecast_date,
+    "ww",
+    location
+  )
+  fs::dir_create(save_dir)
   if (!is.null(ww_fit)) {
     .plot_ww_trend_fit(ww_fit, save_dir, figure_ext, n_lab_sites_plot)
   }
@@ -112,7 +124,12 @@ process_recent_trend_fits <- function(
       ww_trend_draws,
       hosp_trend_draws,
       by = c(".draw", ".iteration", ".chain")
-    )
+    ) |>
+      dplyr::mutate(
+        location = !!location,
+        forecast_date = as.Date(!!forecast_date),
+        scenario = !!scenario
+      )
     readr::write_tsv(
       trend_draws,
       fs::path(save_dir, "trend_draws", ext = "tsv")

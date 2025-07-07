@@ -7,7 +7,9 @@
 process_recent_trend_fits(
   hosp_fit,
   ww_fit,
-  save_dir,
+  forecast_date,
+  location,
+  scenario,
   figure_ext = "pdf",
   n_lab_sites_plot = 10
 )
@@ -17,8 +19,12 @@ process_recent_trend_fits(
 
 \item{ww_fit}{\link[brms:brmsfit-class]{brms::brmsfit} object for the wastewater trend.}
 
-\item{save_dir}{Directory in which to save output
-(figures and tidy posterior draws).}
+\item{forecast_date}{forecast_date fpr the trend fits.}
+
+\item{location}{Location for the trend fits.}
+
+\item{scenario}{Wastewater data availability scenario for the
+trend fits.}
 
 \item{figure_ext}{File extension for figures, without the \code{.},
 e.g. \code{"pdf"} or \code{"png"}. Default \code{"pdf"}.}
