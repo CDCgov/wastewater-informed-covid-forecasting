@@ -88,9 +88,6 @@ upstream_targets <- list(
       hosp_data_dir = eval_config$hosp_data_dir,
       calibration_time = 365, # Grab sufficient data for eval
       for_eval = TRUE # So we don't run wwinference::preprocess
-      # If don't have a hospital admissions dataset from the `eval_date`,
-      # can load using epidatr
-      # population_data_path = eval_config$population_data_path #nolint
     )
   ),
   tar_target(

@@ -254,14 +254,6 @@ save_table <- function(
 ) {
   model_type <- arg_match(model_type)
   if (!is.null(data_to_save)) {
-    full_dir <- file.path(
-      output_dir,
-      scenario,
-      forecast_date,
-      model_type,
-      location
-    )
-
     fp <- get_filepath(
       output_dir,
       scenario,
@@ -272,7 +264,7 @@ save_table <- function(
       "tsv"
     )
 
-    wwinference::create_dir(full_dir)
+    fs::dir_create(fs::path_dir(fp))
 
     readr::write_tsv(as_tibble(data_to_save), file = fp)
   }
