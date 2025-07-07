@@ -10,6 +10,7 @@ process_recent_trend_fits(
   forecast_date,
   location,
   scenario,
+  processed_output_dir,
   figure_ext = "pdf",
   n_lab_sites_plot = 10
 )
@@ -25,6 +26,11 @@ process_recent_trend_fits(
 
 \item{scenario}{Wastewater data availability scenario for the
 trend fits.}
+
+\item{processed_output_dir}{Base directory for processed
+output (processed output will be saved in a subdirectory specific
+to the \code{forecast_date}, \code{location} and \code{scenario}. See
+\code{\link[=forecast_output_path]{forecast_output_path()}}.}
 
 \item{figure_ext}{File extension for figures, without the \code{.},
 e.g. \code{"pdf"} or \code{"png"}. Default \code{"pdf"}.}

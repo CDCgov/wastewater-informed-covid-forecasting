@@ -85,6 +85,10 @@
 #' @param location Location for the trend fits.
 #' @param scenario Wastewater data availability scenario for the
 #' trend fits.
+#' @param processed_output_dir Base directory for processed
+#' output (processed output will be saved in a subdirectory specific
+#' to the `forecast_date`, `location` and `scenario`. See
+#' [forecast_output_path()].
 #' @param figure_ext File extension for figures, without the `.`,
 #' e.g. `"pdf"` or `"png"`. Default `"pdf"`.
 #' @param n_lab_sites_plot Maximum number of lab-sites for which to
@@ -98,6 +102,7 @@ process_recent_trend_fits <- function(
   forecast_date,
   location,
   scenario,
+  processed_output_dir,
   figure_ext = "pdf",
   n_lab_sites_plot = 10
 ) {

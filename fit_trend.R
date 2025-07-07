@@ -33,15 +33,6 @@ fit_trend <- function(
 
   hosp_fit <- fits$hosp
   ww_fit <- fits$ww
-  savedir <- wweval::forecast_output_path(
-    processed_output_dir,
-    scenario,
-    forecast_date,
-    "ww",
-    location
-  )
-
-  fs::dir_create(savedir)
 
   wweval::process_recent_trend_fits(
     hosp_fit = hosp_fit,
@@ -49,7 +40,7 @@ fit_trend <- function(
     forecast_date = forecast_date,
     location = location,
     scenario = scenario,
-    save_dir = savedir,
+    processed_output_dir = processed_output_dir,
     figure_ext = "pdf"
   )
 }
