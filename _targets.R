@@ -313,7 +313,7 @@ combined_targets <- list(
   ),
 
   tar_target(
-    name = forecast_total_difference_posteriors,
+    name = forecast_diff_draws,
     command = purrr::pmap_df(
       list(
         forecast_date = eval_config$forecast_date_ww,
@@ -1766,10 +1766,28 @@ hub_comparison_plots <- list(
   )
 )
 
+trend_analysis <- list(
+  tar_target(
+    name = diff_and_trend_draws,
+    command = dplyr::inner_join(
+      forecast_diff_draws,
+      trend_draws,
+      by = c(
+        ".iteration",
+        ".chain",
+        ".draw",
+        "forecast_date",
+        "location",
+        "scenario"
+      )
+    )
+  )
+)
+
 
 additional_figures <- list(
   tar_target(
-    plot_hub_perf_heatmap,
+    name = plot_hub_perf_heatmap,
     command = heatmap_scores_by_loc_date(
       scores = hub_scores,
       metric = "wis",
@@ -1777,7 +1795,7 @@ additional_figures <- list(
     )
   ),
   tar_target(
-    plot_comb_perf_heatmap,
+    name = plot_comb_perf_heatmap,
     command = heatmap_scores_by_loc_date(
       scores = scores_filtered,
       metric = "crps",
@@ -1999,6 +2017,7 @@ list(
   scenario_targets,
   hub_targets,
   hub_comparison_plots,
+  trend_analysis,
   additional_figures,
   real_time_rel_targets,
   save_figures_to_disk
