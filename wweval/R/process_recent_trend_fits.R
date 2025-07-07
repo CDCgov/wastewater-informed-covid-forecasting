@@ -106,8 +106,8 @@ process_recent_trend_fits <- function(
   }
 
   if (!is.null(ww_fit) && !is.null(hosp_fit)) {
-    ww_trend_draws <- .spread_ww_trendfit_draws(ww_fit)
-    hosp_trend_draws <- .spread_hosp_trendfit_draws(hosp_fit)
+    ww_trend_draws <- .spread_ww_trend_fit_draws(ww_fit)
+    hosp_trend_draws <- .spread_hosp_trend_fit_draws(hosp_fit)
     trend_draws <- dplyr::inner_join(
       ww_trend_draws,
       hosp_trend_draws,
