@@ -1,6 +1,6 @@
 .plot_ww_trend_fit <- function(
   ww_fit,
-  figure_save_dir,
+  save_dir,
   figure_ext,
   n_lab_sites_to_plot
 ) {
@@ -20,7 +20,7 @@
   ww_plot <- ww_plot$time + theme_minimal()
   ggsave(
     filename = fs::path(
-      figure_save_dir,
+      save_dir,
       "ww_recent_trend_plot",
       ext = figure_ext
     ),
@@ -31,7 +31,7 @@
 }
 
 
-.plot_hosp_trend_fit <- function(hosp_fit, figure_save_dir, figure_ext) {
+.plot_hosp_trend_fit <- function(hosp_fit, save_dir, figure_ext) {
   hosp_plot <- brms::conditional_effects(
     hosp_fit,
     "time",
@@ -43,7 +43,7 @@
 
   ggsave(
     filename = fs::path(
-      figure_save_dir,
+      save_dir,
       "hosp_recent_trend_plot",
       ext = figure_ext
     ),
@@ -81,7 +81,7 @@
 #'
 #' @param hosp_fit [brms::brmsfit] object for the hospital admissions trend.
 #' @param ww_fit [brms::brmsfit] object for the wastewater trend.
-#' @param figure_save_dir Directory in which to save output
+#' @param save_dir Directory in which to save output
 #' (figures and tidy posterior draws).
 #' @param figure_ext File extension for figures, without the `.`,
 #' e.g. `"pdf"` or `"png"`. Default `"pdf"`.
@@ -98,11 +98,11 @@ process_recent_trend_fits <- function(
   n_lab_sites_plot = 10
 ) {
   if (!is.null(ww_fit)) {
-    .plot_ww_trend_fit(ww_fit, figure_save_dir, figure_ext, n_lab_sites_to_plot)
+    .plot_ww_trend_fit(ww_fit, save_dir, figure_ext, n_lab_sites_to_plot)
   }
 
   if (!is.null(hosp_fit)) {
-    .plot_hosp_trend_fit(hosp_fit, figure_save_dir, figure_ext)
+    .plot_hosp_trend_fit(hosp_fit, save_dir, figure_ext)
   }
 
   if (!is.null(ww_fit) && !is.null(hosp_fit)) {
@@ -115,7 +115,7 @@ process_recent_trend_fits <- function(
     )
     readr::write_tsv(
       trend_draws,
-      fs::path(draws_save_dir, "trend_draws", ext = "tsv")
+      fs::path(save_dir, "trend_draws", ext = "tsv")
     )
   }
 

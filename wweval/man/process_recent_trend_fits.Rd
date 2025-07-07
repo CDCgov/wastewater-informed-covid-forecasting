@@ -17,14 +17,14 @@ process_recent_trend_fits(
 
 \item{ww_fit}{\link[brms:brmsfit-class]{brms::brmsfit} object for the wastewater trend.}
 
+\item{save_dir}{Directory in which to save output
+(figures and tidy posterior draws).}
+
 \item{figure_ext}{File extension for figures, without the \code{.},
 e.g. \code{"pdf"} or \code{"png"}. Default \code{"pdf"}.}
 
 \item{n_lab_sites_plot}{Maximum number of lab-sites for which to
 plot wastewater trends. Default \code{10}.}
-
-\item{figure_save_dir}{Directory in which to save output
-(figures and tidy posterior draws).}
 }
 \value{
 NULL, invisibly saving postprocessing results to
