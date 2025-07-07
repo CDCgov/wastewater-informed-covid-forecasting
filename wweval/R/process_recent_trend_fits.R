@@ -2,7 +2,7 @@
   ww_fit,
   save_dir,
   figure_ext,
-  n_lab_sites_to_plot
+  n_lab_sites_plot
 ) {
   conditions <- dplyr::distinct(
     ww_fit$data,
@@ -98,7 +98,7 @@ process_recent_trend_fits <- function(
   n_lab_sites_plot = 10
 ) {
   if (!is.null(ww_fit)) {
-    .plot_ww_trend_fit(ww_fit, save_dir, figure_ext, n_lab_sites_to_plot)
+    .plot_ww_trend_fit(ww_fit, save_dir, figure_ext, n_lab_sites_plot)
   }
 
   if (!is.null(hosp_fit)) {
