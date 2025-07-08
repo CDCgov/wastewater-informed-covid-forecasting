@@ -381,7 +381,7 @@ head_to_head_targets <- list(
   ),
   tar_target(
     name = date_locs_sufficient_ww,
-    command = dplyr::filter(ww_suffiiciency_table, .data$ww_sufficient) |>
+    command = dplyr::filter(ww_sufficiency_table, .data$ww_sufficient) |>
       dplyr::select("forecast_date", "location")
   ),
   tar_target(
