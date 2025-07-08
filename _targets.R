@@ -422,18 +422,18 @@ head_to_head_targets <- list(
     name = hosp_quantiles_filtered,
     command = dplyr::bind_rows(
       all_hosp_model_quantiles,
-      dplyr::filter(all_ww_hosp_quantiles, .data$scenario == "status_quo") |>
-        dplyr::inner_join(
-          date_locs_to_compare_retro,
-          by = c("location", "forecast_date")
-        ) |>
-        dplyr::left_join(
-          last_hosp_data_date_map,
-          by = c("location", "forecast_date")
-        ) |>
-        add_horizons(target_end_date_col = "date") |>
-        dplyr::select(-"scenario")
+      dplyr::filter(all_ww_hosp_quantiles, .data$scenario == "status_quo")
     ) |>
+      dplyr::inner_join(
+        date_locs_to_compare_retro,
+        by = c("location", "forecast_date")
+      ) |>
+      dplyr::left_join(
+        last_hosp_data_date_map,
+        by = c("location", "forecast_date")
+      ) |>
+      add_horizons(target_end_date_col = "date") |>
+      dplyr::select(-"scenario") |>
       scoringutils::as_forecast_quantile(
         predicted = "value",
         observed = "eval_data",
@@ -1757,14 +1757,13 @@ trend_analysis <- list(
     name = diff_and_trend_draws,
     command = dplyr::inner_join(
       forecast_diff_draws,
-      trend_draws,
+      trend_draws |>
+        dplyr::rename(draw = ".draw") |>
+        dplyr::select(-c(".chain", ".iteration")),
       by = c(
-        ".iteration",
-        ".chain",
-        ".draw",
+        "draw",
         "forecast_date",
-        "location",
-        "scenario"
+        "location"
       )
     )
   )
