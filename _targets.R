@@ -363,24 +363,55 @@ combined_targets <- list(
 
 head_to_head_targets <- list(
   tar_target(
-    name = table_of_loc_dates_w_ww,
+    name = convergence_df,
+    command = dplyr::left_join(
+      convergence_df_hosp,
+      convergence_df_ww,
+      by = c("location", "forecast_date")
+    )
+  ),
+  tar_target(
+    name = date_locs_manual_exclude,
+    command = as.data.frame(eval_config$ww_forecast_date_locs_to_excl) |>
+      dplyr::mutate(forecast_date = lubridate::ymd(.data$forecast_date))
+  ),
+  tar_target(
+    name = ww_sufficiency_table,
     command = get_table_sufficient_ww(all_ww_data_flags)
   ),
   tar_target(
-    name = convergence_df,
-    command = convergence_df_hosp |>
-      dplyr::left_join(
-        convergence_df_ww,
-        by = c("location", "forecast_date")
-      )
+    name = date_locs_sufficient_ww,
+    command = dplyr::filter(ww_suffiiciency_table, .data$ww_sufficient) |>
+      dplyr::select("forecast_date", "location")
   ),
   tar_target(
-    name = ww_forecast_date_locs_to_excl,
-    command = as.data.frame(
-      eval_config$ww_forecast_date_locs_to_excl
+    name = date_locs_both_converged,
+    command = dplyr::filter(
+      convergence_df,
+      .data$any_flags_ww == FALSE,
+      .data$any_flags_hosp == FALSE
     ) |>
-      dplyr::mutate(
-        forecast_date = lubridate::ymd(forecast_date)
+      dplyr::select("forecast_date", "location")
+  ),
+  tar_target(
+    name = date_locs_to_compare_retro,
+    command = dplyr::inner_join(
+      date_locs_both_converged,
+      date_locs_sufficient_ww,
+      by = c("forecast_date", "location")
+    ) |>
+      dplyr::anti_join(
+        date_locs_manual_exclude,
+        by = c("forecast_date", "location")
+      ) |>
+      dplyr::select("forecast_date", "location")
+  ),
+  tar_target(
+    name = date_locs_to_compare_real_time,
+    command = date_locs_sufficient_ww |>
+      dplyr::anti_join(
+        date_locs_manual_exclude,
+        by = c("location", "forecast_date")
       )
   ),
   tar_target(
@@ -390,40 +421,19 @@ head_to_head_targets <- list(
   tar_target(
     name = hosp_quantiles_filtered,
     command = dplyr::bind_rows(
-      all_ww_hosp_quantiles,
-      all_hosp_model_quantiles
+      all_hosp_model_quantiles,
+      dplyr::filter(all_ww_hosp_quantiles, .data$scenario == "status_quo") |>
+        dplyr::inner_join(
+          date_locs_to_compare_retro,
+          by = c("location", "forecast_date")
+        ) |>
+        dplyr::left_join(
+          last_hosp_data_date_map,
+          by = c("location", "forecast_date")
+        ) |>
+        add_horizons(target_end_date_col = "date") |>
+        dplyr::select(-"scenario")
     ) |>
-      dplyr::left_join(
-        table_of_loc_dates_w_ww,
-        by = c("location", "forecast_date")
-      ) |>
-      dplyr::filter(
-        .data$ww_sufficient
-      ) |>
-      dplyr::left_join(
-        convergence_df,
-        by = c(
-          "location",
-          "forecast_date"
-        )
-      ) |>
-      dplyr::filter(
-        any_flags_ww == FALSE,
-        any_flags_hosp == FALSE
-      ) |>
-      dplyr::left_join(
-        last_hosp_data_date_map,
-        by = c("location", "forecast_date")
-      ) |>
-      add_horizons(target_end_date_col = "date") |>
-      dplyr::select(
-        -c(
-          "scenario",
-          "any_flags_ww",
-          "any_flags_hosp",
-          "ww_sufficient"
-        )
-      ) |>
       scoringutils::as_forecast_quantile(
         predicted = "value",
         observed = "eval_data",
@@ -435,38 +445,19 @@ head_to_head_targets <- list(
     command = dplyr::bind_rows(
       all_hosp_scores,
       all_ww_scores |>
-        dplyr::filter(scenario == "status_quo")
+        dplyr::filter(.data$scenario == "status_quo")
     ) |>
-      dplyr::filter(scale == "log") |>
-      dplyr::left_join(
-        table_of_loc_dates_w_ww,
+      dplyr::filter(.data$scale == "log") |>
+      dplyr::inner_join(
+        date_locs_to_compare_retro,
         by = c("location", "forecast_date")
-      ) |>
-      dplyr::filter(.data$ww_sufficient) |>
-      dplyr::left_join(
-        convergence_df,
-        by = c(
-          "location",
-          "forecast_date"
-        )
-      ) |>
-      dplyr::filter(
-        .data$any_flags_ww == FALSE,
-        .data$any_flags_hosp == FALSE
       ) |>
       dplyr::left_join(
         last_hosp_data_date_map,
         by = c("location", "forecast_date")
       ) |>
       add_horizons(target_end_date_col = "date") |>
-      dplyr::select(
-        -c(
-          "scenario",
-          "any_flags_ww",
-          "any_flags_hosp",
-          "ww_sufficient"
-        )
-      ) |>
+      dplyr::select(-"scenario") |>
       scoringutils:::as_scores(
         metrics = names(wweval::sample_metrics)
       )
@@ -474,12 +465,6 @@ head_to_head_targets <- list(
 )
 
 figures <- list(
-  tar_target(
-    name = table_of_forecast_date_locs,
-    command = scores_filtered |>
-      dplyr::distinct(forecast_date, location) |>
-      dplyr::select(forecast_date, location)
-  ),
   tar_target(
     name = scores_filtered_grouped,
     command = scores_filtered |>
@@ -503,9 +488,9 @@ figures <- list(
     name = granular_ww_metadata_used,
     command = get_add_ww_metadata(
       granular_ww_metadata,
-      ww_forecast_date_locs_to_excl,
+      date_locs_manual_exclude,
       convergence_df,
-      table_of_loc_dates_w_ww,
+      ww_sufficiency_table,
       include_manual_exclusions = FALSE
     )
   ),
@@ -1138,9 +1123,10 @@ real_time_rel_targets <- list(
       eval_data = eval_hosp_data,
       model_types = c("ww", "hosp")
     ) |>
-      dplyr::anti_join(ww_forecast_date_locs_to_excl) |>
-      dplyr::left_join(table_of_loc_dates_w_ww) |>
-      dplyr::filter(ww_sufficient)
+      dplyr::inner_join(
+        date_locs_to_compare_real_time,
+        by = c("forecast_date", "location")
+      )
   ),
   tar_target(
     name = wis_cfa_models_real_time,
@@ -1154,10 +1140,10 @@ real_time_rel_targets <- list(
       eval_data = eval_hosp_data,
       model_types = c("ww", "hosp")
     ) |>
-      dplyr::anti_join(ww_forecast_date_locs_to_excl) |>
-      dplyr::left_join(table_of_loc_dates_w_ww) |>
-      dplyr::filter(.data$ww_sufficient) |>
-      dplyr::select(-c("ww_sufficient", "failed_convergence")) |>
+      dplyr::inner_join(
+        date_locs_to_compare_real_time,
+        by = c("forecast_date", "location")
+      ) |>
       scoringutils:::as_scores(
         metrics = names(
           wweval::quantile_metrics

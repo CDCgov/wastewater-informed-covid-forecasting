@@ -24,11 +24,18 @@ sample_metrics <- scoringutils::get_metrics(
 #' @param metrics Vector of scoring metrics to output, passed as the
 #' `metrics` argument to [scoringutils::score()]. Default
 #' [sample_metrics]
-#'
+#' @param offset Offset to use when transforming forecasts
+#' with [scoringutils::log_shift()] via
+#' [scoringutils::transform_forecasts()]. Default `1`.
 #' @return a dataframe containing a score for each day in the nowcast
 #' and forecast period
 #' @export
-score_samples <- function(draws, scenario, metrics = sample_metrics) {
+score_samples <- function(
+  draws,
+  scenario,
+  metrics = sample_metrics,
+  offset = 1
+) {
   if (is.null(draws)) {
     scores <- NULL
   } else {
@@ -54,7 +61,7 @@ score_samples <- function(draws, scenario, metrics = sample_metrics) {
       ) |>
       scoringutils::transform_forecasts(
         fun = scoringutils::log_shift,
-        offset = 1
+        offset = offset
       )
 
     if (is.null(metrics)) {
@@ -89,11 +96,18 @@ score_samples <- function(draws, scenario, metrics = sample_metrics) {
 #' @param metrics Vector of scoring metrics to output, passed as the
 #' `metrics` argument to [scoringutils::score()]. Default
 #' [quantile_metrics]
-#'
+#' @param offset Offset to use when transforming forecasts
+#' with [scoringutils::log_shift()] via
+#' [scoringutils::transform_forecasts()]. Default `1`.
 #' @return a dataframe containing a score for each day in the nowcast
 #' and forecast period
 #' @export
-score_quantiles <- function(quantiles, scenario, metrics = quantile_metrics) {
+score_quantiles <- function(
+  quantiles,
+  scenario,
+  metrics = quantile_metrics,
+  offset = 1
+) {
   if (is.null(quantiles)) {
     scores <- NULL
   } else {
@@ -116,7 +130,7 @@ score_quantiles <- function(quantiles, scenario, metrics = quantile_metrics) {
       ) |>
       scoringutils::transform_forecasts(
         fun = scoringutils::log_shift,
-        offset = 1
+        offset = offset
       )
 
     if (is.null(metrics)) {
@@ -466,12 +480,6 @@ load_real_time_forecast <- function(
   forecast <- NULL
 
   if (forecast_exists) {
-    any_flags <- check_any_flags(
-      dir,
-      forecast_date,
-      date_run,
-      run_id
-    )
     forecast <- arrow::read_parquet(forecast_path) |>
       dplyr::filter(
         .data$name == "pred_hosp",
@@ -485,8 +493,7 @@ load_real_time_forecast <- function(
         !!output_id_col
       ) |>
       dplyr::mutate(
-        model = !!model_type,
-        failed_convergence = !!any_flags
+        model = !!model_type
       )
   }
 
@@ -534,8 +541,10 @@ load_real_time_quantile_fcsts <- function(
         format_for_hub() |>
         dplyr::filter(!is.na(.data$quantile)) |>
         dplyr::mutate(
-          location = forecasttools::us_loc_code_to_abbr(
-            .data$location
+          location = forecasttools::us_location_recode(
+            .data$location,
+            "code",
+            "abbr"
           )
         ) |>
         dplyr::inner_join(
@@ -549,7 +558,6 @@ load_real_time_quantile_fcsts <- function(
         ) |>
         scoringutils::as_forecast_quantile(
           predicted = "value",
-          observed = "observed",
           quantile_level = "quantile"
         )
     }
@@ -582,6 +590,9 @@ load_real_time_quantile_fcsts <- function(
 #' for scoring.
 #' @param model_types Character vector of model types to score.
 #' One or both of `"ww"` and `"hosp"`. Default both: `c("ww", "hosp")`
+#' @param offset Offset to use when transforming forecasts
+#' with [scoringutils::log_shift()] via
+#' [scoringutils::transform_forecasts()]. Default `1`.
 #' @return A tibble containing scores for every location and
 #' forecast date, conditioned on the presence of wastewater and model
 #' convergence
@@ -592,7 +603,8 @@ score_real_time_outputs <- function(
   table_of_run_ids,
   locations,
   eval_data,
-  model_types = c("ww", "hosp")
+  model_types = c("ww", "hosp"),
+  offset = 1
 ) {
   checkmate::assert_scalar(score_type)
   checkmate::assert_names(score_type, subset.of = c("wis", "crps"))
@@ -621,39 +633,32 @@ score_real_time_outputs <- function(
     if (!is.null(forecast)) {
       preds_w_eval <- forecast |>
         dplyr::inner_join(
-          eval_data |>
-            dplyr::select(-"pop") |>
-            dplyr::rename(
-              true_value = "daily_hosp_admits"
-            ),
+          eval_data,
           by = c("location", "date")
         ) |>
         dplyr::select(
           "location",
           "forecast_date",
           "date",
-          "value",
-          "true_value",
+          predicted = "value",
+          observed = "daily_hosp_admits",
           !!output_id_col,
-          "model",
-          "failed_convergence"
+          "model"
         )
 
       if (score_type == "crps") {
         for_scoring <- preds_w_eval |>
           scoringutils::as_forecast_sample(
-            sample_id = "draw",
-            predicted = "value",
-            observed = "true_value"
+            sample_id = "draw"
           )
       } else if (score_type == "wis") {
         for_scoring <- preds_w_eval |>
           dplyr::filter(
             .data$date > .data$forecast_date
+            ## for Hub-style WIS, do not score nowcasts,
+            ## consistent with Hub practice
           ) |>
           scoringutils::as_forecast_quantile(
-            predicted = "value",
-            observed = "true_value",
             quantile_level = "quantile"
           )
       }
@@ -661,7 +666,7 @@ score_real_time_outputs <- function(
         scores <- for_scoring |>
           scoringutils::transform_forecasts(
             fun = scoringutils::log_shift,
-            offset = 1,
+            offset = offset,
             append = FALSE
           ) |>
           scoringutils::score()
@@ -695,7 +700,11 @@ format_scores_for_comparison <- function(real_time_scores) {
       scale == "log"
     ) |>
     dplyr::mutate(
-      location = loc_abbr_to_flusight_code(location),
+      location = forecasttools::us_location_recode(
+        .data$location,
+        "abbr",
+        "code"
+      ),
       model = "cfa-hosponlyrenewal(real-time*)",
       type = "quantile",
       days_ahead = as.numeric(date - forecast_date),
@@ -712,53 +721,6 @@ format_scores_for_comparison <- function(real_time_scores) {
     )
 
   return(formatted_scores)
-}
-
-#' Combine the hosp only real-time scores and cfa real-
-#' time scores from github
-#'
-#' @param cfa_real_time_scores Hub formatted scores for
-#' only the ww model, `cfa-wwrenewal(real-time)`
-#' @param real_time_wis_hosp_only hosp only
-#' wis scores calculated from local data
-#'
-#' @return a df formatted the same way as the real_time_wis_hosp_only scores,
-#' but for both models
-#' @export
-combine_hub_and_local_wis <- function(
-  cfa_real_time_scores,
-  real_time_wis_hosp_only
-) {
-  real_time_wis_ho <- real_time_wis_hosp_only |>
-    dplyr::select(-failed_convergence)
-
-  loc_map_table <- cfa_real_time_scores |>
-    dplyr::distinct(location) |>
-    dplyr::left_join(
-      wweval::flusight_location_table,
-      by = c("location" = "location_code")
-    )
-
-  rt_reformatted <- cfa_real_time_scores |>
-    dplyr::rename(location_code = location) |>
-    dplyr::left_join(
-      loc_map_table,
-      by = c("location_code" = "location")
-    ) |>
-    dplyr::rename(
-      location = short_name,
-      date = target_end_date,
-    ) |>
-    dplyr::mutate(
-      model = "ww"
-    ) |>
-    dplyr::select(colnames(real_time_wis_ho))
-
-  real_time_wis_both_models <- dplyr::bind_rows(
-    rt_reformatted,
-    real_time_wis_ho
-  )
-  return(real_time_wis_both_models)
 }
 
 
