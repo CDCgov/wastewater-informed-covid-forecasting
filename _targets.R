@@ -1787,7 +1787,7 @@ trend_analysis <- list(
       x_transform = c("identity", "identity", "log10")
     ),
     tar_target(
-      name = fig_trend_scatter,
+      name = fig_trend_diff_scatter,
       command = plot_trend_versus_diff(
         diff_and_trend_qi,
         trend_metric = trend_metric,
@@ -1797,10 +1797,11 @@ trend_analysis <- list(
         color = "black",
         fill = "darkblue",
         alpha = 0.5,
-        interval_alpha = 0.1
+        interval_alpha = 0
       ) +
         ggplot2::scale_x_continuous(transform = x_transform)
-    )
+    ),
+    names = "trend_metric"
   )
 )
 
