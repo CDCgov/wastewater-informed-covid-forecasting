@@ -1,4 +1,4 @@
-#' Compute the the posterior of the difference between model predictions.
+#' Compute the posterior of the difference between model predictions.
 #'
 #' @param forecast_date forecast_date for which to fits recent data
 #' trends. Data for an actual forecast must already have been produced

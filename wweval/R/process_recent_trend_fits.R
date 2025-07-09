@@ -81,7 +81,7 @@
 #'
 #' @param hosp_fit [brms::brmsfit] object for the hospital admissions trend.
 #' @param ww_fit [brms::brmsfit] object for the wastewater trend.
-#' @param forecast_date forecast_date fpr the trend fits.
+#' @param forecast_date forecast_date for the trend fits.
 #' @param location Location for the trend fits.
 #' @param scenario Wastewater data availability scenario for the
 #' trend fits.
