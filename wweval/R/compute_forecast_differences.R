@@ -8,6 +8,8 @@
 #' @param raw_output_dir Directory containing raw output `.rds` files.
 #' Used to obtain the admissions and wastewater data used in fitting
 #' the forecasting model.
+#' @param offset to add to incidences when computing a log difference.
+#' Default `1`.
 #' @return Posterior of the difference in total incidence
 #' across the full nowcast/forecast period. Saves
 #' the incidence differences by day and the total
@@ -17,7 +19,8 @@ compute_forecast_differences <- function(
   forecast_date,
   location,
   scenario,
-  raw_output_dir
+  raw_output_dir,
+  offset = 1
 ) {
   exists_hosp_object <- get_object_existence_checker(
     location,
@@ -104,8 +107,8 @@ compute_forecast_differences <- function(
   diffs <- purrr::map(list(joined_preds, total_preds), \(df) {
     dplyr::mutate(
       df,
-      log_diff_ww_hosp = log(.data$ww_model_pred) -
-        log(.data$hosp_model_pred)
+      log_diff_ww_hosp = log(.data$ww_model_pred + offset) -
+        log(.data$hosp_model_pred + offset)
     )
   })
 

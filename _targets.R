@@ -1765,7 +1765,21 @@ trend_analysis <- list(
         "forecast_date",
         "location"
       )
-    )
+    ) |>
+      dplyr::inner_join(
+        date_locs_to_compare_retro,
+        by = c("forecast_date", "location")
+      )
+  ),
+  tar_target(
+    name = diff_and_trend_qi,
+    command = diff_and_trend_draws |>
+      dplyr::group_by(
+        .data$forecast_date,
+        .data$location,
+        .data$scenario,
+      ) |>
+      ggdist::mean_qi(.exclude = "draw")
   )
 )
 
