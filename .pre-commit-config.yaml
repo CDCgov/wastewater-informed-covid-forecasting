@@ -15,7 +15,7 @@ repos:
   #####
   # Python
   - repo: https://github.com/astral-sh/ruff-pre-commit
-    rev: v0.12.1
+    rev: v0.12.2
     hooks:
       # Sort imports
       - id: ruff
@@ -26,13 +26,13 @@ repos:
       - id: ruff-format
         args: ["--line-length", "79"]
   - repo: https://github.com/astral-sh/uv-pre-commit
-    rev: 0.7.17
+    rev: 0.7.19
     hooks:
       - id: uv-lock
   #####
   # R
   - repo: https://github.com/lorenzwalthert/precommit
-    rev: v0.4.3.9011
+    rev: v0.4.3.9012
     hooks:
       - id: lintr
   #####
