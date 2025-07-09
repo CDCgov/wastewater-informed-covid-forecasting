@@ -1780,6 +1780,27 @@ trend_analysis <- list(
         .data$scenario,
       ) |>
       ggdist::mean_qi(.exclude = "draw")
+  ),
+  tar_map(
+    tibble::tibble(
+      trend_metric = c("global_slope_hosp", "global_slope_ww", "sd_slope_ww"),
+      x_transform = c("identity", "identity", "log10")
+    ),
+    tar_target(
+      name = fig_trend_scatter,
+      command = plot_trend_versus_diff(
+        diff_and_trend_qi,
+        trend_metric = trend_metric,
+        diff_metric = "log_diff_ww_hosp",
+        shape = 21,
+        size = 2,
+        color = "black",
+        fill = "darkblue",
+        alpha = 0.5,
+        interval_alpha = 0.1
+      ) +
+        ggplot2::scale_x_continuous(transform = x_transform)
+    )
   )
 )
 

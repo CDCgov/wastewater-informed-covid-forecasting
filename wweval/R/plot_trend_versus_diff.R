@@ -10,18 +10,10 @@
 #' @return The plot as a [ggplot2::ggplot()] object.
 #' @export
 plot_trend_versus_diff <- function(data, trend_metric, diff_metric, ...) {
-  p <- ggplot(
-    data = data,
-    mapping = aes(x = .data[[trend_metric]], y = .data[[diff_metric]])
-  ) +
-    ggdist::geom_pointinterval(
-      aes(
-        xmin = .data[[glue::glue("{trend_metric}.lower")]],
-        xmax = .data[[glue::glue("{trend_metric}.upper")]]
-      ),
-      ...
-    ) +
-    coord_cartesian(ylim = forecasttools::sym_limits(data[[diff_metric]])) +
-    get_plot_theme()
+  p <- plot_pointinterval_scatter(data, trend_metric, diff_metric, ...) +
+    coord_cartesian(
+      xlim = forecasttools::sym_limits(data[[trend_metric]]),
+      ylim = forecasttools::sym_limits(data[[diff_metric]])
+    )
   return(p)
 }
