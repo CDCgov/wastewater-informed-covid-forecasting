@@ -75,7 +75,6 @@ Imports:
     ggridges,
     cowplot,
     patchwork,
-    RColorBrewer,
     zoltr,
     wwinference,
     fs,
@@ -84,7 +83,8 @@ Imports:
     stringr,
     tidyselect,
     forecasttools (>= 0.1.6),
-    brms
+    brms,
+    ggdist
 Suggests:
     httr,
     sessioninfo,
