@@ -84,7 +84,8 @@ Imports:
     tidyselect,
     forecasttools (>= 0.1.6),
     brms,
-    ggdist
+    ggdist,
+    RColorBrewer
 Suggests:
     httr,
     sessioninfo,
