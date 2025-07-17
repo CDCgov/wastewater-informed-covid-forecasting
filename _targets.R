@@ -1216,7 +1216,8 @@ trend_analysis_targets <- list(
       crps_cfa_models_all_time |>
         forecasttools::summarise_scores_with_baseline(
           baseline = "cfa-hosponlyrenewal(retro)",
-          by = c("model", "forecast_date", "location")
+          compare = "model",
+          by = c("forecast_date", "location")
         ) |>
         dplyr::filter(.data$model == "cfa-wwrenewal(retro)") |>
         dplyr::select(
