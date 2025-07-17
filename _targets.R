@@ -1226,7 +1226,8 @@ trend_analysis_targets <- list(
           rel_crps = "mean_scores_ratio"
         ),
       trend_draws |>
-        dplyr::rename(draw = ".draw"),
+        dplyr::rename(draw = ".draw") |>
+        dplyr::select(-".chain", -".iteration", -"scenario"),
       by = c(
         "forecast_date",
         "location"
