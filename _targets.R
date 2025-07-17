@@ -1285,6 +1285,36 @@ trend_analysis_targets <- list(
       format = "file"
     ),
     names = "trend_metric"
+  ),
+  tar_map(
+    tibble::tibble(
+      trend_metric = c("global_slope_hosp", "global_slope_ww", "sd_slope_ww"),
+      x_transform = c("identity", "identity", "log10")
+    ),
+    tar_target(
+      name = fig_trend_score_scatter,
+      command = plot_trend_versus_diff(
+        score_and_trend_qi,
+        trend_metric = trend_metric,
+        diff_metric = "rel_crps",
+        shape = 21,
+        size = 2,
+        color = "black",
+        fill = "darkblue",
+        alpha = 0.5,
+        interval_alpha = 0
+      ) +
+        ggplot2::scale_x_continuous(transform = x_transform) +
+        ggplot2::scale_y_continuous(transform = "log10")
+    ),
+    tar_target(
+      name = save_fig_trend_score_scatter,
+      command = save_fig(
+        fig_trend_score_scatter
+      ),
+      format = "file"
+    ),
+    names = "trend_metric"
   )
 )
 
