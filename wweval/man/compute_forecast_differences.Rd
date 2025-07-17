@@ -2,7 +2,7 @@
 % Please edit documentation in R/compute_forecast_differences.R
 \name{compute_forecast_differences}
 \alias{compute_forecast_differences}
-\title{Compute the the posterior of the difference between model predictions.}
+\title{Compute the posterior of the difference between model predictions.}
 \usage{
 compute_forecast_differences(
   forecast_date,
@@ -35,5 +35,5 @@ the incidence differences by day and the total
 incidence difference to disk as a side effect.
 }
 \description{
-Compute the the posterior of the difference between model predictions.
+Compute the posterior of the difference between model predictions.
 }

@@ -243,7 +243,7 @@ plot_ww_conc_by_site <- function(
       xintercept = lubridate::ymd(date_to_plot),
       linetype = "dashed"
     ) +
-    facet_grid(location ~ .data$site_lab_name, scales = "free_y") +
+    facet_wrap(~ .data$site_lab_name, scales = "free_y") +
     xlab("") +
     ylab("Genome copies per mL") +
     scale_x_date(

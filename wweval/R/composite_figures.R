@@ -21,10 +21,9 @@ compose_hub_fig <- function(
   heatmap_rel_wis,
   qq_plot
 ) {
-  layout <- "
-AABBBB
-CCDDEE
-"
+  design <- "ABB
+             CDE"
+
   composed_fig <- patchwork::wrap_plots(
     hist_rwis,
     plot_wis_t,
@@ -33,13 +32,14 @@ CCDDEE
     barplot_wis
   ) +
     patchwork::plot_layout(
-      design = layout,
+      design = design,
       axes = "collect",
       guides = "collect"
     ) &
     theme(
       legend.position = "bottom"
     )
+
   return(composed_fig)
 }
 

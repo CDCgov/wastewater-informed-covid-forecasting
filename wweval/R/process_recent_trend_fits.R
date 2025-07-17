@@ -93,6 +93,11 @@
 #' e.g. `"pdf"` or `"png"`. Default `"pdf"`.
 #' @param n_lab_sites_plot Maximum number of lab-sites for which to
 #' plot wastewater trends. Default `10`.
+#' @param max_rhat maximum allowable r-hat value. Default 1.01
+#' @param min_neff_ratio maximum allowable ratio of effective sample size
+#' to nominal sample size. Default 0.1.
+#' @param max_frac_divergent maximum allowable fraction of divergent
+#' transitions. Default 0.01 (1%).
 #' @return NULL, invisibly saving postprocessing results to
 #' disk as a side effect.
 #' @export
@@ -104,7 +109,10 @@ process_recent_trend_fits <- function(
   scenario,
   processed_output_dir,
   figure_ext = "pdf",
-  n_lab_sites_plot = 10
+  n_lab_sites_plot = 10,
+  max_rhat = 1.01,
+  min_neff_ratio = 0.1,
+  max_frac_divergent = 0.01
 ) {
   save_dir <- forecast_output_path(
     processed_output_dir,
@@ -113,16 +121,35 @@ process_recent_trend_fits <- function(
     "ww",
     location
   )
+  .check_convergence <- function(fit) {
+    samp_params <- rstan::get_sampler_params(fit$fit)
+    fracs_divergent <- sapply(samp_params, \(x) mean(x[, "divergent__"]))
+    print(fracs_divergent)
+    rhat_ok <- all(brms::rhat(fit) < max_rhat)
+    neff_ok <- all(brms::neff_ratio(fit) > min_neff_ratio)
+    divergent_ok <- all(fracs_divergent < max_frac_divergent)
+
+    return(rhat_ok && neff_ok && divergent_ok)
+  }
+
   fs::dir_create(save_dir)
+
+  valid_ww <- FALSE
+  valid_hosp <- FALSE
   if (!is.null(ww_fit)) {
     .plot_ww_trend_fit(ww_fit, save_dir, figure_ext, n_lab_sites_plot)
+    valid_ww <- .check_convergence(ww_fit)
   }
 
   if (!is.null(hosp_fit)) {
     .plot_hosp_trend_fit(hosp_fit, save_dir, figure_ext)
+    valid_hosp <- .check_convergence(
+      hosp_fit
+    )
   }
 
-  if (!is.null(ww_fit) && !is.null(hosp_fit)) {
+  if (valid_ww && valid_hosp) {
+    message("Extracting and joining draws...")
     ww_trend_draws <- .spread_ww_trend_fit_draws(ww_fit)
     hosp_trend_draws <- .spread_hosp_trend_fit_draws(hosp_fit)
     trend_draws <- dplyr::inner_join(
@@ -139,6 +166,8 @@ process_recent_trend_fits <- function(
       trend_draws,
       fs::path(save_dir, "trend_draws", ext = "tsv")
     )
+  } else {
+    message("Fitting or convergence failure!")
   }
 
   invisible()
