@@ -1213,7 +1213,17 @@ trend_analysis_targets <- list(
   tar_target(
     name = score_and_trend_draws,
     command = dplyr::inner_join(
-      crps_cfa_models_all_time,
+      crps_cfa_models_all_time |>
+        forecasttools::summarise_scores_with_baseline(
+          baseline = "cfa-hosponlyrenewal(retro)",
+          by = c("model", "forecast_date", "location")
+        ) |>
+        dplyr::filter(.data$model == "cfa-wwrenewal(retro)") |>
+        dplyr::select(
+          "forecast_date",
+          "location",
+          rel_crps = "mean_scores_ratio"
+        ),
       trend_draws |>
         dplyr::rename(draw = ".draw"),
       by = c(
