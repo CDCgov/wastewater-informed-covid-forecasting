@@ -24,6 +24,8 @@ plot_trend_versus_diff <- function(
       ylim = forecasttools::sym_limits(data[[diff_metric]])
     )
 
-  if (!is.null(fill_metric)) p <- p + aes(fill = .data[[fill_metric]])
+  if (!is.null(fill_metric)) {
+    p <- p + aes(fill = .data[[fill_metric]])
+  }
   return(p)
 }
