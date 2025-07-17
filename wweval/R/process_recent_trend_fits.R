@@ -162,13 +162,14 @@ process_recent_trend_fits <- function(
         forecast_date = as.Date(!!forecast_date),
         scenario = !!scenario
       )
-    readr::write_tsv(
-      trend_draws,
-      fs::path(save_dir, "trend_draws", ext = "tsv")
-    )
   } else {
     message("Fitting or convergence failure!")
+    trend_draws <- tibble::tibble()
   }
+  readr::write_tsv(
+    trend_draws,
+    fs::path(save_dir, "trend_draws", ext = "tsv")
+  )
 
   invisible()
 }
