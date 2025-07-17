@@ -1305,7 +1305,8 @@ trend_analysis_targets <- list(
         interval_alpha = 0
       ) +
         ggplot2::scale_x_continuous(transform = x_transform) +
-        ggplot2::scale_y_continuous(transform = "log10")
+        ggplot2::scale_y_continuous(transform = "log10") +
+        ylab("CRPS ratio (ww / hosp)")
     ),
     tar_target(
       name = save_fig_trend_score_scatter,
