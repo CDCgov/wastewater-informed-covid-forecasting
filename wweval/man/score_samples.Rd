@@ -4,7 +4,7 @@
 \alias{score_samples}
 \title{Get the scores for every day for a particular location and forecast date}
 \usage{
-score_samples(draws, scenario, metrics = sample_metrics)
+score_samples(draws, scenario, metrics = sample_metrics, offset = 1)
 }
 \arguments{
 \item{draws}{a dataframe of the model estimated  quantity you are evaluating
@@ -16,6 +16,10 @@ running}
 \item{metrics}{Vector of scoring metrics to output, passed as the
 \code{metrics} argument to \code{\link[scoringutils:score]{scoringutils::score()}}. Default
 \link{sample_metrics}}
+
+\item{offset}{Offset to use when transforming forecasts
+with \code{\link[scoringutils:log_shift]{scoringutils::log_shift()}} via
+\code{\link[scoringutils:transform_forecasts]{scoringutils::transform_forecasts()}}. Default \code{1}.}
 }
 \value{
 a dataframe containing a score for each day in the nowcast

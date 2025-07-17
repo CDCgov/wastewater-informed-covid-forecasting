@@ -1,4 +1,4 @@
-#' Compute the the posterior of the difference between model predictions.
+#' Compute the posterior of the difference between model predictions.
 #'
 #' @param forecast_date forecast_date for which to fits recent data
 #' trends. Data for an actual forecast must already have been produced
@@ -8,6 +8,8 @@
 #' @param raw_output_dir Directory containing raw output `.rds` files.
 #' Used to obtain the admissions and wastewater data used in fitting
 #' the forecasting model.
+#' @param offset to add to incidences when computing a log difference.
+#' Default `1`.
 #' @return Posterior of the difference in total incidence
 #' across the full nowcast/forecast period. Saves
 #' the incidence differences by day and the total
@@ -17,7 +19,8 @@ compute_forecast_differences <- function(
   forecast_date,
   location,
   scenario,
-  raw_output_dir
+  raw_output_dir,
+  offset = 1
 ) {
   exists_hosp_object <- get_object_existence_checker(
     location,
@@ -98,14 +101,14 @@ compute_forecast_differences <- function(
   total_preds <- joined_preds |>
     dplyr::summarise(
       dplyr::across(c("hosp_model_pred", "ww_model_pred", "eval_data"), sum),
-      .by = c("forecast_date", "draw")
+      .by = c("forecast_date", "location", "draw")
     )
 
   diffs <- purrr::map(list(joined_preds, total_preds), \(df) {
     dplyr::mutate(
       df,
-      log_diff_ww_hosp = log(.data$ww_model_pred) -
-        log(.data$hosp_model_pred)
+      log_diff_ww_hosp = log(.data$ww_model_pred + offset) -
+        log(.data$hosp_model_pred + offset)
     )
   })
 

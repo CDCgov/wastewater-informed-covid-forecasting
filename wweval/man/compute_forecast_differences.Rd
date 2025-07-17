@@ -4,7 +4,13 @@
 \alias{compute_forecast_differences}
 \title{Compute the the posterior of the difference between model predictions.}
 \usage{
-compute_forecast_differences(forecast_date, location, scenario, raw_output_dir)
+compute_forecast_differences(
+  forecast_date,
+  location,
+  scenario,
+  raw_output_dir,
+  offset = 1
+)
 }
 \arguments{
 \item{forecast_date}{forecast_date for which to fits recent data
@@ -18,6 +24,9 @@ and exist in \code{raw_output_dir}.}
 \item{raw_output_dir}{Directory containing raw output \code{.rds} files.
 Used to obtain the admissions and wastewater data used in fitting
 the forecasting model.}
+
+\item{offset}{to add to incidences when computing a log difference.
+Default \code{1}.}
 }
 \value{
 Posterior of the difference in total incidence

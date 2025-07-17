@@ -1,7 +1,7 @@
 #' Fit recent hospital admission and wastewater
 #' trends using BRMS
 #'
-#' @param forecast_date forecast_date for which to fits recent data
+#' @param forecast_date forecast_date for which to fit recent data
 #' trends. Data for an actual forecast must already have been produced
 #' and exist in `raw_output_dir`.
 #' @param location Location for which to fit trends.
@@ -35,7 +35,7 @@ fit_recent_trends <- function(
   hosp_lookback_days,
   ww_lookback_days,
   seed,
-  control,
+  control = NULL,
   ...
 ) {
   general_fit_params <- c("data", "seed", "control", "...")
@@ -158,7 +158,7 @@ fit_hosp_trend <- function(
   log_nb_conc_prior_mean,
   log_nb_conc_prior_sd,
   seed,
-  control,
+  control = NULL,
   ...
 ) {
   checkmate::assert_names(
@@ -275,7 +275,7 @@ fit_ww_trend <- function(
   sd_log_sd_obs_prior_mode,
   sd_log_sd_obs_prior_sd,
   seed,
-  control,
+  control = NULL,
   ...
 ) {
   checkmate::assert_names(

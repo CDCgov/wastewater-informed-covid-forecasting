@@ -88,9 +88,6 @@ upstream_targets <- list(
       hosp_data_dir = eval_config$hosp_data_dir,
       calibration_time = 365, # Grab sufficient data for eval
       for_eval = TRUE # So we don't run wwinference::preprocess
-      # If don't have a hospital admissions dataset from the `eval_date`,
-      # can load using epidatr
-      # population_data_path = eval_config$population_data_path #nolint
     )
   ),
   tar_target(
@@ -240,7 +237,6 @@ combined_targets <- list(
       model_type = "ww"
     )
   ),
-  ## Wastewater metadata
   tar_target(
     name = granular_ww_metadata,
     command = combine_and_summarize_ww_data(
@@ -249,8 +245,6 @@ combined_targets <- list(
       eval_output_subdir = eval_config$output_dir
     )
   ),
-
-  ## Scores from quantiles
   tar_target(
     name = all_ww_scores_quantiles,
     command = combine_outputs(
@@ -295,9 +289,31 @@ combined_targets <- list(
         metrics = names(wweval::quantile_metrics)
       )
   ),
+  tar_target(
+    name = quantile_forecasts_ww_model,
+    command = combine_outputs(
+      output_type = "hosp_quantiles",
+      scenarios = eval_config$scenario,
+      forecast_dates = eval_config$forecast_date_ww,
+      locations = eval_config$location_ww,
+      eval_output_subdir = eval_config$output_dir,
+      model_type = "ww"
+    )
+  ),
+  tar_target(
+    name = quantile_forecasts_hosp_only_model,
+    command = combine_outputs(
+      output_type = "quantiles",
+      scenarios = "no_wastewater",
+      forecast_dates = eval_config$forecast_date_hosp,
+      locations = eval_config$location_hosp,
+      eval_output_subdir = eval_config$output_dir,
+      model_type = "hosp"
+    )
+  ),
 
   tar_target(
-    name = forecast_total_difference_posteriors,
+    name = forecast_diff_draws,
     command = purrr::pmap_df(
       list(
         forecast_date = eval_config$forecast_date_ww,
@@ -311,25 +327,14 @@ combined_targets <- list(
     )
   ),
   tar_target(
-    name = all_ww_hosp_quantiles,
+    name = trend_draws,
     command = combine_outputs(
-      output_type = "hosp_quantiles",
+      output_type = "trend_draws",
       scenarios = eval_config$scenario,
       forecast_dates = eval_config$forecast_date_ww,
       locations = eval_config$location_ww,
       eval_output_subdir = eval_config$output_dir,
       model_type = "ww"
-    )
-  ),
-  tar_target(
-    name = all_hosp_model_quantiles,
-    command = combine_outputs(
-      output_type = "quantiles",
-      scenarios = "no_wastewater",
-      forecast_dates = eval_config$forecast_date_hosp,
-      locations = eval_config$location_hosp,
-      eval_output_subdir = eval_config$output_dir,
-      model_type = "hosp"
     )
   ),
   tar_target(
@@ -358,67 +363,128 @@ combined_targets <- list(
 
 head_to_head_targets <- list(
   tar_target(
-    name = table_of_loc_dates_w_ww,
+    name = convergence_df,
+    command = dplyr::left_join(
+      convergence_df_hosp,
+      convergence_df_ww,
+      by = c("location", "forecast_date")
+    )
+  ),
+  tar_target(
+    name = date_locs_manual_exclude_ww,
+    command = as.data.frame(eval_config$ww_forecast_date_locs_to_excl) |>
+      dplyr::mutate(forecast_date = lubridate::ymd(.data$forecast_date)) |>
+      dplyr::select("forecast_date", "location")
+  ),
+  tar_target(
+    name = ww_sufficiency_table,
     command = get_table_sufficient_ww(all_ww_data_flags)
   ),
   tar_target(
-    name = convergence_df,
-    command = convergence_df_hosp |>
-      dplyr::left_join(
-        convergence_df_ww,
-        by = c("location", "forecast_date")
+    name = date_locs_sufficient_ww,
+    command = dplyr::filter(ww_sufficiency_table, .data$ww_sufficient) |>
+      dplyr::select("forecast_date", "location")
+  ),
+  tar_target(
+    name = date_locs_ww_converged,
+    command = dplyr::filter(
+      convergence_df_ww,
+      .data$any_flags_ww == FALSE
+    ) |>
+      dplyr::select("forecast_date", "location")
+  ),
+  tar_target(
+    name = date_locs_hosp_converged,
+    command = dplyr::filter(
+      convergence_df_hosp,
+      .data$any_flags_hosp == FALSE
+    ) |>
+      dplyr::select("forecast_date", "location")
+  ),
+  tar_target(
+    name = date_locs_both_converged,
+    command = dplyr::inner_join(
+      date_locs_ww_converged,
+      date_locs_hosp_converged,
+      by = c("forecast_date", "location")
+    )
+  ),
+  tar_target(
+    name = date_locs_submit_ww,
+    command = dplyr::inner_join(
+      date_locs_ww_converged,
+      date_locs_sufficient_ww,
+      by = c("forecast_date", "location")
+    ) |>
+      dplyr::anti_join(
+        date_locs_manual_exclude_ww,
+        by = c("forecast_date", "location")
       )
   ),
   tar_target(
-    name = ww_forecast_date_locs_to_excl,
-    command = as.data.frame(
-      eval_config$ww_forecast_date_locs_to_excl
-    ) |>
-      dplyr::mutate(
-        forecast_date = lubridate::ymd(forecast_date)
-      )
+    name = date_locs_submit_hosp,
+    command = date_locs_hosp_converged
+  ),
+  tar_target(
+    name = date_locs_submit_both,
+    command = dplyr::inner_join(
+      date_locs_submit_ww,
+      date_locs_submit_hosp,
+      by = c("forecast_date", "location")
+    )
+  ),
+  tar_target(
+    name = date_locs_to_compare_retro,
+    command = dplyr::inner_join(
+      date_locs_submit_both,
+      tibble::tibble(forecast_date = scored_forecast_dates),
+      by = "forecast_date"
+    )
+  ),
+  tar_target(
+    name = date_locs_to_compare_real_time,
+    command = dplyr::inner_join(
+      date_locs_submit_both,
+      tibble::tibble(forecast_date = scored_real_time_fcst_dates),
+      by = "forecast_date"
+    )
+    ## equivalent for now, pending decision on flags
   ),
   tar_target(
     name = last_hosp_data_date_map,
     command = get_last_hosp_data_date_map(all_hosp_model_quantiles)
   ),
   tar_target(
-    name = hosp_quantiles_filtered,
+    name = submission_quantiles_hosp_only_model,
+    command = dplyr::inner_join(
+      quantile_forecasts_hosp_only_model,
+      date_locs_submit_hosp,
+      by = c("forecast_date", "location")
+    )
+  ),
+  tar_target(
+    name = submission_quantiles_ww_model,
+    command = dplyr::inner_join(
+      dplyr::filter(
+        quantile_forecasts_ww_model,
+        .data$scenario == "status_quo"
+      ),
+      date_locs_submit_ww,
+      by = c("forecast_date", "location")
+    )
+  ),
+  tar_target(
+    name = submission_quantiles_both_models,
     command = dplyr::bind_rows(
-      all_ww_hosp_quantiles,
-      all_hosp_model_quantiles
+      submission_quantiles_ww_model,
+      submission_quantiles_hosp_only_model
     ) |>
-      dplyr::left_join(
-        table_of_loc_dates_w_ww,
-        by = c("location", "forecast_date")
-      ) |>
-      dplyr::filter(
-        .data$ww_sufficient
-      ) |>
-      dplyr::left_join(
-        convergence_df,
-        by = c(
-          "location",
-          "forecast_date"
-        )
-      ) |>
-      dplyr::filter(
-        any_flags_ww == FALSE,
-        any_flags_hosp == FALSE
-      ) |>
       dplyr::left_join(
         last_hosp_data_date_map,
         by = c("location", "forecast_date")
       ) |>
       add_horizons(target_end_date_col = "date") |>
-      dplyr::select(
-        -c(
-          "scenario",
-          "any_flags_ww",
-          "any_flags_hosp",
-          "ww_sufficient"
-        )
-      ) |>
+      dplyr::select(-"scenario") |>
       scoringutils::as_forecast_quantile(
         predicted = "value",
         observed = "eval_data",
@@ -430,38 +496,19 @@ head_to_head_targets <- list(
     command = dplyr::bind_rows(
       all_hosp_scores,
       all_ww_scores |>
-        dplyr::filter(scenario == "status_quo")
+        dplyr::filter(.data$scenario == "status_quo")
     ) |>
-      dplyr::filter(scale == "log") |>
-      dplyr::left_join(
-        table_of_loc_dates_w_ww,
+      dplyr::filter(.data$scale == "log") |>
+      dplyr::inner_join(
+        date_locs_to_compare_retro,
         by = c("location", "forecast_date")
-      ) |>
-      dplyr::filter(.data$ww_sufficient) |>
-      dplyr::left_join(
-        convergence_df,
-        by = c(
-          "location",
-          "forecast_date"
-        )
-      ) |>
-      dplyr::filter(
-        .data$any_flags_ww == FALSE,
-        .data$any_flags_hosp == FALSE
       ) |>
       dplyr::left_join(
         last_hosp_data_date_map,
         by = c("location", "forecast_date")
       ) |>
       add_horizons(target_end_date_col = "date") |>
-      dplyr::select(
-        -c(
-          "scenario",
-          "any_flags_ww",
-          "any_flags_hosp",
-          "ww_sufficient"
-        )
-      ) |>
+      dplyr::select(-"scenario") |>
       scoringutils:::as_scores(
         metrics = names(wweval::sample_metrics)
       )
@@ -469,12 +516,6 @@ head_to_head_targets <- list(
 )
 
 figures <- list(
-  tar_target(
-    name = table_of_forecast_date_locs,
-    command = scores_filtered |>
-      dplyr::distinct(forecast_date, location) |>
-      dplyr::select(forecast_date, location)
-  ),
   tar_target(
     name = scores_filtered_grouped,
     command = scores_filtered |>
@@ -498,9 +539,9 @@ figures <- list(
     name = granular_ww_metadata_used,
     command = get_add_ww_metadata(
       granular_ww_metadata,
-      ww_forecast_date_locs_to_excl,
+      date_locs_manual_exclude,
       convergence_df,
-      table_of_loc_dates_w_ww,
+      ww_sufficiency_table,
       include_manual_exclusions = FALSE
     )
   ),
@@ -538,7 +579,7 @@ figures <- list(
     name = list_of_summary_ww_tables,
     command = get_summary_ww_table(
       granular_ww_metadata_used,
-      hosp_quantiles_filtered,
+      submission_quantiles_both_models,
       output_dir = eval_config$output_dir
     )
   ),
@@ -556,7 +597,7 @@ figures <- list(
   ),
   tar_target(
     name = hosp_quants_plot,
-    command = hosp_quantiles_filtered |>
+    command = submission_quantiles_both_models |>
       dplyr::filter(
         quantile_level %in% quantile_levels_to_plot,
         location %in% locs_to_plot
@@ -673,7 +714,7 @@ figures <- list(
     tar_target(
       name = plot_forecast_comparison_nowcast,
       command = plot_forecast_comparison_t(
-        hosp_quantiles_filtered,
+        submission_quantiles_both_models,
         loc_to_plot = loc,
         horizon_to_plot = "nowcast",
         horizon_days_ahead = -10
@@ -682,7 +723,7 @@ figures <- list(
     tar_target(
       name = plot_forecast_comparison_1wk,
       command = plot_forecast_comparison_t(
-        hosp_quantiles_filtered,
+        submission_quantiles_both_models,
         loc_to_plot = loc,
         horizon_to_plot = "1 wk",
         horizon_days_ahead = 7
@@ -691,7 +732,7 @@ figures <- list(
     tar_target(
       name = plot_forecast_comparison_4wk,
       command = plot_forecast_comparison_t(
-        hosp_quantiles_filtered,
+        submission_quantiles_both_models,
         loc_to_plot = loc,
         horizon_to_plot = "4 wks",
         horizon_days_ahead = 28
@@ -888,7 +929,7 @@ figures <- list(
   ),
   tar_target(
     name = calibration_input_cfa_all_time,
-    command = hosp_quantiles_filtered |>
+    command = submission_quantiles_both_models |>
       ## "calibration" in a different sense here,
       ## i.e. training period
       dplyr::filter(
@@ -1133,9 +1174,10 @@ real_time_rel_targets <- list(
       eval_data = eval_hosp_data,
       model_types = c("ww", "hosp")
     ) |>
-      dplyr::anti_join(ww_forecast_date_locs_to_excl) |>
-      dplyr::left_join(table_of_loc_dates_w_ww) |>
-      dplyr::filter(ww_sufficient)
+      dplyr::inner_join(
+        date_locs_to_compare_real_time,
+        by = c("forecast_date", "location")
+      )
   ),
   tar_target(
     name = wis_cfa_models_real_time,
@@ -1149,10 +1191,10 @@ real_time_rel_targets <- list(
       eval_data = eval_hosp_data,
       model_types = c("ww", "hosp")
     ) |>
-      dplyr::anti_join(ww_forecast_date_locs_to_excl) |>
-      dplyr::left_join(table_of_loc_dates_w_ww) |>
-      dplyr::filter(.data$ww_sufficient) |>
-      dplyr::select(-c("ww_sufficient", "failed_convergence")) |>
+      dplyr::inner_join(
+        date_locs_to_compare_real_time,
+        by = c("forecast_date", "location")
+      ) |>
       scoringutils:::as_scores(
         metrics = names(
           wweval::quantile_metrics
@@ -1197,15 +1239,10 @@ hub_targets <- list(
   # This mirrors real-time production workflow, where we replaced with
   # hospital admissions model.
   tar_target(
-    name = filtered_ww_hosp_quantiles,
-    command = hosp_quantiles_filtered |>
-      dplyr::filter(model_type == "ww")
-  ),
-  tar_target(
     name = metadata_hub_submissions,
     command = create_hub_submissions(
-      filtered_ww_hosp_quantiles,
-      all_hosp_model_quantiles,
+      submission_quantiles_ww_model,
+      submission_quantiles_hosp_only_model,
       forecast_dates = scored_forecast_dates,
       hub_subdir = eval_config$hub_subdir,
       model_name = "cfa-wwrenewal"
@@ -1214,8 +1251,8 @@ hub_targets <- list(
   tar_target(
     name = metadata_hosp_hub_submissions,
     command = create_hub_submissions(
-      all_hosp_model_quantiles,
-      all_hosp_model_quantiles,
+      submission_quantiles_hosp_only_model,
+      submission_quantiles_hosp_only_model,
       forecast_dates = scored_forecast_dates,
       hub_subdir = eval_config$hub_subdir,
       model_name = "cfa-hosponlyrenewal"
@@ -1761,10 +1798,63 @@ hub_comparison_plots <- list(
   )
 )
 
+trend_analysis <- list(
+  tar_target(
+    name = diff_and_trend_draws,
+    command = dplyr::inner_join(
+      forecast_diff_draws,
+      trend_draws |>
+        dplyr::rename(draw = ".draw") |>
+        dplyr::select(-c(".chain", ".iteration")),
+      by = c(
+        "draw",
+        "forecast_date",
+        "location"
+      )
+    ) |>
+      dplyr::inner_join(
+        date_locs_to_compare_retro,
+        by = c("forecast_date", "location")
+      )
+  ),
+  tar_target(
+    name = diff_and_trend_qi,
+    command = diff_and_trend_draws |>
+      dplyr::group_by(
+        .data$forecast_date,
+        .data$location,
+        .data$scenario,
+      ) |>
+      ggdist::mean_qi(.exclude = "draw")
+  ),
+  tar_map(
+    tibble::tibble(
+      trend_metric = c("global_slope_hosp", "global_slope_ww", "sd_slope_ww"),
+      x_transform = c("identity", "identity", "log10")
+    ),
+    tar_target(
+      name = fig_trend_diff_scatter,
+      command = plot_trend_versus_diff(
+        diff_and_trend_qi,
+        trend_metric = trend_metric,
+        diff_metric = "log_diff_ww_hosp",
+        shape = 21,
+        size = 2,
+        color = "black",
+        fill = "darkblue",
+        alpha = 0.5,
+        interval_alpha = 0
+      ) +
+        ggplot2::scale_x_continuous(transform = x_transform)
+    ),
+    names = "trend_metric"
+  )
+)
+
 
 additional_figures <- list(
   tar_target(
-    plot_hub_perf_heatmap,
+    name = plot_hub_perf_heatmap,
     command = heatmap_scores_by_loc_date(
       scores = hub_scores,
       metric = "wis",
@@ -1772,7 +1862,7 @@ additional_figures <- list(
     )
   ),
   tar_target(
-    plot_comb_perf_heatmap,
+    name = plot_comb_perf_heatmap,
     command = heatmap_scores_by_loc_date(
       scores = scores_filtered,
       metric = "crps",
@@ -1994,6 +2084,7 @@ list(
   scenario_targets,
   hub_targets,
   hub_comparison_plots,
+  trend_analysis,
   additional_figures,
   real_time_rel_targets,
   save_figures_to_disk

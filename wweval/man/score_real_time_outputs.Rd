@@ -10,7 +10,8 @@ score_real_time_outputs(
   table_of_run_ids,
   locations,
   eval_data,
-  model_types = c("ww", "hosp")
+  model_types = c("ww", "hosp"),
+  offset = 1
 )
 }
 \arguments{
@@ -34,6 +35,10 @@ for scoring.}
 
 \item{model_types}{Character vector of model types to score.
 One or both of \code{"ww"} and \code{"hosp"}. Default both: \code{c("ww", "hosp")}}
+
+\item{offset}{Offset to use when transforming forecasts
+with \code{\link[scoringutils:log_shift]{scoringutils::log_shift()}} via
+\code{\link[scoringutils:transform_forecasts]{scoringutils::transform_forecasts()}}. Default \code{1}.}
 }
 \value{
 A tibble containing scores for every location and

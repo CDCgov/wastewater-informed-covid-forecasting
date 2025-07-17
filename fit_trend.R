@@ -14,9 +14,10 @@ fit_trend <- function(
   hosp_lookback_days,
   ww_lookback_days,
   seed,
+  control,
   chains,
-  iter,
-  control
+  iter_warmup,
+  iter_sampling
 ) {
   fits <- wweval::fit_recent_trends(
     forecast_date = forecast_date,
@@ -28,25 +29,22 @@ fit_trend <- function(
     hosp_lookback_days = hosp_lookback_days,
     ww_lookback_days = ww_lookback_days,
     seed = seed,
-    control = control
+    control = control,
+    iter = iter_warmup + iter_sampling,
+    warmup = iter_warmup,
+    chains = chains
   )
 
   hosp_fit <- fits$hosp
   ww_fit <- fits$ww
-  savedir <- wweval::forecast_output_path(
-    processed_output_dir,
-    scenario,
-    forecast_date,
-    "ww",
-    location
-  )
-
-  fs::dir_create(savedir)
 
   wweval::process_recent_trend_fits(
     hosp_fit = hosp_fit,
     ww_fit = ww_fit,
-    figure_save_dir = savedir,
+    forecast_date = forecast_date,
+    location = location,
+    scenario = scenario,
+    processed_output_dir = processed_output_dir,
     figure_ext = "pdf"
   )
 }
@@ -97,9 +95,15 @@ parsed <- arg_parser(
     type = "integer"
   ) |>
   add_argument(
-    "--iter-sampling",
-    help = "Number of samples to draw per MCMC chain.",
+    "--iter-warmup",
+    help = "Number of warmup iterations to use for each MCMC chain.",
     default = 1000L,
+    type = "integer"
+  ) |>
+  add_argument(
+    "--iter-sampling",
+    help = "Number of samples to draw from each MCMC chain.",
+    default = 500L,
     type = "integer"
   ) |>
   add_argument(
@@ -162,10 +166,11 @@ fit_trend(
   hosp_lookback_days = parsed$hosp_lookback_days,
   ww_lookback_days = parsed$ww_lookback_days,
   seed = parsed$seed,
-  chains = parsed$n_chains,
-  iter = parsed$iter_sampling,
   control = list(
     adapt_delta = parsed$adapt_delta,
     max_treedepth = parsed$max_treedepth
-  )
+  ),
+  chains = parsed$n_chains,
+  iter_warmup = parsed$iter_warmup,
+  iter_sampling = parsed$iter_sampling
 )

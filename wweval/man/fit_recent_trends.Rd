@@ -15,12 +15,12 @@ fit_recent_trends(
   hosp_lookback_days,
   ww_lookback_days,
   seed,
-  control,
+  control = NULL,
   ...
 )
 }
 \arguments{
-\item{forecast_date}{forecast_date for which to fits recent data
+\item{forecast_date}{forecast_date for which to fit recent data
 trends. Data for an actual forecast must already have been produced
 and exist in \code{raw_output_dir}.}
 
