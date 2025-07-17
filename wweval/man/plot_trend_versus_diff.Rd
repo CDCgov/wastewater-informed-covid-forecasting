@@ -4,7 +4,7 @@
 \alias{plot_trend_versus_diff}
 \title{Scatterplot of inferred data trends versus forecast differences.}
 \usage{
-plot_trend_versus_diff(data, trend_metric, diff_metric, ...)
+plot_trend_versus_diff(data, trend_metric, diff_metric, fill_metric, ...)
 }
 \arguments{
 \item{data}{Dataframe to plot, as the output of \code{\link[ggdist:point_interval]{ggdist::mean_qi()}}
@@ -15,6 +15,9 @@ of the trend.}
 
 \item{diff_metric}{Name of the column containing the point estimate of
 the difference.}
+
+\item{fill_metric}{Name of the column to associate to the fill
+aesthetic. If \code{NULL}, do not map the fill aesthetic.}
 
 \item{...}{keyword arguments passed to \code{\link[ggdist:geom_pointinterval]{ggdist::geom_pointinterval()}}.}
 }

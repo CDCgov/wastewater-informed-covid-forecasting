@@ -1208,44 +1208,25 @@ trend_analysis_targets <- list(
       dplyr::inner_join(
         date_locs_to_compare_retro,
         by = c("forecast_date", "location")
-      )
-  ),
-  tar_target(
-    name = score_and_trend_draws,
-    command = dplyr::inner_join(
-      crps_cfa_models_all_time |>
-        forecasttools::summarise_scores_with_baseline(
-          baseline = "cfa-hosponlyrenewal(retro)",
-          compare = "model",
-          by = c("forecast_date", "location")
-        ) |>
-        dplyr::filter(.data$model == "cfa-wwrenewal(retro)") |>
-        dplyr::select(
-          "forecast_date",
-          "location",
-          rel_crps = "mean_scores_ratio"
-        ),
-      trend_draws |>
-        dplyr::rename(draw = ".draw") |>
-        dplyr::select(-".chain", -".iteration", -"scenario"),
-      by = c(
-        "forecast_date",
-        "location"
-      )
-    ) |>
-      dplyr::inner_join(
-        date_locs_to_compare_retro,
-        by = c("forecast_date", "location")
-      )
-  ),
-  tar_target(
-    name = score_and_trend_qi,
-    command = score_and_trend_draws |>
-      dplyr::group_by(
-        .data$forecast_date,
-        .data$location
       ) |>
-      ggdist::mean_qi(.exclude = "draw")
+      dplyr::inner_join(
+        crps_cfa_models_all_time |>
+          forecasttools::summarise_scores_with_baseline(
+            baseline = "cfa-hosponlyrenewal(retro)",
+            compare = "model",
+            by = c("forecast_date", "location")
+          ) |>
+          dplyr::filter(.data$model == "cfa-wwrenewal(retro)") |>
+          dplyr::select(
+            "forecast_date",
+            "location",
+            rel_crps = "mean_scores_ratio"
+          ),
+        by = c(
+          "forecast_date",
+          "location"
+        )
+      )
   ),
   tar_target(
     name = diff_and_trend_qi,
@@ -1258,24 +1239,40 @@ trend_analysis_targets <- list(
       ggdist::mean_qi(.exclude = "draw")
   ),
   tar_map(
-    tibble::tibble(
-      trend_metric = c("global_slope_hosp", "global_slope_ww", "sd_slope_ww"),
-      x_transform = c("identity", "identity", "log10")
+    tidyr::crossing(
+      tibble::tibble(
+        trend_metric = c("global_slope_hosp", "global_slope_ww", "sd_slope_ww"),
+        x_transform = c("identity", "identity", "log10")
+      ),
+      tibble::tibble(
+        diff_metric = c("log_diff_ww_hosp", "rel_crps", "global_slope_ww"),
+        y_transform = c("identity", "log10", "identity")
+      )
     ),
     tar_target(
       name = fig_trend_diff_scatter,
       command = plot_trend_versus_diff(
         diff_and_trend_qi,
         trend_metric = trend_metric,
-        diff_metric = "log_diff_ww_hosp",
+        diff_metric = diff_metric,
+        fill_metric = "rel_crps",
         shape = 21,
-        size = 2,
+        size = 3,
         color = "black",
-        fill = "darkblue",
         alpha = 0.5,
         interval_alpha = 0
       ) +
-        ggplot2::scale_x_continuous(transform = x_transform)
+        ggplot2::scale_x_continuous(transform = x_transform) +
+        ggplot2::scale_fill_gradient2(
+          high = "red",
+          mid = "white",
+          low = "blue",
+          transform = "log2",
+          midpoint = 1,
+          guide = "colourbar",
+          aesthetics = "fill",
+          labels = scales::number_format(accuracy = 0.01)
+        )
     ),
     tar_target(
       name = save_fig_trend_diff_scatter,
@@ -1284,38 +1281,7 @@ trend_analysis_targets <- list(
       ),
       format = "file"
     ),
-    names = "trend_metric"
-  ),
-  tar_map(
-    tibble::tibble(
-      trend_metric = c("global_slope_hosp", "global_slope_ww", "sd_slope_ww"),
-      x_transform = c("identity", "identity", "log10")
-    ),
-    tar_target(
-      name = fig_trend_score_scatter,
-      command = plot_trend_versus_diff(
-        score_and_trend_qi,
-        trend_metric = trend_metric,
-        diff_metric = "rel_crps",
-        shape = 21,
-        size = 2,
-        color = "black",
-        fill = "darkblue",
-        alpha = 0.5,
-        interval_alpha = 0
-      ) +
-        ggplot2::scale_x_continuous(transform = x_transform) +
-        ggplot2::scale_y_continuous(transform = "log10") +
-        ylab("CRPS ratio (ww / hosp)")
-    ),
-    tar_target(
-      name = save_fig_trend_score_scatter,
-      command = save_fig(
-        fig_trend_score_scatter
-      ),
-      format = "file"
-    ),
-    names = "trend_metric"
+    names = c("trend_metric", "diff_metric")
   )
 )
 
