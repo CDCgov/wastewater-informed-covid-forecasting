@@ -26,7 +26,7 @@ aesthetic. If \code{NULL}, do not map the fill aesthetic.}
 \code{"identity"}.}
 
 \item{x_center}{Center point for the symmetric x axis limits.
-Default \code{NULL}}
+Default \code{NULL}.}
 
 \item{...}{keyword arguments passed to \code{\link[ggplot2:geom_point]{ggplot2::geom_point()}}.}
 
