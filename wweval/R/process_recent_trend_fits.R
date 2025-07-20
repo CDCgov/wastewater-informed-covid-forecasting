@@ -110,9 +110,9 @@ process_recent_trend_fits <- function(
   processed_output_dir,
   figure_ext = "pdf",
   n_lab_sites_plot = 10,
-  max_rhat = 1.01,
-  min_neff_ratio = 0.1,
-  max_frac_divergent = 0.01
+  max_rhat = 1.02,
+  min_neff_ratio = 0.05,
+  max_frac_divergent = 0.05
 ) {
   save_dir <- forecast_output_path(
     processed_output_dir,
