@@ -1236,43 +1236,49 @@ trend_analysis_targets <- list(
         .data$location,
         .data$scenario,
       ) |>
-      ggdist::mean_qi(.exclude = "draw")
+      ggdist::mean_qi(.exclude = "draw") |>
+      dplyr::mutate(
+        global_slope_hosp_normed = .data$global_slope_hosp /
+          sd(.data$global_slope_hosp),
+        global_slope_ww_normed = .data$global_slope_ww /
+          sd(.data$global_slope_ww),
+        diff_slope_ww_hosp = global_slope_ww_normed -
+          global_slope_hosp_normed
+      )
   ),
   tar_map(
     tidyr::crossing(
       tibble::tibble(
-        trend_metric = c("global_slope_hosp", "global_slope_ww", "sd_slope_ww"),
-        x_transform = c("identity", "identity", "log10")
+        trend_metric = c(
+          "global_slope_hosp",
+          "global_slope_ww",
+          "sd_slope_ww",
+          "diff_slope_ww_hosp"
+        ),
+        x_transform = c("identity", "identity", "log10", "identity"),
+        x_center = c(0, 0, 0.03, 0)
       ),
       tibble::tibble(
         diff_metric = c("log_diff_ww_hosp", "rel_crps", "global_slope_ww"),
-        y_transform = c("identity", "log10", "identity")
+        y_transform = c("identity", "log10", "identity"),
+        fill_metric = c("rel_crps", "rel_crps", "rel_crps")
       )
     ),
     tar_target(
       name = fig_trend_diff_scatter,
       command = plot_trend_versus_diff(
         diff_and_trend_qi,
-        trend_metric = trend_metric,
-        diff_metric = diff_metric,
-        fill_metric = "rel_crps",
+        x_metric = trend_metric,
+        y_metric = diff_metric,
+        fill_metric = fill_metric,
+        x_transform = x_transform,
+        y_transform = y_transform,
+        x_center = x_center,
         shape = 21,
         size = 3,
         color = "black",
-        alpha = 0.5,
-        interval_alpha = 0
-      ) +
-        ggplot2::scale_x_continuous(transform = x_transform) +
-        ggplot2::scale_fill_gradient2(
-          high = "red",
-          mid = "white",
-          low = "blue",
-          transform = "log2",
-          midpoint = 1,
-          guide = "colourbar",
-          aesthetics = "fill",
-          labels = scales::number_format(accuracy = 0.01)
-        )
+        alpha = 0.5
+      )
     ),
     tar_target(
       name = save_fig_trend_diff_scatter,

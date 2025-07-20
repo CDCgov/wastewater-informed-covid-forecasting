@@ -193,6 +193,21 @@ scale_alpha_score_component <- function(...) {
   ))
 }
 
+#' ggplot fill scale for score ratios
+#'
+#' @param ... Keyword arguments passed to
+#' [ggplot2::scale_fill_gradient2()]
+scale_fill_score_ratio <- function(...) {
+  return(ggplot2::scale_fill_gradient2(
+    high = "red",
+    mid = "white",
+    low = "blue",
+    transform = "log2",
+    midpoint = 1,
+    guide = "colourbar",
+    aesthetics = "fill"
+  ))
+}
 
 #' Composite geometric object for barplots of scores decomposed into
 #' undeprediction, overprediction, and dispersion components
