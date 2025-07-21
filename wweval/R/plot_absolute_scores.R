@@ -76,8 +76,10 @@ plot_score_t <- function(
     theme(axis.title.x = element_blank()) +
     scale_x_date(
       date_breaks = "1 week",
-      date_labels = "%Y-%m-%d"
+      date_labels = "%Y-%m-%d",
+      expand = ggplot2::expansion(mult = 0, add = 3.5)
     ) +
+    coord_cartesian(expand = TRUE) +
     ylab(toupper(metric)) +
     scale_color_model()
 
@@ -210,6 +212,70 @@ plot_score_scatter <- function(
         color = label_color
       )
   }
+
+  return(p)
+}
+
+#' Plot a heatmap of avg forecast performance
+#' by location and forecast date
+#'
+#' @param scores A tibble of daily scores by forecast date,
+#' location, and model
+#' @param metric Metric to plot. One of `"wis"` or `"crps"`
+#' @param models_to_plot Character vector of models to plot
+#' @return a ggplot object
+#' @export
+heatmap_scores_by_loc_date <- function(scores, metric, models_to_plot) {
+  checkmate::assert_scalar(metric)
+  checkmate::assert_names(metric, subset.of = c("wis", "crps"))
+  scores_summary <- scores |>
+    dplyr::filter(
+      model %in% !!models_to_plot
+    ) |>
+    scoringutils::summarise_scores(
+      by = c(
+        "forecast_date",
+        "location",
+        "model"
+      )
+    )
+
+  p <- ggplot(scores_summary) +
+    geom_tile(aes(
+      x = .data$forecast_date,
+      y = .data$location,
+      fill = .data[[metric]]
+    )) +
+    scale_fill_gradient(
+      low = "white",
+      high = "darkred",
+      guide = "colourbar",
+      aesthetics = "fill"
+    ) +
+    geom_text(
+      aes(
+        x = .data$forecast_date,
+        y = .data$location,
+        label = round(.data[[metric]], 2)
+      ),
+      size = 1.5
+    ) +
+    facet_wrap(~model) +
+    get_plot_theme(
+      x_axis_dates = TRUE,
+      y_axis_text_size = 4
+    ) +
+    scale_x_date(
+      date_breaks = "1 week",
+      labels = scales::date_format("%Y-%m-%d")
+    ) +
+    coord_cartesian(expand = FALSE) +
+    xlab("") +
+    ylab("Location") +
+    labs(fill = glue::glue("Avg {toupper(metric)}")) +
+    ggtitle(glue::glue(
+      "Average {toupper(metric)} by forecast date and location"
+    ))
 
   return(p)
 }

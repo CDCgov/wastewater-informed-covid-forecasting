@@ -2,25 +2,46 @@
 % Please edit documentation in R/plot_trend_versus_diff.R
 \name{plot_trend_versus_diff}
 \alias{plot_trend_versus_diff}
-\title{Scatterplot of inferred data trends versus forecast differences.}
+\title{Scatterplot template for plots of inferred data trends
+versus forecast differences and related plots.}
 \usage{
-plot_trend_versus_diff(data, trend_metric, diff_metric, ...)
+plot_trend_versus_diff(
+  data,
+  x_metric,
+  y_metric,
+  fill_metric = NULL,
+  x_transform = "identity",
+  y_transform = "identity",
+  x_center = NULL,
+  ...
+)
 }
 \arguments{
 \item{data}{Dataframe to plot, as the output of \code{\link[ggdist:point_interval]{ggdist::mean_qi()}}
 or a related function.}
 
-\item{trend_metric}{Name of the column containing the point estimate
-of the trend.}
+\item{x_metric}{Column to map to the x axis.}
 
-\item{diff_metric}{Name of the column containing the point estimate of
-the difference.}
+\item{y_metric}{Column to map to the y axis.}
 
-\item{...}{keyword arguments passed to \code{\link[ggdist:geom_pointinterval]{ggdist::geom_pointinterval()}}.}
+\item{fill_metric}{Column to map to the fill
+aesthetic. If \code{NULL}, do not map the fill aesthetic.}
+
+\item{x_transform}{Transformation for the x axis scale. Default
+\code{"identity"}.}
+
+\item{y_transform}{Transformation for the y axis scale. Default
+\code{"identity"}.}
+
+\item{x_center}{Center point for the symmetric x axis limits.
+Default \code{NULL}.}
+
+\item{...}{keyword arguments passed to \code{\link[ggplot2:geom_point]{ggplot2::geom_point()}}.}
 }
 \value{
 The plot as a \code{\link[ggplot2:ggplot]{ggplot2::ggplot()}} object.
 }
 \description{
-Scatterplot of inferred data trends versus forecast differences.
+Scatterplot template for plots of inferred data trends
+versus forecast differences and related plots.
 }

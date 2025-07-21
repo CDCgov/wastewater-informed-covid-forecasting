@@ -12,7 +12,10 @@ process_recent_trend_fits(
   scenario,
   processed_output_dir,
   figure_ext = "pdf",
-  n_lab_sites_plot = 10
+  n_lab_sites_plot = 10,
+  max_rhat = 1.02,
+  min_neff_ratio = 0.05,
+  max_frac_divergent = 0.05
 )
 }
 \arguments{
@@ -20,7 +23,7 @@ process_recent_trend_fits(
 
 \item{ww_fit}{\link[brms:brmsfit-class]{brms::brmsfit} object for the wastewater trend.}
 
-\item{forecast_date}{forecast_date fpr the trend fits.}
+\item{forecast_date}{forecast_date for the trend fits.}
 
 \item{location}{Location for the trend fits.}
 
@@ -37,6 +40,14 @@ e.g. \code{"pdf"} or \code{"png"}. Default \code{"pdf"}.}
 
 \item{n_lab_sites_plot}{Maximum number of lab-sites for which to
 plot wastewater trends. Default \code{10}.}
+
+\item{max_rhat}{maximum allowable r-hat value. Default 1.01}
+
+\item{min_neff_ratio}{maximum allowable ratio of effective sample size
+to nominal sample size. Default 0.1.}
+
+\item{max_frac_divergent}{maximum allowable fraction of divergent
+transitions. Default 0.01 (1\%).}
 }
 \value{
 NULL, invisibly saving postprocessing results to

@@ -85,7 +85,8 @@ Imports:
     forecasttools (>= 0.1.6),
     brms,
     ggdist,
-    RColorBrewer
+    RColorBrewer,
+    rstan
 Suggests:
     httr,
     sessioninfo,

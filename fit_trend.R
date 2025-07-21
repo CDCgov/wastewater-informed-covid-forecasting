@@ -150,7 +150,7 @@ ww_prior_params <- list(
   sd_t0_conc_prior_mode = 0,
   sd_t0_conc_prior_sd = 1,
   log_sd_obs_pop_prior_mean = log(1),
-  log_sd_obs_pop_prior_sd = log(5),
+  log_sd_obs_pop_prior_sd = log(2),
   sd_log_sd_obs_prior_mode = 0,
   sd_log_sd_obs_prior_sd = log(1.5)
 )
