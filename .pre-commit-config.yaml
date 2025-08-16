@@ -32,7 +32,7 @@ repos:
   #####
   # R
   - repo: https://github.com/lorenzwalthert/precommit
-    rev: v0.4.3.9013
+    rev: v0.4.3.9012
     hooks:
       - id: lintr
   #####
