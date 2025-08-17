@@ -2,7 +2,7 @@ repos:
   #####
   # Basic file cleanliness
   - repo: https://github.com/pre-commit/pre-commit-hooks
-    rev: v5.0.0
+    rev: v6.0.0
     hooks:
       - id: check-added-large-files
         args: ['--maxkb=4000']
@@ -15,7 +15,7 @@ repos:
   #####
   # Python
   - repo: https://github.com/astral-sh/ruff-pre-commit
-    rev: v0.12.2
+    rev: v0.12.8
     hooks:
       # Sort imports
       - id: ruff
@@ -26,7 +26,7 @@ repos:
       - id: ruff-format
         args: ["--line-length", "79"]
   - repo: https://github.com/astral-sh/uv-pre-commit
-    rev: 0.7.19
+    rev: 0.8.8
     hooks:
       - id: uv-lock
   #####
@@ -38,7 +38,7 @@ repos:
   #####
   # Bash
   - repo: https://github.com/scop/pre-commit-shfmt
-    rev: v3.11.0-1
+    rev: v3.12.0-2
     hooks:
       - id: shfmt
   #####
