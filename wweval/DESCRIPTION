@@ -87,7 +87,8 @@ Imports:
     ggdist,
     RColorBrewer,
     rstan,
-    tarchetypes
+    tarchetypes,
+    crew
 Suggests:
     httr,
     sessioninfo,
