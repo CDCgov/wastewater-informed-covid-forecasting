@@ -86,7 +86,8 @@ Imports:
     brms,
     ggdist,
     RColorBrewer,
-    rstan
+    rstan,
+    tarchetypes
 Suggests:
     httr,
     sessioninfo,
