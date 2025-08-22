@@ -19,6 +19,12 @@ plot_trend_versus_diff(
 \item{data}{Dataframe to plot, as the output of \code{\link[ggdist:point_interval]{ggdist::mean_qi()}}
 or a related function.}
 
+\item{x_metric}{Name of the column containing the point estimate
+of the metric to plot on the x axis (typically a trend).}
+
+\item{y_metric}{Name of the column containing the point estimate of
+the metric to plot on the y axis (typically a measure of forecast difference.}
+
 \item{fill_metric}{Name of the column to associate to the fill
 aesthetic. If \code{NULL}, do not map the fill aesthetic.}
 
@@ -29,12 +35,6 @@ aesthetic. If \code{NULL}, do not map the fill aesthetic.}
 Default \code{NULL}.}
 
 \item{...}{keyword arguments passed to \code{\link[ggplot2:geom_point]{ggplot2::geom_point()}}.}
-
-\item{trend_metric}{Name of the column containing the point estimate
-of the trend.}
-
-\item{diff_metric}{Name of the column containing the point estimate of
-the difference.}
 }
 \value{
 The plot as a \code{\link[ggplot2:ggplot]{ggplot2::ggplot()}} object.
