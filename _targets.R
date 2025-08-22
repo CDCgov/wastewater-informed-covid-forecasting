@@ -1267,7 +1267,7 @@ trend_analysis_targets <- list(
         y_transform = c("identity", "log10", "identity"),
         fill_metric = c("rel_crps", "rel_crps", "rel_crps")
       )
-    ),
+      ) |> dplyr::filter(.data$trend_metric != .data$diff_metric),
     tar_target(
       name = fig_trend_diff_scatter,
       command = plot_trend_versus_diff(
