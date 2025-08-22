@@ -11,8 +11,7 @@ compose_rel_performance_fig(
   abs_score_by_time,
   total_admissions,
   scores_by_time,
-  scores_by_location,
-  time_period
+  scores_by_location
 )
 }
 \arguments{
@@ -31,9 +30,6 @@ admissions by day}
 \item{scores_by_time}{plot (location-specific) score values by forecast_date.}
 
 \item{scores_by_location}{plot of (date-specific) score values by location.}
-
-\item{time_period}{string to save fig as, either "real_time" or
-"all_time"}
 }
 \value{
 ggplot object with all the elements combined

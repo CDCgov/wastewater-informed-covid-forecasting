@@ -1256,10 +1256,11 @@ trend_analysis_targets <- list(
           "global_slope_hosp",
           "global_slope_ww",
           "sd_slope_ww",
-          "diff_slope_ww_hosp"
+          "diff_slope_ww_hosp",
+          "log_diff_ww_hosp"
         ),
-        x_transform = c("identity", "identity", "log10", "identity"),
-        x_center = c(0, 0, 0.03, 0)
+        x_transform = c("identity", "identity", "log10", "identity", "identity"),
+        x_center = c(0, 0, 0.03, 0, 0)
       ),
       tibble::tibble(
         diff_metric = c("log_diff_ww_hosp", "rel_crps", "global_slope_ww"),

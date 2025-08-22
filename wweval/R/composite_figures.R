@@ -187,8 +187,6 @@ OSTU
 #' admissions by day
 #' @param scores_by_time plot (location-specific) score values by forecast_date.
 #' @param scores_by_location plot of (date-specific) score values by location.
-#' @param time_period string to save fig as, either "real_time" or
-#' "all_time"
 #' @return ggplot object with all the elements combined
 #' @export
 compose_rel_performance_fig <- function(
@@ -197,8 +195,7 @@ compose_rel_performance_fig <- function(
   abs_score_by_time,
   total_admissions,
   scores_by_time,
-  scores_by_location,
-  time_period
+  scores_by_location
 ) {
   layout <- "
 AACCC
