@@ -1,15 +1,16 @@
-#' Scatterplot template for plots of inferred data trends
-#' versus forecast differences and related plots.
+#' Scatterplot of inferred data trends versus forecast differences.
 #'
 #' @param data Dataframe to plot, as the output of [ggdist::mean_qi()]
 #' or a related function.
-#' @param x_metric Column to map to the x axis.
-#' @param y_metric Column to map to the y axis.
-#' @param fill_metric Column to map to the fill
+#' @param trend_metric Name of the column containing the point estimate
+#' of the trend.
+#' @param diff_metric Name of the column containing the point estimate of
+#' the difference.
+#' @param fill_metric Name of the column to associate to the fill
 #' aesthetic. If `NULL`, do not map the fill aesthetic.
 #' @param x_transform Transformation for the x axis scale. Default
 #' `"identity"`.
-#' @param y_transform Transformation for the y axis scale. Default
+#' @param x_transform Transformation for the y axis scale. Default
 #' `"identity"`.
 #' @param x_center Center point for the symmetric x axis limits.
 #' Default `NULL`.

@@ -86,10 +86,7 @@ Imports:
     brms,
     ggdist,
     RColorBrewer,
-    rstan,
-    tarchetypes,
-    crew,
-    svglite
+    rstan
 Suggests:
     httr,
     sessioninfo,

@@ -2,8 +2,7 @@
 % Please edit documentation in R/plot_trend_versus_diff.R
 \name{plot_trend_versus_diff}
 \alias{plot_trend_versus_diff}
-\title{Scatterplot template for plots of inferred data trends
-versus forecast differences and related plots.}
+\title{Scatterplot of inferred data trends versus forecast differences.}
 \usage{
 plot_trend_versus_diff(
   data,
@@ -20,28 +19,26 @@ plot_trend_versus_diff(
 \item{data}{Dataframe to plot, as the output of \code{\link[ggdist:point_interval]{ggdist::mean_qi()}}
 or a related function.}
 
-\item{x_metric}{Column to map to the x axis.}
-
-\item{y_metric}{Column to map to the y axis.}
-
-\item{fill_metric}{Column to map to the fill
+\item{fill_metric}{Name of the column to associate to the fill
 aesthetic. If \code{NULL}, do not map the fill aesthetic.}
 
-\item{x_transform}{Transformation for the x axis scale. Default
-\code{"identity"}.}
-
-\item{y_transform}{Transformation for the y axis scale. Default
+\item{x_transform}{Transformation for the y axis scale. Default
 \code{"identity"}.}
 
 \item{x_center}{Center point for the symmetric x axis limits.
 Default \code{NULL}.}
 
 \item{...}{keyword arguments passed to \code{\link[ggplot2:geom_point]{ggplot2::geom_point()}}.}
+
+\item{trend_metric}{Name of the column containing the point estimate
+of the trend.}
+
+\item{diff_metric}{Name of the column containing the point estimate of
+the difference.}
 }
 \value{
 The plot as a \code{\link[ggplot2:ggplot]{ggplot2::ggplot()}} object.
 }
 \description{
-Scatterplot template for plots of inferred data trends
-versus forecast differences and related plots.
+Scatterplot of inferred data trends versus forecast differences.
 }

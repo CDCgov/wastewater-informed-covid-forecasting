@@ -10,8 +10,8 @@ compose_rel_performance_fig(
   rel_score_dist,
   abs_score_by_time,
   total_admissions,
-  rel_score_dist_by_time,
-  rel_score_dist_by_location,
+  scores_by_time,
+  scores_by_location,
   time_period
 )
 }
@@ -28,11 +28,9 @@ by forecast date}
 \item{total_admissions}{timeseries plot of total hospital
 admissions by day}
 
-\item{rel_score_dist_by_time}{plot of the distribution of (location
--specific) relative score values by forecast_dat.}
+\item{scores_by_time}{plot (location-specific) score values by forecast_date.}
 
-\item{rel_score_dist_by_location}{plot of the distribution of (date-
-specific) relative score values by location.}
+\item{scores_by_location}{plot of (date-specific) score values by location.}
 
 \item{time_period}{string to save fig as, either "real_time" or
 "all_time"}
