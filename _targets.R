@@ -1259,7 +1259,13 @@ trend_analysis_targets <- list(
           "diff_slope_ww_hosp",
           "log_diff_ww_hosp"
         ),
-        x_transform = c("identity", "identity", "log10", "identity", "identity"),
+        x_transform = c(
+          "identity",
+          "identity",
+          "log10",
+          "identity",
+          "identity"
+        ),
         x_center = c(0, 0, 0.03, 0, 0)
       ),
       tibble::tibble(
