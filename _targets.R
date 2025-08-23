@@ -852,7 +852,7 @@ hub_comparison_targets <- list(
     )
   ),
   tar_target(
-    name = admissions_timeseries_real_time,
+    name = total_admissions_real_time,
     command = plot_total_admissions(
       eval_hosp_data,
       first_forecast_date = lubridate::ymd("2024-02-05") -
@@ -861,7 +861,7 @@ hub_comparison_targets <- list(
     )
   ),
   tar_target(
-    name = wis_t_cfa_models,
+    name = wis_t_cfa_models_real_time,
     command = plot_score_t(
       wis_cfa_models_real_time,
       metric = "wis",
@@ -869,7 +869,7 @@ hub_comparison_targets <- list(
     )
   ),
   tar_target(
-    name = decomposed_wis_t_cfa_models,
+    name = decomposed_wis_t_cfa_models_real_time,
     command = wis_cfa_models_real_time |>
       scoringutils::summarise_scores(
         by = c("forecast_date", "model")
@@ -877,7 +877,7 @@ hub_comparison_targets <- list(
       plot_score_decomposed_bars(x = "forecast_date")
   ),
   tar_target(
-    name = wis_loc_cfa_models,
+    name = decomposed_wis_loc_cfa_models_real_time,
     command = wis_cfa_models_real_time |>
       scoringutils::summarise_scores(
         by = c("location", "model")
@@ -894,29 +894,6 @@ hub_comparison_targets <- list(
         x = "location",
         width = 0.5
       )
-  ),
-  tar_target(
-    name = rel_wis_distrib_by_date_real_time,
-    command = plot_rel_score_dists(
-      wis_cfa_models_real_time,
-      target_model = "cfa-wwrenewal(real-time)",
-      baseline_model = "cfa-hosponlyrenewal(real-time*)",
-      metric_to_compare = "wis",
-      x = "forecast_date",
-      by = "location"
-    )
-  ),
-  tar_target(
-    name = rel_wis_distrib_by_location_real_time,
-    command = plot_rel_score_dists(
-      wis_cfa_models_real_time,
-      target_model = "cfa-wwrenewal(real-time)",
-      baseline_model = "cfa-hosponlyrenewal(real-time*)",
-      metric_to_compare = "wis",
-      x = "location",
-      by = "forecast_date",
-      order_x = TRUE
-    )
   ),
   tar_target(
     name = qq_plot_real_time,
@@ -954,17 +931,25 @@ hub_comparison_targets <- list(
     ),
     format = "file"
   ),
-  ### Fig combined---------------------------------------------
   tar_target(
-    name = figure_real_time_rel_performance,
+    name = figure_rel_performance_real_time,
     command = compose_rel_performance_fig(
       rel_score_heatmap = rel_wis_heatmap_real_time,
       rel_score_dist = rel_wis_dist_real_time,
-      abs_score_by_time = wis_t_cfa_models,
-      total_admissions = admissions_timeseries_real_time,
-      rel_score_dist_by_time = rel_wis_distrib_by_date_real_time,
-      rel_score_dist_by_location = rel_wis_distrib_by_location_real_time
+      abs_score_by_time = wis_t_cfa_models_real_time,
+      total_admissions = total_admissions_real_time,
+      scores_by_time = decomposed_wis_t_cfa_models_real_time,
+      scores_by_location = decomposed_wis_loc_cfa_models_real_time
     )
+  ),
+  tar_target(
+    name = save_figure_rel_performance_real_time,
+    command = save_fig(
+      figure_rel_performance_real_time,
+      base_width = 10,
+      base_height = 12
+    ),
+    format = "file"
   ),
   tar_target(
     name = hub_hist_rwis_all_time,
@@ -1188,6 +1173,24 @@ hub_comparison_targets <- list(
       heatmap_rel_wis = hub_heatmap_rel_wis_real_time,
       qq_plot = hub_qq_plot_real_time
     )
+  ),
+  tar_target(
+    name = save_figure_hub_comparison_real_time,
+    command = save_fig(
+      figure_hub_comparison_real_time,
+      base_width = 10,
+      base_height = 12
+    ),
+    format = "file"
+  ),
+  tar_target(
+    name = save_figure_hub_comparison_all_time,
+    command = save_fig(
+      figure_hub_comparison_all_time,
+      base_width = 10,
+      base_height = 12
+    ),
+    format = "file"
   )
 )
 
@@ -1253,17 +1256,25 @@ trend_analysis_targets <- list(
           "global_slope_hosp",
           "global_slope_ww",
           "sd_slope_ww",
-          "diff_slope_ww_hosp"
+          "diff_slope_ww_hosp",
+          "log_diff_ww_hosp"
         ),
-        x_transform = c("identity", "identity", "log10", "identity"),
-        x_center = c(0, 0, 0.03, 0)
+        x_transform = c(
+          "identity",
+          "identity",
+          "log10",
+          "identity",
+          "identity"
+        ),
+        x_center = c(0, 0, 0.03, 0, 0)
       ),
       tibble::tibble(
         diff_metric = c("log_diff_ww_hosp", "rel_crps", "global_slope_ww"),
         y_transform = c("identity", "log10", "identity"),
         fill_metric = c("rel_crps", "rel_crps", "rel_crps")
       )
-    ),
+    ) |>
+      dplyr::filter(.data$trend_metric != .data$diff_metric),
     tar_target(
       name = fig_trend_diff_scatter,
       command = plot_trend_versus_diff(
@@ -1445,6 +1456,15 @@ composite_figure_targets <- list(
     )
   ),
   tar_target(
+    name = save_figure_pred_act_three_locs,
+    command = save_fig(
+      figure_pred_act_three_locs,
+      base_width = 10,
+      base_height = 12
+    ),
+    format = "file"
+  ),
+  tar_target(
     name = three_location_crps_figure,
     command = multi_location_crps_figure(
       crps_cfa_models_all_time,
@@ -1581,6 +1601,15 @@ composite_figure_targets <- list(
     )
   ),
   tar_target(
+    name = save_figure_example_scores,
+    command = save_fig(
+      figure_example_scores,
+      base_width = 10,
+      base_height = 12
+    ),
+    format = "file"
+  ),
+  tar_target(
     name = score_summary_tables_cfa_models,
     command = get_score_summary_tables(
       crps_cfa_models_all_time
@@ -1627,7 +1656,7 @@ composite_figure_targets <- list(
     )
   ),
   tar_target(
-    name = total_admissions_plot,
+    name = total_admissions_all_time,
     command = plot_total_admissions(
       eval_hosp_data,
       first_forecast_date = min(eval_config$forecast_date_ww),
@@ -1635,7 +1664,7 @@ composite_figure_targets <- list(
     )
   ),
   tar_target(
-    name = crps_t_cfa_models,
+    name = crps_t_cfa_models_all_time,
     command = plot_score_t(
       crps_cfa_models_all_time,
       metric = "crps",
@@ -1643,7 +1672,7 @@ composite_figure_targets <- list(
     )
   ),
   tar_target(
-    name = decomposed_crps_t_cfa_models,
+    name = decomposed_crps_t_cfa_models_all_time,
     command = crps_cfa_models_all_time |>
       scoringutils::summarise_scores(
         by = c("forecast_date", "model")
@@ -1654,16 +1683,16 @@ composite_figure_targets <- list(
       )
   ),
   tar_target(
-    name = save_decomposed_crps_t_cfa_models,
+    name = save_decomposed_crps_t_cfa_models_all_time,
     command = save_fig(
-      decomposed_crps_t_cfa_models,
+      decomposed_crps_t_cfa_models_all_time,
       base_width = 7,
       base_height = 5
     ),
     format = "file"
   ),
   tar_target(
-    name = crps_loc_cfa_models,
+    name = decomposed_crps_loc_cfa_models_all_time,
     command = crps_cfa_models_all_time |>
       scoringutils::summarise_scores(
         by = c("location", "model")
@@ -1682,25 +1711,13 @@ composite_figure_targets <- list(
       )
   ),
   tar_target(
-    name = save_crps_loc_cfa_models,
+    name = save_decomposed_crps_loc_cfa_models_all_time,
     command = save_fig(
-      crps_loc_cfa_models,
+      decomposed_crps_loc_cfa_models_all_time,
       base_width = 10,
       base_height = 5
     ),
     format = "file"
-  ),
-  tar_target(
-    name = rel_crps_by_location_cfa_models,
-    command = plot_rel_score_dists(
-      crps_cfa_models_all_time,
-      target_model = "cfa-wwrenewal(retro)",
-      baseline_model = "cfa-hosponlyrenewal(retro)",
-      metric_to_compare = "crps",
-      x = "location",
-      by = "forecast_date",
-      order_x = TRUE
-    )
   ),
   tar_target(
     name = rel_crps_dist_by_horizon,
@@ -1761,20 +1778,20 @@ composite_figure_targets <- list(
     format = "file"
   ),
   tar_target(
-    name = figure_all_time_rel_performance,
+    name = figure_rel_performance_all_time,
     command = compose_rel_performance_fig(
       rel_score_heatmap = rel_crps_heatmap_cfa_models,
       rel_score_dist = rel_crps_distribution_overall_cfa_models,
-      abs_score_by_time = crps_t_cfa_models,
-      total_admissions = total_admissions_plot,
-      rel_score_dist_by_time = rel_crps_distribution_t_cfa_models,
-      rel_score_dist_by_location = rel_crps_by_location_cfa_models
+      abs_score_by_time = crps_t_cfa_models_all_time,
+      total_admissions = total_admissions_all_time,
+      scores_by_time = decomposed_crps_t_cfa_models_all_time,
+      scores_by_location = decomposed_crps_loc_cfa_models_all_time
     )
   ),
   tar_target(
-    name = save_figure_real_time_rel_performance,
+    name = save_figure_rel_performance_all_time,
     command = save_fig(
-      figure_real_time_rel_performance,
+      figure_rel_performance_all_time,
       base_width = 10,
       base_height = 12
     )
@@ -1852,212 +1869,6 @@ real_time_rel_targets <- list(
       )
   )
 )
-
-# Hub targets-------------------------------------------------------
-hub_targets <- list(
-  # Exclude the same locations and forecast dates that we exclude in the
-  # retrospective head to head analysis, for only the wastewater model.
-  # This mirrors real-time production workflow, where we replaced with
-  # hospital admissions model.
-  tar_target(
-    name = metadata_hub_submissions,
-    command = create_hub_submissions(
-      submission_quantiles_ww_model,
-      submission_quantiles_hosp_only_model,
-      forecast_dates = scored_forecast_dates,
-      hub_subdir = eval_config$hub_subdir,
-      model_name = "cfa-wwrenewal"
-    )
-  ),
-  tar_target(
-    name = metadata_hosp_hub_submissions,
-    command = create_hub_submissions(
-      submission_quantiles_hosp_only_model,
-      submission_quantiles_hosp_only_model,
-      forecast_dates = scored_forecast_dates,
-      hub_subdir = eval_config$hub_subdir,
-      model_name = "cfa-hosponlyrenewal"
-    )
-  ),
-  ## Get the models that we will include in the analysis
-  ## (besides our own)
-  tar_target(
-    name = non_cfa_hub_models_to_score,
-    command = query_and_select_models(
-      prop_dates_for_incl_hub = eval_config$prop_dates_for_incl_hub,
-      prop_locs_for_incl_hub = eval_config$prop_locs_for_incl_hub,
-      locations = unique(eval_config$location_hosp),
-      forecast_dates = scored_forecast_dates
-    )
-  ),
-  tar_target(
-    name = hub_locations_to_exclude,
-    command = c(
-      "VI",
-      "AS",
-      "US"
-    )
-  ),
-  tar_target(
-    name = hub_forecasts_cfa_retro,
-    command = pull_hub_forecasts(
-      model_name = c("cfa-wwrenewal", "cfa-hosponlyrenewal"),
-      dates = scored_forecast_dates,
-      eval_data = eval_hosp_data,
-      hub_subdir = eval_config$hub_subdir,
-      pull_from_github = FALSE
-    ) |>
-      with_dependencies(
-        metadata_hub_submissions,
-        metadata_hosp_hub_submissions
-      ) |>
-      dplyr::mutate(
-        model = dplyr::case_match(
-          .data$model,
-          "cfa-wwrenewal" ~ "cfa-wwrenewal(retro)",
-          "cfa-hosponlyrenewal" ~ "cfa-hosponlyrenewal(retro)",
-          .default = .data$model
-        )
-      ) |>
-      dplyr::filter(
-        !location %in% .env$hub_locations_to_exclude
-      ) |>
-      with_dependencies(hub_locations_to_exclude)
-  ),
-  tar_target(
-    name = hub_forecasts_cfa_ww_real_time,
-    command = pull_hub_forecasts(
-      model_name = "cfa-wwrenewal",
-      dates = scored_real_time_fcst_dates,
-      eval_data = eval_hosp_data,
-      pull_from_github = TRUE
-    ) |>
-      dplyr::mutate(
-        model = dplyr::case_match(
-          .data$model,
-          "cfa-wwrenewal" ~ "cfa-wwrenewal(real-time)",
-          .default = .data$model
-        )
-      ) |>
-      dplyr::filter(
-        !location %in% .env$hub_locations_to_exclude
-      ) |>
-      with_dependencies(hub_locations_to_exclude)
-  ),
-  tar_target(
-    name = hub_forecasts_cfa_hosp_real_time,
-    command = load_real_time_quantile_fcsts(
-      real_time_output_dir = eval_config$real_time_output_dir,
-      table_of_run_ids = as.data.frame(
-        eval_config$table_of_run_ids
-      ),
-      locations = unique(eval_config$location_ww),
-      eval_data = eval_hosp_data,
-      model_type = "hosp"
-    ) |>
-      dplyr::mutate(
-        model = "cfa-hosponlyrenewal(real-time*)"
-      ) |>
-      dplyr::filter(
-        !location %in% .env$hub_locations_to_exclude
-      ) |>
-      with_dependencies(hub_locations_to_exclude)
-  ),
-  tar_target(
-    name = hub_forecasts_cfa_real_time,
-    command = dplyr::bind_rows(
-      hub_forecasts_cfa_ww_real_time,
-      hub_forecasts_cfa_hosp_real_time |>
-        select_like(hub_forecasts_cfa_ww_real_time)
-    )
-  ),
-  tar_target(
-    name = hub_forecasts_non_cfa,
-    command = pull_hub_forecasts(
-      model_name = non_cfa_hub_models_to_score,
-      dates = scored_forecast_dates,
-      eval_data = eval_hosp_data,
-      pull_from_github = TRUE
-    ) |>
-      dplyr::filter(
-        !location %in% .env$hub_locations_to_exclude
-      ) |>
-      with_dependencies(hub_locations_to_exclude)
-  ),
-  tar_target(
-    name = hub_forecasts,
-    command = dplyr::bind_rows(
-      hub_forecasts_cfa_retro,
-      hub_forecasts_cfa_real_time |>
-        select_like(hub_forecasts_cfa_retro),
-      hub_forecasts_non_cfa |>
-        select_like(hub_forecasts_cfa_retro)
-    )
-  ),
-  tar_target(
-    name = hub_scores,
-    command = score_hub_forecasts(hub_forecasts)
-  ),
-  tar_target(
-    name = save_hub_scores,
-    command = {
-      fp <- fs::path(
-        eval_config$score_subdir,
-        "hub_scores_all_time",
-        ext = "parquet"
-      )
-      forecasttools::write_tabular_file(hub_scores, fp)
-      fp
-    },
-    format = "file"
-  ),
-  tar_target(
-    name = save_figure_all_time_rel_performance,
-    command = save_fig(
-      figure_all_time_rel_performance,
-      base_width = 10,
-      base_height = 12
-    ),
-    format = "file"
-  ),
-  tar_target(
-    name = save_figure_hub_comparison_real_time,
-    command = save_fig(
-      figure_hub_comparison_real_time,
-      base_width = 10,
-      base_height = 12
-    ),
-    format = "file"
-  ),
-  tar_target(
-    name = save_figure_hub_comparison_all_time,
-    command = save_fig(
-      figure_hub_comparison_all_time,
-      base_width = 10,
-      base_height = 12
-    ),
-    format = "file"
-  ),
-  tar_target(
-    name = save_figure_pred_act_three_locs,
-    command = save_fig(
-      figure_pred_act_three_locs,
-      base_width = 10,
-      base_height = 12
-    ),
-    format = "file"
-  ),
-  tar_target(
-    name = save_figure_example_scores,
-    command = save_fig(
-      figure_example_scores,
-      base_width = 10,
-      base_height = 12
-    ),
-    format = "file"
-  )
-)
-
 
 additional_figure_targets <- list(
   tar_target(

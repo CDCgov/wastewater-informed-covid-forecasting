@@ -24,7 +24,7 @@ compose_hub_fig <- function(
   design <- "ABB
              CDE"
 
-  composed_fig <- patchwork::wrap_plots(
+  fig <- patchwork::wrap_plots(
     hist_rwis,
     plot_wis_t,
     heatmap_rel_wis,
@@ -35,12 +35,11 @@ compose_hub_fig <- function(
       design = design,
       axes = "collect",
       guides = "collect"
-    ) &
-    theme(
-      legend.position = "bottom"
-    )
+    ) +
+    patchwork::plot_annotation(tag_levels = "A") &
+    theme(legend.position = "bottom")
 
-  return(composed_fig)
+  return(fig)
 }
 
 
@@ -68,7 +67,8 @@ compose_pred_actual_fig <- function(hosp1, hosp2, hosp3, ww1, ww2, ww3) {
     ncol = 2,
     axes = "collect",
     widths = c(1, 1.5)
-  ) &
+  ) +
+    patchwork::plot_annotation(tag_levels = "A") &
     theme(
       legend.position = "top",
       legend.justification = "left"
@@ -163,7 +163,8 @@ OSTU
     design = layout,
     guides = "collect",
     axes = "collect"
-  ) &
+  ) +
+    patchwork::plot_annotation(tag_levels = "A") &
     theme(
       legend.position = "top",
       legend.justification = "left"
@@ -184,12 +185,8 @@ OSTU
 #' by forecast date
 #' @param total_admissions timeseries plot of total hospital
 #' admissions by day
-#' @param rel_score_dist_by_time plot of the distribution of (location
-#' -specific) relative score values by forecast_dat.
-#' @param rel_score_dist_by_location plot of the distribution of (date-
-#' specific) relative score values by location.
-#' @param time_period string to save fig as, either "real_time" or
-#' "all_time"
+#' @param scores_by_time plot (location-specific) score values by forecast_date.
+#' @param scores_by_location plot of (date-specific) score values by location.
 #' @return ggplot object with all the elements combined
 #' @export
 compose_rel_performance_fig <- function(
@@ -197,9 +194,8 @@ compose_rel_performance_fig <- function(
   rel_score_dist,
   abs_score_by_time,
   total_admissions,
-  rel_score_dist_by_time,
-  rel_score_dist_by_location,
-  time_period
+  scores_by_time,
+  scores_by_location
 ) {
   layout <- "
 AACCC
@@ -213,14 +209,15 @@ BBFFF
     rel_score_dist,
     total_admissions,
     abs_score_by_time,
-    rel_score_dist_by_time,
-    rel_score_dist_by_location,
+    scores_by_time,
+    scores_by_location,
     design = layout,
     axes = "collect"
-  ) &
+  ) +
+    patchwork::plot_annotation(tag_levels = "A") &
     theme(
-      legend.position = "top",
-      legend.justification = "left"
+      legend.position = "bottom",
+      legend.justification = "center"
     )
 
   return(fig)
