@@ -28,7 +28,10 @@ the metric to plot on the y axis (typically a measure of forecast difference.}
 \item{fill_metric}{Name of the column to associate to the fill
 aesthetic. If \code{NULL}, do not map the fill aesthetic.}
 
-\item{x_transform}{Transformation for the y axis scale. Default
+\item{x_transform}{Transformation for the x axis scale. Default
+\code{"identity"}.}
+
+\item{y_transform}{Transformation for the y axis scale. Default
 \code{"identity"}.}
 
 \item{x_center}{Center point for the symmetric x axis limits.

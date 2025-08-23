@@ -10,7 +10,7 @@
 #' aesthetic. If `NULL`, do not map the fill aesthetic.
 #' @param x_transform Transformation for the x axis scale. Default
 #' `"identity"`.
-#' @param x_transform Transformation for the y axis scale. Default
+#' @param y_transform Transformation for the y axis scale. Default
 #' `"identity"`.
 #' @param x_center Center point for the symmetric x axis limits.
 #' Default `NULL`.
