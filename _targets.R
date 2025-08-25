@@ -1967,11 +1967,14 @@ additional_figure_targets <- list(
     )
   ),
   tar_target(
-      name = save_fig_crps_over_time_comp,
-      command = save_fig_supp(fig_crps_over_time_comp,
-                              base_height = 8,
-                              base_width = 4),
-      format = "file"),
+    name = save_fig_crps_over_time_comp,
+    command = save_fig_supp(
+      fig_crps_over_time_comp,
+      base_height = 8,
+      base_width = 4
+    ),
+    format = "file"
+  ),
   tar_target(
     name = plot_n_sites_vs_performance,
     command = get_plot_sites_vs_performance(

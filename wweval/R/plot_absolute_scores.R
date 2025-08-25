@@ -289,28 +289,34 @@ heatmap_scores_by_loc_date <- function(scores, metric, models_to_plot) {
 #' use the value of `score_type` in uppercase.
 #' @return plot of scores over time faceted by horizon
 #' @export
-get_plot_score_by_horizon_t <- function(scores,
-                                        score_type,
-                                        score_display_name = toupper(score_type)) {
+get_plot_score_by_horizon_t <- function(
+  scores,
+  score_type,
+  score_display_name = toupper(score_type)
+) {
   scores_by_horizon_and_t <- scoringutils::summarise_scores(
     scores,
     by = c("model", "forecast_date", "horizon")
-    ) |>
-      dplyr::mutate(
-                 horizon = factor(.data$horizon,
-                                  ordered = TRUE,
-                                  levels = unique(c(
-                                      "nowcast", # put nowcast first
-                                      sort(.data$horizon)))))
-  p <- ggplot(scores_by_horizon_and_t,
-              mapping = aes(
-                  x = .data$forecast_date,
-                  y = .data[[score_type]],
-                  color = .data$model
-              )) +
-      forecasttools::geom_line_point(size = 2,
-                                     linewidth = 1.5,
-                                     alpha = 0.5) +
+  ) |>
+    dplyr::mutate(
+      horizon = factor(
+        .data$horizon,
+        ordered = TRUE,
+        levels = unique(c(
+          "nowcast", # put nowcast first
+          sort(.data$horizon)
+        ))
+      )
+    )
+  p <- ggplot(
+    scores_by_horizon_and_t,
+    mapping = aes(
+      x = .data$forecast_date,
+      y = .data[[score_type]],
+      color = .data$model
+    )
+  ) +
+    forecasttools::geom_line_point(size = 2, linewidth = 1.5, alpha = 0.5) +
     get_plot_theme(
       x_axis_dates = TRUE,
       y_axis_title_size = 8
@@ -325,9 +331,9 @@ get_plot_score_by_horizon_t <- function(scores,
     ylab(glue::glue("Average {score_display_name}")) +
     ggtitle(glue::glue(
       "Average {score_display_name} over time, across locations"
-      )) +
-      theme(legend.position = "bottom") +
-      guides(color = guide_legend(nrow = 2))
+    )) +
+    theme(legend.position = "bottom") +
+    guides(color = guide_legend(nrow = 2))
 
   return(p)
 }
