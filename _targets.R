@@ -82,8 +82,20 @@ configuration_targets <- list(
     command = fs::dir_create(eval_config$figure_dir)
   ),
   tar_target(
-    name = save_fig,
-    command = purrr::partial(save_figure, dir = fig_output_dir)
+    name = fig_main_dir,
+    command = fs::dir_create(fs::path(fig_output_dir, "main"))
+  ),
+  tar_target(
+    name = fig_supp_dir,
+    command = fs::dir_create(fs::path(fig_output_dir, "supp"))
+  ),
+  tar_target(
+    name = save_fig_main,
+    command = purrr::partial(save_figure, dir = fig_main_dir)
+  ),
+  tar_target(
+    name = save_fig_supp,
+    command = purrr::partial(save_figure, dir = fig_supp_dir)
   ),
   tar_target(
     name = scored_forecast_dates,
@@ -903,7 +915,7 @@ hub_comparison_targets <- list(
   ),
   tar_target(
     name = save_qq_plot_real_time,
-    command = save_fig(
+    command = save_fig_supp(
       qq_plot_real_time,
       base_width = 7,
       base_height = 7
@@ -924,7 +936,7 @@ hub_comparison_targets <- list(
   ),
   tar_target(
     name = save_interval_coverage_plot_real_time,
-    command = save_fig(
+    command = save_fig_supp(
       interval_coverage_plot_real_time,
       base_width = 10,
       base_height = 6
@@ -944,7 +956,7 @@ hub_comparison_targets <- list(
   ),
   tar_target(
     name = save_figure_rel_performance_real_time,
-    command = save_fig(
+    command = save_fig_main(
       figure_rel_performance_real_time,
       base_width = 10,
       base_height = 12
@@ -1176,7 +1188,7 @@ hub_comparison_targets <- list(
   ),
   tar_target(
     name = save_figure_hub_comparison_real_time,
-    command = save_fig(
+    command = save_fig_main(
       figure_hub_comparison_real_time,
       base_width = 10,
       base_height = 12
@@ -1185,7 +1197,7 @@ hub_comparison_targets <- list(
   ),
   tar_target(
     name = save_figure_hub_comparison_all_time,
-    command = save_fig(
+    command = save_fig_main(
       figure_hub_comparison_all_time,
       base_width = 10,
       base_height = 12
@@ -1293,7 +1305,7 @@ trend_analysis_targets <- list(
     ),
     tar_target(
       name = save_fig_trend_diff_scatter,
-      command = save_fig(
+      command = save_fig_supp(
         fig_trend_diff_scatter
       ),
       format = "file"
@@ -1457,7 +1469,7 @@ composite_figure_targets <- list(
   ),
   tar_target(
     name = save_figure_pred_act_three_locs,
-    command = save_fig(
+    command = save_fig_main(
       figure_pred_act_three_locs,
       base_width = 10,
       base_height = 12
@@ -1602,7 +1614,7 @@ composite_figure_targets <- list(
   ),
   tar_target(
     name = save_figure_example_scores,
-    command = save_fig(
+    command = save_fig_main(
       figure_example_scores,
       base_width = 10,
       base_height = 12
@@ -1684,7 +1696,7 @@ composite_figure_targets <- list(
   ),
   tar_target(
     name = save_decomposed_crps_t_cfa_models_all_time,
-    command = save_fig(
+    command = save_fig_supp(
       decomposed_crps_t_cfa_models_all_time,
       base_width = 7,
       base_height = 5
@@ -1712,7 +1724,7 @@ composite_figure_targets <- list(
   ),
   tar_target(
     name = save_decomposed_crps_loc_cfa_models_all_time,
-    command = save_fig(
+    command = save_fig_supp(
       decomposed_crps_loc_cfa_models_all_time,
       base_width = 10,
       base_height = 5
@@ -1757,7 +1769,7 @@ composite_figure_targets <- list(
   ),
   tar_target(
     name = save_qq_plot_retro_all_time,
-    command = save_fig(qq_plot_retro_all_time),
+    command = save_fig_supp(qq_plot_retro_all_time),
     format = "file"
   ),
   tar_target(
@@ -1770,7 +1782,7 @@ composite_figure_targets <- list(
   ),
   tar_target(
     name = save_coverage_plot_retro_all_time,
-    command = save_fig(
+    command = save_fig_supp(
       coverage_plot_retro_all_time,
       base_width = 10,
       base_height = 6
@@ -1790,7 +1802,7 @@ composite_figure_targets <- list(
   ),
   tar_target(
     name = save_figure_rel_performance_all_time,
-    command = save_fig(
+    command = save_fig_main(
       figure_rel_performance_all_time,
       base_width = 10,
       base_height = 12
@@ -1884,7 +1896,7 @@ additional_figure_targets <- list(
   ),
   tar_target(
     name = save_heatmap_hub_wis_retro,
-    command = save_fig(
+    command = save_fig_supp(
       plot_heatmap_hub_wis_retro,
       base_width = 10,
       base_height = 5
@@ -1904,7 +1916,7 @@ additional_figure_targets <- list(
   ),
   tar_target(
     name = save_heatmap_crps_retro,
-    command = save_fig(
+    command = save_fig_supp(
       plot_heatmap_crps_retro,
       base_width = 10,
       base_height = 5
@@ -1924,7 +1936,7 @@ additional_figure_targets <- list(
   ),
   tar_target(
     name = save_heatmap_wis_real_time,
-    command = save_fig(
+    command = save_fig_supp(
       plot_heatmap_wis_real_time,
       base_width = 10,
       base_height = 5
@@ -2036,7 +2048,7 @@ additional_figure_targets <- list(
     ),
     tar_target(
       name = save_plot_ww_feb,
-      command = save_fig(
+      command = save_fig_supp(
         plot_ww_feb,
         base_width = 7,
         base_height = 7
@@ -2073,7 +2085,7 @@ additional_figure_targets <- list(
     ),
     tar_target(
       name = save_score_scatter_real_time,
-      command = save_fig(
+      command = save_fig_supp(
         plot_score_scatter_real_time,
         base_width = 5,
         base_height = 5
@@ -2110,7 +2122,7 @@ additional_figure_targets <- list(
     ),
     tar_target(
       name = save_score_scatter_retro,
-      command = save_fig(
+      command = save_fig_supp(
         plot_score_scatter_retro,
         base_width = 5,
         base_height = 5
