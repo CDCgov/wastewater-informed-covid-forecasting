@@ -99,13 +99,6 @@ create_hub_submissions <- function(
     )
 
     if (isTRUE(save_files)) {
-      stopifnot(
-        "Don't have forecasts for all locations, not writing to disk" = n_locs >=
-          51 # temporarily relax bc model convergence flags can
-        # lead to missing models for hosp model as well, in which case we wouldn't
-        # have submitted
-      )
-
       wwinference::create_dir(file.path(hub_subdir, model_name))
 
       readr::write_csv(
