@@ -1960,12 +1960,20 @@ additional_figure_targets <- list(
     )
   ),
   tar_target(
-    name = plot_crps_over_time_comp,
+    name = fig_crps_over_time_comp,
     command = get_plot_score_by_horizon_t(
       crps_cfa_models_all_time,
-      score_type = "crps",
-      fig_file_dir = fig_output_dir
+      score_type = "crps"
     )
+  ),
+  tar_target(
+    name = save_fig_crps_over_time_comp,
+    command = save_fig_supp(
+      fig_crps_over_time_comp,
+      base_height = 8,
+      base_width = 4
+    ),
+    format = "file"
   ),
   tar_target(
     name = plot_n_sites_vs_performance,
