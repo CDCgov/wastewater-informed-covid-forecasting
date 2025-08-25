@@ -1,0 +1,2 @@
+extend-include = ["*.ipynb"]
+line-length = 79

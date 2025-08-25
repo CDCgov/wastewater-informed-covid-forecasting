@@ -30,7 +30,7 @@ def main(pool_name: str) -> None:
     mount_config = blob.get_node_mount_config(
         storage_containers=[
             "wastewater-input",
-            "wastewater-test-output",
+            "wastewater-ms-output",
         ],
         mount_names=["input", "output"],
         account_names=creds.azure_blob_storage_account,
@@ -41,7 +41,7 @@ def main(pool_name: str) -> None:
         subnet_id=creds.azure_subnet_id,
         user_assigned_identity=creds.azure_user_assigned_identity,
         mount_configuration=mount_config,
-        vm_size="standard_d4s_v3",
+        vm_size="standard_e8s_v3",
     )
 
     d.assign_container_config(
