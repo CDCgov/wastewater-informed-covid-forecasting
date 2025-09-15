@@ -11,9 +11,8 @@
 #'
 #' @param scores table of scores, as the output of
 #' [scoringutils::score()]
-#' @param target_model Target model (numerator for the relative scores)
-#' @param baseline_model Baseline model
-#' (denominator for the relative scores)
+#' @param target_models Target model(s) (numerator for the relative scores)
+#' @param baseline_model Baseline model (denominator for the relative scores)
 #' @param by columns to summarize by. Passed as the `by` argument
 #' to [forecasttools::summarise_scores_with_baseline()].
 #' @param metric_to_compare Metric for which to compute
@@ -21,38 +20,137 @@
 #' Passed as the `metric_to_compare` argument
 #' to [scoringutils::get_pairwise_comparisons()] via
 #' [forecasttools::summarise_scores_with_baseline()].
+#' @param retain_baseline Retain the baseline model (with its
+#' relative scores of 1) alongside the target models(s)? Default
+#' `FALSE`.
 #' @return The relative scores for the target model, as a table.
 #' @keywords internal
 .target_model_relative_scores <- function(
   scores,
-  target_model,
+  target_models,
   baseline_model,
   metric_to_compare,
-  by = NULL
+  by = NULL,
+  retain_baseline = FALSE
 ) {
   checkmate::assert_scalar(metric_to_compare)
   metric_to_compare <- tolower(metric_to_compare)
   checkmate::assert_names(metric_to_compare, subset.of = c("wis", "crps"))
-  return(
-    dplyr::filter(
-      scores,
-      .data$model %in% c(!!target_model, !!baseline_model)
-    ) |>
-      forecasttools::summarise_scores_with_baseline(
-        compare = "model",
-        baseline = baseline_model,
-        by = by,
-        metric_to_compare = metric_to_compare
-      ) |>
-      dplyr::filter(.data$model == !!target_model)
-  )
+  df <- dplyr::filter(
+    scores,
+    .data$model %in% c(!!target_models, !!baseline_model)
+  ) |>
+    forecasttools::summarise_scores_with_baseline(
+      compare = "model",
+      baseline = baseline_model,
+      by = by,
+      metric_to_compare = metric_to_compare
+    )
+
+  if (!retain_baseline) {
+    df <- dplyr::filter(df, .data$model != !!baseline_model)
+  }
+
+  return(df)
+}
+
+#' Plot a timeseries of relative scores versus time
+#'
+#' @param scores Output of [scoringutils::score()], not yet summarized.
+#' @param target_models Model for which to plot relative scores
+#' @param baseline_model Baseline model for the relative scores
+#' computation.
+#' @param metric_to_compare Metric for which to plot relative
+#' scores. One of `"wis"` or `"crps"`. Not case-sensitive.
+#' @param x Name of the column defining the x axis (typically time)
+#' Default `"forecast_date"`.
+#' @param by additional variables defining a single score to plot.
+#' Passed along with the variable defined by `x` as the `by` argument to
+#' [forecasttools::summarise_scores_with_baseline()]. Default `NULL`
+#' (do not summarize over additional variables).
+#' @param retain_baseline Retain the baseline model (with its
+#' relative scores of 1) alongside the target models(s)? Default
+#' `FALSE`.
+#' @param model_z_order z-order in which to overplot the individual models,
+#' ascending (so the last named model is plotted on top). If `NULL` (default),
+#' plot the the models in order of overall score, so that the lowest (best) scoring
+#' models are on top.
+#' @return a ggplot object with the distributions plotted by
+#' forecast date.
+#' @export
+plot_rel_score_t <- function(
+  scores,
+  target_models,
+  baseline_model,
+  metric_to_compare,
+  x = "forecast_date",
+  by = NULL,
+  retain_baseline = FALSE,
+  model_z_order = NULL
+) {
+  if (is.null(model_z_order)) {
+    model_z_order <- scores |>
+      scoringutils::summarise_scores(by = "model") |>
+      dplyr::arrange(desc(.data[[metric_to_compare]])) |>
+      # want lowest (best) overall score plotted on top
+      dplyr::pull("model")
+  }
+
+  rel_scores <- .target_model_relative_scores(
+    scores = scores,
+    target_models = target_models,
+    baseline_model = baseline_model,
+    metric_to_compare = metric_to_compare,
+    by = c(x, by),
+    retain_baseline = retain_baseline
+  ) |>
+    order_col("model", model_z_order)
+
+  p <- ggplot(
+    rel_scores,
+    aes(
+      x = .data$forecast_date,
+      y = .data$mean_scores_ratio,
+      color = .data$model
+    )
+  ) +
+    geom_hline(yintercept = 1, linetype = "dashed", linewidth = 1.5) +
+    forecasttools::geom_line_point(
+      linewidth = 2,
+      size = 3
+    ) +
+    labs(
+      y = glue::glue("Relative {toupper(metric_to_compare)}"),
+      x = x
+    ) +
+    get_plot_theme(
+      x_axis_dates = TRUE,
+      y_axis_title_size = 8
+    ) +
+    theme(axis.title.x = element_blank()) +
+    scale_x_date(
+      date_breaks = "1 week",
+      date_labels = "%Y-%m-%d",
+      expand = ggplot2::expansion(mult = 0, add = 3.5)
+    ) +
+    coord_cartesian(
+      expand = TRUE,
+      ylim = forecasttools::sym_limits(
+        rel_scores$mean_scores_ratio,
+        transform = "log10"
+      )
+    ) +
+    scale_y_continuous(transform = "log10") +
+    scale_color_model()
+
+  return(p)
 }
 
 #' Make a dotsinterval plot of relative scores
 #' stratified by specified variables.
 #'
 #' @param scores Output of [scoringutils::score()].
-#' @param target_model Model for which to plot relative scores
+#' @param target_models Model for which to plot relative scores
 #' @param baseline_model Baseline model for the relative scores
 #' computation.
 #' @param metric_to_compare Metric for which to plot relative
@@ -71,7 +169,7 @@
 #' @export
 plot_rel_score_dists <- function(
   scores,
-  target_model,
+  target_models,
   baseline_model,
   metric_to_compare,
   x = NULL,
@@ -80,7 +178,7 @@ plot_rel_score_dists <- function(
 ) {
   relative_scores <- .target_model_relative_scores(
     scores = scores,
-    target_model = target_model,
+    target_models = target_models,
     baseline_model = baseline_model,
     metric_to_compare = metric_to_compare,
     by = c(x, by)
@@ -151,7 +249,7 @@ plot_rel_score_dists <- function(
 #'
 #' @param scores A tibble of daily scores by forecast date, location,
 #' and model
-#' @param target_model Model for which to plot relative CRPS
+#' @param target_models Model for which to plot relative CRPS
 #' @param baseline_model Baseline model for the relative CRPS
 #' @param metric_to_compare Metric for which to compute the
 #' relative score. One of `"wis"` or `"crps"`. Passed as the
@@ -162,13 +260,13 @@ plot_rel_score_dists <- function(
 #' @export
 plot_rel_score_heatmap <- function(
   scores,
-  target_model,
+  target_models,
   baseline_model,
   metric_to_compare
 ) {
   relative_scores <- .target_model_relative_scores(
     scores = scores,
-    target_model = target_model,
+    target_models = target_models,
     baseline_model = baseline_model,
     by = c("forecast_date", "location"),
     metric_to_compare = metric_to_compare
@@ -225,7 +323,7 @@ plot_rel_score_heatmap <- function(
 #'
 #' @param scores table of scores by horizon day,
 #' forecast date, and location
-#' @param target_model Model for which to plot relative CRPS
+#' @param target_models Model for which to plot relative CRPS
 #' @param baseline_model Baseline model for the relative CRPS
 #' @param metric_to_compare Metric for which to compute the
 #' relative score. One of `"wis"` or `"crps"`. Passed as the
@@ -237,13 +335,13 @@ plot_rel_score_heatmap <- function(
 #' @export
 plot_rel_score_distribution <- function(
   scores,
-  target_model,
+  target_models,
   baseline_model,
   metric_to_compare
 ) {
   relative_scores <- .target_model_relative_scores(
     scores = scores,
-    target_model = target_model,
+    target_models = target_models,
     baseline_model = baseline_model,
     metric_to_compare = metric_to_compare,
     by = c("location", "forecast_date")
@@ -276,7 +374,7 @@ plot_rel_score_distribution <- function(
 #' Make figure that stratifies across location and forecast dates
 #'
 #' @param scores output of [scoringutils::score()].
-#' @param target_model Model for which to plot relative scores
+#' @param target_models Model for which to plot relative scores
 #' @param baseline_model Baseline model for the relative scores
 #' @param metric_to_compare Metric for which to compute the
 #' relative score. One of `"wis"` or `"crps"`. Passed as the
@@ -293,7 +391,7 @@ plot_rel_score_distribution <- function(
 plot_rel_score_dists_by_horizon <- function(
   # nolint end
   scores,
-  target_model,
+  target_models,
   baseline_model,
   metric_to_compare,
   horizons_to_show = c(
@@ -314,13 +412,11 @@ plot_rel_score_dists_by_horizon <- function(
     )
   relative_scores <- .target_model_relative_scores(
     scores = scores,
-    target_model = target_model,
+    target_models = target_models,
     baseline_model = baseline_model,
     metric_to_compare = metric_to_compare,
     by = c("forecast_date", "location", "horizon")
   )
-
-  colors <- plot_components()
 
   p <- ggplot(
     data = relative_scores,
@@ -351,8 +447,8 @@ plot_rel_score_dists_by_horizon <- function(
       y_axis_title_size = 8,
       x_axis_title_size = 8
     ) +
-    scale_fill_manual(values = colors$horizon_colors) +
-    scale_color_manual(values = colors$horizon_colors)
+    scale_fill_horizon() +
+    scale_color_horizon()
 
   return(p)
 }

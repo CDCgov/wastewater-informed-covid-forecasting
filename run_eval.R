@@ -115,6 +115,10 @@ parsed <- arg_parser("Run eval pipeline for one forecast problem") |>
     help = "Maximum tree depth for the No-U-Turn sampler."
   ) |>
   add_argument(
+    "--scoring-offset",
+    help = "Offset to use when scoring on transformed scales."
+  ) |>
+  add_argument(
     "--task-type",
     help = "Task to run. One of 'fit' and 'postprocess'"
   ) |>

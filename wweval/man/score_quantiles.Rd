@@ -5,7 +5,7 @@
 \title{Get the scores for every day for a location, forecast date, and scenario
 from the quantiles during the forecast period}
 \usage{
-score_quantiles(quantiles, scenario, metrics = quantile_metrics, offset = 1)
+score_quantiles(quantiles, scenario, offset, metrics = quantile_metrics)
 }
 \arguments{
 \item{quantiles}{a dataframe of the model estimated quantiles alongside
@@ -15,13 +15,13 @@ only}
 \item{scenario}{a string indicating the wastewater data scenario we're
 running}
 
+\item{offset}{Offset to use when transforming forecasts
+with \code{\link[scoringutils:log_shift]{scoringutils::log_shift()}} via
+\code{\link[scoringutils:transform_forecasts]{scoringutils::transform_forecasts()}}.}
+
 \item{metrics}{Vector of scoring metrics to output, passed as the
 \code{metrics} argument to \code{\link[scoringutils:score]{scoringutils::score()}}. Default
 \link{quantile_metrics}}
-
-\item{offset}{Offset to use when transforming forecasts
-with \code{\link[scoringutils:log_shift]{scoringutils::log_shift()}} via
-\code{\link[scoringutils:transform_forecasts]{scoringutils::transform_forecasts()}}. Default \code{1}.}
 }
 \value{
 a dataframe containing a score for each day in the nowcast

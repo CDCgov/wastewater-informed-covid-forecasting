@@ -255,7 +255,7 @@ score_hub_forecasts <- function(hub_forecasts) {
       )
     ) |>
     dplyr::mutate(
-      horizon_weeks = .data$horizon_days %/% 7 + 1,
+      horizon_weeks = .data$horizon_days %/% 7,
       horizon = glue::glue("{horizon_weeks} week ahead")
     ) |>
     dplyr::select(-"horizon_weeks", -"horizon_days")

@@ -9,15 +9,13 @@ compute_forecast_differences(
   location,
   scenario,
   raw_output_dir,
-  offset = 1
+  log_diff_offset
 )
 }
 \arguments{
-\item{forecast_date}{forecast_date for which to fits recent data
-trends. Data for an actual forecast must already have been produced
-and exist in \code{raw_output_dir}.}
+\item{forecast_date}{Forecast date for which to compute differences.}
 
-\item{location}{Location for which to fit trends.}
+\item{location}{Location for which to compute differences.}
 
 \item{scenario}{Wastewater data availability scenario to analyze.}
 
@@ -25,8 +23,8 @@ and exist in \code{raw_output_dir}.}
 Used to obtain the admissions and wastewater data used in fitting
 the forecasting model.}
 
-\item{offset}{to add to incidences when computing a log difference.
-Default \code{1}.}
+\item{log_diff_offset}{Offset to add to incidences when
+computing a log difference.}
 }
 \value{
 Posterior of the difference in total incidence

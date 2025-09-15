@@ -14,7 +14,8 @@ plot_score_decomposed_bars(
 )
 }
 \arguments{
-\item{scores}{quantile based scores from the hub}
+\item{scores}{Output table produced by \code{\link[scoringutils:score]{scoringutils::score()}} or
+\code{\link[scoringutils:summarise_scores]{scoringutils::summarise_scores()}}.}
 
 \item{x}{Column containing x values. Default "model".}
 

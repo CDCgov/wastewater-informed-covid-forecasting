@@ -7,7 +7,7 @@ for individual location/forecast-date forecast problems.}
 \usage{
 plot_rel_score_distribution(
   scores,
-  target_model,
+  target_models,
   baseline_model,
   metric_to_compare
 )
@@ -16,7 +16,7 @@ plot_rel_score_distribution(
 \item{scores}{table of scores by horizon day,
 forecast date, and location}
 
-\item{target_model}{Model for which to plot relative CRPS}
+\item{target_models}{Model for which to plot relative CRPS}
 
 \item{baseline_model}{Baseline model for the relative CRPS}
 

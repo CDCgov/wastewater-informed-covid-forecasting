@@ -16,7 +16,8 @@ postprocess_successful_fit(
   input_hosp_data_wweval,
   input_ww_data_wweval,
   eval_hosp_data,
-  eval_ww_data
+  eval_ww_data,
+  offset
 )
 }
 \arguments{
@@ -45,6 +46,10 @@ as serialized \code{.rds} files.}
 \item{eval_hosp_data}{Evaluation hospital admissions data in newer \code{wwinference} format.}
 
 \item{eval_ww_data}{Evaluation wastewater admissions data in newer \code{wwinference} format.}
+
+\item{offset}{Offset to use when transforming forecasts
+with \code{\link[scoringutils:log_shift]{scoringutils::log_shift()}} via
+\code{\link[scoringutils:transform_forecasts]{scoringutils::transform_forecasts()}}.}
 }
 \value{
 Nothing, saving results to disk as a side effect.

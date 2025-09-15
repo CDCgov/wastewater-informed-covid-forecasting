@@ -16,6 +16,7 @@ eval_postprocess(
   scenario_dir,
   output_dir,
   raw_output_dir,
+  scoring_offset,
   max_eval_data_days = 365
 )
 }
@@ -47,6 +48,10 @@ postprocess output.}
 
 \item{raw_output_dir}{Path to a directory in which to save
 raw output as serialized \code{.rds} files.}
+
+\item{scoring_offset}{Offset to use when transforming forecasts
+with \code{\link[scoringutils:log_shift]{scoringutils::log_shift()}} via
+\code{\link[scoringutils:transform_forecasts]{scoringutils::transform_forecasts()}}.}
 
 \item{max_eval_data_days}{Maximum number of days of data to pull
 when creating evaluation dataset. Default 365.}
