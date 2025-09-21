@@ -5,14 +5,15 @@
 \title{Light wrapper function for converting a dataframe column
 to an ordered factors.}
 \usage{
-order_col(df, col, levels)
+order_col(df, col, levels = NULL)
 }
 \arguments{
 \item{df}{Data frame to transform}
 
 \item{col}{column to transform}
 
-\item{levels}{levels for the column, in ascending order..}
+\item{levels}{levels for the column, in ascending order.
+If \code{NULL} (default) use the current ordering in the column.}
 }
 \value{
 A copy of the data frame with the \code{col} column transformed

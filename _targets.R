@@ -552,9 +552,8 @@ collated_output_targets <- list(
 
 
 real_time_rel_targets <- list(
-  # first load all forecasts, then construct the filtering table and filter
   tar_target(
-    name = unfiltered_crps_cfa_models_real_time,
+    name = unfiltered_crps_cfa_models_real_time, # nolint
     command = score_real_time_outputs(
       score_type = "crps",
       real_time_output_dir = eval_config$real_time_output_dir,
@@ -1100,37 +1099,42 @@ hub_comparison_targets <- list(
       )
   ),
   tar_target(
+    name = hub_scores_plot_all_time,
+    command = dplyr::filter(
+      hub_scores,
+
+      !.data$model %in%
+        c(
+          "cfa-wwrenewal(real-time)",
+          "cfa-hosponlyrenewal(real-time*)"
+        )
+    )
+  ),
+  tar_target(
+    name = hub_scores_plot_real_time,
+    command = dplyr::filter(
+      hub_scores,
+      !.data$model %in%
+        c(
+          "cfa-wwrenewal(retro)",
+          "cfa-hosponlyrenewal(retro)"
+        )
+    )
+  ),
+  tar_target(
     name = hub_barplot_wis_all_time,
-    command = hub_scores |>
-      dplyr::filter(
-        !model %in%
-          c(
-            "cfa-wwrenewal(real-time)",
-            "cfa-hosponlyrenewal(real-time*)"
-          )
-      ) |>
+    command = hub_scores_plot_all_time |>
       scoringutils::summarise_scores(by = "model") |>
       dplyr::arrange(.data$wis) |>
-      dplyr::mutate(
-        model = factor(.data$model, levels = .data$model, ordered = TRUE)
-      ) |>
+      order_col("model") |>
       plot_score_decomposed_bars(color = "black")
   ),
   tar_target(
     name = hub_barplot_wis_real_time,
-    command = hub_scores_real_time |>
-      dplyr::filter(
-        !model %in%
-          c(
-            "cfa-wwrenewal(retro)",
-            "cfa-hosponlyrenewal(retro)"
-          )
-      ) |>
+    command = hub_scores_plot_real_time |>
       scoringutils::summarise_scores(by = "model") |>
       dplyr::arrange(.data$wis) |>
-      dplyr::mutate(
-        model = factor(.data$model, levels = .data$model, ordered = TRUE)
-      ) |>
+      order_col("model") |>
       plot_score_decomposed_bars(color = "black")
   ),
   tar_target(

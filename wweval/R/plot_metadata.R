@@ -36,6 +36,7 @@ get_summary_metadata <- function(metadata) {
   return(summary_table)
 }
 
+
 #' Get a heatmap of the metadata of reasons for excluding forecasts from analysis
 #'
 #' @param metadata a tibble of location -forecast date metadata
@@ -113,7 +114,6 @@ get_heatmap_metadata <- function(metadata, type_of_analysis, fig_file_dir) {
 
   return(p)
 }
-
 
 #' Get a heatmap of the metadata of Hub models submitted
 #'
