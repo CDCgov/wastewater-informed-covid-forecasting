@@ -412,20 +412,6 @@ postprocess_successful_fit <- function(
   purrr::iwalk(hist_table_params, plot_and_save_param)
   message("Done plotting histograms.")
 
-  if (ww_model) {
-    message("Plotting ww growth rates..")
-
-    ## Plots of overlaid exponential growth rates in ww vs hosp
-    plot_growth_rates <- get_growth_rate_plot(
-      input_hosp_data_wweval,
-      input_ww_data_wweval,
-      location,
-      forecast_date,
-      rate = "weekly"
-    )
-    ggsave_plot(plot_growth_rates)
-  }
-
   hosp_draws <- NULL
   ww_draws <- NULL
 
