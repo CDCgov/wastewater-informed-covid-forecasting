@@ -2,7 +2,7 @@
 % Please edit documentation in R/hub_comparison_figure.R
 \name{summarize_std_rank}
 \alias{summarize_std_rank}
-\title{Summarize standardize rank with medians and 25th,75th percentiles}
+\title{Summarize standardized ranks with medians and 25th,75th percentiles}
 \usage{
 summarize_std_rank(scores)
 }
@@ -14,5 +14,5 @@ A table with median, 25th, and 75th percentiles of standard
 ranking for each model
 }
 \description{
-Summarize standardize rank with medians and 25th,75th percentiles
+Summarize standardized ranks with medians and 25th,75th percentiles
 }
