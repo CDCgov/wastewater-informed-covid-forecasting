@@ -35,17 +35,17 @@ def base_call(
             f"--ww-data-dir {eval_spec['ww_data_dir']} "
             f'--ww-data-mapping "{eval_spec["ww_data_mapping"]}" '
             f"--scenario-dir {eval_spec['scenario_dir']} "
-            f"--calibration-time {eval_spec['calibration_time']} "
-            f"--forecast-horizon {eval_spec['forecast_time']} "
+            f"--calibration-time {int(eval_spec['calibration_time'])} "
+            f"--forecast-horizon {int(eval_spec['forecast_time'])} "
             f"--params-path input/params.toml "
             f"--output-dir {eval_spec['output_dir']} "
             f"--raw-output-dir {eval_spec['raw_output_dir']} "
-            f"--seed {eval_spec['seed']} "
-            f"--iter-sampling {eval_spec['iter_sampling']} "
-            f"--n-chains {eval_spec['n_chains']} "
-            f"--adapt-delta {eval_spec['adapt_delta']} "
-            f"--max-treedepth {eval_spec['max_treedepth']} "
-            f"--scoring-offset {eval_spec['scoring_offset']} "
+            f"--seed {int(eval_spec['seed'])} "
+            f"--iter-sampling {int(eval_spec['iter_sampling'])} "
+            f"--n-chains {int(eval_spec['n_chains'])} "
+            f"--adapt-delta {float(eval_spec['adapt_delta'])} "
+            f"--max-treedepth {int(eval_spec['max_treedepth'])} "
+            f"--scoring-offset {float(eval_spec['scoring_offset'])} "
             f"--task-type {task_type}"
             "'"
         )
@@ -63,7 +63,7 @@ def base_call(
             f"{int(eval_spec['seed'])} "
             f"--iter-sampling {int(eval_spec['iter_sampling'])} "
             f"--n-chains {int(eval_spec['n_chains'])} "
-            f"--adapt-delta {eval_spec['adapt_delta']} "
+            f"--adapt-delta {float(eval_spec['adapt_delta'])} "
             f"--max-treedepth {int(eval_spec['max_treedepth'])}"
             "'"
         )
@@ -76,7 +76,7 @@ def base_call(
             f"{scenario} "
             f"{eval_spec['raw_output_dir']} "
             f"{eval_spec['output_dir']} "
-            f"{eval_spec['forecast_log_diff_offset']}"
+            f"{float(eval_spec['forecast_log_diff_offset'])}"
             "'"
         )
     else:
