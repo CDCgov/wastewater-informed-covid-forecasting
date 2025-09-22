@@ -1181,8 +1181,8 @@ hub_comparison_targets <- list(
     name = save_fig_std_rank_all_time,
     command = save_fig_supp(
       fig_std_rank_all_time,
-      base_width = 4,
-      base_height = 8
+      base_width = 7,
+      base_height = 7
     ),
     format = "file"
   ),
@@ -1197,8 +1197,8 @@ hub_comparison_targets <- list(
     name = save_fig_std_rank_real_time,
     command = save_fig_supp(
       fig_std_rank_real_time,
-      base_width = 4,
-      base_height = 8
+      base_width = 7,
+      base_height = 7
     ),
     format = "file"
   ),
