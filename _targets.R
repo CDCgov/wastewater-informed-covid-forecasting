@@ -1189,8 +1189,8 @@ hub_comparison_targets <- list(
   tar_target(
     name = fig_std_rank_real_time,
     command = plot_std_rank_distribution(
-        scores = hub_scores_plot_real_time,
-        models_to_show = models_to_plot
+      scores = hub_scores_plot_real_time,
+      models_to_show = models_to_plot
     )
   ),
   tar_target(

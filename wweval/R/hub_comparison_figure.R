@@ -330,7 +330,8 @@ plot_heatmap_relative_wis <- function(
     ) |>
     dplyr::group_by(.data$forecast_date, .data$location) |>
     dplyr::mutate(
-      std_rank = dplyr::percent_rank(.data$wis)) |>
+      std_rank = dplyr::percent_rank(.data$wis)
+    ) |>
     dplyr::mutate(
       model = stats::reorder(
         .data$model,
@@ -339,7 +340,7 @@ plot_heatmap_relative_wis <- function(
           quantile(x, probs = 0.25, na.rm = TRUE)
         }
       )
-      )
+    )
   return(std_ranks)
 }
 
@@ -362,13 +363,11 @@ plot_std_rank_distribution <- function(
   scores,
   models_to_show
 ) {
+  ranks <- .compute_standardized_ranks(scores) |>
+    dplyr::filter(model %in% !!models_to_show)
 
-
-    ranks <- .compute_standardized_ranks(scores) |>
-        dplyr::filter(model %in% !!models_to_show)
-
-    p <- ggplot(
-        ranks,
+  p <- ggplot(
+    ranks,
     aes(
       x = std_rank,
       y = model,
@@ -410,7 +409,6 @@ plot_std_rank_distribution <- function(
 #' ranking for each model
 #' @export
 summarize_std_rank <- function(scores) {
-
   ranks <- .compute_standardized_ranks(scores)
   summarize_std_rank <- ranks |>
     dplyr::group_by(.data$model) |>
