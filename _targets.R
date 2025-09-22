@@ -1119,7 +1119,8 @@ hub_comparison_targets <- list(
           "cfa-hosponlyrenewal(retro)"
         ),
       .data$forecast_date >= .env$first_real_time_forecast_date
-      )
+      ) |>
+        with_dependencies(first_real_time_forecast_date)
   ),
   tar_target(
     name = hub_barplot_wis_all_time,
