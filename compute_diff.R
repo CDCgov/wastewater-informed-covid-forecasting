@@ -51,7 +51,8 @@ parsed <- arg_parser(
   ) |>
   add_argument(
     "log_diff_offset",
-    help = "Offset for computing log forecast differences"
+    help = "Offset for computing log forecast differences",
+    type = "numeric"
   ) |>
   parse_args()
 
@@ -67,5 +68,5 @@ compute_diff(
   scenario = parsed$scenario,
   raw_output_dir = parsed$raw_output_dir,
   processed_output_dir = parsed$processed_output_dir,
-  log_diff_offset = as.numeric(parsed$log_diff_offset)
+  log_diff_offset = parsed$log_diff_offset
 )
