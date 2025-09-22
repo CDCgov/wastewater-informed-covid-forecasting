@@ -1107,7 +1107,7 @@ hub_comparison_targets <- list(
           "cfa-wwrenewal(real-time)",
           "cfa-hosponlyrenewal(real-time*)"
         )
-      )
+    )
   ),
   tar_target(
     name = hub_scores_plot_real_time,
@@ -1119,8 +1119,8 @@ hub_comparison_targets <- list(
           "cfa-hosponlyrenewal(retro)"
         ),
       .data$forecast_date >= .env$first_real_time_forecast_date
-      ) |>
-        with_dependencies(first_real_time_forecast_date)
+    ) |>
+      with_dependencies(first_real_time_forecast_date)
   ),
   tar_target(
     name = hub_barplot_wis_all_time,
@@ -1190,8 +1190,8 @@ hub_comparison_targets <- list(
   tar_target(
     name = fig_std_rank_real_time,
     command = plot_std_rank_distribution(
-        scores = hub_scores_plot_real_time,
-        models_to_show = models_to_plot
+      scores = hub_scores_plot_real_time,
+      models_to_show = models_to_plot
     )
   ),
   tar_target(
