@@ -323,6 +323,25 @@ plot_heatmap_relative_wis <- function(
   return(p)
 }
 
+.compute_standardized_ranks <- function(scores) {
+  std_ranks <- scores |>
+    scoringutils::summarise_scores(
+      by = c("model", "location", "forecast_date")
+    ) |>
+    dplyr::group_by(.data$forecast_date, .data$location) |>
+    dplyr::mutate(
+      std_rank = dplyr::percent_rank(.data$wis)) |>
+    dplyr::mutate(
+      model = stats::reorder(
+        .data$model,
+        .data$std_rank,
+        FUN = function(x) {
+          quantile(x, probs = 0.25, na.rm = TRUE)
+        }
+      )
+      )
+  return(std_ranks)
+}
 
 #' Make a figure of the distribution of standardized WIS rank
 #'
@@ -343,52 +362,13 @@ plot_std_rank_distribution <- function(
   scores,
   models_to_show
 ) {
-  summarized_scores <- scores |>
-    scoringutils::summarise_scores(
-      by = c("model", "location", "forecast_date")
-    )
 
-  scores_ranked <- summarized_scores |>
-    dplyr::group_by(.data$forecast_date, .data$location) |>
-    dplyr::mutate(
-      rank = dplyr::dense_rank(dplyr::desc(.data$wis)),
-      std_rank = .data$rank / max(.data$rank)
-    ) |>
-    dplyr::mutate(
-      model = stats::reorder(
-        .data$model,
-        .data$std_rank,
-        FUN = function(x) {
-          quantile(x, probs = 0.25, na.rm = TRUE)
-        }
-      )
-    )
 
-  fq <- scores_ranked |>
-    dplyr::group_by(model) |>
-    dplyr::summarize(
-      first_quantile = quantile(
-        std_rank,
-        probs = 0.25,
-        na.rm = TRUE
-      )
-    ) |>
-    dplyr::arrange(first_quantile) |>
-    dplyr::mutate(
-      fig_order = dplyr::row_number()
-    )
+    ranks <- .compute_standardized_ranks(scores) |>
+        dplyr::filter(model %in% !!models_to_show)
 
-  # Can't externally compute fig_order here because is dependent on the scores
-  # based on the quantile ranking
-  scores_ranked_ordered <- scores_ranked |>
-    dplyr::left_join(fq, by = "model") |>
-    dplyr::mutate(
-      model = forcats::fct_reorder(model, fig_order)
-    ) |>
-    dplyr::filter(model %in% !!models_to_show)
-
-  p <- ggplot(
-    scores_ranked_ordered,
+    p <- ggplot(
+        ranks,
     aes(
       x = std_rank,
       y = model,
@@ -414,7 +394,7 @@ plot_std_rank_distribution <- function(
     scale_fill_viridis_d(guide = "none") +
     get_plot_theme() +
     scale_x_continuous(
-      name = "Standardized rank",
+      name = "Standardized Rank",
       limits = c(0, 1)
     ) +
     ylab("")
@@ -422,7 +402,7 @@ plot_std_rank_distribution <- function(
   return(p)
 }
 
-#' Summarize standardize rank with medians and 25th,75th percentiles
+#' Summarize standardized ranks with medians and 25th,75th percentiles
 #'
 #' @param scores A tibble of the individual day and location's scores
 #'
@@ -430,24 +410,9 @@ plot_std_rank_distribution <- function(
 #' ranking for each model
 #' @export
 summarize_std_rank <- function(scores) {
-  summarized_scores <- scores |>
-    scoringutils::summarise_scores(
-      by = c("model", "location", "forecast_date")
-    )
 
-  scores_ranked <- summarized_scores |>
-    dplyr::group_by(.data$forecast_date, .data$location) |>
-    dplyr::mutate(
-      rank = dplyr::dense_rank(dplyr::desc(.data$wis)),
-      std_rank = .data$rank / max(.data$rank)
-    ) |>
-    dplyr::mutate(
-      model = stats::reorder(.data$model, .data$rank, FUN = \(x) {
-        quantile(x, probs = 0.25, na.rm = TRUE)
-      })
-    )
-
-  summarize_std_rank <- scores_ranked |>
+  ranks <- .compute_standardized_ranks(scores)
+  summarize_std_rank <- ranks |>
     dplyr::group_by(.data$model) |>
     dplyr::summarise(
       median_rank = quantile(.data$std_rank, 0.5),
