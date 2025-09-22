@@ -331,23 +331,17 @@ plot_heatmap_relative_wis <- function(
 #' and https://github.com/reichlab/covid19-forecast-evals/blob/b741b6a24e40c7f2a8ddc41da40c95b23db6df4e/code/figure-model-ranks.R#L11 #nolint
 #'
 #'
-#' @param scores df of granular (daily) score across models, locations, forecast
-#' dates and horizons
-#' @param models_to_show A vector of charcter strings indicating which models
-#' from the COVID-19 forecast hub to include in the plot.
-#' @param time_period time period that scores are summarized over
-#' @param tp_fp string indicating short name for time period to save figure
-#' @param fig_file_dir directory to save figure
-#'
-#' @return A ggplot object containing geomridges plots colored by density,
-#' indicating the standardized rank for each location-date combo
+#' @param scores df of granular (daily) score across models, locations,
+#' forecast dates and horizons
+#' @param models_to_show Character vector indicating which models
+#' from the COVID-19 forecast hub to include.
+#' @return A ggplot object containing geom denity ridges plots
+#' colored by density, indicating the standardized rank for each
+#' location-date combo
 #' @export
-density_plot_std_rank <- function(
+plot_std_rank_distribution <- function(
   scores,
-  models_to_show,
-  time_period,
-  tp_fp,
-  fig_file_dir
+  models_to_show
 ) {
   summarized_scores <- scores |>
     scoringutils::summarise_scores(
@@ -358,12 +352,12 @@ density_plot_std_rank <- function(
     dplyr::group_by(.data$forecast_date, .data$location) |>
     dplyr::mutate(
       rank = dplyr::dense_rank(dplyr::desc(.data$wis)),
-      std_rank = rank / max(rank)
+      std_rank = .data$rank / max(.data$rank)
     ) |>
     dplyr::mutate(
       model = stats::reorder(
         .data$model,
-        .data$rank,
+        .data$std_rank,
         FUN = function(x) {
           quantile(x, probs = 0.25, na.rm = TRUE)
         }
@@ -425,14 +419,6 @@ density_plot_std_rank <- function(
     ) +
     ylab("")
 
-  ggsave(
-    p,
-    filename = file.path(
-      fig_file_dir,
-      glue::glue("sfig_density_rank_{time_period}.png")
-    )
-  )
-
   return(p)
 }
 
@@ -445,30 +431,28 @@ density_plot_std_rank <- function(
 #' @export
 summarize_std_rank <- function(scores) {
   summarized_scores <- scores |>
-    data.table::as.data.table() |>
     scoringutils::summarise_scores(
       by = c("model", "location", "forecast_date")
     )
 
   scores_ranked <- summarized_scores |>
-    tibble() |>
-    dplyr::group_by(forecast_date, location) |>
+    dplyr::group_by(.data$forecast_date, .data$location) |>
     dplyr::mutate(
       rank = dplyr::dense_rank(dplyr::desc(.data$wis)),
-      std_rank = rank / max(rank)
+      std_rank = .data$rank / max(.data$rank)
     ) |>
     dplyr::mutate(
-      model = stats::reorder(model, rank, FUN = function(x) {
+      model = stats::reorder(.data$model, .data$rank, FUN = \(x) {
         quantile(x, probs = 0.25, na.rm = TRUE)
       })
     )
 
   summarize_std_rank <- scores_ranked |>
-    dplyr::group_by(model) |>
+    dplyr::group_by(.data$model) |>
     dplyr::summarise(
-      median_rank = quantile(std_rank, 0.5),
-      quartile_25th = quantile(std_rank, 0.25),
-      quartile_75th = quantile(std_rank, 0.75)
+      median_rank = quantile(.data$std_rank, 0.5),
+      quartile_25th = quantile(.data$std_rank, 0.25),
+      quartile_75th = quantile(.data$std_rank, 0.75)
     )
   return(summarize_std_rank)
 }

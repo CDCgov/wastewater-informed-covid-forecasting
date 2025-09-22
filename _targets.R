@@ -1171,31 +1171,36 @@ hub_comparison_targets <- list(
     )
   ),
   tar_target(
-    name = std_rank_plot_all_time,
-    command = density_plot_std_rank(
-      scores = hub_scores,
-      models_to_show = models_to_plot,
-      time_period = "Oct 2023-Mar 2024",
-      tp_fp = "at",
-      fig_file_dir = fig_output_dir
+    name = fig_std_rank_all_time,
+    command = plot_std_rank_distribution(
+      scores = hub_scores_plot_all_time,
+      models_to_show = models_to_plot
     )
   ),
   tar_target(
-    name = std_rank_plot_real_time,
-    command = density_plot_std_rank(
-      scores = hub_scores_real_time |>
-        dplyr::filter(
-          !model %in%
-            c(
-              "cfa-wwrenewal(retro)",
-              "cfa-hosponlyrenewal(retro)"
-            )
-        ),
-      models_to_show = models_to_plot,
-      time_period = "Feb-Mar 2024",
-      tp_fp = "rt",
-      fig_file_dir = fig_output_dir
+    name = save_fig_std_rank_all_time,
+    command = save_fig_supp(
+      fig_std_rank_all_time,
+      base_width = 4,
+      base_height = 8
+    ),
+    format = "file"
+  ),
+  tar_target(
+    name = fig_std_rank_real_time,
+    command = plot_std_rank_distribution(
+        scores = hub_scores_plot_real_time,
+        models_to_show = models_to_plot
     )
+  ),
+  tar_target(
+    name = save_fig_std_rank_real_time,
+    command = save_fig_supp(
+      fig_std_rank_real_time,
+      base_width = 4,
+      base_height = 8
+    ),
+    format = "file"
   ),
   tar_target(
     name = figure_hub_comparison_all_time,
