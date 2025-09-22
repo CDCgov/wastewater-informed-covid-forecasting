@@ -533,7 +533,7 @@ postprocess_successful_fit <- function(
     if (is.null(hosp_draws)) {
       NULL
     } else {
-      get_plot_hosp_data_comparison(
+      plot_spaghetti_hosp_draws(
         hosp_draws,
         location,
         model_type = model
@@ -550,7 +550,7 @@ postprocess_successful_fit <- function(
   ggsave_plot(plot_hosp_draws, basename = hosp_draw_plot_savename)
   save_object(plot_hosp_draws)
 
-  plot_hosp_t <- plot_model_hosp_t_comparison(
+  plot_hosp_t <- plot_ribbon_hosp_quantiles(
     hosp_quantiles = full_hosp_quantiles,
     loc_to_plot = location,
     date_to_plot = forecast_date
@@ -579,7 +579,7 @@ postprocess_successful_fit <- function(
 
     if (!is.null(ww_draws)) {
       n_site_labs <- dplyr::n_distinct(ww_draws$lab_site_index)
-      plot_ww_draws <- get_plot_ww_data_comparison(
+      plot_ww_draws <- plot_spaghetti_ww_draws(
         ww_draws,
         location,
         model_type = model
@@ -598,7 +598,7 @@ postprocess_successful_fit <- function(
 
     if (!is.null(full_ww_quantiles)) {
       n_site_labs <- dplyr::n_distinct(full_ww_quantiles$lab_site_index)
-      plot_ww_t <- plot_ww_conc_by_site(
+      plot_ww_t <- plot_ribbon_ww_quantiles(
         full_ww_quantiles,
         loc_to_plot = location,
         date_to_plot = forecast_date,

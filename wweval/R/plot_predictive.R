@@ -1,3 +1,190 @@
+#' Plots for visualizing postperior predictive draws or quantiles
+#' compared to observed data.
+
+#' Spaghetti plot of hospital admissions data compared to model draws
+#'
+#' @param draws_w_data A long tidy dataframe containing draws from the
+#' model of the estimated hospital admissions joined with both the data
+#' the model was calibrated to and the later observed data.
+#' @param location the jursidiction the data is from
+#' @param model_type type of model the output is from, options are
+#' "ww" or "hosp"
+#' @param n_draws number of draws to plot, default = 100
+#'
+#' @return a ggplot object showing posterior predictive draws for
+#' hospital admissions alongside the calibration and evaluation data
+#' @export
+plot_spaghetti_hosp_draws <- function(
+  draws_w_data,
+  location,
+  model_type = c("ww", "hosp"),
+  n_draws = 100
+) {
+  model_type <- arg_match(model_type)
+  sampled_draws <- sample(1:max(draws_w_data$draw), n_draws)
+  draws_w_data_subsetted <- draws_w_data |>
+    dplyr::filter(
+      draw %in% !!sampled_draws,
+      name == "pred_hosp"
+    )
+
+  plot_color <- ifelse(model_type == "ww", "cornflowerblue", "purple4")
+
+  p <- ggplot(draws_w_data_subsetted) +
+    geom_line(
+      aes(x = date, y = value, group = draw),
+      color = plot_color,
+      linewidth = 0.2,
+      alpha = 0.4,
+      show.legend = FALSE
+    ) +
+    geom_point(
+      aes(x = date, y = eval_data),
+      fill = "white",
+      size = 1,
+      shape = 21,
+      show.legend = FALSE
+    ) +
+    geom_point(
+      aes(x = date, y = calib_data),
+      color = "black",
+      show.legend = FALSE
+    ) +
+    geom_vline(
+      aes(xintercept = lubridate::ymd(forecast_date)),
+      linetype = "dashed"
+    ) +
+    # scale_y_continuous(trans = "log10") +
+    xlab("") +
+    ylab("Daily hospital admissions") +
+    ggtitle(glue::glue(
+      "Site-level expected observed hospital admissions in {location} from {model_type} model"
+    )) +
+    theme_bw() +
+    scale_color_discrete() +
+    scale_fill_discrete() +
+    scale_x_date(
+      date_breaks = "2 weeks",
+      labels = scales::date_format("%Y-%m-%d")
+    ) +
+    theme_bw() +
+    theme(
+      axis.text.x = element_text(
+        size = 8,
+        vjust = 1,
+        hjust = 1,
+        angle = 45
+      ),
+      axis.title.x = element_text(size = 12),
+      axis.title.y = element_text(size = 12),
+      plot.title = element_text(
+        size = 10,
+        vjust = 0.5,
+        hjust = 0.5
+      )
+    )
+  return(p)
+}
+
+
+#' Get plot of wastewater data compared to model posterior predictive
+#' draws
+#'
+#' @param draws_w_data A long tidy dataframe containing posterior
+#' predictivedraws from the for wastewater concentration joined to
+#' both the calibration and evaluation data.
+#' @param location the jurisdiction the data is from
+#' @param model_type type of model the output is from, default is `ww`
+#' @param n_draws number of draws to plot, default = 100
+#' @return a ggplot object faceted by site showing the draws
+#' @export
+plot_spaghetti_ww_draws <- function(
+  draws_w_data,
+  location,
+  model_type = "ww",
+  n_draws = 100
+) {
+  sampled_draws <- sample(1:max(draws_w_data$draw), n_draws)
+  draws_w_data_subsetted <- draws_w_data |>
+    dplyr::filter(
+      draw %in% !!sampled_draws,
+      name == "pred_ww"
+    )
+
+  p <- ggplot(draws_w_data_subsetted) +
+    geom_line(
+      aes(
+        x = .data$date,
+        y = .data$value,
+        group = .data$draw,
+        color = .data$site_lab_name
+      ),
+      linewidth = 0.1,
+      alpha = 0.1,
+      show.legend = FALSE
+    ) +
+    geom_point(
+      aes(x = .data$date, y = .data$eval_data),
+      fill = "white",
+      size = 1,
+      shape = 21,
+      show.legend = FALSE
+    ) +
+    geom_point(
+      aes(x = .data$date, y = .data$calib_data),
+      color = "black",
+      show.legend = FALSE
+    ) +
+    geom_vline(
+      aes(xintercept = lubridate::ymd(.data$forecast_date)),
+      linetype = "dashed"
+    ) +
+    scale_y_continuous(trans = "log10") +
+    facet_wrap(~site_lab_name, scales = "free_y") +
+    geom_point(
+      data = draws_w_data_subsetted |> filter(.data$below_LOD == 1),
+      aes(x = .data$date, y = .data$calib_data),
+      color = "red",
+      size = 1.1
+    ) +
+    geom_point(
+      data = draws_w_data_subsetted |>
+        filter(.data$flag_as_ww_outlier == 1),
+      aes(x = .data$date, y = .data$calib_data),
+      color = "blue",
+      size = 1.1
+    ) +
+    xlab("") +
+    ylab("Genome copies per mL") +
+    ggtitle(glue::glue(
+      "Site-level expected observed wastewater concentration in {location} from {model_type} model"
+    )) +
+    theme_bw() +
+    scale_color_discrete() +
+    scale_fill_discrete() +
+    scale_x_date(
+      date_breaks = "2 weeks",
+      labels = scales::date_format("%Y-%m-%d")
+    ) +
+    theme_bw() +
+    theme(
+      axis.text.x = element_text(
+        size = 8,
+        vjust = 1,
+        hjust = 1,
+        angle = 45
+      ),
+      axis.title.x = element_text(size = 12),
+      axis.title.y = element_text(size = 12),
+      plot.title = element_text(
+        size = 10,
+        vjust = 0.5,
+        hjust = 0.5
+      )
+    )
+  return(p)
+}
+
 #' Make a plot comparing the fit and forecasted hospital admissions
 #' from the wastewater-informed and hospital admissions-only models.
 #'
@@ -18,7 +205,7 @@
 #' @return a ggplot object with all model forecasts plotted against
 #' observed data and models differentiated by fill/line color.
 #' @export
-plot_model_hosp_t_comparison <- function(
+plot_ribbon_hosp_quantiles <- function(
   hosp_quantiles,
   loc_to_plot,
   date_to_plot,
@@ -49,8 +236,6 @@ plot_model_hosp_t_comparison <- function(
       names_from = quantile,
       values_from = value
     )
-
-  colors <- plot_components()
 
   p <- ggplot(quantiles_wide) +
     geom_point(
@@ -100,8 +285,8 @@ plot_model_hosp_t_comparison <- function(
     ) +
     xlab("") +
     ylab("Daily hospital admissions") +
-    scale_color_manual(values = colors$model_colors) +
-    scale_fill_manual(values = colors$model_colors) +
+    scale_color_model() +
+    scale_fill_model() +
     get_plot_theme(x_axis_dates = TRUE) +
     theme(
       legend.position = "top",
@@ -136,7 +321,7 @@ plot_model_hosp_t_comparison <- function(
 #' calibrated and forecasted wastewater concentrations for 3 or fewer
 #' site-lab combinations for a single state
 #' @export
-plot_ww_conc_by_site <- function(
+plot_ribbon_ww_quantiles <- function(
   ww_quantiles,
   loc_to_plot,
   date_to_plot,
