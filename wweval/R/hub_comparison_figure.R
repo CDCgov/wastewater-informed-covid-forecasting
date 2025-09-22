@@ -330,7 +330,7 @@ plot_heatmap_relative_wis <- function(
     ) |>
     dplyr::group_by(.data$forecast_date, .data$location) |>
     dplyr::mutate(
-      std_rank = dplyr::percent_rank(.data$wis)
+      std_rank = dplyr::percent_rank(dplyr::desc(.data$wis))
     ) |>
     dplyr::mutate(
       model = stats::reorder(
