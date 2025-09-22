@@ -1363,28 +1363,51 @@ composite_figure_targets <- list(
     )
   ),
   tar_target(
-    name = plot_heatmap_metadata_comp,
-    command = get_heatmap_metadata(
-      granular_ww_metadata_used,
-      type_of_analysis = "retro_comparison",
-      fig_file_dir = fig_output_dir
+    name = fig_heatmap_metadata_retro,
+    command = plot_heatmap_metadata_retro(
+      granular_ww_metadata_used
     )
   ),
   tar_target(
-    name = plot_heatmap_metadata_hub_retro,
-    command = get_heatmap_metadata_hub(
+    name = save_fig_heatmap_metadata_retro,
+    command = save_fig_supp(
+      fig_heatmap_metadata_retro,
+      base_width = 8,
+      base_height = 4
+    ),
+    format = "file"
+  ),
+  tar_target(
+    name = fig_heatmap_metadata_hub_retro,
+    command = plot_heatmap_metadata_hub(
       granular_ww_metadata_used,
-      fig_file_dir = fig_output_dir,
       analysis_type = "retro"
     )
   ),
   tar_target(
-    name = plot_heatmap_metadata_hub_rt,
-    command = get_heatmap_metadata_hub(
+    name = save_fig_heatmap_metadata_hub_retro,
+    command = save_fig_supp(
+      fig_heatmap_metadata_hub_retro,
+      base_width = 8,
+      base_height = 4
+    ),
+    format = "file"
+  ),
+  tar_target(
+    name = fig_heatmap_metadata_hub_real_time,
+    command = plot_heatmap_metadata_hub(
       granular_ww_metadata_used,
-      fig_file_dir = fig_output_dir,
-      analysis_type = "real_time"
+      analysis_type = "real-time"
     )
+  ),
+  tar_target(
+    name = save_fig_heatmap_metadata_hub_real_time,
+    command = save_fig_supp(
+      fig_heatmap_metadata_hub_real_time,
+      base_width = 8,
+      base_height = 4
+    ),
+    format = "file"
   ),
   tar_target(
     name = list_of_summary_ww_tables,
