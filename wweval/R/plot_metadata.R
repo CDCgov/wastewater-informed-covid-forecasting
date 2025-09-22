@@ -81,6 +81,7 @@ plot_heatmap_metadata_retro <- function(metadata) {
       date_breaks = "1 week",
       labels = scales::date_format("%Y-%m-%d")
     ) +
+      coord_cartesian(expand = 0) +
     xlab("") +
     ylab("Location") +
     labs(fill = "Metadata Information") +
@@ -186,6 +187,7 @@ plot_heatmap_metadata_hub <- function(metadata, analysis_type) {
       date_breaks = "1 week",
       labels = scales::date_format("%Y-%m-%d")
     ) +
+    coord_cartesian(expand = 0) +
     theme(legend.position = "bottom") +
     xlab("") +
     ylab("Location") +

@@ -1373,7 +1373,7 @@ composite_figure_targets <- list(
     command = save_fig_supp(
       fig_heatmap_metadata_retro,
       base_width = 8,
-      base_height = 4
+      base_height = 6
     ),
     format = "file"
   ),
@@ -1389,7 +1389,7 @@ composite_figure_targets <- list(
     command = save_fig_supp(
       fig_heatmap_metadata_hub_retro,
       base_width = 8,
-      base_height = 4
+      base_height = 6
     ),
     format = "file"
   ),
@@ -1405,7 +1405,7 @@ composite_figure_targets <- list(
     command = save_fig_supp(
       fig_heatmap_metadata_hub_real_time,
       base_width = 8,
-      base_height = 4
+      base_height = 6
     ),
     format = "file"
   ),
