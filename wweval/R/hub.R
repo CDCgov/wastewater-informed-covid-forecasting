@@ -43,7 +43,7 @@ select_hub_models <- function(
   # get state abbreviation codes
   state_codes <- forecasttools::us_loc_abbr_to_code(
     unique(locations)
-    )
+  )
   n_locs_total <- length(state_codes)
 
   if (prop_dates_for_incl_hub > 1 || prop_dates_for_incl_hub <= 0) {
@@ -110,9 +110,11 @@ select_hub_models <- function(
     )
 
   models <- forecasts_present_per_model |>
-      dplyr::filter(.data$prop_dates_present > !!prop_dates_for_incl_hub,
-                    .data$model %in% !!excluded_models) |>
-      dplyr::pull("model")
+    dplyr::filter(
+      .data$prop_dates_present > !!prop_dates_for_incl_hub,
+      .data$model %in% !!excluded_models
+    ) |>
+    dplyr::pull("model")
 
   return(models)
 }
