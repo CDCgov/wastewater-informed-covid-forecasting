@@ -2175,6 +2175,17 @@ additional_figure_targets <- list(
   )
 )
 
+reported_quantities_targets <- list(
+  tar_target(
+    name = n_scored_dates_real_time,
+    command = dplyr::n_distinct(scored_fcst_dates_real_time)
+  ),
+  tar_target(
+    name = n_scored_dates_all_time,
+    command = dplyr::n_distinct(scored_forecast_dates)
+  )
+)
+
 
 list(
   configuration_targets,
