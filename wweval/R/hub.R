@@ -75,7 +75,8 @@ select_hub_models <- function(
   qualifying_models <- qualifying_submissions |>
     dplyr::group_by(.data$model) |>
     dplyr::summarize(n_submissions = dplyr::n(), .groups = "drop") |>
-    dplyr::filter(.data$n_submissions >= !!min_submissions_per_model)
+    dplyr::filter(.data$n_submissions >= !!min_submissions_per_model) |>
+    dplyr::filter(!.data$model %in% !!excluded_models)
 
   return(qualifying_models$model)
 }
