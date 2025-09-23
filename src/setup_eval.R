@@ -105,7 +105,6 @@ write_eval_config <- function(
   calibration_time <- 90
   forecast_time <- 28
   trend_lookback_days <- 14 + 9
-  trend_lookback_days <- 14 + 9
   # two weeks from the last admission date
 
   scoring_offset <- 1
