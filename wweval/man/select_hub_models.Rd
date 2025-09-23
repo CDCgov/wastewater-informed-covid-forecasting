@@ -5,8 +5,8 @@
 \title{Query Zoltar for models to include in the analysis}
 \usage{
 select_hub_models(
-  prop_dates_for_incl_hub,
-  prop_locs_for_incl_hub,
+  min_submissions_per_model,
+  min_locations_per_submission,
   forecast_dates,
   locations,
   project_name = "COVID-19 Forecasts",
@@ -14,15 +14,11 @@ select_hub_models(
 )
 }
 \arguments{
-\item{prop_dates_for_incl_hub}{Numeric greater than 0 and less
-than or equal to 1 indicating the inclusion threshold for the
-proportion of forecast dates that a model must have submitted
-forecasts to be included in analysis.}
+\item{min_submissions_per_model}{Number of forecast dates with a
+submission for a model to be included in the analysis.}
 
-\item{prop_locs_for_incl_hub}{Numeric less than 1 indicating
-the inclusion threshold for the proportion of the locations
-we expect that a model must have subbmited forecasts for to
-be included in analysis.}
+\item{min_locations_per_submission}{Minimum number of included locations
+for a given submsission to count toward \code{min_submissions_per_model}.}
 
 \item{forecast_dates}{vector of dates formatted in ISO8601 convention
 (YYYY-MM-DD) indicating the forecast dates for the analysis}
@@ -44,11 +40,5 @@ a vector of character strings indicating the
 unique model names that fit the inclusion criteria
 }
 \description{
-This function uses the \code{zoltr} R package to connect to the Zoltar
-database, which contains forecasts from the COVID Hub forecast
-project, and query it for the specified forecast dates.
-It queries for all dates, computes the proportion of dates for
-which the model has submitted, filters for models that have
-submitted for greater than the specified proportion of forecast
-dates for inclusion, and returns the vector of model names.
+Query Zoltar for models to include in the analysis
 }

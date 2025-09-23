@@ -1,22 +1,9 @@
 #' Query Zoltar for models to include in the analysis
 #'
-#' @description
-#' This function uses the `zoltr` R package to connect to the Zoltar
-#' database, which contains forecasts from the COVID Hub forecast
-#' project, and query it for the specified forecast dates.
-#' It queries for all dates, computes the proportion of dates for
-#' which the model has submitted, filters for models that have
-#' submitted for greater than the specified proportion of forecast
-#' dates for inclusion, and returns the vector of model names.
-#'
-#' @param prop_dates_for_incl_hub Numeric greater than 0 and less
-#' than or equal to 1 indicating the inclusion threshold for the
-#' proportion of forecast dates that a model must have submitted
-#' forecasts to be included in analysis.
-#' @param prop_locs_for_incl_hub Numeric less than 1 indicating
-#' the inclusion threshold for the proportion of the locations
-#' we expect that a model must have subbmited forecasts for to
-#' be included in analysis.
+#' @param min_submissions_per_model Number of forecast dates with a
+#' submission for a model to be included in the analysis.
+#' @param min_locations_per_submission Minimum number of included locations
+#' for a given submsission to count toward `min_submissions_per_model`.
 #' @param forecast_dates vector of dates formatted in ISO8601 convention
 #' (YYYY-MM-DD) indicating the forecast dates for the analysis
 #' @param locations vector of state abbreviations that we want to
@@ -32,8 +19,8 @@
 #' unique model names that fit the inclusion criteria
 #' @export
 select_hub_models <- function(
-  prop_dates_for_incl_hub,
-  prop_locs_for_incl_hub,
+  min_submissions_per_model,
+  min_locations_per_submission,
   forecast_dates,
   locations,
   project_name = "COVID-19 Forecasts",
@@ -44,21 +31,8 @@ select_hub_models <- function(
   state_codes <- forecasttools::us_loc_abbr_to_code(
     unique(locations)
   )
-  n_locs_total <- length(state_codes)
-
-  if (prop_dates_for_incl_hub > 1 || prop_dates_for_incl_hub <= 0) {
-    cli::cli_abort(c(
-      "Proportion of forecast dates required for hub inclusion",
-      "must be greater than 0 and less than or equal to 1."
-    ))
-  }
-
-  if (prop_locs_for_incl_hub > 1 || prop_locs_for_incl_hub <= 0) {
-    cli::cli_abort(c(
-      "Proportion of locations required for hub inclusion",
-      "must be greater than 0 and less than or equal to 1."
-    ))
-  }
+  n_locs_total <- dplyr::n_distinct(state_codes)
+  n_dates_total <- dplyr::n_distinct(forecast_dates)
 
   zoltar_connection <- zoltr::new_connection()
   zoltr::zoltar_authenticate(
@@ -92,31 +66,18 @@ select_hub_models <- function(
     timezeros = forecast_dates
   )
 
-  n_unique_forecasts <- dplyr::n_distinct(forecast_data$timezero)
-
-  forecasts_present_per_model <- forecast_data |>
+  qualifying_submissions <- forecast_data |>
     dplyr::distinct(.data$timezero, .data$model, .data$unit) |>
     dplyr::group_by(.data$model, .data$timezero) |>
-    dplyr::summarize(
-      n_locs = dplyr::n(),
-      prop_locs_present = .data$n_locs / !!n_locs_total
-    ) |>
-    # Exclude any forecast dates/models with too few locations submitted
-    dplyr::filter(.data$prop_locs >= !!prop_locs_for_incl_hub) |>
+    dplyr::summarize(n_locs_submitted = dplyr::n(), .groups = "drop") |>
+    dplyr::filter(.data$n_locs_submitted >= !!min_locations_per_submission)
+
+  qualifying_models <- qualifying_submissions |>
     dplyr::group_by(.data$model) |>
-    dplyr::summarize(
-      n_forecast_dates = dplyr::n(),
-      prop_dates_present = .data$n_forecast_dates / !!n_unique_forecasts
-    )
+    dplyr::summarize(n_submissions = dplyr::n(), .groups = "drop") |>
+    dplyr::filter(.data$n_submissions >= !!min_submissions_per_model)
 
-  models <- forecasts_present_per_model |>
-    dplyr::filter(
-      .data$prop_dates_present > !!prop_dates_for_incl_hub,
-      .data$model %in% !!excluded_models
-    ) |>
-    dplyr::pull("model")
-
-  return(models)
+  return(qualifying_models$model)
 }
 
 #' Pull hub submissions and create a scorable table

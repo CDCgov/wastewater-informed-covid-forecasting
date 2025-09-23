@@ -96,10 +96,8 @@ write_eval_config <- function(
   hub_subdir <- file.path("output", "eval_latest", "hub")
   retro_rt_path <- file.path("input", "retro_Rt", "Rt_draws.parquet")
   score_subdir <- file.path("output", "eval_latest", "hub")
-  # Proportion of forecast dates that a model must have submitted for to be
-  # included in the Hub analysis
-  prop_dates_for_incl_hub <- 18 / 22
-  prop_locs_for_incl_hub <- 40 / 52
+  min_submissions_hub <- 20
+  min_locs_per_submission_hub <- 40
   raw_output_dir <- file.path(output_dir, "raw_output")
   ww_data_mapping <- "Monday: Monday, Wednesday: Monday"
   calibration_time <- 90
@@ -217,12 +215,12 @@ write_eval_config <- function(
     benchmark_dir = benchmark_dir,
     overwrite_benchmark = overwrite_benchmark,
     wwinference_version = wwinference_version,
+    min_submissions_hub = min_submissions_hub,
+    min_locs_per_submission_hub = min_locs_per_submission_hub,
     retro_rt_path = retro_rt_path,
     score_subdir = score_subdir,
     raw_output_dir = raw_output_dir,
     figure_dir = figure_dir,
-    prop_dates_for_incl_hub = prop_dates_for_incl_hub,
-    prop_locs_for_incl_hub = prop_locs_for_incl_hub,
     population_data_path = population_data_path,
     init_dir = init_dir,
     init_fps = init_fps,

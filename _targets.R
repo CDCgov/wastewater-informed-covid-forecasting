@@ -656,8 +656,8 @@ hub_comparison_targets <- list(
   tar_target(
     name = non_cfa_hub_models_to_score,
     command = select_hub_models(
-      prop_dates_for_incl_hub = eval_config$prop_dates_for_incl_hub,
-      prop_locs_for_incl_hub = eval_config$prop_locs_for_incl_hub,
+      min_submissions_per_model = eval_config$min_submissions_hub,
+      min_locations_per_submission = eval_config$min_locs_per_submission_hub,
       locations = unique(eval_config$location_hosp),
       forecast_dates = scored_forecast_dates
     )
@@ -2175,6 +2175,10 @@ reported_quantities_targets <- list(
   tar_target(
     name = n_scored_dates_all_time,
     command = dplyr::n_distinct(scored_forecast_dates)
+  ),
+  tar_target(
+    name = n_scored_hub_models_non_cfa,
+    command = dplyr::n_distinct(non_cfa_hub_models_to_score)
   )
 )
 
