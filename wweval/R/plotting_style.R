@@ -179,6 +179,28 @@ scale_color_model <- function(...) {
   ))
 }
 
+#' ggplot discrete scales for forecast horizons
+#'
+#' @param ... Keyword arguments passed to
+#' [`ggplot2::scale_*_manual()`][ggplot2::scale_fill_manual()].
+#' @return the ggplot scale
+#'
+#' @export
+scale_fill_horizon <- function(...) {
+  return(ggplot2::scale_fill_manual(
+    values = horizon_colors
+  ))
+}
+
+#' @rdname scale_fill_horizon
+#' @export
+scale_color_horizon <- function(...) {
+  return(ggplot2::scale_color_manual(
+    values = horizon_colors
+  ))
+}
+
+
 #' ggplot scale for fill alphas by name of
 #' WIS/CRPS score component.
 #'

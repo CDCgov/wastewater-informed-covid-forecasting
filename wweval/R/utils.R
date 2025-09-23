@@ -237,7 +237,8 @@ select_like <- function(df, template_df) {
 #'
 #' @param df Data frame to transform
 #' @param col column to transform
-#' @param levels levels for the column, in ascending order..
+#' @param levels levels for the column, in ascending order.
+#' If `NULL` (default) use the current ordering in the column.
 #' @return A copy of the data frame with the `col` column transformed
 #' into an ordered factor with levels given by `levels`.
 #' @examples
@@ -255,7 +256,10 @@ select_like <- function(df, template_df) {
 #'
 #' new_df
 #' @export
-order_col <- function(df, col, levels) {
+order_col <- function(df, col, levels = NULL) {
+  if (is.null(levels)) {
+    levels <- unique(df[[col]])
+  }
   checkmate::assert_vector(levels, unique = TRUE)
   return(dplyr::mutate(
     df,

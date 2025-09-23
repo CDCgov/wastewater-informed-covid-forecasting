@@ -2,7 +2,8 @@
 % Please edit documentation in R/score.R
 \name{score_real_time_outputs}
 \alias{score_real_time_outputs}
-\title{Load in and score the real-time outputs}
+\title{Load in and score real-time outputs from the two CFA models
+(wastewater-informed and hospital admissions-only)}
 \usage{
 score_real_time_outputs(
   score_type,
@@ -10,8 +11,8 @@ score_real_time_outputs(
   table_of_run_ids,
   locations,
   eval_data,
-  model_types = c("ww", "hosp"),
-  offset = 1
+  offset,
+  model_types = c("ww", "hosp")
 )
 }
 \arguments{
@@ -33,12 +34,12 @@ pull, this should be all jurisdictions}
 data to be used
 for scoring.}
 
-\item{model_types}{Character vector of model types to score.
-One or both of \code{"ww"} and \code{"hosp"}. Default both: \code{c("ww", "hosp")}}
-
 \item{offset}{Offset to use when transforming forecasts
 with \code{\link[scoringutils:log_shift]{scoringutils::log_shift()}} via
-\code{\link[scoringutils:transform_forecasts]{scoringutils::transform_forecasts()}}. Default \code{1}.}
+\code{\link[scoringutils:transform_forecasts]{scoringutils::transform_forecasts()}}.}
+
+\item{model_types}{Character vector of model types to score.
+One or both of \code{"ww"} and \code{"hosp"}. Default both: \code{c("ww", "hosp")}}
 }
 \value{
 A tibble containing scores for every location and
@@ -46,5 +47,6 @@ forecast date, conditioned on the presence of wastewater and model
 convergence
 }
 \description{
-Load in and score the real-time outputs
+Load in and score real-time outputs from the two CFA models
+(wastewater-informed and hospital admissions-only)
 }

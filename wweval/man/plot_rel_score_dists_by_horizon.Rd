@@ -6,7 +6,7 @@
 \usage{
 plot_rel_score_dists_by_horizon(
   scores,
-  target_model,
+  target_models,
   baseline_model,
   metric_to_compare,
   horizons_to_show = c("nowcast", "1 wk", "4 wks", "overall")
@@ -15,7 +15,7 @@ plot_rel_score_dists_by_horizon(
 \arguments{
 \item{scores}{output of \code{\link[scoringutils:score]{scoringutils::score()}}.}
 
-\item{target_model}{Model for which to plot relative scores}
+\item{target_models}{Model for which to plot relative scores}
 
 \item{baseline_model}{Baseline model for the relative scores}
 

@@ -293,6 +293,9 @@ save_table <- function(
 #' @param input_ww_data_wweval Input wastewater data in legacy `wweval` format.
 #' @param eval_hosp_data Evaluation hospital admissions data in newer `wwinference` format.
 #' @param eval_ww_data Evaluation wastewater admissions data in newer `wwinference` format.
+#' @param offset Offset to use when transforming forecasts
+#' with [scoringutils::log_shift()] via
+#' [scoringutils::transform_forecasts()].
 #' @return Nothing, saving results to disk as a side effect.
 #' @export
 postprocess_successful_fit <- function(
@@ -307,7 +310,8 @@ postprocess_successful_fit <- function(
   input_hosp_data_wweval,
   input_ww_data_wweval,
   eval_hosp_data,
-  eval_ww_data
+  eval_ww_data,
+  offset
 ) {
   checkmate::assert_names(model, subset.of = c("ww", "hosp"))
   ww_model <- model == "ww"
@@ -407,20 +411,6 @@ postprocess_successful_fit <- function(
 
   purrr::iwalk(hist_table_params, plot_and_save_param)
   message("Done plotting histograms.")
-
-  if (ww_model) {
-    message("Plotting ww growth rates..")
-
-    ## Plots of overlaid exponential growth rates in ww vs hosp
-    plot_growth_rates <- get_growth_rate_plot(
-      input_hosp_data_wweval,
-      input_ww_data_wweval,
-      location,
-      forecast_date,
-      rate = "weekly"
-    )
-    ggsave_plot(plot_growth_rates)
-  }
 
   hosp_draws <- NULL
   ww_draws <- NULL
@@ -529,7 +519,7 @@ postprocess_successful_fit <- function(
     if (is.null(hosp_draws)) {
       NULL
     } else {
-      get_plot_hosp_data_comparison(
+      plot_spaghetti_hosp_draws(
         hosp_draws,
         location,
         model_type = model
@@ -546,7 +536,7 @@ postprocess_successful_fit <- function(
   ggsave_plot(plot_hosp_draws, basename = hosp_draw_plot_savename)
   save_object(plot_hosp_draws)
 
-  plot_hosp_t <- plot_model_hosp_t_comparison(
+  plot_hosp_t <- plot_ribbon_hosp_quantiles(
     hosp_quantiles = full_hosp_quantiles,
     loc_to_plot = location,
     date_to_plot = forecast_date
@@ -575,7 +565,7 @@ postprocess_successful_fit <- function(
 
     if (!is.null(ww_draws)) {
       n_site_labs <- dplyr::n_distinct(ww_draws$lab_site_index)
-      plot_ww_draws <- get_plot_ww_data_comparison(
+      plot_ww_draws <- plot_spaghetti_ww_draws(
         ww_draws,
         location,
         model_type = model
@@ -594,7 +584,7 @@ postprocess_successful_fit <- function(
 
     if (!is.null(full_ww_quantiles)) {
       n_site_labs <- dplyr::n_distinct(full_ww_quantiles$lab_site_index)
-      plot_ww_t <- plot_ww_conc_by_site(
+      plot_ww_t <- plot_ribbon_ww_quantiles(
         full_ww_quantiles,
         loc_to_plot = location,
         date_to_plot = forecast_date,
@@ -627,7 +617,8 @@ postprocess_successful_fit <- function(
   message("Scoring admissions forecasts...")
   hosp_scores <- score_samples(
     hosp_draws,
-    scenario
+    scenario,
+    offset
   )
   save_object(hosp_scores)
   save_table(
@@ -642,7 +633,7 @@ postprocess_successful_fit <- function(
   hosp_scores_quantiles <- score_quantiles(
     hosp_quantiles,
     scenario,
-    metrics = quantile_metrics
+    offset
   )
   save_object(hosp_scores_quantiles)
   save_table(
@@ -687,6 +678,9 @@ postprocess_successful_fit <- function(
 #' postprocess output.
 #' @param raw_output_dir Path to a directory in which to save
 #' raw output as serialized `.rds` files.
+#' @param scoring_offset Offset to use when transforming forecasts
+#' with [scoringutils::log_shift()] via
+#' [scoringutils::transform_forecasts()].
 #' @param max_eval_data_days Maximum number of days of data to pull
 #' when creating evaluation dataset. Default 365.
 #' @return NULL, invisibly, saving plots and tables to disk as
@@ -704,6 +698,7 @@ eval_postprocess <- function(
   scenario_dir,
   output_dir,
   raw_output_dir,
+  scoring_offset,
   max_eval_data_days = 365
 ) {
   checkmate::assert_names(model, subset.of = c("ww", "hosp"))
@@ -835,7 +830,8 @@ eval_postprocess <- function(
       input_hosp_data_wweval = input_hosp_data_wweval,
       input_ww_data_wweval = input_ww_data_wweval,
       eval_hosp_data = eval_hosp_data,
-      eval_ww_data = eval_ww_data
+      eval_ww_data = eval_ww_data,
+      offset = scoring_offset
     )
   }
 

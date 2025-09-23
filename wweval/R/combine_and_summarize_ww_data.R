@@ -237,7 +237,7 @@ load_data_and_summarize <- function(
   return(this_ww_metadata)
 }
 
-#' Get additional wastewater metadata
+#' Combine wastewater metadata with metadata about forecast runs
 #'
 #' @description
 #' This function takes the summary statistics from just the input wastewater
@@ -262,7 +262,7 @@ load_data_and_summarize <- function(
 #' or not there were any flags for manual exclusions, convergence issues,
 #' or wastewater quality issues
 #' @export
-get_add_ww_metadata <- function(
+combine_ww_and_run_metadata <- function(
   granular_ww_metadata,
   ww_forecast_date_locs_to_excl,
   convergence_df,
@@ -419,13 +419,6 @@ get_summary_ww_table <- function(
       avg_avg_sampling_freq = mean(.data$avg_sampling_freq, na.rm = TRUE),
       n_states_w_duplicate_obs = sum(.data$n_duplicate_obs > 0, na.rm = TRUE)
     )
-  saveRDS(
-    forecast_date_summary_table,
-    file = file.path(
-      output_dir,
-      "forecast_date_summary_table.rds"
-    )
-  )
 
   # Summarize across forecast dates by state
   state_summary_table <-
@@ -441,13 +434,6 @@ get_summary_ww_table <- function(
         na.rm = TRUE
       )
     )
-  saveRDS(
-    state_summary_table,
-    file = file.path(
-      output_dir,
-      "state_summary_table.rds"
-    )
-  )
 
   ww_metadata_list <- list(
     summary_table = summary_table,

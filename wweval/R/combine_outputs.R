@@ -78,9 +78,9 @@ combine_outputs <- function(
         "in {location} on {forecast_date}"
       ))
       output <- tibble(
+        forecast_date = as.Date(forecast_date),
         scenario = scenario,
         location = location,
-        forecast_date = as.Date(forecast_date),
         success = FALSE
       )
     }
@@ -96,12 +96,12 @@ combine_outputs <- function(
 
   failed_output <- combined |>
     dplyr::filter(!.data$success) |>
-    dplyr::select(
+    dplyr::select(tidyselect::any_of(c(
+      "forecast_date",
       "scenario",
       "location",
-      "forecast_date",
       "success"
-    )
+    )))
 
   if (nrow(combined_output) == 0) {
     combined_output <- NULL

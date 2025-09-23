@@ -2,7 +2,7 @@
 % Please edit documentation in R/additional_figures.R
 \name{get_plot_scores_and_forecasts}
 \alias{get_plot_scores_and_forecasts}
-\title{Got a plot of forecasts and scores for a single
+\title{Get a plot of forecasts and scores for a single
 location and date}
 \usage{
 get_plot_scores_and_forecasts(scores_single_loc_date, eval_output_subdir)
@@ -14,6 +14,6 @@ and data, as the output of \code{\link[scoringutils:score]{scoringutils::score()
 \item{eval_output_subdir}{Subdirectory in which to save the plot.}
 }
 \description{
-Got a plot of forecasts and scores for a single
+Get a plot of forecasts and scores for a single
 location and date
 }

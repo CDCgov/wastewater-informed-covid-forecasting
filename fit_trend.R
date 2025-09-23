@@ -118,7 +118,8 @@ parsed <- arg_parser(
       "Target acceptance probability for the No-U-Turn ",
       "sampler adaptation phase."
     ),
-    default = 0.8
+    default = 0.8,
+    type = "numeric"
   ) |>
   add_argument(
     "--max-treedepth",

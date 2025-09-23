@@ -36,15 +36,14 @@ get_summary_metadata <- function(metadata) {
   return(summary_table)
 }
 
-#' Get a heatmap of the metadata of reasons for excluding forecasts from analysis
+
+#' Plot a heatmap of the metadata of reasons for excluding
+#' forecasts from analysis
 #'
 #' @param metadata a tibble of location -forecast date metadata
-#' @param type_of_analysis either "retro_comparison" or "hub_comparison"
-#' @param fig_file_dir string indicating where to save figs
-#'
 #' @return a ggplot object with a heatmap colored by reason for excluding
 #' @export
-get_heatmap_metadata <- function(metadata, type_of_analysis, fig_file_dir) {
+plot_heatmap_metadata_retro <- function(metadata) {
   metadata_summarized <- metadata |>
     dplyr::select(
       forecast_date,
@@ -56,30 +55,16 @@ get_heatmap_metadata <- function(metadata, type_of_analysis, fig_file_dir) {
     ) |>
     dplyr::ungroup()
 
-  if (type_of_analysis == "retro_comparison") {
-    metadata_final <- metadata_summarized |>
-      dplyr::mutate(
-        metadata_cat = case_when(
-          ww_data_present != 1 ~ "absent or insufficient wastewater",
-          ww_sufficient != TRUE ~ "absent or insufficient wastewater",
-          any_flags_ww == TRUE ~ "model had convergence issues",
-          any_flags_hosp == TRUE ~ "model had convergence issues",
-          TRUE ~ "both models produced forecasts"
-        )
+  metadata_final <- metadata_summarized |>
+    dplyr::mutate(
+      metadata_cat = case_when(
+        ww_data_present != 1 ~ "absent or insufficient wastewater",
+        ww_sufficient != TRUE ~ "absent or insufficient wastewater",
+        any_flags_ww == TRUE ~ "model had convergence issues",
+        any_flags_hosp == TRUE ~ "model had convergence issues",
+        TRUE ~ "both models produced forecasts"
       )
-  } else {
-    metadata_final <- metadata_summarized |>
-      dplyr::mutate(
-        metadata_cat = case_when(
-          ww_data_present != 1 ~ "absent or insufficient wastewater",
-          ww_sufficient != TRUE ~ "absent or insufficient wastewater",
-          any_flags_ww == TRUE ~ "model had convergence issues",
-          any_flags_hosp == TRUE ~ "model had convergence issues",
-          ww_exclude_manual == TRUE ~ "manual exclusion of ww model",
-          TRUE ~ "both models produced forecasts"
-        )
-      )
-  }
+    )
 
   p <- ggplot(metadata_final) +
     geom_tile(aes(
@@ -96,6 +81,7 @@ get_heatmap_metadata <- function(metadata, type_of_analysis, fig_file_dir) {
       date_breaks = "1 week",
       labels = scales::date_format("%Y-%m-%d")
     ) +
+    coord_cartesian(expand = 0) +
     xlab("") +
     ylab("Location") +
     labs(fill = "Metadata Information") +
@@ -103,28 +89,17 @@ get_heatmap_metadata <- function(metadata, type_of_analysis, fig_file_dir) {
       "Summary of retrospective comparison analysis"
     ))
 
-  ggsave(
-    p,
-    filename = file.path(
-      fig_file_dir,
-      glue::glue("fig_heatmap_metadata.png")
-    )
-  )
-
   return(p)
 }
 
-
-#' Get a heatmap of the metadata of Hub models submitted
+#' Plot a heatmap of the metadata of Hub models submitted
 #'
 #' @param metadata a tibble of location -forecast date metadata
 #' @param analysis_type string indicating whether this is the
 #' real-time or retro analysis, which dictates how metadata is gathered
-#' @param fig_file_dir string indicating where to save figs
-#'
 #' @return a ggplot object with a heatmap colored by reason for excluding
 #' @export
-get_heatmap_metadata_hub <- function(metadata, analysis_type, fig_file_dir) {
+plot_heatmap_metadata_hub <- function(metadata, analysis_type) {
   if (analysis_type == "retro") {
     metadata_summarized <- metadata |>
       dplyr::select(
@@ -158,11 +133,11 @@ get_heatmap_metadata_hub <- function(metadata, analysis_type, fig_file_dir) {
       metadata_summarized,
       metadata_hosp_only
     )
-  } else if (analysis_type == "real_time") {
+  } else if (analysis_type == "real-time") {
     # Then we need to get this info on metadata from our github!
     dates <- seq(
       from = lubridate::ymd("2024-02-05"),
-      to = lubridate::ymd("2024-03-11"),
+      to = lubridate::ymd("2024-03-25"),
       by = "week"
     )
     df_replacements <- get_date_locs_hosp_used(dates) |>
@@ -189,12 +164,13 @@ get_heatmap_metadata_hub <- function(metadata, analysis_type, fig_file_dir) {
     metadata_hosp <- metadata_grid |>
       dplyr::mutate(
         model_submitted = "hosp",
-        model_name = "cfa-hosponlyrenewal(real-time)"
+        model_name = "cfa-hosponlyrenewal(real-time*)"
       )
     all_metadata <- dplyr::bind_rows(metadata_ww, metadata_hosp)
+  } else {
+    stop("Unexpected analysis type")
   }
 
-  colors <- plot_components()
   p <- ggplot(all_metadata) +
     geom_tile(aes(
       x = forecast_date,
@@ -211,21 +187,12 @@ get_heatmap_metadata_hub <- function(metadata, analysis_type, fig_file_dir) {
       date_breaks = "1 week",
       labels = scales::date_format("%Y-%m-%d")
     ) +
+    coord_cartesian(expand = 0) +
     theme(legend.position = "bottom") +
     xlab("") +
     ylab("Location") +
     labs(fill = "Model submitted") +
     ggtitle(glue::glue("Summary of models used in Hub analysis"))
 
-  ggsave(
-    p,
-    height = 7,
-    width = 12,
-    filename = file.path(
-      fig_file_dir,
-      glue::glue(
-        "fig_heatmap_hub_metadata_{analysis_type}.png"
-      )
-    )
-  )
+  return(p)
 }

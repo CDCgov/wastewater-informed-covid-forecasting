@@ -21,20 +21,20 @@ sample_metrics <- scoringutils::get_metrics(
 #' alongside the evaluation data
 #' @param scenario a string indicating the wastewater data scenario we're
 #' running
+#' @param offset Offset to use when transforming forecasts
+#' with [scoringutils::log_shift()] via
+#' [scoringutils::transform_forecasts()].
 #' @param metrics Vector of scoring metrics to output, passed as the
 #' `metrics` argument to [scoringutils::score()]. Default
 #' [sample_metrics]
-#' @param offset Offset to use when transforming forecasts
-#' with [scoringutils::log_shift()] via
-#' [scoringutils::transform_forecasts()]. Default `1`.
 #' @return a dataframe containing a score for each day in the nowcast
 #' and forecast period
 #' @export
 score_samples <- function(
   draws,
   scenario,
-  metrics = sample_metrics,
-  offset = 1
+  offset,
+  metrics = sample_metrics
 ) {
   if (is.null(draws)) {
     scores <- NULL
@@ -93,20 +93,20 @@ score_samples <- function(
 #' only
 #' @param scenario a string indicating the wastewater data scenario we're
 #' running
+#' @param offset Offset to use when transforming forecasts
+#' with [scoringutils::log_shift()] via
+#' [scoringutils::transform_forecasts()].
 #' @param metrics Vector of scoring metrics to output, passed as the
 #' `metrics` argument to [scoringutils::score()]. Default
 #' [quantile_metrics]
-#' @param offset Offset to use when transforming forecasts
-#' with [scoringutils::log_shift()] via
-#' [scoringutils::transform_forecasts()]. Default `1`.
 #' @return a dataframe containing a score for each day in the nowcast
 #' and forecast period
 #' @export
 score_quantiles <- function(
   quantiles,
   scenario,
-  metrics = quantile_metrics,
-  offset = 1
+  offset,
+  metrics = quantile_metrics
 ) {
   if (is.null(quantiles)) {
     scores <- NULL
@@ -573,7 +573,8 @@ load_real_time_quantile_fcsts <- function(
 }
 
 
-#' Load in and score the real-time outputs
+#' Load in and score real-time outputs from the two CFA models
+#' (wastewater-informed and hospital admissions-only)
 #'
 #' @param score_type A string indicating which score to generate, either
 #' "crps" or "wis". Note, if using crps, will score draws from nowcast and
@@ -592,7 +593,7 @@ load_real_time_quantile_fcsts <- function(
 #' One or both of `"ww"` and `"hosp"`. Default both: `c("ww", "hosp")`
 #' @param offset Offset to use when transforming forecasts
 #' with [scoringutils::log_shift()] via
-#' [scoringutils::transform_forecasts()]. Default `1`.
+#' [scoringutils::transform_forecasts()].
 #' @return A tibble containing scores for every location and
 #' forecast date, conditioned on the presence of wastewater and model
 #' convergence
@@ -603,8 +604,8 @@ score_real_time_outputs <- function(
   table_of_run_ids,
   locations,
   eval_data,
-  model_types = c("ww", "hosp"),
-  offset = 1
+  offset,
+  model_types = c("ww", "hosp")
 ) {
   checkmate::assert_scalar(score_type)
   checkmate::assert_names(score_type, subset.of = c("wis", "crps"))

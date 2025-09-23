@@ -64,11 +64,13 @@ parsed <- arg_parser("Run eval pipeline for one forecast problem") |>
       "Days of prior admissions and wastewater data to ",
       "which to fit the model relative to the ",
       "forecast_date."
-    )
+    ),
+    type = "integer"
   ) |>
   add_argument(
     "--forecast-horizon",
-    help = "Days forward to forecast relative to the forecast_date."
+    help = "Days forward to forecast relative to the forecast_date.",
+    type = "integer"
   ) |>
   add_argument(
     "--params-path",
@@ -93,26 +95,36 @@ parsed <- arg_parser("Run eval pipeline for one forecast problem") |>
   ) |>
   add_argument(
     "--seed",
-    help = "Seed for Stan's pseudorandom number generator."
+    help = "Seed for Stan's pseudorandom number generator.",
+    type = "integer"
   ) |>
   add_argument(
     "--iter-sampling",
-    help = "Number of samples to draw per MCMC chain."
+    help = "Number of samples to draw per MCMC chain.",
+    type = "integer"
   ) |>
   add_argument(
     "--n-chains",
-    help = "Number of MCMC chains to run."
+    help = "Number of MCMC chains to run.",
+    type = "integer"
   ) |>
   add_argument(
     "--adapt-delta",
     help = paste0(
       "Target acceptance probability for the No-U-Turn ",
       "sampler adaptation phase."
-    )
+    ),
+    type = "numeric"
   ) |>
   add_argument(
     "--max-treedepth",
-    help = "Maximum tree depth for the No-U-Turn sampler."
+    help = "Maximum tree depth for the No-U-Turn sampler.",
+    type = "integer"
+  ) |>
+  add_argument(
+    "--scoring-offset",
+    help = "Offset to use when scoring on transformed scales.",
+    type = "numeric"
   ) |>
   add_argument(
     "--task-type",

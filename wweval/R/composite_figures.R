@@ -21,20 +21,23 @@ compose_hub_fig <- function(
   heatmap_rel_wis,
   qq_plot
 ) {
-  design <- "ABB
-             CDE"
+  design <- "AB
+               CD
+               CE"
 
   fig <- patchwork::wrap_plots(
-    hist_rwis,
+    barplot_wis,
     plot_wis_t,
     heatmap_rel_wis,
-    qq_plot,
-    barplot_wis
+    hist_rwis,
+    qq_plot
   ) +
     patchwork::plot_layout(
       design = design,
       axes = "collect",
-      guides = "collect"
+      guides = "collect",
+      heights = 1,
+      widths = 1
     ) +
     patchwork::plot_annotation(tag_levels = "A") &
     theme(legend.position = "bottom")

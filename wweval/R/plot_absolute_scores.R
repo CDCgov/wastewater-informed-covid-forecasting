@@ -65,9 +65,9 @@ plot_score_t <- function(
       size = 3
     ) +
     labs(
-      ylab = glue::glue("Average {toupper(metric)} across locations"),
       col = "Model",
-      xlab = ""
+      xlab = "",
+      ylab = toupper(metric)
     ) +
     get_plot_theme(
       x_axis_dates = TRUE,
@@ -80,7 +80,6 @@ plot_score_t <- function(
       expand = ggplot2::expansion(mult = 0, add = 3.5)
     ) +
     coord_cartesian(expand = TRUE) +
-    ylab(toupper(metric)) +
     scale_color_model()
 
   return(p)
@@ -89,7 +88,8 @@ plot_score_t <- function(
 #' Barplot of WIS or CRPS decomposed into
 #' overprediction, underprediction, and dispersion
 #'
-#' @param scores quantile based scores from the hub
+#' @param scores Output table produced by [scoringutils::score()] or
+#' [scoringutils::summarise_scores()].
 #' @param x Column containing x values. Default "model".
 #' @param width width for the bars. Passed to [geom_decomposed_scores()].
 #' Default 0.8.
@@ -129,6 +129,29 @@ plot_score_decomposed_bars <- function(
 }
 
 
+#' Generate bar plots of probabilitistic score for each model in
+#' different locations.
+#'
+#' Light wrapper of [plot_score_decomposed_bars()].
+#'
+#' @param scores tibble of crps scores by location, forecast date, model,
+#' horizon day
+#' @param locs_to_plot Vector of strings indicating the locations to plot,
+#' as two-letter USPS abbreviations.
+#' @return Figure showing CRPS for multiple locations.
+#' @export
+plot_score_model_loc <- function(scores, locs_to_plot) {
+  p <- scores |>
+    dplyr::filter(.data$location %in% !!locs_to_plot) |>
+    scoringutils::summarise_scores(by = c("model", "location")) |>
+    plot_score_decomposed_bars() +
+    facet_wrap(~ .data$location) +
+    xlab("") +
+    ylab("Mean Score")
+  return(p)
+}
+
+
 #' Plot a scatterplot of scores comparing those of one model
 #' to those of another, for a given stratification.
 #'
@@ -142,12 +165,12 @@ plot_score_decomposed_bars <- function(
 #' Default `NULL`.
 #' @param label Column to use for labeling points. If `NA` or `NULL`,
 #' do not label.
-#' @param nudge_x Passed to [geom_text()]. Default `0`.
-#' @param nudge_y Passed to [geom_text()]. Default `0`.
-#' @param label_color Passed as the `"color"` argument to [geom_text()].
-#' Default `"black"`.
-#' @param label_size Passed as the `"size"` argument to [geom_text()].
-#' Default `2`.
+#' @param nudge_x Passed to [ggplot2::geom_text()]. Default `0`.
+#' @param nudge_y Passed to [ggplot2::geom_text()]. Default `0`.
+#' @param label_color Passed as the `"color"` argument to
+#' [ggplot2::geom_text()]. Default `"black"`.
+#' @param label_size Passed as the `"size"` argument to
+#' [ggplot2::geom_text()]. Default `2`.
 #' @param ... Keyword arguments
 #' passed to [ggplot2::geom_point()].
 #' @return The scatterplot, as ggplot object
@@ -281,7 +304,7 @@ heatmap_scores_by_loc_date <- function(scores, metric, models_to_plot) {
 }
 
 
-#' Get plot of scores by horizon over time
+#' Plot scores by horizon over time
 #'
 #' @param scores tibble of scores for every location, forecast date, and horizon
 #' @param score_type Score to display, as its column name in `scores`.
@@ -289,7 +312,7 @@ heatmap_scores_by_loc_date <- function(scores, metric, models_to_plot) {
 #' use the value of `score_type` in uppercase.
 #' @return plot of scores over time faceted by horizon
 #' @export
-get_plot_score_by_horizon_t <- function(
+plot_score_by_horizon_t <- function(
   scores,
   score_type,
   score_display_name = toupper(score_type)

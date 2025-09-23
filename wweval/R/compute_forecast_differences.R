@@ -1,15 +1,13 @@
 #' Compute the posterior of the difference between model predictions.
 #'
-#' @param forecast_date forecast_date for which to fits recent data
-#' trends. Data for an actual forecast must already have been produced
-#' and exist in `raw_output_dir`.
-#' @param location Location for which to fit trends.
+#' @param forecast_date Forecast date for which to compute differences.
+#' @param location Location for which to compute differences.
 #' @param scenario Wastewater data availability scenario to analyze.
 #' @param raw_output_dir Directory containing raw output `.rds` files.
 #' Used to obtain the admissions and wastewater data used in fitting
 #' the forecasting model.
-#' @param offset to add to incidences when computing a log difference.
-#' Default `1`.
+#' @param log_diff_offset Offset to add to incidences when
+#' computing a log difference.
 #' @return Posterior of the difference in total incidence
 #' across the full nowcast/forecast period. Saves
 #' the incidence differences by day and the total
@@ -20,7 +18,7 @@ compute_forecast_differences <- function(
   location,
   scenario,
   raw_output_dir,
-  offset = 1
+  log_diff_offset
 ) {
   exists_hosp_object <- get_object_existence_checker(
     location,
@@ -80,40 +78,40 @@ compute_forecast_differences <- function(
       "{scenario}"
     ))
 
-    return(NULL)
+    save_object(NULL, "forecast_posterior_diffs")
+    save_object(NULL, "forecast_posterior_total_diffs")
+  } else {
+    preds_hosp <- load_object_hosp("hosp_draws") |>
+      filter_to_hosp_forecasts() |>
+      dplyr::select("date", "draw", hosp_model_pred = "value")
+    preds_ww <- load_object_ww("hosp_draws") |>
+      filter_to_hosp_forecasts() |>
+      dplyr::rename(ww_model_pred = "value") |>
+      dplyr::select(-c("pop", "name", "model_type", "calib_data"))
+
+    message("Joining posteriors...")
+    joined_preds <- dplyr::inner_join(
+      preds_hosp,
+      preds_ww,
+      by = c("date", "draw")
+    )
+
+    total_preds <- joined_preds |>
+      dplyr::summarise(
+        dplyr::across(c("hosp_model_pred", "ww_model_pred", "eval_data"), sum),
+        .by = c("forecast_date", "location", "draw")
+      )
+
+    diffs <- purrr::map(list(joined_preds, total_preds), \(df) {
+      dplyr::mutate(
+        df,
+        log_diff_ww_hosp = log(.data$ww_model_pred + !!log_diff_offset) -
+          log(.data$hosp_model_pred + !!log_diff_offset)
+      )
+    })
+
+    save_object(diffs[[1]], "forecast_posterior_diffs")
+    save_object(diffs[[2]], "forecast_posterior_total_diffs")
   }
-
-  preds_hosp <- load_object_hosp("hosp_draws") |>
-    filter_to_hosp_forecasts() |>
-    dplyr::select("date", "draw", hosp_model_pred = "value")
-  preds_ww <- load_object_ww("hosp_draws") |>
-    filter_to_hosp_forecasts() |>
-    dplyr::rename(ww_model_pred = "value") |>
-    dplyr::select(-c("pop", "name", "model_type", "calib_data"))
-
-  message("Joining posteriors...")
-  joined_preds <- dplyr::inner_join(
-    preds_hosp,
-    preds_ww,
-    by = c("date", "draw")
-  )
-
-  total_preds <- joined_preds |>
-    dplyr::summarise(
-      dplyr::across(c("hosp_model_pred", "ww_model_pred", "eval_data"), sum),
-      .by = c("forecast_date", "location", "draw")
-    )
-
-  diffs <- purrr::map(list(joined_preds, total_preds), \(df) {
-    dplyr::mutate(
-      df,
-      log_diff_ww_hosp = log(.data$ww_model_pred + offset) -
-        log(.data$hosp_model_pred + offset)
-    )
-  })
-
-  save_object(diffs[[1]], "forecast_posterior_diffs")
-  save_object(diffs[[2]], "forecast_posterior_total_diffs")
-
-  return(diffs[[2]])
+  invisible()
 }

@@ -6,20 +6,20 @@
 \usage{
 .target_model_relative_scores(
   scores,
-  target_model,
+  target_models,
   baseline_model,
   metric_to_compare,
-  by = NULL
+  by = NULL,
+  retain_baseline = FALSE
 )
 }
 \arguments{
 \item{scores}{table of scores, as the output of
 \code{\link[scoringutils:score]{scoringutils::score()}}}
 
-\item{target_model}{Target model (numerator for the relative scores)}
+\item{target_models}{Target model(s) (numerator for the relative scores)}
 
-\item{baseline_model}{Baseline model
-(denominator for the relative scores)}
+\item{baseline_model}{Baseline model (denominator for the relative scores)}
 
 \item{metric_to_compare}{Metric for which to compute
 relative scores. One of \code{"wis"} or \code{"crps"}. Not case-sensitive.
@@ -29,6 +29,10 @@ to \code{\link[scoringutils:get_pairwise_comparisons]{scoringutils::get_pairwise
 
 \item{by}{columns to summarize by. Passed as the \code{by} argument
 to \code{\link[forecasttools:summarise_scores_with_baseline]{forecasttools::summarise_scores_with_baseline()}}.}
+
+\item{retain_baseline}{Retain the baseline model (with its
+relative scores of 1) alongside the target models(s)? Default
+\code{FALSE}.}
 }
 \value{
 The relative scores for the target model, as a table.
