@@ -23,22 +23,28 @@
 #' ensure the submitting teams have produced forecasts for.
 #' @param project_name name of the Zoltar project, default is
 #' `"COVID-19 Forecasts"`.
-#'
+#' @param excluded_models Models to exclude even if they meet the other
+#' criteria. Defaults to
+#' `c("COVIDhub_CDC-ensemble", "COVIDhub-trained_ensemble")`
+#' (Two non-individual models that are not the Hub ensemble or the
+#' Hub baseline).
 #' @return a vector of character strings indicating the
 #' unique model names that fit the inclusion criteria
 #' @export
-query_and_select_models <- function(
+select_hub_models <- function(
   prop_dates_for_incl_hub,
   prop_locs_for_incl_hub,
   forecast_dates,
   locations,
-  project_name = "COVID-19 Forecasts"
+  project_name = "COVID-19 Forecasts",
+  excluded_models = c("COVIDhub_CDC-ensemble", "COVIDhub-trained_ensemble")
 ) {
   assert_needed_env_vars(c("ZOLTAR_USERNAME", "ZOLTAR_PASSWORD"))
   # get state abbreviation codes
   state_codes <- forecasttools::us_loc_abbr_to_code(
     unique(locations)
-  )
+    )
+  n_locs_total <- length(state_codes)
 
   if (prop_dates_for_incl_hub > 1 || prop_dates_for_incl_hub <= 0) {
     cli::cli_abort(c(
@@ -86,30 +92,27 @@ query_and_select_models <- function(
     timezeros = forecast_dates
   )
 
-  n_unique_forecasts <- forecast_data |>
-    dplyr::distinct(timezero) |>
-    dplyr::pull() |>
-    length()
+  n_unique_forecasts <- dplyr::n_distinct(forecast_data$timezero)
 
   forecasts_present_per_model <- forecast_data |>
-    dplyr::distinct(timezero, model, unit) |>
-    dplyr::group_by(model, timezero) |>
+    dplyr::distinct(.data$timezero, .data$model, .data$unit) |>
+    dplyr::group_by(.data$model, .data$timezero) |>
     dplyr::summarize(
       n_locs = dplyr::n(),
-      prop_locs = n_locs / length(state_codes)
+      prop_locs_present = .data$n_locs / !!n_locs_total
     ) |>
     # Exclude any forecast dates/models with too few locations submitted
-    dplyr::filter(prop_locs >= !!prop_locs_for_incl_hub) |>
-    dplyr::group_by(model) |>
+    dplyr::filter(.data$prop_locs >= !!prop_locs_for_incl_hub) |>
+    dplyr::group_by(.data$model) |>
     dplyr::summarize(
       n_forecast_dates = dplyr::n(),
-      prop_present = n_forecast_dates / !!n_unique_forecasts
+      prop_dates_present = .data$n_forecast_dates / !!n_unique_forecasts
     )
 
   models <- forecasts_present_per_model |>
-    dplyr::filter(prop_present > !!prop_dates_for_incl_hub) |>
-    dplyr::filter(model != "COVIDhub_CDC-ensemble") |>
-    dplyr::pull(model)
+      dplyr::filter(.data$prop_dates_present > !!prop_dates_for_incl_hub,
+                    .data$model %in% !!excluded_models) |>
+      dplyr::pull("model")
 
   return(models)
 }

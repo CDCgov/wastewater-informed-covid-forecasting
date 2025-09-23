@@ -655,7 +655,7 @@ hub_comparison_targets <- list(
   ),
   tar_target(
     name = non_cfa_hub_models_to_score,
-    command = query_and_select_models(
+    command = select_hub_models(
       prop_dates_for_incl_hub = eval_config$prop_dates_for_incl_hub,
       prop_locs_for_incl_hub = eval_config$prop_locs_for_incl_hub,
       locations = unique(eval_config$location_hosp),
