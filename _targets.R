@@ -2003,14 +2003,6 @@ additional_figure_targets <- list(
     format = "file"
   ),
   tar_target(
-    name = plot_n_sites_vs_performance,
-    command = get_plot_sites_vs_performance(
-      crps_cfa_models_retro,
-      granular_ww_metadata_used,
-      fig_file_dir = fig_output_dir
-    )
-  ),
-  tar_target(
     name = fig_wis_by_horizon_hub,
     command = plot_score_by_horizon_t(
       hub_scores,
@@ -2082,7 +2074,7 @@ additional_figure_targets <- list(
     list(loc = c("OH", "IL")),
     tar_target(
       name = plot_ww_feb,
-      command = plot_ww_conc_by_site(
+      command = plot_ribbon_ww_quantiles(
         ww_quants_feb_OH_IL,
         loc_to_plot = loc,
         max_n_site_labs_to_show = 12,

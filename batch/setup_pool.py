@@ -41,7 +41,7 @@ def main(pool_name: str) -> None:
         subnet_id=creds.azure_subnet_id,
         user_assigned_identity=creds.azure_user_assigned_identity,
         mount_configuration=mount_config,
-        vm_size="standard_e8s_v3",
+        vm_size=d.default_vm_size,
     )
 
     d.assign_container_config(
