@@ -40,11 +40,11 @@ do not label.}
 
 \item{nudge_y}{Passed to \code{\link[ggplot2:geom_text]{ggplot2::geom_text()}}. Default \code{0}.}
 
-\item{label_size}{Passed as the \code{"size"} argument to \code{\link[=geom_text]{geom_text()}}.
-Default \code{2}.}
+\item{label_size}{Passed as the \code{"size"} argument to
+\code{\link[ggplot2:geom_text]{ggplot2::geom_text()}}. Default \code{2}.}
 
-\item{label_color}{Passed as the \code{"color"} argument to \code{\link[=geom_text]{geom_text()}}.
-Default \code{"black"}.}
+\item{label_color}{Passed as the \code{"color"} argument to
+\code{\link[ggplot2:geom_text]{ggplot2::geom_text()}}. Default \code{"black"}.}
 
 \item{...}{Keyword arguments
 passed to \code{\link[ggplot2:geom_point]{ggplot2::geom_point()}}.}

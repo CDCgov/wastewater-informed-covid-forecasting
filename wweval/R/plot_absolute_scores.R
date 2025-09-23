@@ -167,10 +167,10 @@ plot_score_model_loc <- function(scores, locs_to_plot) {
 #' do not label.
 #' @param nudge_x Passed to [ggplot2::geom_text()]. Default `0`.
 #' @param nudge_y Passed to [ggplot2::geom_text()]. Default `0`.
-#' @param label_color Passed as the `"color"` argument to [geom_text()].
-#' Default `"black"`.
-#' @param label_size Passed as the `"size"` argument to [geom_text()].
-#' Default `2`.
+#' @param label_color Passed as the `"color"` argument to
+#' [ggplot2::geom_text()]. Default `"black"`.
+#' @param label_size Passed as the `"size"` argument to
+#' [ggplot2::geom_text()]. Default `2`.
 #' @param ... Keyword arguments
 #' passed to [ggplot2::geom_point()].
 #' @return The scatterplot, as ggplot object
