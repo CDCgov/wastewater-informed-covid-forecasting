@@ -34,7 +34,7 @@ parse_real_time_exclusions <- function(dir) {
       dplyr::bind_rows() |>
       dplyr::filter(!.data$location == "None") |>
       order_col("exclusion", levels = exclusion_hierarchy) |>
-      dplyr::arrange(dplyr::desc(exclusion_hierarchy)) |>
+      dplyr::arrange(dplyr::desc(exclusion)) |>
       dplyr::distinct(.data$forecast_date, .data$location, .keep_all = TRUE)
     ## max one exclusion reason per location-date pair, with the reported
     ## exclusion based on the exclusion_hierarchy when there are multiple
