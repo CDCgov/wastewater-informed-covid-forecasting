@@ -77,13 +77,6 @@ configuration_targets <- list(
     command = lubridate::ymd("2024-03-25")
   ),
   tar_target(
-      name = real_time_forecast_dates,
-      command = seq(
-      from = first_real_time_forecast_date,
-      to = last_real_time_forecast_date,
-      by = "week")
-  ),
-  tar_target(
       name = exclusions_real_time,
       command = parse_real_time_exclusions(
           eval_config$real_time_metadata_dir)
@@ -149,6 +142,11 @@ configuration_targets <- list(
           (x > last_real_time_forecast_date)
       })
   ),
+  tar_target(
+      name = filter_to_real_time_scored,
+      command = \(df) { dplyr::filter(df, .data$forecast_date %in%
+                                          .env$real_time_forecast_dates)
+      } |> with_dependencies(real_time_forecast_dates)),
   tar_target(
     name = eval_hosp_data,
     command = get_input_hosp_data(
@@ -604,8 +602,8 @@ real_time_rel_targets <- list(
       dplyr::anti_join(
         exclusions_real_time,
         by = c("forecast_date", "location")
-      ) |>
-      dplyr::filter(.data$forecast_date %in% scored_fcst_dates_real_time)
+        ) |>
+      filter_to_real_time_scored()
   ),
   tar_target(
     name = crps_cfa_models_real_time,
@@ -645,15 +643,6 @@ real_time_rel_targets <- list(
           .default = .data$model
         )
       )
-  ),
-  tar_target(
-    name = rel_wis_real_time,
-    command = wis_cfa_models_real_time |>
-      forecasttools::summarise_scores_with_baseline(
-        compare = "model",
-        baseline = "cfa-hosponlyrenewal(real-time*)",
-      ) |>
-      dplyr::rename(rel_wis = "mean_scores_ratio")
   )
 )
 
@@ -815,11 +804,7 @@ hub_comparison_targets <- list(
   ),
   tar_target(
     name = hub_scores_real_time,
-    command = dplyr::filter(
-      hub_scores,
-      .data$forecast_date >= .env$first_real_time_forecast_date
-    ) |>
-      with_dependencies(first_real_time_forecast_date)
+    command = filter_to_real_time_scored(hub_scores)
   ),
   tar_target(
     name = save_scores_real_time,
@@ -2196,7 +2181,6 @@ additional_figure_targets <- list(
     )
   )
 )
-
 reported_quantities_targets <- list(
   tar_target(
     name = n_scored_dates_real_time,
@@ -2208,24 +2192,31 @@ reported_quantities_targets <- list(
   ),
   tar_target(
       name = n_manual_exclude_ww_real_time,
-      command = dplyr::n_distinct(date_locs_manual_exclude_ww_real_time)
+      command = date_locs_manual_exclude_ww_real_time |>
+          filter_to_real_time_scored() |>
+          dplyr::n_distinct()
   ),
   tar_target(
       name = n_manual_exclude_both_real_time,
-      command = dplyr::n_distinct(date_locs_manual_exclude_both_real_time)
+      command = date_locs_manual_exclude_both_real_time |>
+          filter_to_real_time_scored() |>
+          dplyr::n_distinct()
   ),
   tar_target(
       name = n_absent_ww_real_time,
-      command = dplyr::n_distinct(date_locs_absent_ww_real_time)
+      command = date_locs_absent_ww_real_time |>
+          filter_to_real_time_scored() |>
+          dplyr::n_distinct()
   ),
   tar_target(
       name = n_insufficient_ww_real_time,
-      command = dplyr::n_distinct(date_locs_insufficient_ww_real_time)
+      command = date_locs_insufficient_ww_real_time |>
+          filter_to_real_time_scored() |>
+          dplyr::n_distinct()
   ),
   tar_target(
       name = n_date_locs_to_compare_retro,
-      command = dplyr::n_distinct(
-                           date_locs_to_compare_retro)
+      command = dplyr::n_distinct(date_locs_to_compare_retro)
   ),
   tar_target(
     name = n_scored_dates_all_time,
@@ -2234,6 +2225,15 @@ reported_quantities_targets <- list(
   tar_target(
     name = n_scored_hub_models_non_cfa,
     command = dplyr::n_distinct(non_cfa_hub_models_to_score)
+  ),
+  tar_target(
+      name = rel_wis_real_time,
+      command = wis_cfa_models_real_time |>
+          forecasttools::summarise_scores_with_baseline(
+                             compare = "model",
+                             baseline = "cfa-hosponlyrenewal(real-time*)",
+                             ) |>
+          dplyr::rename(rel_wis = "mean_scores_ratio")
   )
 )
 
