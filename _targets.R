@@ -77,33 +77,42 @@ configuration_targets <- list(
     command = lubridate::ymd("2024-03-25")
   ),
   tar_target(
-      name = exclusions_real_time,
-      command = parse_real_time_exclusions(
-          eval_config$real_time_metadata_dir)
+    name = exclusions_real_time,
+    command = parse_real_time_exclusions(
+      eval_config$real_time_metadata_dir
+    )
   ),
   tar_target(
     name = date_locs_manual_exclude_ww_real_time,
-    command = dplyr::filter(exclusions_real_time,
-                            .data$exclusion == "manual_exclude_ww") |>
-        dplyr::select("forecast_date", "location")
+    command = dplyr::filter(
+      exclusions_real_time,
+      .data$exclusion == "manual_exclude_ww"
+    ) |>
+      dplyr::select("forecast_date", "location")
   ),
   tar_target(
     name = date_locs_absent_ww_real_time,
-    command = dplyr::filter(exclusions_real_time,
-                            .data$exclusion == "absent_ww") |>
-        dplyr::select("forecast_date", "location")
+    command = dplyr::filter(
+      exclusions_real_time,
+      .data$exclusion == "absent_ww"
+    ) |>
+      dplyr::select("forecast_date", "location")
   ),
   tar_target(
     name = date_locs_insufficient_ww_real_time,
-    command = dplyr::filter(exclusions_real_time,
-                            .data$exclusion == "insufficient_ww") |>
-        dplyr::select("forecast_date", "location")
+    command = dplyr::filter(
+      exclusions_real_time,
+      .data$exclusion == "insufficient_ww"
+    ) |>
+      dplyr::select("forecast_date", "location")
   ),
   tar_target(
     name = date_locs_manual_exclude_both_real_time,
-    command = dplyr::filter(exclusions_real_time,
-                            .data$exclusion == "manual_exclude_both") |>
-        dplyr::select("forecast_date", "location")
+    command = dplyr::filter(
+      exclusions_real_time,
+      .data$exclusion == "manual_exclude_both"
+    ) |>
+      dplyr::select("forecast_date", "location")
   ),
   tar_target(
     name = fig_output_dir,
@@ -143,10 +152,18 @@ configuration_targets <- list(
       })
   ),
   tar_target(
-      name = filter_to_real_time_scored,
-      command = \(df) { dplyr::filter(df, .data$forecast_date %in%
-                                          .env$real_time_forecast_dates)
-      } |> with_dependencies(real_time_forecast_dates)),
+    name = filter_to_real_time_scored,
+    command = \(df) {
+      {
+        dplyr::filter(
+          df,
+          .data$forecast_date %in%
+            .env$scored_fcst_dates_real_time
+        )
+      } |>
+        with_dependencies(scored_fcst_dates_real_time)
+    }
+  ),
   tar_target(
     name = eval_hosp_data,
     command = get_input_hosp_data(
@@ -602,7 +619,7 @@ real_time_rel_targets <- list(
       dplyr::anti_join(
         exclusions_real_time,
         by = c("forecast_date", "location")
-        ) |>
+      ) |>
       filter_to_real_time_scored()
   ),
   tar_target(
@@ -2187,36 +2204,36 @@ reported_quantities_targets <- list(
     command = dplyr::n_distinct(scored_fcst_dates_real_time)
   ),
   tar_target(
-      name = n_date_locs_to_compare_real_time,
-      command = dplyr::n_distinct(date_locs_to_compare_real_time)
+    name = n_date_locs_to_compare_real_time,
+    command = dplyr::n_distinct(date_locs_to_compare_real_time)
   ),
   tar_target(
-      name = n_manual_exclude_ww_real_time,
-      command = date_locs_manual_exclude_ww_real_time |>
-          filter_to_real_time_scored() |>
-          dplyr::n_distinct()
+    name = n_manual_exclude_ww_real_time,
+    command = date_locs_manual_exclude_ww_real_time |>
+      filter_to_real_time_scored() |>
+      dplyr::n_distinct()
   ),
   tar_target(
-      name = n_manual_exclude_both_real_time,
-      command = date_locs_manual_exclude_both_real_time |>
-          filter_to_real_time_scored() |>
-          dplyr::n_distinct()
+    name = n_manual_exclude_both_real_time,
+    command = date_locs_manual_exclude_both_real_time |>
+      filter_to_real_time_scored() |>
+      dplyr::n_distinct()
   ),
   tar_target(
-      name = n_absent_ww_real_time,
-      command = date_locs_absent_ww_real_time |>
-          filter_to_real_time_scored() |>
-          dplyr::n_distinct()
+    name = n_absent_ww_real_time,
+    command = date_locs_absent_ww_real_time |>
+      filter_to_real_time_scored() |>
+      dplyr::n_distinct()
   ),
   tar_target(
-      name = n_insufficient_ww_real_time,
-      command = date_locs_insufficient_ww_real_time |>
-          filter_to_real_time_scored() |>
-          dplyr::n_distinct()
+    name = n_insufficient_ww_real_time,
+    command = date_locs_insufficient_ww_real_time |>
+      filter_to_real_time_scored() |>
+      dplyr::n_distinct()
   ),
   tar_target(
-      name = n_date_locs_to_compare_retro,
-      command = dplyr::n_distinct(date_locs_to_compare_retro)
+    name = n_date_locs_to_compare_retro,
+    command = dplyr::n_distinct(date_locs_to_compare_retro)
   ),
   tar_target(
     name = n_scored_dates_all_time,
@@ -2227,13 +2244,13 @@ reported_quantities_targets <- list(
     command = dplyr::n_distinct(non_cfa_hub_models_to_score)
   ),
   tar_target(
-      name = rel_wis_real_time,
-      command = wis_cfa_models_real_time |>
-          forecasttools::summarise_scores_with_baseline(
-                             compare = "model",
-                             baseline = "cfa-hosponlyrenewal(real-time*)",
-                             ) |>
-          dplyr::rename(rel_wis = "mean_scores_ratio")
+    name = rel_wis_real_time,
+    command = wis_cfa_models_real_time |>
+      forecasttools::summarise_scores_with_baseline(
+        compare = "model",
+        baseline = "cfa-hosponlyrenewal(real-time*)",
+      ) |>
+      dplyr::rename(rel_wis = "mean_scores_ratio")
   )
 )
 
