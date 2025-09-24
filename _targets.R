@@ -472,15 +472,15 @@ collated_output_targets <- list(
   tar_target(
     name = date_locs_both_converged_retro,
     command = dplyr::inner_join(
-      date_locs_ww_converged,
-      date_locs_hosp_converged,
+      date_locs_ww_converged_retro,
+      date_locs_hosp_converged_retro,
       by = c("forecast_date", "location")
     )
   ),
   tar_target(
     name = date_locs_submit_ww_retro,
     command = dplyr::inner_join(
-      date_locs_ww_converged,
+      date_locs_ww_converged_retro,
       date_locs_sufficient_ww,
       by = c("forecast_date", "location")
     ) |>
@@ -495,7 +495,7 @@ collated_output_targets <- list(
   ),
   tar_target(
     name = date_locs_submit_hosp_retro,
-    command = date_locs_hosp_converged
+    command = date_locs_hosp_converged_retro
   ),
   tar_target(
     name = date_locs_submit_both_retro,
