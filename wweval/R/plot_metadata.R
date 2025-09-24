@@ -142,9 +142,9 @@ plot_hub_submit_info_real_time <- function(
     dplyr::mutate(
       model_submitted = dplyr::case_match(
         .data$exclusion,
-        c("absent_ww", "manual_exclude_ww") ~ "hosp",
-        c(NA, "insufficient_ww") ~ "ww",
-        "manual_exclude_both" ~ NA
+        c("absent_ww", "manual_exclude_ww") ~ "Hospital admissions-only",
+        c(NA, "insufficient_ww") ~ "Wastewater-informed",
+        "manual_exclude_both" ~ "Neither"
       ),
       model_name = "cfa-wwrenewal(real-time)"
     ) |>
