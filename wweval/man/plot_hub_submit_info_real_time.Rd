@@ -4,10 +4,10 @@
 \alias{plot_hub_submit_info_real_time}
 \title{Plot model submission decisions in real-time}
 \usage{
-plot_hub_submit_info_real_time(dates, locations, exclusion_table)
+plot_hub_submit_info_real_time(forecast_dates, locations, exclusion_table)
 }
 \arguments{
-\item{dates}{forecast dates to plot}
+\item{forecast_dates}{forecast dates to plot}
 
 \item{locations}{locations to plot}
 

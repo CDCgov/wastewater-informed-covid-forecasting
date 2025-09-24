@@ -121,20 +121,20 @@ plot_heatmap_metadata_retro <- function(metadata) {
 
 #' Plot model submission decisions in real-time
 #'
-#' @param dates forecast dates to plot
+#' @param forecast_dates forecast dates to plot
 #' @param locations locations to plot
 #' @param hosp_subtitution_table table of exclusions,
 #' as produced by [parse_real_time_exclusions()].
 #' @return The plot, as a ggplot object.
 #' @export
 plot_hub_submit_info_real_time <- function(
-  dates,
+  forecast_dates,
   locations,
   exclusion_table
 ) {
   metadata_grid <- expand.grid(
-    location = locs,
-    forecast_date = dates
+    location = locations,
+    forecast_date = forecast_dates
   )
 
   metadata_ww <- metadata_grid |>
