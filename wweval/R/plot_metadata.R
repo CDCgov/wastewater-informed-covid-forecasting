@@ -58,11 +58,11 @@ plot_heatmap_metadata_retro <- function(metadata) {
   metadata_final <- metadata_summarized |>
     dplyr::mutate(
       metadata_cat = case_when(
-        ww_data_present != 1 ~ "absent or insufficient wastewater",
-        ww_sufficient != TRUE ~ "absent or insufficient wastewater",
-        any_flags_ww == TRUE ~ "model had convergence issues",
-        any_flags_hosp == TRUE ~ "model had convergence issues",
-        TRUE ~ "both models produced forecasts"
+        ww_data_present != 1 ~ "Wastewater data absent",
+        ww_sufficient != TRUE ~ "Wastewater data present but insufficient",
+        any_flags_ww == TRUE ~ "wWstewater model had convergence issues",
+        any_flags_hosp == TRUE ~ "Admissions-only model had convergence issues",
+        TRUE ~ "Both models produced forecasts"
       )
     )
 
@@ -92,93 +92,15 @@ plot_heatmap_metadata_retro <- function(metadata) {
   return(p)
 }
 
-#' Plot a heatmap of the metadata of Hub models submitted
-#'
-#' @param metadata a tibble of location -forecast date metadata
-#' @param analysis_type string indicating whether this is the
-#' real-time or retro analysis, which dictates how metadata is gathered
-#' @return a ggplot object with a heatmap colored by reason for excluding
-#' @export
-plot_heatmap_metadata_hub <- function(metadata, analysis_type) {
-  if (analysis_type == "retro") {
-    metadata_summarized <- metadata |>
-      dplyr::select(
-        forecast_date,
-        location,
-        ww_data_present,
-        ww_sufficient,
-        any_flags_hosp,
-        any_flags_ww
-      ) |>
-      dplyr::ungroup() |>
-      dplyr::mutate(
-        model_submitted = dplyr::case_when(
-          ww_data_present != 1 ~ "hosp",
-          ww_sufficient != TRUE ~ "hosp",
-          any_flags_ww == TRUE ~ "hosp",
-          TRUE ~ "ww"
-        )
-      ) |>
-      dplyr::mutate(
-        model_name = "cfa-wwrenewal(retro)"
-      )
-
-    metadata_hosp_only <- metadata_summarized |>
-      dplyr::mutate(
-        model_submitted = "hosp",
-        model_name = "cfa-hosponlyrenewal(retro)"
-      )
-
-    all_metadata <- dplyr::bind_rows(
-      metadata_summarized,
-      metadata_hosp_only
-    )
-  } else if (analysis_type == "real-time") {
-    # Then we need to get this info on metadata from our github!
-    dates <- seq(
-      from = lubridate::ymd("2024-02-05"),
-      to = lubridate::ymd("2024-03-25"),
-      by = "week"
-    )
-    df_replacements <- get_date_locs_hosp_used(dates) |>
-      dplyr::mutate(
-        model_submitted = "hosp"
-      )
-    locs <- unique(metadata$location)
-    metadata_grid <- expand.grid(
-      location = locs,
-      forecast_date = dates
-    )
-    metadata_ww <- metadata_grid |>
-      dplyr::left_join(
-        df_replacements
-      ) |>
-      dplyr::mutate(
-        model_submitted = ifelse(
-          is.na(model_submitted),
-          "ww",
-          "hosp"
-        ),
-        model_name = "cfa-wwrenewal(real-time)"
-      )
-    metadata_hosp <- metadata_grid |>
-      dplyr::mutate(
-        model_submitted = "hosp",
-        model_name = "cfa-hosponlyrenewal(real-time*)"
-      )
-    all_metadata <- dplyr::bind_rows(metadata_ww, metadata_hosp)
-  } else {
-    stop("Unexpected analysis type")
-  }
-
-  p <- ggplot(all_metadata) +
+.plot_hub_metadata <- function(metadata) {
+  p <- ggplot(metadata) +
     geom_tile(aes(
-      x = forecast_date,
-      y = location,
-      fill = model_submitted
+      x = .data$forecast_date,
+      y = .data$location,
+      fill = .data$model_submitted
     )) +
     scale_fill_discrete() +
-    facet_wrap(~model_name) +
+    facet_wrap(~ .data$model_name) +
     get_plot_theme(
       x_axis_dates = TRUE,
       y_axis_text_size = 4
@@ -195,4 +117,90 @@ plot_heatmap_metadata_hub <- function(metadata, analysis_type) {
     ggtitle(glue::glue("Summary of models used in Hub analysis"))
 
   return(p)
+}
+
+#' Plot model submission decisions in real-time
+#'
+#' @param dates forecast dates to plot
+#' @param locations locations to plot
+#' @param hosp_subtitution_table table of dates and locations
+#' for which the hospital admissions-only model was substituted in
+#' real time.
+#' @return The plot, as a ggplot object.
+#' @export
+plot_submit_info_real_time <- function(
+  dates,
+  locations,
+  hosp_substitution_table
+) {
+  metadata_grid <- expand.grid(
+    location = locs,
+    forecast_date = dates
+  )
+
+  hosp_substitutions <- dplyr::mutate(
+    date_locs_manual_exclude_ww,
+    model_submitted = "hosp"
+  )
+  metadata_ww <- metadata_grid |>
+    dplyr::left_join(hosp_substitutions) |>
+    dplyr::mutate(
+      model_submitted = dplyr::replace_na(
+        .data$model_submitted,
+        "ww"
+      ),
+      model_name = "cfa-wwrenewal(real-time)"
+    )
+
+  metadata_hosp <- metadata_grid |>
+    dplyr::mutate(
+      model_submitted = "hosp",
+      model_name = "cfa-hosponlyrenewal(real-time*)"
+    )
+  all_metadata <- dplyr::bind_rows(metadata_ww, metadata_hosp)
+
+  return(.plot_hub_metadata(all_metadata))
+}
+
+#' Plot a heatmap of the metadata of Hub models "submitted" in the
+#' retrospective analysis
+#'
+#' @param metadata a tibble of location and forecast date metadata
+#' @return The plot.
+#' @export
+plot_submit_info_retro <- function(metadata) {
+  metadata_summarized <- metadata |>
+    dplyr::select(
+      forecast_date,
+      location,
+      ww_data_present,
+      ww_sufficient,
+      any_flags_hosp,
+      any_flags_ww
+    ) |>
+    dplyr::ungroup() |>
+    dplyr::mutate(
+      model_submitted = dplyr::case_when(
+        ww_data_present != 1 ~ "hosp",
+        ww_sufficient != TRUE ~ "hosp",
+        any_flags_ww == TRUE ~ "hosp",
+        TRUE ~ "ww"
+      )
+    ) |>
+    dplyr::mutate(
+      model_name = "cfa-wwrenewal(retro)"
+    )
+
+  metadata_hosp_only <- metadata_summarized |>
+    dplyr::mutate(
+      model_submitted = "hosp",
+      model_name = "cfa-hosponlyrenewal(retro)"
+    )
+
+  all_metadata <- dplyr::bind_rows(
+    metadata_summarized,
+    metadata_hosp_only
+  )
+
+  return(.plot_hub_metadata(all_metadata))
 }
