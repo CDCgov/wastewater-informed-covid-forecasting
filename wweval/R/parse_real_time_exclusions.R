@@ -7,7 +7,7 @@
 parse_real_time_exclusions <- function(dir) {
   dirs <- fs::dir_ls(dir, type = "directory")
   .parse_meta_yaml <- function(dir_path) {
-    forecast_date <- fs::path_file(dir_path)
+    forecast_date <- as.Date(fs::path_file(dir_path))
     meta_path <- fs::path(dir_path, "metadata", ext = "yaml")
     metadata <- yaml::read_yaml(meta_path)
 
