@@ -5,11 +5,12 @@
 #' @return The parsed exclusions, as a tidy [`tibble`][tibble::tibble()].
 #' @export
 parse_real_time_exclusions <- function(dir) {
-    exclusion_hierarchy <- c(
-        "manual_exclude_both",
-        "manual_exclude_ww",
-        "absent_ww",
-        "insufficient_ww")
+  exclusion_hierarchy <- c(
+    "manual_exclude_both",
+    "manual_exclude_ww",
+    "absent_ww",
+    "insufficient_ww"
+  )
 
   dirs <- fs::dir_ls(dir, type = "directory")
   .parse_meta_yaml <- function(dir_path) {
@@ -31,12 +32,10 @@ parse_real_time_exclusions <- function(dir) {
       )
     }) |>
       dplyr::bind_rows() |>
-        dplyr::filter(!.data$location == "None") |>
-        order_col("exclusion", levels = exclusion_hierarchy) |>
-        dplyr::arrange(dplyr::desc(exclusion_hierarchy)) |>
-        dplyr::distinct(.data$forecast_date,
-                        .data$location,
-                        .keep_all = TRUE)
+      dplyr::filter(!.data$location == "None") |>
+      order_col("exclusion", levels = exclusion_hierarchy) |>
+      dplyr::arrange(dplyr::desc(exclusion_hierarchy)) |>
+      dplyr::distinct(.data$forecast_date, .data$location, .keep_all = TRUE)
     ## max one exclusion reason per location-date pair, with the reported
     ## exclusion based on the exclusion_hierarchy when there are multiple
     ## potential reasons to exclude.
