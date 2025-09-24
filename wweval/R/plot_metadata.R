@@ -60,7 +60,7 @@ plot_heatmap_metadata_retro <- function(metadata) {
       metadata_cat = case_when(
         ww_data_present != 1 ~ "Wastewater data absent",
         ww_sufficient != TRUE ~ "Wastewater data present but insufficient",
-        any_flags_ww == TRUE ~ "wWstewater model had convergence issues",
+        any_flags_ww == TRUE ~ "Wastewater model had convergence issues",
         any_flags_hosp == TRUE ~ "Admissions-only model had convergence issues",
         TRUE ~ "Both models produced forecasts"
       )
@@ -68,9 +68,9 @@ plot_heatmap_metadata_retro <- function(metadata) {
 
   p <- ggplot(metadata_final) +
     geom_tile(aes(
-      x = forecast_date,
-      y = location,
-      fill = metadata_cat
+      x = .data$forecast_date,
+      y = .data$location,
+      fill = .data$metadata_cat
     )) +
     scale_fill_discrete() +
     get_plot_theme(
@@ -123,34 +123,32 @@ plot_heatmap_metadata_retro <- function(metadata) {
 #'
 #' @param dates forecast dates to plot
 #' @param locations locations to plot
-#' @param hosp_subtitution_table table of dates and locations
-#' for which the hospital admissions-only model was substituted in
-#' real time.
+#' @param hosp_subtitution_table table of exclusions,
+#' as produced by [parse_real_time_exclusions()].
 #' @return The plot, as a ggplot object.
 #' @export
-plot_submit_info_real_time <- function(
+plot_hub_submit_info_real_time <- function(
   dates,
   locations,
-  hosp_substitution_table
+  exclusion_table
 ) {
   metadata_grid <- expand.grid(
     location = locs,
     forecast_date = dates
   )
 
-  hosp_substitutions <- dplyr::mutate(
-    date_locs_manual_exclude_ww,
-    model_submitted = "hosp"
-  )
   metadata_ww <- metadata_grid |>
-    dplyr::left_join(hosp_substitutions) |>
+    dplyr::left_join(exclusion_table, by = c("forecast_date", "location")) |>
     dplyr::mutate(
-      model_submitted = dplyr::replace_na(
-        .data$model_submitted,
-        "ww"
+      model_submitted = dplyr::case_match(
+        .data$exclusion,
+        c("absent_ww", "manual_exclude_ww") ~ "hosp",
+        c(NA, "insufficient_ww") ~ "ww",
+        "manual_exclude_both" ~ NA
       ),
       model_name = "cfa-wwrenewal(real-time)"
-    )
+    ) |>
+    dplyr::select(-"exclusion")
 
   metadata_hosp <- metadata_grid |>
     dplyr::mutate(
@@ -168,7 +166,7 @@ plot_submit_info_real_time <- function(
 #' @param metadata a tibble of location and forecast date metadata
 #' @return The plot.
 #' @export
-plot_submit_info_retro <- function(metadata) {
+plot_hub_submit_info_retro <- function(metadata) {
   metadata_summarized <- metadata |>
     dplyr::select(
       forecast_date,

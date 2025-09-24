@@ -1416,32 +1416,32 @@ composite_figure_targets <- list(
     format = "file"
   ),
   tar_target(
-    name = fig_heatmap_metadata_hub_retro,
-    command = plot_heatmap_metadata_hub(
-      granular_ww_metadata_used,
-      analysis_type = "retro"
+    name = fig_hub_submit_info_retro,
+    command = plot_hub_submit_info_retro(
+      granular_ww_metadata_used
     )
   ),
   tar_target(
-    name = save_fig_heatmap_metadata_hub_retro,
+    name = save_fig_hub_submit_info_retro,
     command = save_fig_supp(
-      fig_heatmap_metadata_hub_retro,
+      fig_hub_submit_info_retro,
       base_width = 8,
       base_height = 6
     ),
     format = "file"
   ),
   tar_target(
-    name = fig_heatmap_metadata_hub_real_time,
-    command = plot_heatmap_metadata_hub(
-      granular_ww_metadata_used,
-      analysis_type = "real-time"
+    name = fig_hub_submit_info_real_time,
+    command = plot_hub_submit_info_real_time(
+      scored_fcst_dates_real_time,
+      unique(eval_config$location_ww),
+      exclusions_real_time
     )
   ),
   tar_target(
-    name = save_fig_heatmap_metadata_hub_real_time,
+    name = save_fig_hub_submit_info_real_time,
     command = save_fig_supp(
-      fig_heatmap_metadata_hub_real_time,
+      fig_hub_submit_info_real_time,
       base_width = 8,
       base_height = 6
     ),
