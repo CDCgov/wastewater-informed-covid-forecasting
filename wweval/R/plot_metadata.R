@@ -62,7 +62,7 @@ plot_heatmap_metadata_retro <- function(metadata) {
         ww_sufficient != TRUE ~ "Wastewater data present but insufficient",
         any_flags_ww == TRUE ~ "Wastewater model had convergence issues",
         any_flags_hosp == TRUE ~ "Admissions-only model had convergence issues",
-        TRUE ~ "Both models produced forecasts"
+        TRUE ~ "Paired forecasts available for comparison"
       )
     )
 
