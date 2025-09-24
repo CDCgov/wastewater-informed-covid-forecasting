@@ -89,8 +89,8 @@ write_eval_config <- function(
   scenario_dir <- file.path("input", "config", "eval", "scenarios")
   hosp_data_dir <- file.path("input", "hosp_data", "vintage_datasets")
   population_data_path <- file.path("input", "locations.csv")
+  real_time_metadata_dir <- file.path("output", "forecasts")
   baseline_score_table_dir <- file.path("output", "baseline_score")
-  init_dir <- file.path("input", "init_lists")
   output_dir <- file.path("output", "eval_latest")
   figure_dir <- file.path("output", "eval_latest", "plots")
   hub_subdir <- file.path("output", "eval_latest", "hub")
@@ -115,14 +115,6 @@ write_eval_config <- function(
   adapt_delta <- 0.95
   max_treedepth <- 12
   seed <- 123
-
-  init_fps <- c()
-  for (i in 1:n_chains) {
-    init_fps <- c(
-      init_fps,
-      file.path(init_dir, glue::glue("init_{i}.json"))
-    )
-  }
 
   # Pre-specified delay distributions
   generation_interval <- wwinference::default_covid_gi
@@ -177,22 +169,13 @@ write_eval_config <- function(
   )
 
   # These come from the yaml files we saved in the forecast folders,
-  # documentation which location-forecast dates we chose to use the hospital
-  # admissions only model for in real-time
-  # Example: https://github.com/CDCgov/wastewater-informed-covid-forecasting/blob/e6e4e1980e13c15036a4e0e1c5af72b40e8f728e/output/forecasts/2024-02-05/metadata.yaml#L12 #nolint
-  dates_we_excluded <- wweval::get_date_locs_excluded(forecast_dates)
-  add_to_exclude <- data.frame(
+  date_locs_exclude_ww_retro <- tibble::tibble(
     location = c("MN", "MN", "MN"),
     forecast_date = c(
       "2024-01-15",
       "2024-01-22",
       "2024-01-29"
     )
-  )
-
-  ww_forecast_date_locs_to_excl <- dplyr::bind_rows(
-    dates_we_excluded,
-    add_to_exclude
   )
 
   config <- list(
@@ -221,9 +204,8 @@ write_eval_config <- function(
     score_subdir = score_subdir,
     raw_output_dir = raw_output_dir,
     figure_dir = figure_dir,
+    real_time_metadata_dir = real_time_metadata_dir,
     population_data_path = population_data_path,
-    init_dir = init_dir,
-    init_fps = init_fps,
     overwrite_summary_table = overwrite_summary_table,
     calibration_time = calibration_time,
     forecast_time = forecast_time,
@@ -231,7 +213,7 @@ write_eval_config <- function(
     table_of_exclusions = table_of_exclusions,
     table_of_run_ids = table_of_run_ids,
     real_time_output_dir = real_time_output_dir,
-    ww_forecast_date_locs_to_excl = ww_forecast_date_locs_to_excl,
+    date_locs_exclude_ww_retro = date_locs_exclude_ww_retro,
     # MCMC settings
     iter_warmup = iter_warmup,
     iter_sampling = iter_sampling,

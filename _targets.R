@@ -77,9 +77,49 @@ configuration_targets <- list(
     command = lubridate::ymd("2024-03-25")
   ),
   tar_target(
-    name = date_locs_manual_exclude_ww,
-    command = as.data.frame(eval_config$ww_forecast_date_locs_to_excl) |>
-      dplyr::mutate(forecast_date = lubridate::ymd(.data$forecast_date)) |>
+    name = real_time_forecast_dates,
+    command = seq(
+      from = first_real_time_forecast_date,
+      to = last_real_time_forecast_date,
+      by = "week"
+    )
+  ),
+  tar_target(
+    name = exclusions_real_time,
+    command = parse_real_time_exclusions(
+      eval_config$real_time_metadata_dir
+    )
+  ),
+  tar_target(
+    name = date_locs_manual_exclude_ww_real_time,
+    command = dplyr::filter(
+      exclusions_real_time,
+      .data$exclusion == "manual_exclude_ww"
+    ) |>
+      dplyr::select("forecast_date", "location")
+  ),
+  tar_target(
+    name = date_locs_absent_ww_real_time,
+    command = dplyr::filter(
+      exclusions_real_time,
+      .data$exclusion == "absent_ww"
+    ) |>
+      dplyr::select("forecast_date", "location")
+  ),
+  tar_target(
+    name = date_locs_insufficient_ww_real_time,
+    command = dplyr::filter(
+      exclusions_real_time,
+      .data$exclusion == "insufficient_ww"
+    ) |>
+      dplyr::select("forecast_date", "location")
+  ),
+  tar_target(
+    name = date_locs_exclude_both_real_time,
+    command = dplyr::filter(
+      exclusions_real_time,
+      .data$exclusion == "manual_exclude_both"
+    ) |>
       dplyr::select("forecast_date", "location")
   ),
   tar_target(
@@ -414,7 +454,7 @@ collated_output_targets <- list(
       dplyr::select("forecast_date", "location")
   ),
   tar_target(
-    name = date_locs_ww_converged,
+    name = date_locs_ww_converged_retro,
     command = dplyr::filter(
       convergence_df_ww,
       .data$any_flags_ww == FALSE
@@ -422,7 +462,7 @@ collated_output_targets <- list(
       dplyr::select("forecast_date", "location")
   ),
   tar_target(
-    name = date_locs_hosp_converged,
+    name = date_locs_hosp_converged_retro,
     command = dplyr::filter(
       convergence_df_hosp,
       .data$any_flags_hosp == FALSE
@@ -430,7 +470,7 @@ collated_output_targets <- list(
       dplyr::select("forecast_date", "location")
   ),
   tar_target(
-    name = date_locs_both_converged,
+    name = date_locs_both_converged_retro,
     command = dplyr::inner_join(
       date_locs_ww_converged,
       date_locs_hosp_converged,
@@ -438,7 +478,7 @@ collated_output_targets <- list(
     )
   ),
   tar_target(
-    name = date_locs_submit_ww,
+    name = date_locs_submit_ww_retro,
     command = dplyr::inner_join(
       date_locs_ww_converged,
       date_locs_sufficient_ww,
@@ -449,26 +489,26 @@ collated_output_targets <- list(
         by = "forecast_date"
       ) |>
       dplyr::anti_join(
-        date_locs_manual_exclude_ww,
+        date_locs_manual_exclude_ww_real_time,
         by = c("forecast_date", "location")
       )
   ),
   tar_target(
-    name = date_locs_submit_hosp,
+    name = date_locs_submit_hosp_retro,
     command = date_locs_hosp_converged
   ),
   tar_target(
-    name = date_locs_submit_both,
+    name = date_locs_submit_both_retro,
     command = dplyr::inner_join(
-      date_locs_submit_ww,
-      date_locs_submit_hosp,
+      date_locs_submit_ww_retro,
+      date_locs_submit_hosp_retro,
       by = c("forecast_date", "location")
     )
   ),
   tar_target(
     name = date_locs_to_compare_retro,
     command = dplyr::inner_join(
-      date_locs_submit_both,
+      date_locs_submit_both_retro,
       tibble::tibble(forecast_date = scored_forecast_dates),
       by = "forecast_date"
     )
@@ -483,7 +523,7 @@ collated_output_targets <- list(
     name = submitted_fcsts_hosp_retro,
     command = dplyr::inner_join(
       quantile_fcsts_hosp_retro,
-      date_locs_submit_hosp,
+      date_locs_submit_hosp_retro,
       by = c("forecast_date", "location")
     )
   ),
@@ -494,7 +534,7 @@ collated_output_targets <- list(
         quantile_fcsts_ww_retro,
         .data$scenario == "status_quo"
       ),
-      date_locs_submit_ww,
+      date_locs_submit_ww_retro,
       by = c("forecast_date", "location")
     )
   ),
@@ -572,7 +612,7 @@ real_time_rel_targets <- list(
       forecasttools::filter_to_shared_forecasts() |> # both models present
       dplyr::distinct(.data$forecast_date, .data$location) |>
       dplyr::anti_join(
-        date_locs_manual_exclude_ww,
+        exclusions_real_time,
         by = c("forecast_date", "location")
       ) |>
       dplyr::filter(.data$forecast_date %in% scored_fcst_dates_real_time)
@@ -1356,7 +1396,7 @@ composite_figure_targets <- list(
     name = granular_ww_metadata_used,
     command = combine_ww_and_run_metadata(
       granular_ww_metadata,
-      date_locs_manual_exclude_ww,
+      date_locs_manual_exclude_ww_real_time,
       convergence_df,
       ww_sufficiency_table,
       include_manual_exclusions = TRUE
@@ -2171,6 +2211,32 @@ reported_quantities_targets <- list(
   tar_target(
     name = n_scored_dates_real_time,
     command = dplyr::n_distinct(scored_fcst_dates_real_time)
+  ),
+  tar_target(
+    name = n_date_locs_to_compare_real_time,
+    command = dplyr::n_distinct(date_locs_to_compare_real_time)
+  ),
+  tar_target(
+    name = n_manual_exclude_ww_real_time,
+    command = dplyr::n_distinct(date_locs_manual_exclude_ww_real_time)
+  ),
+  tar_target(
+    name = n_manual_exclude_both_real_time,
+    command = dplyr::n_distinct(date_locs_manual_exclude_both_real_time)
+  ),
+  tar_target(
+    name = n_absent_ww_real_time,
+    command = dplyr::n_distinct(date_locs_absent_ww_real_time)
+  ),
+  tar_target(
+    name = n_insufficient_ww_real_time,
+    command = dplyr::n_distinct(date_locs_insufficient_ww_real_time)
+  ),
+  tar_target(
+    name = n_date_locs_to_compare_retro,
+    command = dplyr::n_distinct(
+      date_locs_to_compare_retro
+    )
   ),
   tar_target(
     name = n_scored_dates_all_time,
