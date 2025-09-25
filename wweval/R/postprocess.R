@@ -754,11 +754,34 @@ eval_postprocess <- function(
 
   if (ww_model) {
     input_ww_data <- load_object("input_ww_data")
-    input_hosp_data_wweval <- input_hosp_data |>
-      dplyr::rename(
-        daily_hosp_admits = "count",
-        pop = "total_pop"
-      )
+    ww_data_flags <- compute_ww_data_quality_table(
+      input_ww_data,
+      forecast_date
+    )
+    save_table(
+      data_to_save = ww_data_flags,
+      type_of_output = "ww_data_flags",
+      output_dir = output_dir,
+      scenario = scenario,
+      forecast_date = forecast_date,
+      model_type = model,
+      location = location
+    )
+
+    if (!is.null(input_ww_data)) {
+      input_ww_data_wweval <- input_ww_data |>
+        dplyr::mutate(
+          ww = exp(.data$log_genome_copies_per_ml),
+          lod_sewage = exp(.data$log_lod)
+        ) |>
+        dplyr::rename(
+          ww_pop = "site_pop",
+          below_LOD = "below_lod"
+        )
+    } else {
+      input_ww_data_wweval <- NULL
+    }
+
     save_table(
       data_to_save = input_ww_data_wweval,
       type_of_output = "input_ww_data",
@@ -798,20 +821,6 @@ eval_postprocess <- function(
       ))
     }
     save_object(eval_ww_data)
-
-    ww_data_flags <- compute_ww_data_quality_table(
-      input_ww_data,
-      forecast_date
-    )
-    save_table(
-      data_to_save = ww_data_flags,
-      type_of_output = "ww_data_flags",
-      output_dir = output_dir,
-      scenario = scenario,
-      forecast_date = forecast_date,
-      model_type = model,
-      location = location
-    )
   } else {
     input_ww_data <- NULL
     eval_ww_data <- NULL
