@@ -123,7 +123,7 @@ plot_heatmap_metadata_retro <- function(metadata) {
 #'
 #' @param forecast_dates forecast dates to plot
 #' @param locations locations to plot
-#' @param hosp_subtitution_table table of exclusions,
+#' @param exclusion_table table of exclusions,
 #' as produced by [parse_real_time_exclusions()].
 #' @return The plot, as a ggplot object.
 #' @export

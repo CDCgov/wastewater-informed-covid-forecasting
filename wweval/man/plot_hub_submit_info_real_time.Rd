@@ -11,7 +11,7 @@ plot_hub_submit_info_real_time(forecast_dates, locations, exclusion_table)
 
 \item{locations}{locations to plot}
 
-\item{hosp_subtitution_table}{table of exclusions,
+\item{exclusion_table}{table of exclusions,
 as produced by \code{\link[=parse_real_time_exclusions]{parse_real_time_exclusions()}}.}
 }
 \value{
