@@ -450,12 +450,18 @@ collated_output_targets <- list(
     )
   ),
   tar_target(
-    name = ww_sufficiency_table,
-    command = get_table_sufficient_ww(all_ww_data_flags)
+    name = ww_quality_table,
+    command = summarize_ww_quality(all_ww_data_flags)
+  ),
+  tar_target(
+    name = ww_sufficiency_table, # backward compatibility
+    command = ww_quality_table |> dplyr::select("forecast_date",
+                                                "location",
+                                                "ww_sufficient")
   ),
   tar_target(
     name = date_locs_sufficient_ww,
-    command = dplyr::filter(ww_sufficiency_table, .data$ww_sufficient) |>
+    command = dplyr::filter(ww_quality, .data$ww_sufficient) |>
       dplyr::select("forecast_date", "location")
   ),
   tar_target(
