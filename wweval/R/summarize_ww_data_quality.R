@@ -25,8 +25,9 @@ summarize_ww_data_quality <- function(ww_quality_table) {
     "flag_no_data"
   )
   checkmate::check_data_frame(
-                 ww_quality_table[insufficiency_flags],
-                 types = "logical")
+    ww_quality_table[insufficiency_flags],
+    types = "logical"
+  )
   tbl <- quality_table |>
     dplyr::group_by(.data$location, .data$forecast_date) |>
     dplyr::summarise(
