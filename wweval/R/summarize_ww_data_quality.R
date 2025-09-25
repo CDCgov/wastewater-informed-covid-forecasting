@@ -16,8 +16,7 @@
 #' wastewater data and a `status` column indicating the reason
 #' for data (in)validity.
 #' #' @export
-summarize_ww_data_quality <- function(quality_table) {
-  checkmate::assert_logical(combined_ww_data_flags$value)
+summarize_ww_data_quality <- function(ww_quality_table) {
   insufficiency_flags <- c(
     "flag_delay",
     "flag_n_dps",
@@ -25,6 +24,9 @@ summarize_ww_data_quality <- function(quality_table) {
     "flag_sd",
     "flag_no_data"
   )
+  checkmate::check_data_frame(
+                 ww_quality_table[insufficiency_flags],
+                 types = "logical")
   tbl <- quality_table |>
     dplyr::group_by(.data$location, .data$forecast_date) |>
     dplyr::summarise(

@@ -5,7 +5,7 @@
 \title{Get table of location-forecast dates with available and
 sufficient wastewater}
 \usage{
-summarize_ww_data_quality(quality_table)
+summarize_ww_data_quality(ww_quality_table)
 }
 \arguments{
 \item{ww_quality_table}{Data frame of flags for each run,
