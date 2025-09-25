@@ -80,7 +80,7 @@ compute_ww_data_quality_table <- function(
       mean_log_ww = mean(.data$log_genome_copies_per_ml)
     ) |>
     dplyr::mutate(
-      flag_delay = as.integer(!!forecast_date - .data$last_date) >
+      flag_delay = as.integer(.data$forecast_date - .data$last_date) >
         !!delay_thres,
       flag_n_dps = .data$n_dps < !!n_dps_thres,
       flag_lod = .data$prop_below_lod > !!prop_below_lod_thres,
