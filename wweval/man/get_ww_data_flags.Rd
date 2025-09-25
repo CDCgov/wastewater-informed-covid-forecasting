@@ -6,6 +6,7 @@
 \usage{
 get_ww_data_flags(
   input_ww_data,
+  location,
   forecast_date,
   delay_thres = 21,
   n_dps_thres = 5,
@@ -18,6 +19,8 @@ get_ww_data_flags(
 \item{input_ww_data}{A tibble with the wastewater data used to fit the
 model for a particular location, forecast date, and scenario. Required
 columns are \code{ww}, \code{date}, \code{below_lod}, and \code{location}}
+
+\item{location}{location fit}
 
 \item{forecast_date}{A string indicating the date of the forecast for
 this particular fit in ISO8 format (YYYY-MM-DD)}

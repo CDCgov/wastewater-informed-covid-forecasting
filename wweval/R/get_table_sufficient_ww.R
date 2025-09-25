@@ -46,6 +46,7 @@ get_table_sufficient_ww <- function(combined_ww_data_flags) {
 #' @param input_ww_data A tibble with the wastewater data used to fit the
 #' model for a particular location, forecast date, and scenario. Required
 #' columns are `ww`, `date`, `below_lod`, and `location`
+#' @param location location fit
 #' @param forecast_date A string indicating the date of the forecast for
 #' this particular fit in ISO8 format (YYYY-MM-DD)
 #' @param delay_thres The maximum number of days of delay between the last
@@ -71,6 +72,7 @@ get_table_sufficient_ww <- function(combined_ww_data_flags) {
 #'
 get_ww_data_flags <- function(
   input_ww_data,
+  location,
   forecast_date,
   delay_thres = 21,
   n_dps_thres = 5,
@@ -78,40 +80,55 @@ get_ww_data_flags <- function(
   sd_thres = 0.1,
   mean_log_ww_value_thres = -4
 ) {
-  this_location <- input_ww_data |>
-    dplyr::distinct(location) |>
-    dplyr::pull(location)
+  if (is.null(input_ww_data)) {
+    return(tibble::tibble(
+      last_date = NA,
+      n_dps = 0,
+      prop_below_lod = NA,
+      sd = NA,
+      mean_log_ww = NA,
+      location = location,
+      forecast_date = forecast_date,
+      name = flag_no_data,
+      value = TRUE
+    ))
+  }
 
+  checkmate::assert_names(
+    input_ww_data$location,
+    subset.of = location
+  )
   diagnostic_table <- input_ww_data |>
     dplyr::summarize(
       last_date = max(date),
       n_dps = dplyr::n(),
-      prop_below_lod = sum(below_LOD == 1) / dplyr::n(),
-      sd = sd(ww),
-      mean_log_ww = mean(log(ww))
+      prop_below_lod = sum(below_lod == 1) / dplyr::n(),
+      sd = sd(exp(.data$log_genome_copies_per_ml)),
+      mean_log_ww = mean(.data$log_genome_copies_per_ml)
     ) |>
     dplyr::mutate(
-      location = !!this_location,
+      location = !!location,
       forecast_date = lubridate::ymd(!!forecast_date),
-      flag_delay = as.integer(forecast_date - last_date) > !!delay_thres,
-      flag_n_dps = n_dps < !!n_dps_thres,
-      flag_lod = prop_below_lod > !!prop_below_lod_thres,
+      flag_delay = as.integer(!!forecast_date - .data$last_date) >
+        !!delay_thres,
+      flag_n_dps = .data$n_dps < !!n_dps_thres,
+      flag_lod = .data$prop_below_lod > !!prop_below_lod_thres,
       flag_sd = sd < !!sd_thres,
-      flag_low_val = mean_log_ww < !!mean_log_ww_value_thres
+      flag_low_val = .data$mean_log_ww < !!mean_log_ww_value_thres,
+      flag_no_data = FALSE
     )
 
   flag_table_long <- diagnostic_table |>
     dplyr::ungroup() |>
     tidyr::pivot_longer(starts_with("flag"))
 
-  # Ensure all `values` are boolean
-  # nolint start
-  stopifnot(
-    "In diagnostic table checking for sufficent wastewater data flags, not all values are boolean" = is.logical(
-      flag_table_long$value
-    )
-  )
-  # nolint end
+  if (!is.logical(flag_table_long$value)) {
+    stop(paste0(
+      "In diagnostic table checking for",
+      "sufficent wastewater data flags, ",
+      "not all values are boolean"
+    ))
+  }
 
   return(flag_table_long)
 }
