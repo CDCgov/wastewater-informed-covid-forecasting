@@ -753,10 +753,11 @@ eval_postprocess <- function(
   )
 
   if (ww_model) {
-    input_ww_data <- load_object("input_ww_data")
-    ww_data_flags <- compute_ww_data_quality_table(
-      input_ww_data,
-      forecast_date
+      input_ww_data <- load_object("input_ww_data")
+      ww_data_flags <- compute_ww_data_quality_table(
+      input_ww_data = input_ww_data,
+      location = location,
+      forecast_date = forecast_date
     )
     save_table(
       data_to_save = ww_data_flags,
@@ -768,7 +769,8 @@ eval_postprocess <- function(
       location = location
     )
 
-    if (!is.null(input_ww_data)) {
+
+      if (!is.null(input_ww_data)) {
       input_ww_data_wweval <- input_ww_data |>
         dplyr::mutate(
           ww = exp(.data$log_genome_copies_per_ml),
@@ -777,10 +779,10 @@ eval_postprocess <- function(
         dplyr::rename(
           ww_pop = "site_pop",
           below_LOD = "below_lod"
-        )
-    } else {
-      input_ww_data_wweval <- NULL
-    }
+          )
+      } else {
+          input_ww_data_wweval <- NULL
+      }
 
     save_table(
       data_to_save = input_ww_data_wweval,
@@ -821,6 +823,7 @@ eval_postprocess <- function(
       ))
     }
     save_object(eval_ww_data)
+
   } else {
     input_ww_data <- NULL
     eval_ww_data <- NULL
