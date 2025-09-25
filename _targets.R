@@ -496,11 +496,19 @@ collated_output_targets <- list(
       dplyr::anti_join(
         date_locs_manual_exclude_ww_real_time,
         by = c("forecast_date", "location")
+      ) |>
+      dplyr::anti_join(
+        date_locs_manual_exclude_both_real_time,
+        by = c("forecast_date", "location")
       )
   ),
   tar_target(
     name = date_locs_submit_hosp_retro,
-    command = date_locs_hosp_converged_retro
+    command = date_locs_hosp_converged_retro |>
+      dplyr::anti_join(
+        date_locs_manual_exclude_both_real_time,
+        by = c("forecast_date", "location")
+      )
   ),
   tar_target(
     name = date_locs_submit_both_retro,
@@ -660,6 +668,30 @@ real_time_rel_targets <- list(
           .default = .data$model
         )
       )
+  ),
+  tar_target(
+    name = locations_to_compare_real_time,
+    command = wis_cfa_models_real_time |>
+      dplyr::filter(.data$model == "cfa-wwrenewal(real-time)") |>
+      dplyr::group_by(.data$location) |>
+      dplyr::filter(
+        dplyr::n_distinct(.data$forecast_date) >=
+          eval_config$min_paired_forecasts_per_jurisdiction
+      ) |>
+      dplyr::ungroup() |>
+      dplyr::distinct(.data$location)
+  ),
+  tar_target(
+    name = dates_to_compare_real_time,
+    command = wis_cfa_models_real_time |>
+      dplyr::filter(.data$model == "cfa-wwrenewal(real-time)") |>
+      dplyr::group_by(.data$forecast_date) |>
+      dplyr::filter(
+        dplyr::n_distinct(.data$location) >=
+          eval_config$min_paired_forecasts_per_date
+      ) |>
+      dplyr::ungroup() |>
+      dplyr::distinct(.data$forecast_date)
   )
 )
 
@@ -2244,13 +2276,37 @@ reported_quantities_targets <- list(
     command = dplyr::n_distinct(non_cfa_hub_models_to_score)
   ),
   tar_target(
-    name = rel_wis_real_time,
+    name = paired_rel_wis_real_time,
     command = wis_cfa_models_real_time |>
       forecasttools::summarise_scores_with_baseline(
         compare = "model",
         baseline = "cfa-hosponlyrenewal(real-time*)",
       ) |>
       dplyr::rename(rel_wis = "mean_scores_ratio")
+  ),
+  tar_target(
+    name = paired_rel_wis_by_date_real_time,
+    command = wis_cfa_models_real_time |>
+      forecasttools::summarise_scores_with_baseline(
+        compare = "model",
+        baseline = "cfa-hosponlyrenewal(real-time*)",
+        by = "forecast_date"
+      ) |>
+      dplyr::rename(rel_wis = "mean_scores_ratio") |>
+      dplyr::arrange(.data$model, .data$rel_wis) |>
+      dplyr::inner_join(dates_to_compare_real_time, by = "forecast_date")
+  ),
+  tar_target(
+    name = paired_rel_wis_by_location_real_time,
+    command = wis_cfa_models_real_time |>
+      forecasttools::summarise_scores_with_baseline(
+        compare = "model",
+        baseline = "cfa-hosponlyrenewal(real-time*)",
+        by = "location"
+      ) |>
+      dplyr::rename(rel_wis = "mean_scores_ratio") |>
+      dplyr::arrange(.data$model, .data$rel_wis) |>
+      dplyr::inner_join(locations_to_compare_real_time, by = "location")
   )
 )
 

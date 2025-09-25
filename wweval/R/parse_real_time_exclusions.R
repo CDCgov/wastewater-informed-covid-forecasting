@@ -1,17 +1,19 @@
-#' Parse forecast exclusions fromreal-time run archived metadata
+exclusion_hierarchy <- c(
+  "manual_exclude_both",
+  "manual_exclude_ww",
+  "non_convergence_ww",
+  "non_convergence_hosp",
+  "absent_ww",
+  "insufficient_ww"
+)
+
+#' Parse forecast exclusions from real-time run archived metadata
 #'
 #' @param dir Directory to parse, with subdirectories representing forecast dates,
 #' each of which contains a `metadata.yaml` file.
 #' @return The parsed exclusions, as a tidy [`tibble`][tibble::tibble()].
 #' @export
 parse_real_time_exclusions <- function(dir) {
-  exclusion_hierarchy <- c(
-    "manual_exclude_both",
-    "manual_exclude_ww",
-    "absent_ww",
-    "insufficient_ww"
-  )
-
   dirs <- fs::dir_ls(dir, type = "directory")
   .parse_meta_yaml <- function(dir_path) {
     forecast_date <- as.Date(fs::path_file(dir_path))

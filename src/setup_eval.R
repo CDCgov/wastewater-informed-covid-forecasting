@@ -98,6 +98,8 @@ write_eval_config <- function(
   score_subdir <- file.path("output", "eval_latest", "hub")
   min_submissions_hub <- 20
   min_locs_per_submission_hub <- 40
+  min_paired_forecasts_per_jurisdiction <- 4 #nolint
+  min_paired_forecasts_per_date <- 20
   raw_output_dir <- file.path(output_dir, "raw_output")
   ww_data_mapping <- "Monday: Monday, Wednesday: Monday"
   calibration_time <- 90
@@ -200,6 +202,8 @@ write_eval_config <- function(
     wwinference_version = wwinference_version,
     min_submissions_hub = min_submissions_hub,
     min_locs_per_submission_hub = min_locs_per_submission_hub,
+    min_paired_forecasts_per_jurisdiction = min_paired_forecasts_per_jurisdiction,
+    min_paired_forecasts_per_date = min_paired_forecasts_per_date,
     retro_rt_path = retro_rt_path,
     score_subdir = score_subdir,
     raw_output_dir = raw_output_dir,

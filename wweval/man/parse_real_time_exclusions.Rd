@@ -2,7 +2,7 @@
 % Please edit documentation in R/parse_real_time_exclusions.R
 \name{parse_real_time_exclusions}
 \alias{parse_real_time_exclusions}
-\title{Parse forecast exclusions fromreal-time run archived metadata}
+\title{Parse forecast exclusions from real-time run archived metadata}
 \usage{
 parse_real_time_exclusions(dir)
 }
@@ -14,5 +14,5 @@ each of which contains a \code{metadata.yaml} file.}
 The parsed exclusions, as a tidy \code{\link[tibble:tibble]{tibble}}.
 }
 \description{
-Parse forecast exclusions fromreal-time run archived metadata
+Parse forecast exclusions from real-time run archived metadata
 }
