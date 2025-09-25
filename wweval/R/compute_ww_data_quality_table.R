@@ -1,38 +1,4 @@
-#' Get table of location-forecast dates with sufficient wastewater
-#'
-#' @description
-#' This function takes in a large tibble with all the combined wastewater data
-#' flags from each of the model runs, and produces a table with a row for each
-#' model run indicating whether the wastewater data is sufficient, based
-#' on the thresholds defined in [get_ww_data_flags()]
-#'
-#' @param combined_ww_data_flags A large tibble that consists of row bound
-#' ww data flags for each individual run
-#'
-#' @return table_of_loc_dates_w_ww a tibble containing the location,
-#' forecast_date, and column stating the wastewater data was sufficient for all
-#' locations and forecast dates where ww data was deemed sufficient
-#' @export
-#'
-get_table_sufficient_ww <- function(combined_ww_data_flags) {
-  # Ensure all `values` are boolean
-  # nolint start
-  stopifnot(
-    "In diagnostic table checking for sufficent wastewater data flags, not all values are boolean" = is.logical(
-      combined_ww_data_flags$value
-    )
-  )
-  # nolint end
-
-  table_of_loc_dates_w_ww <- combined_ww_data_flags |>
-    dplyr::filter(name != "flag_low_val") |>
-    dplyr::group_by(location, forecast_date) |>
-    dplyr::summarise(ww_sufficient = !any(value))
-
-  return(table_of_loc_dates_w_ww)
-}
-
-#' Get table of location-forecast dates with sufficient wastewater
+#' Compute wastewater data quality flags.
 #'
 #' @description
 #' This function takes in a the input wastewater data from an individual
@@ -70,7 +36,7 @@ get_table_sufficient_ww <- function(combined_ww_data_flags) {
 #' associated with this individual run
 #' @export
 #'
-get_ww_data_flags <- function(
+compute_ww_data_quality_table <- function(
   input_ww_data,
   location,
   forecast_date,
@@ -82,15 +48,19 @@ get_ww_data_flags <- function(
 ) {
   if (is.null(input_ww_data)) {
     return(tibble::tibble(
+      location = location,
+      forecast_date = forecast_date,
       last_date = NA,
       n_dps = 0,
       prop_below_lod = NA,
       sd = NA,
       mean_log_ww = NA,
-      location = location,
-      forecast_date = forecast_date,
-      name = flag_no_data,
-      value = TRUE
+      flag_delay = NA,
+      flag_n_dps = NA,
+      flag_lod = NA,
+      flag_sd = NA,
+      flag_low_val = NA,
+      flag_no_data = TRUE
     ))
   }
 
@@ -98,8 +68,10 @@ get_ww_data_flags <- function(
     input_ww_data$location,
     subset.of = location
   )
-  diagnostic_table <- input_ww_data |>
+  tbl <- input_ww_data |>
     dplyr::summarize(
+      location = !!location,
+      forecast_date = lubridate::ymd(!!forecast_date),
       last_date = max(date),
       n_dps = dplyr::n(),
       prop_below_lod = sum(below_lod == 1) / dplyr::n(),
@@ -107,8 +79,6 @@ get_ww_data_flags <- function(
       mean_log_ww = mean(.data$log_genome_copies_per_ml)
     ) |>
     dplyr::mutate(
-      location = !!location,
-      forecast_date = lubridate::ymd(!!forecast_date),
       flag_delay = as.integer(!!forecast_date - .data$last_date) >
         !!delay_thres,
       flag_n_dps = .data$n_dps < !!n_dps_thres,
@@ -118,17 +88,5 @@ get_ww_data_flags <- function(
       flag_no_data = FALSE
     )
 
-  flag_table_long <- diagnostic_table |>
-    dplyr::ungroup() |>
-    tidyr::pivot_longer(starts_with("flag"))
-
-  if (!is.logical(flag_table_long$value)) {
-    stop(paste0(
-      "In diagnostic table checking for",
-      "sufficent wastewater data flags, ",
-      "not all values are boolean"
-    ))
-  }
-
-  return(flag_table_long)
+  return(tbl)
 }
