@@ -17,7 +17,6 @@ a summarized table with locations, forecast dates, a
 \code{wwsufficient} boolean column indicating whether there is valid
 wastewater data and a \code{status} column indicating the reason
 for data (in)validity.
-#' @export
 }
 \description{
 This function takes in a large tibble with all the combined wastewater

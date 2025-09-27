@@ -47,7 +47,8 @@ concentration, default is -4}
 }
 \value{
 a tibble containing the location,
-forecast_date, and 5 rows indicating the flags for the input wastewater data
+forecast_date, and 5 rows indicating the flags for the
+input wastewater data
 associated with this individual run
 }
 \description{
