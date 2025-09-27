@@ -15,7 +15,7 @@
 #' `wwsufficient` boolean column indicating whether there is valid
 #' wastewater data and a `status` column indicating the reason
 #' for data (in)validity.
-#' #' @export
+#' @export
 summarize_ww_data_quality <- function(ww_quality_table) {
   insufficiency_flags <- c(
     "flag_delay",
