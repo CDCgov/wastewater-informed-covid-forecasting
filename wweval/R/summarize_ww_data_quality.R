@@ -28,7 +28,7 @@ summarize_ww_data_quality <- function(ww_quality_table) {
     ww_quality_table[insufficiency_flags],
     types = "logical"
   )
-  tbl <- quality_table |>
+  tbl <- ww_quality_table |>
     dplyr::group_by(.data$location, .data$forecast_date) |>
     dplyr::summarise(
       ww_sufficient = !any(dplyr::across(insufficiency_flags)),
