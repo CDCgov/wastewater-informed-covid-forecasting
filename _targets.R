@@ -152,17 +152,24 @@ configuration_targets <- list(
       })
   ),
   tar_target(
-    name = filter_to_real_time_scored,
-    command = \(df) {
-      {
-        dplyr::filter(
-          df,
-          .data$forecast_date %in%
-            .env$scored_fcst_dates_real_time
-        )
-      } |>
-        with_dependencies(scored_fcst_dates_real_time)
+    name = filter_to_scored,
+    command = function(df, dates) {
+      dplyr::filter(
+        df,
+        .data$forecast_date %in% .env$dates
+      )
     }
+  ),
+  tar_target(
+    name = filter_to_scored_real_time,
+    command = purrr::partial(
+      filter_to_scored,
+      dates = scored_fcst_dates_real_time
+    )
+  ),
+  tar_target(
+    name = filter_to_scored_retro,
+    command = purrr::partial(filter_to_scored, dates = scored_forecast_dates)
   ),
   tar_target(
     name = eval_hosp_data,
@@ -454,9 +461,21 @@ collated_output_targets <- list(
     command = summarize_ww_data_quality(all_ww_data_flags)
   ),
   tar_target(
+    name = ww_quality_counts,
+    command = table(ww_quality_table$status)
+  ),
+  tar_target(
     name = ww_sufficiency_table, # backward compatibility
     command = ww_quality_table |>
       dplyr::select("forecast_date", "location", "ww_sufficient")
+  ),
+  tar_target(
+    name = exclusions_retro,
+    command = compute_retro_exclusions(
+      exclusions_real_time,
+      ww_quality_table,
+      convergence_df
+    )
   ),
   tar_target(
     name = date_locs_sufficient_ww,
@@ -633,7 +652,7 @@ real_time_rel_targets <- list(
         exclusions_real_time,
         by = c("forecast_date", "location")
       ) |>
-      filter_to_real_time_scored()
+      filter_to_scored_real_time()
   ),
   tar_target(
     name = crps_cfa_models_real_time,
@@ -858,7 +877,7 @@ hub_comparison_targets <- list(
   ),
   tar_target(
     name = hub_scores_real_time,
-    command = filter_to_real_time_scored(hub_scores)
+    command = filter_to_scored_real_time(hub_scores)
   ),
   tar_target(
     name = save_scores_real_time,
@@ -2247,26 +2266,33 @@ reported_quantities_targets <- list(
   tar_target(
     name = n_manual_exclude_ww_real_time,
     command = date_locs_manual_exclude_ww_real_time |>
-      filter_to_real_time_scored() |>
+      filter_to_scored_real_time() |>
       dplyr::n_distinct()
   ),
   tar_target(
     name = n_manual_exclude_both_real_time,
     command = date_locs_manual_exclude_both_real_time |>
-      filter_to_real_time_scored() |>
+      filter_to_scored_real_time() |>
       dplyr::n_distinct()
   ),
   tar_target(
     name = n_absent_ww_real_time,
     command = date_locs_absent_ww_real_time |>
-      filter_to_real_time_scored() |>
+      filter_to_scored_real_time() |>
       dplyr::n_distinct()
   ),
   tar_target(
     name = n_insufficient_ww_real_time,
     command = date_locs_insufficient_ww_real_time |>
-      filter_to_real_time_scored() |>
+      filter_to_scored_real_time() |>
       dplyr::n_distinct()
+  ),
+  tar_target(
+    name = exclusion_counts_retro,
+    command = exclusions_retro |>
+      filter_to_scored_retro() |>
+      dplyr::pull("exclusion") |>
+      table()
   ),
   tar_target(
     name = n_date_locs_to_compare_retro,
@@ -2281,7 +2307,7 @@ reported_quantities_targets <- list(
     command = dplyr::n_distinct(non_cfa_hub_models_to_score)
   ),
   tar_target(
-    name = paired_rel_wis_real_time,
+    name = paired_wis_real_time,
     command = wis_cfa_models_real_time |>
       forecasttools::summarise_scores_with_baseline(
         compare = "model",
@@ -2290,7 +2316,7 @@ reported_quantities_targets <- list(
       dplyr::rename(rel_wis = "mean_scores_ratio")
   ),
   tar_target(
-    name = paired_rel_wis_by_date_real_time,
+    name = paired_wis_by_date_real_time,
     command = wis_cfa_models_real_time |>
       forecasttools::summarise_scores_with_baseline(
         compare = "model",
@@ -2302,7 +2328,7 @@ reported_quantities_targets <- list(
       dplyr::inner_join(dates_to_compare_real_time, by = "forecast_date")
   ),
   tar_target(
-    name = paired_rel_wis_by_location_real_time,
+    name = paired_wis_by_location_real_time,
     command = wis_cfa_models_real_time |>
       forecasttools::summarise_scores_with_baseline(
         compare = "model",
@@ -2312,6 +2338,37 @@ reported_quantities_targets <- list(
       dplyr::rename(rel_wis = "mean_scores_ratio") |>
       dplyr::arrange(.data$model, .data$rel_wis) |>
       dplyr::inner_join(locations_to_compare_real_time, by = "location")
+  ),
+  tar_target(
+    name = paired_crps_retro,
+    command = crps_cfa_models_retro |>
+      forecasttools::summarise_scores_with_baseline(
+        compare = "model",
+        baseline = "cfa-hosponlyrenewal(retro)",
+      ) |>
+      dplyr::rename(rel_crps = "mean_scores_ratio")
+  ),
+  tar_target(
+    name = paired_crps_by_date_retro,
+    command = crps_cfa_models_retro |>
+      forecasttools::summarise_scores_with_baseline(
+        compare = "model",
+        baseline = "cfa-hosponlyrenewal(retro)",
+        by = "forecast_date"
+      ) |>
+      dplyr::rename(rel_crps = "mean_scores_ratio") |>
+      dplyr::arrange(.data$model, .data$rel_crps)
+  ),
+  tar_target(
+    name = paired_crps_by_location_retro,
+    command = crps_cfa_models_retro |>
+      forecasttools::summarise_scores_with_baseline(
+        compare = "model",
+        baseline = "cfa-hosponlyrenewal(retro)",
+        by = "location"
+      ) |>
+      dplyr::rename(rel_crps = "mean_scores_ratio") |>
+      dplyr::arrange(.data$model, .data$rel_crps)
   )
 )
 

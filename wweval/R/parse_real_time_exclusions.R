@@ -9,9 +9,10 @@ exclusion_hierarchy <- c(
 
 #' Parse forecast exclusions from real-time run archived metadata
 #'
-#' @param dir Directory to parse, with subdirectories representing forecast dates,
-#' each of which contains a `metadata.yaml` file.
-#' @return The parsed exclusions, as a tidy [`tibble`][tibble::tibble()].
+#' @param dir Directory to parse, with subdirectories representing
+#' forecast dates, each of which contains a `metadata.yaml` file.
+#' @return Table of the parsed exclusions, as a
+#' tidy [`tibble`][tibble::tibble()].
 #' @export
 parse_real_time_exclusions <- function(dir) {
   dirs <- fs::dir_ls(dir, type = "directory")
@@ -46,4 +47,52 @@ parse_real_time_exclusions <- function(dir) {
   }
 
   return(purrr::map_df(dirs, .parse_meta_yaml))
+}
+
+#' Compute reasons for exclusion of forecast date / location pairs
+#' from the paired retrospective analysis.
+#'
+#' @param real_time_exclusion_table Table of real-time exclusions, with
+#' reasoning, as the output of [parse_real_time_exclusions()].
+#' @param ww_data_quality_table Table of wasteater data quality status,
+#' as the output of [summarize_ww_data_quality()].
+#' @param convergence_table Table of convergence statuses for each model
+#' by date and location.
+#' @return Table of the computed exclusions, as a
+#' tidy [`tibble`][tibble::tibble()].
+#' @export
+compute_retro_exclusions <- function(
+  real_time_exclusion_table,
+  ww_data_quality_table,
+  convergence_table
+) {
+  manual_exclusions <- real_time_exclusion_table |>
+    dplyr::filter(
+      .data$exclusion %in% c("manual_exclude_ww", "manual_exclude_both")
+    )
+  data_quality_exclusions <- ww_data_quality_table |>
+    dplyr::filter(!.data$ww_sufficient) |>
+    dplyr::select("forecast_date", "location", exclusion = "status")
+
+  convergence_exclusions <- convergence_table |>
+    dplyr::filter(.data$any_flags_ww | .data$any_flags_hosp) |>
+    dplyr::mutate(
+      exclusion = dplyr::case_when(
+        .data$any_flags_ww ~ "non_convergence_ww",
+        .data$any_flags_hosp ~ "non_convergence_hosp",
+        TRUE ~ NA_character_
+      )
+    ) |>
+    dplyr::select("forecast_date", "location", "exclusion")
+
+  result <- dplyr::bind_rows(
+    manual_exclusions,
+    data_quality_exclusions,
+    convergence_exclusions
+  ) |>
+    order_col("exclusion", levels = exclusion_hierarchy) |>
+    dplyr::arrange(exclusion) |>
+    dplyr::distinct(.data$forecast_date, .data$location, .keep_all = TRUE)
+
+  return(result)
 }

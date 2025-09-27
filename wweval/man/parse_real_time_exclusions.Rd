@@ -7,11 +7,12 @@
 parse_real_time_exclusions(dir)
 }
 \arguments{
-\item{dir}{Directory to parse, with subdirectories representing forecast dates,
-each of which contains a \code{metadata.yaml} file.}
+\item{dir}{Directory to parse, with subdirectories representing
+forecast dates, each of which contains a \code{metadata.yaml} file.}
 }
 \value{
-The parsed exclusions, as a tidy \code{\link[tibble:tibble]{tibble}}.
+Table of the parsed exclusions, as a
+tidy \code{\link[tibble:tibble]{tibble}}.
 }
 \description{
 Parse forecast exclusions from real-time run archived metadata
