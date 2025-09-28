@@ -120,14 +120,14 @@ configuration_targets <- list(
   ),
   tar_target(
     name = scored_forecast_dates,
-    command = eval_config$scored_forecast_dates
+    command = lubridate::ymd(eval_config$scored_forecast_dates)
   ),
   tar_target(
     name = scored_fcst_dates_real_time,
     command = scored_forecast_dates |>
       purrr::discard(\(x) {
-        (x < eval_config$first_real_time_forecast_date) |
-          (x > eval_config$last_real_time_forecast_date)
+        (x < lubridate::ymd(eval_config$first_real_time_forecast_date)) |
+          (x > lubridate::ymd(eval_config$last_real_time_forecast_date))
       })
   ),
   tar_target(

@@ -178,9 +178,13 @@ write_eval_config <- function(
   )
 
   config <- list(
-    scored_forecast_dates = forecast_dates,
-    first_real_time_forecast_date = first_real_time_forecast_date,
-    last_real_time_forecast_date = last_real_time_forecast_date,
+    scored_forecast_dates = as.character(forecast_dates),
+    first_real_time_forecast_date = as.character(
+      first_real_time_forecast_date
+    ),
+    last_real_time_forecast_date = as.character(
+      last_real_time_forecast_date
+    ),
     location_ww = df_ww |> dplyr::pull(location) |> as.vector(),
     forecast_date_ww = df_ww |>
       dplyr::pull(forecast_date) |>
