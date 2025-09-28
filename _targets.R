@@ -908,11 +908,11 @@ hub_comparison_targets <- list(
   ),
   tar_target(
     name = hub_models_to_plot_real_time,
-    command = c(hub_models_to_plot_non_cfa, cfa_model_names_retro)
+    command = c(hub_models_to_plot_non_cfa, cfa_model_names_real_time)
   ),
   tar_target(
     name = hub_models_to_plot_retro,
-    command = c(hub_models_to_plot_non_cfa, cfa_model_names_real_time)
+    command = c(hub_models_to_plot_non_cfa, cfa_model_names_retro)
   ),
   tar_target(
     name = filter_to_plotted_models_real_time,
@@ -1105,7 +1105,7 @@ hub_comparison_targets <- list(
     command = plot_score_t(
       scores = filter_to_plotted_models_real_time(hub_scores_real_time),
       metric = "wis",
-      model_z_order = models_to_plot_real_time
+      model_z_order = hub_models_to_plot_real_time
     )
   ),
   tar_target(

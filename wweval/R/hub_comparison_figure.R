@@ -1,31 +1,3 @@
-#' Make summary table of WIS scores in Hub models overall
-#'
-#' @param scores quantile based scores from the hub
-#' @return A table with the average scores of each model,
-#' where model is an ordered factor.
-#' @export
-hub_average_score_table <- function(scores) {
-  avg_scores <- scores |>
-    dplyr::group_by(.data$model) |>
-    dplyr::summarise(
-      avg_wis = mean(.data$wis),
-      avg_bias = mean(.data$bias),
-      avg_ae = mean(.data$ae_median)
-    ) |>
-    dplyr::mutate(
-      model = factor(
-        .data$model,
-        levels = as.character(.data$model)[order(
-          .data$avg_wis
-        )]
-      )
-    ) |>
-    dplyr::arrange(.data$model)
-
-  return(avg_scores)
-}
-
-
 #' Get plot of overall hub performance, grouped by period
 #'
 #' @param scores df with granular (daily) scores from every model,
