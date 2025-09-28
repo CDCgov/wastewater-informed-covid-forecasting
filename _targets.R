@@ -2297,6 +2297,22 @@ reported_quantities_targets <- list(
       ) |>
       dplyr::rename(rel_crps = "mean_scores_ratio") |>
       dplyr::arrange(.data$model, .data$rel_crps)
+  ),
+  tar_target(
+    name = hub_wis_rel_ensemble_real_time,
+    command = hub_scores_real_time |>
+      forecasttools::summarize_scores_with_baseline(
+        baseline = "COVIDhub-4_week_ensemble"
+      ) |>
+      dplyr::arrange(.data$mean_scores_ratio)
+  ),
+  tar_target(
+    name = hub_wis_rel_ensemble_retro,
+    command = hub_scores |>
+      forecasttools::summarize_scores_with_baseline(
+        baseline = "COVIDhub-4_week_ensemble"
+      ) |>
+      dplyr::arrange(.data$mean_scores_ratio)
   )
 )
 
