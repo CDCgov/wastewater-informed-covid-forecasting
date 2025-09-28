@@ -39,6 +39,14 @@ save_figure <- function(
   return(outpath)
 }
 
+filter_is_in <- function(df, column, values) {
+  return(dplyr::filter(df, .data[[column]] %in% .env$values))
+}
+
+filter_not_in <- function(df, column, values) {
+  return(dplyr::filter(df, !.data[[column]] %in% .env$values))
+}
+
 
 configuration_targets <- list(
   tar_target(
@@ -131,37 +139,19 @@ configuration_targets <- list(
       })
   ),
   tar_target(
-    name = filter_is_in,
-    command = function(df, column, values) {
-      dplyr::filter(
-        df,
-        .data[[column]] %in% .env$values
-        )
-    }
-  ),
-  tar_target(
-    name = filter_not_in,
-    command = function(df, column, values) {
-      dplyr::filter(
-        df,
-        !.data[[column]] %in% .env$values
-        )
-    }
-  ),
-  tar_target(
     name = filter_to_scored_dates_real_time,
     command = purrr::partial(
-                         filter_is_in,
-                         column = "forecast_date",
-                         values = scored_fcst_dates_real_time
-                     )
+      filter_is_in,
+      column = "forecast_date",
+      values = scored_fcst_dates_real_time
+    )
   ),
   tar_target(
     name = filter_to_scored_dates_retro,
     command = purrr::partial(
-                         filter_is_in,
-                         column = "forecast_date",
-                         values = scored_forecast_dates
+      filter_is_in,
+      column = "forecast_date",
+      values = scored_forecast_dates
     )
   ),
   tar_target(
@@ -173,18 +163,20 @@ configuration_targets <- list(
     command = c("cfa-wwrenewal(retro)", "cfa-hosponlyrenewal(retro)")
   ),
   tar_target(
-      name = exclude_cfa_models_real_time,
-      command = purrr::partial(
-                           filter_not_in,
-                           column = "model",
-                           values = cfa_model_names_real_time)
+    name = exclude_cfa_models_real_time,
+    command = purrr::partial(
+      filter_not_in,
+      column = "model",
+      values = cfa_model_names_real_time
+    )
   ),
   tar_target(
-      name = exclude_cfa_models_retro,
-      command = purrr::partial(
-                           filter_not_in,
-                           column = "model",
-                           values = cfa_model_names_retro)
+    name = exclude_cfa_models_retro,
+    command = purrr::partial(
+      filter_not_in,
+      column = "model",
+      values = cfa_model_names_retro
+    )
   ),
   tar_target(
     name = eval_hosp_data,
@@ -780,9 +772,9 @@ hub_comparison_targets <- list(
   tar_target(
     name = filter_to_hub_locations,
     command = purrr::partial(
-                         filter_not_in,
-                         column = "location",
-                         values = hub_locations_to_exclude
+      filter_not_in,
+      column = "location",
+      values = hub_locations_to_exclude
     )
   ),
   tar_target(
@@ -1193,7 +1185,7 @@ hub_comparison_targets <- list(
   ),
   tar_target(
     name = std_rank_summary_table_real_time,
-    command = hub_real_time_scores |>
+    command = hub_scores_real_time |>
       exclude_cfa_models_retro() |>
       summarize_std_rank()
   ),
