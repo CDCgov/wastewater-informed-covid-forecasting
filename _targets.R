@@ -917,13 +917,18 @@ hub_comparison_targets <- list(
   tar_target(
     name = filter_to_plotted_models_real_time,
     command = purrr::partial(
-      filter_models,
-      models = hub_models_to_plot_real_time
+      filter_is_in,
+      column = "model",
+      values = hub_models_to_plot_real_time
     )
   ),
   tar_target(
     name = filter_to_plotted_models_retro,
-    command = purrr::partial(filter_models, models = hub_models_to_plot_retro)
+    command = purrr::partial(
+      filter_is_in,
+      column = "model",
+      values = hub_models_to_plot_retro
+    )
   ),
   tar_target(
     name = wis_summary_cfa_models_real_time,
