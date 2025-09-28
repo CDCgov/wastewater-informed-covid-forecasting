@@ -61,22 +61,6 @@ configuration_targets <- list(
       tibble::as_tibble()
   ),
   tar_target(
-    name = first_scored_forecast_date,
-    command = lubridate::ymd("2023-10-16")
-  ),
-  tar_target(
-    name = last_scored_forecast_date,
-    command = lubridate::ymd("2024-03-25")
-  ),
-  tar_target(
-    name = first_real_time_forecast_date,
-    command = lubridate::ymd("2024-02-05")
-  ),
-  tar_target(
-    name = last_real_time_forecast_date,
-    command = lubridate::ymd("2024-03-25")
-  ),
-  tar_target(
     name = exclusions_real_time,
     command = parse_real_time_exclusions(
       eval_config$real_time_metadata_dir
@@ -136,23 +120,18 @@ configuration_targets <- list(
   ),
   tar_target(
     name = scored_forecast_dates,
-    command = unique(eval_config$forecast_date_hosp) |>
-      lubridate::ymd() |>
-      purrr::discard(\(x) {
-        (x < first_scored_forecast_date) |
-          (x > last_scored_forecast_date)
-      })
+    command = eval_config$scored_forecast_dates
   ),
   tar_target(
     name = scored_fcst_dates_real_time,
     command = scored_forecast_dates |>
       purrr::discard(\(x) {
-        (x < first_real_time_forecast_date) |
-          (x > last_real_time_forecast_date)
+        (x < eval_config$first_real_time_forecast_date) |
+          (x > eval_config$last_real_time_forecast_date)
       })
   ),
   tar_target(
-    name = filter_to_scored,
+    name = filter_forecast_dates,
     command = function(df, dates) {
       dplyr::filter(
         df,
@@ -161,15 +140,44 @@ configuration_targets <- list(
     }
   ),
   tar_target(
-    name = filter_to_scored_real_time,
+    name = filter_models,
+    command = function(df, models) {
+      dplyr::filter(
+        df,
+        .data$model %in% .env$models
+      )
+    }
+  ),
+  tar_target(
+    name = exclude_locations,
+    command = function(df, locations) {
+      dplyr::filter(
+        df,
+        !.data$location %in% .env$locations
+      )
+    }
+  ),
+  tar_target(
+    name = filter_to_scored_dates_real_time,
     command = purrr::partial(
-      filter_to_scored,
+      filter_forecast_dates,
       dates = scored_fcst_dates_real_time
     )
   ),
   tar_target(
-    name = filter_to_scored_retro,
-    command = purrr::partial(filter_to_scored, dates = scored_forecast_dates)
+    name = filter_to_scored_dates_retro,
+    command = purrr::partial(filter_forecast_dates,
+                             dates = scored_forecast_dates)
+  ),
+  tar_target(
+      name = cfa_model_names_real_time,
+      command = c("cfa-wwrenewal(real-time)",
+                  "cfa-hosponlyrenewal(real-time*)")
+  ),
+  tar_target(
+      name = cfa_model_names_retro,
+      command = c("cfa-wwrenewal(retro)",
+                  "cfa-hosponlyrenewal(retro)")
   ),
   tar_target(
     name = eval_hosp_data,
@@ -652,7 +660,7 @@ real_time_rel_targets <- list(
         exclusions_real_time,
         by = c("forecast_date", "location")
       ) |>
-      filter_to_scored_real_time()
+      filter_to_scored_dates_real_time()
   ),
   tar_target(
     name = crps_cfa_models_real_time,
@@ -763,6 +771,11 @@ hub_comparison_targets <- list(
     )
   ),
   tar_target(
+      name = filter_to_hub_locations,
+      command = purrr::partial(exclude_locations,
+                               locations = hub_locations_to_exclude)
+  ),
+  tar_target(
     name = hub_forecasts_cfa_retro,
     command = pull_hub_forecasts(
       model_name = c("cfa-wwrenewal", "cfa-hosponlyrenewal"),
@@ -782,11 +795,8 @@ hub_comparison_targets <- list(
           "cfa-hosponlyrenewal" ~ "cfa-hosponlyrenewal(retro)",
           .default = .data$model
         )
-      ) |>
-      dplyr::filter(
-        !location %in% .env$hub_locations_to_exclude
-      ) |>
-      with_dependencies(hub_locations_to_exclude)
+        ) |>
+      filter_to_hub_locations()
   ),
   tar_target(
     name = hub_forecasts_cfa_ww_real_time,
@@ -803,10 +813,7 @@ hub_comparison_targets <- list(
           .default = .data$model
         )
       ) |>
-      dplyr::filter(
-        !location %in% .env$hub_locations_to_exclude
-      ) |>
-      with_dependencies(hub_locations_to_exclude)
+        filter_to_hub_locations()
   ),
   tar_target(
     name = hub_forecasts_cfa_hosp_real_time,
@@ -822,10 +829,7 @@ hub_comparison_targets <- list(
       dplyr::mutate(
         model = "cfa-hosponlyrenewal(real-time*)"
       ) |>
-      dplyr::filter(
-        !location %in% .env$hub_locations_to_exclude
-      ) |>
-      with_dependencies(hub_locations_to_exclude)
+      filter_to_hub_locations()
   ),
   tar_target(
     name = hub_forecasts_cfa_real_time,
@@ -843,10 +847,7 @@ hub_comparison_targets <- list(
       eval_data = eval_hosp_data,
       pull_from_github = TRUE
     ) |>
-      dplyr::filter(
-        !location %in% .env$hub_locations_to_exclude
-      ) |>
-      with_dependencies(hub_locations_to_exclude)
+        filter_to_hub_locations()
   ),
   tar_target(
     name = hub_forecasts,
@@ -877,7 +878,7 @@ hub_comparison_targets <- list(
   ),
   tar_target(
     name = hub_scores_real_time,
-    command = filter_to_scored_real_time(hub_scores)
+    command = filter_to_scored_dates_real_time(hub_scores)
   ),
   tar_target(
     name = save_scores_real_time,
@@ -896,36 +897,29 @@ hub_comparison_targets <- list(
     format = "file"
   ),
   tar_target(
-    name = hub_average_score_table_all_time,
-    command = hub_average_score_table(
-      hub_scores
-    )
-  ),
-  tar_target(
-    name = hub_average_score_table_real_time,
-    command = hub_average_score_table(
-      hub_scores_real_time |>
-        dplyr::filter(
-          !model %in%
-            c(
-              "cfa-hosponlyrenewal(retro)",
-              "cfa-wwrenewal(retro)"
-            )
-        )
-    )
-  ),
-  tar_target(
-    name = models_to_plot,
+    name = hub_models_to_plot_non_cfa,
     command = c(
       "COVIDhub-4_week_ensemble",
       "UMass-sarix",
-      "CMU-TimeSeries",
-      "cfa-hosponlyrenewal(retro)",
-      "cfa-wwrenewal(retro)",
-      "cfa-hosponlyrenewal(real-time*)",
-      "cfa-wwrenewal(real-time)"
-    )
+      "CMU-TimeSeries")
   ),
+  tar_target(
+      name = hub_models_to_plot_real_time,
+      command = c(hub_models_to_plot_non_cfa,
+                  cfa_model_names_retro)),
+  tar_target(
+      name = hub_models_to_plot_retro,
+      command = c(hub_models_to_plot_non_cfa,
+                  cfa_model_names_real_time)),
+  tar_target(
+      name = filter_to_plotted_models_real_time,
+      command = purrr::partial(filter_models,
+                               models = hub_models_to_plot_real_time)
+  ),
+  tar_target(
+      name = filter_to_plotted_models_retro,
+      command = purrr::partial(filter_models,
+                               models = hub_models_to_plot_retro)),
   tar_target(
     name = wis_summary_cfa_models_real_time,
     command = wis_cfa_models_real_time |>
@@ -965,7 +959,7 @@ hub_comparison_targets <- list(
     command = plot_score_t(
       wis_cfa_models_real_time,
       metric = "wis",
-      model_z_order = models_to_plot
+      model_z_order = hub_models_to_plot_real_time
     )
   ),
   tar_target(
@@ -1081,61 +1075,38 @@ hub_comparison_targets <- list(
     name = hub_hist_rwis_all_time,
     command = relative_wis_histogram(
       scores = hub_scores,
-      models_to_show = models_to_plot
+      models_to_show = hub_models_to_plot_retro
     )
   ),
   tar_target(
     name = hub_hist_rwis_real_time,
     command = relative_wis_histogram(
-      scores = hub_scores_real_time |>
-        dplyr::filter(
-          !.data$model %in%
-            c(
-              "cfa-wwrenewal(retro)",
-              "cfa-hosponlyrenewal(retro)"
-            )
-        ),
-      models_to_show = models_to_plot
+        scores = filter_to_plotted_models_real_time(
+            hub_scores_real_time),
+        models_to_show = hub_models_to_plot_real_time
     )
   ),
   tar_target(
     name = hub_wis_t_all_time,
     command = plot_score_t(
-      scores = hub_scores |>
-        dplyr::filter(
-          .data$model %in% .env$models_to_plot
-        ),
+      scores = filter_to_plotted_models_retro(hub_scores),
       metric = "wis",
-      model_z_order = models_to_plot
+      model_z_order = hub_models_to_plot_retro
     )
   ),
   tar_target(
     name = hub_wis_t_real_time,
     command = plot_score_t(
-      scores = hub_scores_real_time |>
-        dplyr::filter(
-          !.data$model %in%
-            c(
-              "cfa-wwrenewal(retro)",
-              "cfa-hosponlyrenewal(retro)"
-            ),
-          .data$model %in% .env$models_to_plot
-        ),
+      scores = filter_to_plotted_models_real_time(hub_scores_real_time),
       metric = "wis",
-      model_z_order = models_to_plot
+      model_z_order = models_to_plot_real_time
     )
   ),
   tar_target(
     name = hub_heatmap_rel_wis_all_time,
     command = plot_heatmap_relative_wis(
       scores = hub_scores,
-      models_to_show = setdiff(
-        models_to_plot,
-        c(
-          "cfa-wwrenewal(real-time)",
-          "cfa-hosponlyrenewal(real-time*)"
-        )
-      ),
+      models_to_show = hub_models_to_plot_retro,
       time_period = "Oct 2023-Mar 2024",
       baseline_model = "COVIDhub-4_week_ensemble"
     )
@@ -1144,13 +1115,7 @@ hub_comparison_targets <- list(
     name = hub_heatmap_rel_wis_real_time,
     command = plot_heatmap_relative_wis(
       scores = hub_scores_real_time,
-      models_to_show = setdiff(
-        models_to_plot,
-        c(
-          "cfa-wwrenewal(retro)",
-          "cfa-hosponlyrenewal(retro)"
-        )
-      ),
+      models_to_show = hub_models_to_plot_retro,
       time_period = "Feb 2024-Mar 2024",
       baseline_model = "COVIDhub-4_week_ensemble"
     )
@@ -1158,61 +1123,23 @@ hub_comparison_targets <- list(
   tar_target(
     name = hub_qq_plot_all_time,
     command = forecast_qq_plot(
-      hub_forecasts |>
-        dplyr::filter(
-          .data$model %in% .env$models_to_plot
-        ),
-      model_z_order = models_to_plot
+      filter_to_plotted_models_retro(hub_forecasts),
+      model_z_order = hub_models_to_plot_retro
     )
   ),
   tar_target(
     name = hub_qq_plot_real_time,
     command = forecast_qq_plot(
-      hub_forecasts |>
-        dplyr::filter(
-          .data$forecast_date >= .env$first_real_time_forecast_date,
-          .data$model %in%
-            setdiff(
-              .env$models_to_plot,
-              c(
-                "cfa-wwrenewal(retro)",
-                "cfa-hosponlyrenewal(retro)"
-              )
-            )
-        ),
-      model_z_order = models_to_plot
-    ) |>
-      with_dependencies(
-        first_real_time_forecast_date
-      )
-  ),
-  tar_target(
-    name = hub_scores_plot_all_time,
-    command = dplyr::filter(
-      hub_scores,
-      !.data$model %in%
-        c(
-          "cfa-wwrenewal(real-time)",
-          "cfa-hosponlyrenewal(real-time*)"
-        )
+        hub_forecasts |>
+        filter_to_real_time_scored() |>
+        filter_to_plotted_models_real_time(),
+        model_z_order = hub_models_to_plot_real_time
     )
   ),
   tar_target(
-    name = hub_scores_plot_real_time,
-    command = dplyr::filter(
-      hub_scores,
-      !.data$model %in%
-        c(
-          "cfa-wwrenewal(retro)",
-          "cfa-hosponlyrenewal(retro)"
-        ),
-      .data$forecast_date >= .env$first_real_time_forecast_date
-    ) |>
-      with_dependencies(first_real_time_forecast_date)
-  ),
-  tar_target(
     name = hub_barplot_wis_all_time,
-    command = hub_scores_plot_all_time |>
+    command = hub_scores |>
+      filter_to_plotted_models_retro() |>
       scoringutils::summarise_scores(by = "model") |>
       dplyr::arrange(.data$wis) |>
       order_col("model") |>
@@ -1220,8 +1147,9 @@ hub_comparison_targets <- list(
   ),
   tar_target(
     name = hub_barplot_wis_real_time,
-    command = hub_scores_plot_real_time |>
-      scoringutils::summarise_scores(by = "model") |>
+    command = hub_scores_real_time |>
+        filter_to_plotted_models_real_time() |>
+        scoringutils::summarise_scores(by = "model") |>
       dplyr::arrange(.data$wis) |>
       order_col("model") |>
       plot_score_decomposed_bars(color = "black")
@@ -1237,33 +1165,29 @@ hub_comparison_targets <- list(
     name = hub_performance_by_period,
     command = plot_hub_performance_by_period(
       scores = hub_scores,
-      models_to_show = models_to_plot,
+      models_to_show = c(hub_models_to_plot_real_time,
+                         hub_models_to_plot_retro),
       all_time_period = "Oct 2023-Mar 2024",
       real_time_period = "Feb 2024-Mar 2024"
     )
   ),
   tar_target(
     name = std_rank_summary_table_all_time,
-    command = summarize_std_rank(hub_scores)
+    command = hub_scores |>
+        filter_to_plotted_models_retro() |>
+        summarize_std_rank()
   ),
   tar_target(
     name = std_rank_summary_table_real_time,
-    command = summarize_std_rank(
-      hub_scores_real_time |>
-        dplyr::filter(
-          !model %in%
-            c(
-              "cfa-wwrenewal(retro)",
-              "cfa-hosponlyrenewal(retro)"
-            )
-        )
-    )
+    command = hub_scores |>
+        filter_to_plotted_models_real_time() |>
+        summarize_std_rank()
   ),
   tar_target(
     name = fig_std_rank_all_time,
     command = plot_std_rank_distribution(
-      scores = hub_scores_plot_all_time,
-      models_to_show = models_to_plot
+      scores = filter_to_plotted_models_retro(hub_scores),
+      models_to_show = hub_models_to_plot_retro
     )
   ),
   tar_target(
@@ -1278,8 +1202,9 @@ hub_comparison_targets <- list(
   tar_target(
     name = fig_std_rank_real_time,
     command = plot_std_rank_distribution(
-      scores = hub_scores_plot_real_time,
-      models_to_show = models_to_plot
+        scores = filter_to_plotted_models_real_time(
+            hub_scores_real_time),
+        models_to_show = hub_models_to_plot_real_time
     )
   ),
   tar_target(
@@ -1827,7 +1752,7 @@ composite_figure_targets <- list(
     command = plot_score_t(
       crps_cfa_models_retro,
       metric = "crps",
-      model_z_order = models_to_plot
+      model_z_order = hub_models_to_plot_retro
     )
   ),
   tar_target(
@@ -1989,10 +1914,7 @@ additional_figure_targets <- list(
     command = heatmap_scores_by_loc_date(
       scores = hub_scores,
       metric = "wis",
-      models_to_plot = c(
-        "cfa-wwrenewal(retro)",
-        "cfa-hosponlyrenewal(retro)"
-      )
+      models_to_plot = cfa_model_names_retro
     )
   ),
   tar_target(
@@ -2009,10 +1931,7 @@ additional_figure_targets <- list(
     command = heatmap_scores_by_loc_date(
       scores = crps_cfa_models_retro,
       metric = "crps",
-      models_to_plot = c(
-        "cfa-wwrenewal(retro)",
-        "cfa-hosponlyrenewal(retro)"
-      )
+      models_to_plot = cfa_model_names_retro
     )
   ),
   tar_target(
@@ -2029,10 +1948,7 @@ additional_figure_targets <- list(
     command = heatmap_scores_by_loc_date(
       scores = hub_scores_real_time,
       metric = "wis",
-      models_to_plot = c(
-        "cfa-wwrenewal(real-time)",
-        "cfa-hosponlyrenewal(real-time*)"
-      )
+      models_to_plot = cfa_model_names_real_time
     )
   ),
   tar_target(
@@ -2266,31 +2182,31 @@ reported_quantities_targets <- list(
   tar_target(
     name = n_manual_exclude_ww_real_time,
     command = date_locs_manual_exclude_ww_real_time |>
-      filter_to_scored_real_time() |>
+      filter_to_scored_dates_real_time() |>
       dplyr::n_distinct()
   ),
   tar_target(
     name = n_manual_exclude_both_real_time,
     command = date_locs_manual_exclude_both_real_time |>
-      filter_to_scored_real_time() |>
+      filter_to_scored_dates_real_time() |>
       dplyr::n_distinct()
   ),
   tar_target(
     name = n_absent_ww_real_time,
     command = date_locs_absent_ww_real_time |>
-      filter_to_scored_real_time() |>
+      filter_to_scored_dates_real_time() |>
       dplyr::n_distinct()
   ),
   tar_target(
     name = n_insufficient_ww_real_time,
     command = date_locs_insufficient_ww_real_time |>
-      filter_to_scored_real_time() |>
+      filter_to_scored_dates_real_time() |>
       dplyr::n_distinct()
   ),
   tar_target(
     name = exclusion_counts_retro,
     command = exclusions_retro |>
-      filter_to_scored_retro() |>
+      filter_to_scored_dates_retro() |>
       dplyr::pull("exclusion") |>
       table()
   ),

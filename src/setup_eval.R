@@ -40,10 +40,15 @@ write_eval_config <- function(
   name_of_config = "eval_config",
   overwrite_benchmark = FALSE
 ) {
-  # Will need to load in the files corresponding to the input scenarios, so we
-  # get the list of locations that are relevant for each scenario. We will bind
-  # these all together to create the full eval config.
-  df_ww <- data.frame(
+
+    forecast_dates <- as.Date(forecast_dates)
+    first_real_time_forecast_date <- max(
+        min(forecast_dates),
+        lubridate::ymd("2024-02-05"))
+    last_real_time_forecast_date <- min(max(forecast_dates),
+                                        lubridate::ymd("2025-04-29"))
+
+    df_ww <- data.frame(
     row.names = c("location", "forecast_date", "scenario")
   )
 
@@ -70,7 +75,7 @@ write_eval_config <- function(
 
     df_i <- expand.grid(
       location = locs,
-      forecast_date = forecast_dates,
+      forecast_date = as.character(forecast_dates),
       scenario = scenarios[i]
     )
 
@@ -81,7 +86,7 @@ write_eval_config <- function(
   # of locations and forecast dates
   df_hosp <- expand.grid(
     location = locations,
-    forecast_date = forecast_dates
+    forecast_date = as.character(forecast_dates)
   )
 
   # Specify other variables
@@ -123,22 +128,12 @@ write_eval_config <- function(
 
   inf_to_hosp <- wwinference::default_covid_inf_to_hosp
 
-  # Table of hospital admissions outliers by location-forecast-date-admissions-date:
-  # This is currently fake/a test. We will replace with a load in to a path
-  # to a saved csv eventually.
-  table_of_exclusions <- data.frame(
+  ## no retro data exclusions
+  table_of_exclusions <- tibble::tibble(
     location = c(),
     forecast_date = c(),
     dates_to_exclude = c()
   )
-
-  forecast_dates <- df_ww |>
-    dplyr::filter(
-      lubridate::ymd(forecast_date) >= lubridate::ymd("2024-02-05")
-    ) |>
-    dplyr::pull(forecast_date) |>
-    as.vector() |>
-    unique()
 
   real_time_output_dir <- file.path("output", "real_time_outputs")
   table_of_run_ids <- tibble::tibble(
@@ -153,8 +148,8 @@ write_eval_config <- function(
       "6aa44"
     ),
     forecast_date = seq(
-      from = lubridate::ymd("2024-02-05"),
-      to = lubridate::ymd("2024-03-25"),
+      from = first_real_time_forecast_date,
+      to = last_real_time_forecast_date,
       by = "week"
     ) |>
       as.character(),
@@ -180,7 +175,11 @@ write_eval_config <- function(
     )
   )
 
-  config <- list(
+    config <- list(
+        scored_forecast_dates = forecast_dates,
+        first_real_time_forecast_date =
+            first_real_time_forecast_date,
+        last_real_time_forecast_date = last_real_time_forecast_date,
     location_ww = df_ww |> dplyr::pull(location) |> as.vector(),
     forecast_date_ww = df_ww |>
       dplyr::pull(forecast_date) |>
