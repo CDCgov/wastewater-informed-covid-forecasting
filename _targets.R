@@ -166,18 +166,18 @@ configuration_targets <- list(
   ),
   tar_target(
     name = filter_to_scored_dates_retro,
-    command = purrr::partial(filter_forecast_dates,
-                             dates = scored_forecast_dates)
+    command = purrr::partial(
+      filter_forecast_dates,
+      dates = scored_forecast_dates
+    )
   ),
   tar_target(
-      name = cfa_model_names_real_time,
-      command = c("cfa-wwrenewal(real-time)",
-                  "cfa-hosponlyrenewal(real-time*)")
+    name = cfa_model_names_real_time,
+    command = c("cfa-wwrenewal(real-time)", "cfa-hosponlyrenewal(real-time*)")
   ),
   tar_target(
-      name = cfa_model_names_retro,
-      command = c("cfa-wwrenewal(retro)",
-                  "cfa-hosponlyrenewal(retro)")
+    name = cfa_model_names_retro,
+    command = c("cfa-wwrenewal(retro)", "cfa-hosponlyrenewal(retro)")
   ),
   tar_target(
     name = eval_hosp_data,
@@ -771,9 +771,11 @@ hub_comparison_targets <- list(
     )
   ),
   tar_target(
-      name = filter_to_hub_locations,
-      command = purrr::partial(exclude_locations,
-                               locations = hub_locations_to_exclude)
+    name = filter_to_hub_locations,
+    command = purrr::partial(
+      exclude_locations,
+      locations = hub_locations_to_exclude
+    )
   ),
   tar_target(
     name = hub_forecasts_cfa_retro,
@@ -795,7 +797,7 @@ hub_comparison_targets <- list(
           "cfa-hosponlyrenewal" ~ "cfa-hosponlyrenewal(retro)",
           .default = .data$model
         )
-        ) |>
+      ) |>
       filter_to_hub_locations()
   ),
   tar_target(
@@ -813,7 +815,7 @@ hub_comparison_targets <- list(
           .default = .data$model
         )
       ) |>
-        filter_to_hub_locations()
+      filter_to_hub_locations()
   ),
   tar_target(
     name = hub_forecasts_cfa_hosp_real_time,
@@ -847,7 +849,7 @@ hub_comparison_targets <- list(
       eval_data = eval_hosp_data,
       pull_from_github = TRUE
     ) |>
-        filter_to_hub_locations()
+      filter_to_hub_locations()
   ),
   tar_target(
     name = hub_forecasts,
@@ -901,25 +903,28 @@ hub_comparison_targets <- list(
     command = c(
       "COVIDhub-4_week_ensemble",
       "UMass-sarix",
-      "CMU-TimeSeries")
+      "CMU-TimeSeries"
+    )
   ),
   tar_target(
-      name = hub_models_to_plot_real_time,
-      command = c(hub_models_to_plot_non_cfa,
-                  cfa_model_names_retro)),
-  tar_target(
-      name = hub_models_to_plot_retro,
-      command = c(hub_models_to_plot_non_cfa,
-                  cfa_model_names_real_time)),
-  tar_target(
-      name = filter_to_plotted_models_real_time,
-      command = purrr::partial(filter_models,
-                               models = hub_models_to_plot_real_time)
+    name = hub_models_to_plot_real_time,
+    command = c(hub_models_to_plot_non_cfa, cfa_model_names_retro)
   ),
   tar_target(
-      name = filter_to_plotted_models_retro,
-      command = purrr::partial(filter_models,
-                               models = hub_models_to_plot_retro)),
+    name = hub_models_to_plot_retro,
+    command = c(hub_models_to_plot_non_cfa, cfa_model_names_real_time)
+  ),
+  tar_target(
+    name = filter_to_plotted_models_real_time,
+    command = purrr::partial(
+      filter_models,
+      models = hub_models_to_plot_real_time
+    )
+  ),
+  tar_target(
+    name = filter_to_plotted_models_retro,
+    command = purrr::partial(filter_models, models = hub_models_to_plot_retro)
+  ),
   tar_target(
     name = wis_summary_cfa_models_real_time,
     command = wis_cfa_models_real_time |>
@@ -1081,9 +1086,10 @@ hub_comparison_targets <- list(
   tar_target(
     name = hub_hist_rwis_real_time,
     command = relative_wis_histogram(
-        scores = filter_to_plotted_models_real_time(
-            hub_scores_real_time),
-        models_to_show = hub_models_to_plot_real_time
+      scores = filter_to_plotted_models_real_time(
+        hub_scores_real_time
+      ),
+      models_to_show = hub_models_to_plot_real_time
     )
   ),
   tar_target(
@@ -1130,10 +1136,10 @@ hub_comparison_targets <- list(
   tar_target(
     name = hub_qq_plot_real_time,
     command = forecast_qq_plot(
-        hub_forecasts |>
+      hub_forecasts |>
         filter_to_real_time_scored() |>
         filter_to_plotted_models_real_time(),
-        model_z_order = hub_models_to_plot_real_time
+      model_z_order = hub_models_to_plot_real_time
     )
   ),
   tar_target(
@@ -1148,8 +1154,8 @@ hub_comparison_targets <- list(
   tar_target(
     name = hub_barplot_wis_real_time,
     command = hub_scores_real_time |>
-        filter_to_plotted_models_real_time() |>
-        scoringutils::summarise_scores(by = "model") |>
+      filter_to_plotted_models_real_time() |>
+      scoringutils::summarise_scores(by = "model") |>
       dplyr::arrange(.data$wis) |>
       order_col("model") |>
       plot_score_decomposed_bars(color = "black")
@@ -1165,8 +1171,10 @@ hub_comparison_targets <- list(
     name = hub_performance_by_period,
     command = plot_hub_performance_by_period(
       scores = hub_scores,
-      models_to_show = c(hub_models_to_plot_real_time,
-                         hub_models_to_plot_retro),
+      models_to_show = c(
+        hub_models_to_plot_real_time,
+        hub_models_to_plot_retro
+      ),
       all_time_period = "Oct 2023-Mar 2024",
       real_time_period = "Feb 2024-Mar 2024"
     )
@@ -1174,14 +1182,14 @@ hub_comparison_targets <- list(
   tar_target(
     name = std_rank_summary_table_all_time,
     command = hub_scores |>
-        filter_to_plotted_models_retro() |>
-        summarize_std_rank()
+      filter_to_plotted_models_retro() |>
+      summarize_std_rank()
   ),
   tar_target(
     name = std_rank_summary_table_real_time,
     command = hub_scores |>
-        filter_to_plotted_models_real_time() |>
-        summarize_std_rank()
+      filter_to_plotted_models_real_time() |>
+      summarize_std_rank()
   ),
   tar_target(
     name = fig_std_rank_all_time,
@@ -1202,9 +1210,10 @@ hub_comparison_targets <- list(
   tar_target(
     name = fig_std_rank_real_time,
     command = plot_std_rank_distribution(
-        scores = filter_to_plotted_models_real_time(
-            hub_scores_real_time),
-        models_to_show = hub_models_to_plot_real_time
+      scores = filter_to_plotted_models_real_time(
+        hub_scores_real_time
+      ),
+      models_to_show = hub_models_to_plot_real_time
     )
   ),
   tar_target(

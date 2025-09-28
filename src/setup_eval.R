@@ -40,15 +40,17 @@ write_eval_config <- function(
   name_of_config = "eval_config",
   overwrite_benchmark = FALSE
 ) {
+  forecast_dates <- as.Date(forecast_dates)
+  first_real_time_forecast_date <- max(
+    min(forecast_dates),
+    lubridate::ymd("2024-02-05")
+  )
+  last_real_time_forecast_date <- min(
+    max(forecast_dates),
+    lubridate::ymd("2025-04-29")
+  )
 
-    forecast_dates <- as.Date(forecast_dates)
-    first_real_time_forecast_date <- max(
-        min(forecast_dates),
-        lubridate::ymd("2024-02-05"))
-    last_real_time_forecast_date <- min(max(forecast_dates),
-                                        lubridate::ymd("2025-04-29"))
-
-    df_ww <- data.frame(
+  df_ww <- data.frame(
     row.names = c("location", "forecast_date", "scenario")
   )
 
@@ -175,11 +177,10 @@ write_eval_config <- function(
     )
   )
 
-    config <- list(
-        scored_forecast_dates = forecast_dates,
-        first_real_time_forecast_date =
-            first_real_time_forecast_date,
-        last_real_time_forecast_date = last_real_time_forecast_date,
+  config <- list(
+    scored_forecast_dates = forecast_dates,
+    first_real_time_forecast_date = first_real_time_forecast_date,
+    last_real_time_forecast_date = last_real_time_forecast_date,
     location_ww = df_ww |> dplyr::pull(location) |> as.vector(),
     forecast_date_ww = df_ww |>
       dplyr::pull(forecast_date) |>
