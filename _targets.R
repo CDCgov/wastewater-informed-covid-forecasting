@@ -131,44 +131,37 @@ configuration_targets <- list(
       })
   ),
   tar_target(
-    name = filter_forecast_dates,
-    command = function(df, dates) {
+    name = filter_is_in,
+    command = function(df, column, values) {
       dplyr::filter(
         df,
-        .data$forecast_date %in% .env$dates
-      )
+        .data[[column]] %in% .env$values
+        )
     }
   ),
   tar_target(
-    name = filter_models,
-    command = function(df, models) {
+    name = filter_not_in,
+    command = function(df, column, values) {
       dplyr::filter(
         df,
-        .data$model %in% .env$models
-      )
-    }
-  ),
-  tar_target(
-    name = exclude_locations,
-    command = function(df, locations) {
-      dplyr::filter(
-        df,
-        !.data$location %in% .env$locations
-      )
+        !.data[[column]] %in% .env$values
+        )
     }
   ),
   tar_target(
     name = filter_to_scored_dates_real_time,
     command = purrr::partial(
-      filter_forecast_dates,
-      dates = scored_fcst_dates_real_time
-    )
+                         filter_is_in,
+                         column = "forecast_date",
+                         values = scored_fcst_dates_real_time
+                     )
   ),
   tar_target(
     name = filter_to_scored_dates_retro,
     command = purrr::partial(
-      filter_forecast_dates,
-      dates = scored_forecast_dates
+                         filter_is_in,
+                         column = "forecast_date",
+                         values = scored_forecast_dates
     )
   ),
   tar_target(
@@ -178,6 +171,20 @@ configuration_targets <- list(
   tar_target(
     name = cfa_model_names_retro,
     command = c("cfa-wwrenewal(retro)", "cfa-hosponlyrenewal(retro)")
+  ),
+  tar_target(
+      name = exclude_cfa_models_real_time,
+      command = purrr::partial(
+                           filter_not_in,
+                           column = "model",
+                           values = cfa_model_names_real_time)
+  ),
+  tar_target(
+      name = exclude_cfa_models_retro,
+      command = purrr::partial(
+                           filter_not_in,
+                           column = "model",
+                           values = cfa_model_names_retro)
   ),
   tar_target(
     name = eval_hosp_data,
@@ -773,8 +780,9 @@ hub_comparison_targets <- list(
   tar_target(
     name = filter_to_hub_locations,
     command = purrr::partial(
-      exclude_locations,
-      locations = hub_locations_to_exclude
+                         filter_not_in,
+                         column = "location",
+                         values = hub_locations_to_exclude
     )
   ),
   tar_target(
@@ -1145,7 +1153,6 @@ hub_comparison_targets <- list(
   tar_target(
     name = hub_barplot_wis_all_time,
     command = hub_scores |>
-      filter_to_plotted_models_retro() |>
       scoringutils::summarise_scores(by = "model") |>
       dplyr::arrange(.data$wis) |>
       order_col("model") |>
@@ -1154,7 +1161,6 @@ hub_comparison_targets <- list(
   tar_target(
     name = hub_barplot_wis_real_time,
     command = hub_scores_real_time |>
-      filter_to_plotted_models_real_time() |>
       scoringutils::summarise_scores(by = "model") |>
       dplyr::arrange(.data$wis) |>
       order_col("model") |>
@@ -1182,19 +1188,19 @@ hub_comparison_targets <- list(
   tar_target(
     name = std_rank_summary_table_all_time,
     command = hub_scores |>
-      filter_to_plotted_models_retro() |>
+      exclude_cfa_models_real_time() |>
       summarize_std_rank()
   ),
   tar_target(
     name = std_rank_summary_table_real_time,
-    command = hub_scores |>
-      filter_to_plotted_models_real_time() |>
+    command = hub_real_time_scores |>
+      exclude_cfa_models_retro() |>
       summarize_std_rank()
   ),
   tar_target(
     name = fig_std_rank_all_time,
     command = plot_std_rank_distribution(
-      scores = filter_to_plotted_models_retro(hub_scores),
+      scores = exclude_cfa_models_real_time(hub_scores),
       models_to_show = hub_models_to_plot_retro
     )
   ),
@@ -1210,7 +1216,7 @@ hub_comparison_targets <- list(
   tar_target(
     name = fig_std_rank_real_time,
     command = plot_std_rank_distribution(
-      scores = filter_to_plotted_models_real_time(
+      scores = exclude_cfa_models_retro(
         hub_scores_real_time
       ),
       models_to_show = hub_models_to_plot_real_time
