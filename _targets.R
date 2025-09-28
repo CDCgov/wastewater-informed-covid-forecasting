@@ -1137,7 +1137,7 @@ hub_comparison_targets <- list(
     name = hub_qq_plot_real_time,
     command = forecast_qq_plot(
       hub_forecasts |>
-        filter_to_real_time_scored() |>
+        filter_to_scored_dates_real_time() |>
         filter_to_plotted_models_real_time(),
       model_z_order = hub_models_to_plot_real_time
     )
