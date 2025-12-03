@@ -1150,7 +1150,7 @@ hub_comparison_targets <- list(
   tar_target(
     name = hub_barplot_wis_all_time,
     command = hub_scores |>
-      filter_to_plotted_models_retro() |>
+      exclude_cfa_models_real_time() |>
       scoringutils::summarise_scores(by = "model") |>
       dplyr::arrange(.data$wis) |>
       order_col("model") |>
@@ -1159,7 +1159,7 @@ hub_comparison_targets <- list(
   tar_target(
     name = hub_barplot_wis_real_time,
     command = hub_scores_real_time |>
-        filter_to_plotted_models_real_time() |>
+      exclude_cfa_models_retro() |>
       scoringutils::summarise_scores(by = "model") |>
       dplyr::arrange(.data$wis) |>
       order_col("model") |>
