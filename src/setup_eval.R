@@ -40,9 +40,16 @@ write_eval_config <- function(
   name_of_config = "eval_config",
   overwrite_benchmark = FALSE
 ) {
-  # Will need to load in the files corresponding to the input scenarios, so we
-  # get the list of locations that are relevant for each scenario. We will bind
-  # these all together to create the full eval config.
+  forecast_dates <- as.Date(forecast_dates)
+  first_real_time_forecast_date <- max(
+    min(forecast_dates),
+    lubridate::ymd("2024-02-05")
+  )
+  last_real_time_forecast_date <- min(
+    max(forecast_dates),
+    lubridate::ymd("2025-04-29")
+  )
+
   df_ww <- data.frame(
     row.names = c("location", "forecast_date", "scenario")
   )
@@ -70,7 +77,7 @@ write_eval_config <- function(
 
     df_i <- expand.grid(
       location = locs,
-      forecast_date = forecast_dates,
+      forecast_date = as.character(forecast_dates),
       scenario = scenarios[i]
     )
 
@@ -81,7 +88,7 @@ write_eval_config <- function(
   # of locations and forecast dates
   df_hosp <- expand.grid(
     location = locations,
-    forecast_date = forecast_dates
+    forecast_date = as.character(forecast_dates)
   )
 
   # Specify other variables
@@ -89,17 +96,17 @@ write_eval_config <- function(
   scenario_dir <- file.path("input", "config", "eval", "scenarios")
   hosp_data_dir <- file.path("input", "hosp_data", "vintage_datasets")
   population_data_path <- file.path("input", "locations.csv")
+  real_time_metadata_dir <- file.path("output", "forecasts")
   baseline_score_table_dir <- file.path("output", "baseline_score")
-  init_dir <- file.path("input", "init_lists")
   output_dir <- file.path("output", "eval_latest")
   figure_dir <- file.path("output", "eval_latest", "plots")
   hub_subdir <- file.path("output", "eval_latest", "hub")
   retro_rt_path <- file.path("input", "retro_Rt", "Rt_draws.parquet")
   score_subdir <- file.path("output", "eval_latest", "hub")
-  # Proportion of forecast dates that a model must have submitted for to be
-  # included in the Hub analysis
-  prop_dates_for_incl_hub <- 18 / 22
-  prop_locs_for_incl_hub <- 40 / 52
+  min_submissions_hub <- 20
+  min_locs_per_submission_hub <- 40
+  min_paired_forecasts_per_jurisdiction <- 4 #nolint
+  min_paired_forecasts_per_date <- 20
   raw_output_dir <- file.path(output_dir, "raw_output")
   ww_data_mapping <- "Monday: Monday, Wednesday: Monday"
   calibration_time <- 90
@@ -118,35 +125,17 @@ write_eval_config <- function(
   max_treedepth <- 12
   seed <- 123
 
-  init_fps <- c()
-  for (i in 1:n_chains) {
-    init_fps <- c(
-      init_fps,
-      file.path(init_dir, glue::glue("init_{i}.json"))
-    )
-  }
-
   # Pre-specified delay distributions
   generation_interval <- wwinference::default_covid_gi
 
   inf_to_hosp <- wwinference::default_covid_inf_to_hosp
 
-  # Table of hospital admissions outliers by location-forecast-date-admissions-date:
-  # This is currently fake/a test. We will replace with a load in to a path
-  # to a saved csv eventually.
-  table_of_exclusions <- data.frame(
+  ## no retro data exclusions
+  table_of_exclusions <- tibble::tibble(
     location = c(),
     forecast_date = c(),
     dates_to_exclude = c()
   )
-
-  forecast_dates <- df_ww |>
-    dplyr::filter(
-      lubridate::ymd(forecast_date) >= lubridate::ymd("2024-02-05")
-    ) |>
-    dplyr::pull(forecast_date) |>
-    as.vector() |>
-    unique()
 
   real_time_output_dir <- file.path("output", "real_time_outputs")
   table_of_run_ids <- tibble::tibble(
@@ -161,8 +150,8 @@ write_eval_config <- function(
       "6aa44"
     ),
     forecast_date = seq(
-      from = lubridate::ymd("2024-02-05"),
-      to = lubridate::ymd("2024-03-25"),
+      from = first_real_time_forecast_date,
+      to = last_real_time_forecast_date,
       by = "week"
     ) |>
       as.character(),
@@ -179,11 +168,7 @@ write_eval_config <- function(
   )
 
   # These come from the yaml files we saved in the forecast folders,
-  # documentation which location-forecast dates we chose to use the hospital
-  # admissions only model for in real-time
-  # Example: https://github.com/CDCgov/wastewater-informed-covid-forecasting/blob/e6e4e1980e13c15036a4e0e1c5af72b40e8f728e/output/forecasts/2024-02-05/metadata.yaml#L12 #nolint
-  dates_we_excluded <- wweval::get_date_locs_excluded(forecast_dates)
-  add_to_exclude <- data.frame(
+  date_locs_exclude_ww_retro <- tibble::tibble(
     location = c("MN", "MN", "MN"),
     forecast_date = c(
       "2024-01-15",
@@ -192,12 +177,14 @@ write_eval_config <- function(
     )
   )
 
-  ww_forecast_date_locs_to_excl <- dplyr::bind_rows(
-    dates_we_excluded,
-    add_to_exclude
-  )
-
   config <- list(
+    scored_forecast_dates = as.character(forecast_dates),
+    first_real_time_forecast_date = as.character(
+      first_real_time_forecast_date
+    ),
+    last_real_time_forecast_date = as.character(
+      last_real_time_forecast_date
+    ),
     location_ww = df_ww |> dplyr::pull(location) |> as.vector(),
     forecast_date_ww = df_ww |>
       dplyr::pull(forecast_date) |>
@@ -217,15 +204,16 @@ write_eval_config <- function(
     benchmark_dir = benchmark_dir,
     overwrite_benchmark = overwrite_benchmark,
     wwinference_version = wwinference_version,
+    min_submissions_hub = min_submissions_hub,
+    min_locs_per_submission_hub = min_locs_per_submission_hub,
+    min_paired_forecasts_per_jurisdiction = min_paired_forecasts_per_jurisdiction,
+    min_paired_forecasts_per_date = min_paired_forecasts_per_date,
     retro_rt_path = retro_rt_path,
     score_subdir = score_subdir,
     raw_output_dir = raw_output_dir,
     figure_dir = figure_dir,
-    prop_dates_for_incl_hub = prop_dates_for_incl_hub,
-    prop_locs_for_incl_hub = prop_locs_for_incl_hub,
+    real_time_metadata_dir = real_time_metadata_dir,
     population_data_path = population_data_path,
-    init_dir = init_dir,
-    init_fps = init_fps,
     overwrite_summary_table = overwrite_summary_table,
     calibration_time = calibration_time,
     forecast_time = forecast_time,
@@ -233,7 +221,7 @@ write_eval_config <- function(
     table_of_exclusions = table_of_exclusions,
     table_of_run_ids = table_of_run_ids,
     real_time_output_dir = real_time_output_dir,
-    ww_forecast_date_locs_to_excl = ww_forecast_date_locs_to_excl,
+    date_locs_exclude_ww_retro = date_locs_exclude_ww_retro,
     # MCMC settings
     iter_warmup = iter_warmup,
     iter_sampling = iter_sampling,
