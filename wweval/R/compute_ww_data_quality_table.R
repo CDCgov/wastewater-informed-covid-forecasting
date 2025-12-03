@@ -1,0 +1,93 @@
+#' Compute wastewater data quality flags.
+#'
+#' @description
+#' This function takes in a the input wastewater data from an individual
+#' location, forecast date, and scenario and produces a table with metadata
+#' about the quality of the wastewater data, including values of the
+#' number of data points, the mean value of the wastewater concentraiton,
+#' and the proportion of data below the LOD. The thresholds passed to this
+#' function are used to generate the boolean flags, indicated in the `name`
+#' and `value` columns.
+#'
+#' @param input_ww_data A tibble with the wastewater data used to fit the
+#' model for a particular location, forecast date, and scenario. Required
+#' columns are `ww`, `date`, `below_lod`, and `location`
+#' @param location location fit
+#' @param forecast_date A string indicating the date of the forecast for
+#' this particular fit in ISO8 format (YYYY-MM-DD)
+#' @param delay_thres The maximum number of days of delay between the last
+#' wastewater data point and the forecast date, before we would flag a state as
+#' having insufficient wastewater data to inform a forecast. Default is 21
+#' @param n_dps_thres The threshold number of data points within a single site
+#' within a state before we would flag the state as having insufficient
+#' wastewater data to inform a forecast. Default is 5
+#' @param prop_below_lod_thres The threshold proportion of wastewater data
+#' points that can be below the LOD. If greater than this proportion of points
+#' are below the LOD, we flag the state as having insufficient wastewater data.
+#' Default is 0.5
+#' @param sd_thres The minimum standard deviation between wastewater data points
+#' within a site. This is intended to catch when a site reports all the same
+#' values. Default is 0.1
+#' @param mean_log_ww_value_thres The minimum value of the log of the ww
+#' concentration, default is -4
+#'
+#' @return a tibble containing the location,
+#' forecast_date, and 5 rows indicating the flags for the
+#' input wastewater data
+#' associated with this individual run
+#' @export
+#'
+compute_ww_data_quality_table <- function(
+  input_ww_data,
+  location,
+  forecast_date,
+  delay_thres = 21,
+  n_dps_thres = 5,
+  prop_below_lod_thres = 0.5,
+  sd_thres = 0.1,
+  mean_log_ww_value_thres = -4
+) {
+  if (is.null(input_ww_data)) {
+    return(tibble::tibble(
+      location = location,
+      forecast_date = forecast_date,
+      last_date = NA,
+      n_dps = 0,
+      prop_below_lod = NA,
+      sd = NA,
+      mean_log_ww = NA,
+      flag_delay = NA,
+      flag_n_dps = NA,
+      flag_lod = NA,
+      flag_sd = NA,
+      flag_low_val = NA,
+      flag_no_data = TRUE
+    ))
+  }
+
+  checkmate::assert_names(
+    input_ww_data$location,
+    subset.of = location
+  )
+  tbl <- input_ww_data |>
+    dplyr::summarize(
+      location = !!location,
+      forecast_date = lubridate::ymd(!!forecast_date),
+      last_date = max(date),
+      n_dps = dplyr::n(),
+      prop_below_lod = sum(below_lod == 1) / dplyr::n(),
+      sd = sd(exp(.data$log_genome_copies_per_ml)),
+      mean_log_ww = mean(.data$log_genome_copies_per_ml)
+    ) |>
+    dplyr::mutate(
+      flag_delay = as.integer(.data$forecast_date - .data$last_date) >
+        !!delay_thres,
+      flag_n_dps = .data$n_dps < !!n_dps_thres,
+      flag_lod = .data$prop_below_lod > !!prop_below_lod_thres,
+      flag_sd = sd < !!sd_thres,
+      flag_low_val = .data$mean_log_ww < !!mean_log_ww_value_thres,
+      flag_no_data = FALSE
+    )
+
+  return(tbl)
+}

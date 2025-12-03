@@ -89,7 +89,7 @@ eval_fit <- function(
   last_hosp_data_date <- get_last_hosp_data_date(input_hosp_data)
 
   if (ww_model) {
-    ww_data_pull <- purrr::safely(get_input_ww_data)(
+    input_ww_data <- get_input_ww_data(
       forecast_date_i = forecast_date,
       location_i = location,
       scenario_i = scenario,
@@ -100,7 +100,6 @@ eval_fit <- function(
       ww_data_mapping = ww_data_mapping
     )
 
-    input_ww_data <- ww_data_pull$result
     save_object(input_ww_data)
     include_ww <- TRUE
   } else {

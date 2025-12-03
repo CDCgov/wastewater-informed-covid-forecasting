@@ -742,9 +742,56 @@ eval_postprocess <- function(
       daily_hosp_admits = "count",
       pop = "total_pop"
     )
+  save_table(
+    data_to_save = input_hosp_data_wweval,
+    type_of_output = "input_hosp_data",
+    output_dir = output_dir,
+    scenario = scenario,
+    forecast_date = forecast_date,
+    model_type = model,
+    location = location
+  )
 
   if (ww_model) {
     input_ww_data <- load_object("input_ww_data")
+    ww_data_flags <- compute_ww_data_quality_table(
+      input_ww_data = input_ww_data,
+      location = location,
+      forecast_date = forecast_date
+    )
+    save_table(
+      data_to_save = ww_data_flags,
+      type_of_output = "ww_data_flags",
+      output_dir = output_dir,
+      scenario = scenario,
+      forecast_date = forecast_date,
+      model_type = model,
+      location = location
+    )
+
+    if (!is.null(input_ww_data)) {
+      input_ww_data_wweval <- input_ww_data |>
+        dplyr::mutate(
+          ww = exp(.data$log_genome_copies_per_ml),
+          lod_sewage = exp(.data$log_lod)
+        ) |>
+        dplyr::rename(
+          ww_pop = "site_pop",
+          below_LOD = "below_lod"
+        )
+    } else {
+      input_ww_data_wweval <- NULL
+    }
+
+    save_table(
+      data_to_save = input_ww_data_wweval,
+      type_of_output = "input_ww_data",
+      output_dir = output_dir,
+      scenario = scenario,
+      forecast_date = forecast_date,
+      model_type = model,
+      location = location
+    )
 
     eval_ww_data <- purrr::safely(get_input_ww_data)(
       forecast_date_i = eval_date,
@@ -774,26 +821,6 @@ eval_postprocess <- function(
         "{max(eval_ww_data$date)}"
       ))
     }
-    if (!is.null(input_ww_data)) {
-      input_ww_data_wweval <- input_ww_data |>
-        dplyr::mutate(
-          ww = exp(.data$log_genome_copies_per_ml),
-          lod_sewage = exp(.data$log_lod)
-        ) |>
-        dplyr::rename(
-          ww_pop = "site_pop",
-          below_LOD = "below_lod"
-        )
-      ww_data_flags <- get_ww_data_flags(
-        input_ww_data_wweval,
-        forecast_date
-      )
-    } else {
-      input_ww_data_wweval <- NULL
-      ww_data_flags <- tibble::tibble()
-    }
-
-    save_object(input_ww_data)
     save_object(eval_ww_data)
   } else {
     input_ww_data <- NULL
@@ -832,39 +859,6 @@ eval_postprocess <- function(
       eval_hosp_data = eval_hosp_data,
       eval_ww_data = eval_ww_data,
       offset = scoring_offset
-    )
-  }
-
-  ## Things to save even if model run fails
-  ## save the flags alongside the input wastewater data and admissions data
-  save_table(
-    data_to_save = input_hosp_data_wweval,
-    type_of_output = "input_hosp_data",
-    output_dir = output_dir,
-    scenario = scenario,
-    forecast_date = forecast_date,
-    model_type = model,
-    location = location
-  )
-
-  if (ww_model) {
-    save_table(
-      data_to_save = ww_data_flags,
-      type_of_output = "ww_data_flags",
-      output_dir = output_dir,
-      scenario = scenario,
-      forecast_date = forecast_date,
-      model_type = model,
-      location = location
-    )
-    save_table(
-      data_to_save = input_ww_data_wweval,
-      type_of_output = "input_ww_data",
-      output_dir = output_dir,
-      scenario = scenario,
-      forecast_date = forecast_date,
-      model_type = model,
-      location = location
     )
   }
 

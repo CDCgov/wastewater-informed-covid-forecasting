@@ -52,7 +52,7 @@ longer time span than we would fit to.}
 }
 \value{
 a tibble containing the pre-processed wastewater data ready to
-be passed into the wwinference function
+be passed into the wwinference function, or \code{NULL} if no input data is available.
 }
 \description{
 Get input wastewater data

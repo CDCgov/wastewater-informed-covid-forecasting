@@ -26,7 +26,7 @@
 #' longer time span than we would fit to.
 #'
 #' @return a tibble containing the pre-processed wastewater data ready to
-#' be passed into the wwinference function
+#' be passed into the wwinference function, or `NULL` if no input data is available.
 #' @export
 get_input_ww_data <- function(
   forecast_date_i,
@@ -69,7 +69,7 @@ get_input_ww_data <- function(
     dplyr::filter(wwtp_name %in% !!list_of_site_ids) |>
     clean_ww_data() |>
     filter(
-      location %in% c(!!location_i),
+      .data$location == !!location_i,
       .data$date >= !!first_calibration_date,
       !is.na(.data$lab),
       !is.na(.data$site)
@@ -80,36 +80,40 @@ get_input_ww_data <- function(
       .data$date,
       .data$location
     ) |>
-    summarize(across(
-      c(
-        "log_genome_copies_per_ml",
-        "log_lod",
-        "site_pop"
+    summarize(
+      across(
+        c(
+          "log_genome_copies_per_ml",
+          "log_lod",
+          "site_pop"
+        ),
+        mean
       ),
-      mean
-    )) |>
-    dplyr::ungroup()
+      .groups = "drop"
+    )
+  if (nrow(subsetted_ww_data) > 0) {
+    ww_data_preprocessed <- wwinference::preprocess_ww_data(
+      subsetted_ww_data,
+      conc_col_name = "log_genome_copies_per_ml",
+      lod_col_name = "log_lod"
+    )
 
-  ww_data_preprocessed <- wwinference::preprocess_ww_data(
-    subsetted_ww_data,
-    conc_col_name = "log_genome_copies_per_ml",
-    lod_col_name = "log_lod"
-  )
-
-  if (!isTRUE(for_eval)) {
-    ww_data_to_fit <- wwinference::indicate_ww_exclusions(
-      ww_data_preprocessed,
-      outlier_col_name = "flag_as_ww_outlier",
-      remove_outliers = TRUE
-    ) |>
-      dplyr::mutate(
-        "location" = !!location_i,
-        "forecast_date" = !!forecast_date_i
-      )
+    if (!isTRUE(for_eval)) {
+      ww_data_to_fit <- wwinference::indicate_ww_exclusions(
+        ww_data_preprocessed,
+        outlier_col_name = "flag_as_ww_outlier",
+        remove_outliers = TRUE
+      ) |>
+        dplyr::mutate(
+          "location" = !!location_i,
+          "forecast_date" = !!forecast_date_i
+        )
+    } else {
+      ww_data_to_fit <- ww_data_preprocessed
+    }
   } else {
-    ww_data_to_fit <- ww_data_preprocessed
+    ww_data_to_fit <- NULL
   }
-
   return(ww_data_to_fit)
 }
 
