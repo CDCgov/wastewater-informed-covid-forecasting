@@ -246,8 +246,10 @@ compose_rel_performance_fig <- function(
   design <- "
 11111
 AACCC
+AACCC
 AADDD
 AADDD
+BBEEE
 BBEEE
 BBFFF
 BBFFF
