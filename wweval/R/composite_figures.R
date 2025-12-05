@@ -282,7 +282,9 @@ BBBFF
     patchwork::plot_annotation(tag_levels = "A") &
     theme(
       legend.position = "top",
-      legend.justification = "center"
+      legend.justification = "center",
+      legend.title.position = "top",
+      legend.title.hjust = 0.5
     )
 
   return(fig)
