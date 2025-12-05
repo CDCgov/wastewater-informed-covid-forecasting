@@ -1821,8 +1821,8 @@ composite_figure_targets <- list(
         x = "forecast_date",
         width = 5
       ) +
-        ggplot2::scale_x_date(expand = 0) +
-        ggplot2::ylab("Absolute CRPS")
+      ggplot2::scale_x_date(expand = 0) +
+      ggplot2::ylab("Absolute CRPS")
   ),
   tar_target(
     name = save_decomposed_crps_t_cfa_models_all_time,
@@ -1851,7 +1851,7 @@ composite_figure_targets <- list(
         x = "location",
         width = 0.8
       ) +
-        ggplot2::ylab("Absolute CRPS")
+      ggplot2::ylab("Absolute CRPS")
   ),
   tar_target(
     name = save_decomposed_crps_loc_cfa_models_all_time,
