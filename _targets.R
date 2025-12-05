@@ -1092,7 +1092,7 @@ hub_comparison_targets <- list(
     name = save_figure_rel_performance_real_time,
     command = save_fig_main(
       figure_rel_performance_real_time,
-      base_width = 10,
+      base_width = 15,
       base_height = 12
     ),
     format = "file"
@@ -1933,7 +1933,7 @@ composite_figure_targets <- list(
     name = save_figure_rel_performance_all_time,
     command = save_fig_main(
       figure_rel_performance_all_time,
-      base_width = 10,
+      base_width = 15,
       base_height = 12
     )
   )
