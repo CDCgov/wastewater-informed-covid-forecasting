@@ -244,9 +244,14 @@ compose_rel_performance_fig <- function(
   abs_scores_by_location
 ) {
   design <- "
+11111
+AAAEE
 AAAEE
 BBBEE
+BBBEE
 CCCFF
+CCCFF
+DDDFF
 DDDFF
 "
   shared_lims <- get_shared_xy_raw_limits(list(
@@ -265,6 +270,7 @@ DDDFF
   )
 
   fig <- patchwork::wrap_plots(
+    pathwork::guide_area(),
     A = total_admissions + shared_x_dates,
     B = rel_score_by_time +
       shared_x_dates +
@@ -274,7 +280,7 @@ DDDFF
     E = rel_score_dist,
     F = rel_score_heatmap,
     design = design,
-    axes = "collect",
+    axes = "collect_x",
     guides = "collect"
   ) +
     patchwork::plot_annotation(tag_levels = "A") &
