@@ -278,7 +278,10 @@ plot_rel_score_heatmap <- function(
     baseline_model = baseline_model,
     by = c("forecast_date", "location"),
     metric_to_compare = metric_to_compare
-  )
+  ) |>
+      dplyr::arrange(dplyr::desc(.data$location)) |>
+      order_col("location")
+
   rel_metric_name <- .relative_metric_display_name(metric_to_compare)
 
   p <- ggplot(relative_scores) +

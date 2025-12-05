@@ -1038,7 +1038,7 @@ hub_comparison_targets <- list(
       ) |>
       plot_score_decomposed_bars(
         x = "location",
-        width = 0.5
+        width = 0.8
       )
   ),
   tar_target(
@@ -1848,7 +1848,7 @@ composite_figure_targets <- list(
       ) |>
       plot_score_decomposed_bars(
         x = "location",
-        width = 0.5
+        width = 0.8
       )
   ),
   tar_target(
