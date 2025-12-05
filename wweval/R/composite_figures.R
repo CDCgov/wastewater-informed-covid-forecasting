@@ -271,15 +271,15 @@ DDDFF
       ggplot2::guides(fill = "none", color = "none"),
     C = abs_scores_by_time + shared_x_dates,
     D = abs_scores_by_location,
-    E = rel_score_heatmap,
-    F = rel_score_dist,
+    E = rel_score_dist,
+    F = rel_score_heatmap,
     design = design,
     axes = "collect",
     guides = "collect"
   ) +
     patchwork::plot_annotation(tag_levels = "A") &
     theme(
-      legend.position = "right",
+      legend.position = "top",
       legend.justification = "center",
       legend.title.position = "top"
     )
