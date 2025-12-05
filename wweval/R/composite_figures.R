@@ -245,10 +245,12 @@ compose_rel_performance_fig <- function(
 ) {
   design <- "
 11111
-AAACC
-AAADD
-BBBEE
-BBBFF
+AACCC
+AADDD
+AADDD
+BBEEE
+BBFFF
+BBFFF
 "
   shared_lims <- get_shared_xy_raw_limits(list(
     rel_score_heatmap,
@@ -284,7 +286,7 @@ BBBFF
       legend.position = "top",
       legend.justification = "center",
       legend.title.position = "top",
-      legend.title.hjust = 0.5
+      legend.title.justification = "center"
     )
 
   return(fig)
