@@ -77,7 +77,7 @@ plot_score_t <- function(
     scale_x_date(
       date_breaks = "1 week",
       date_labels = "%Y-%m-%d",
-      expand = ggplot2::expansion(mult = 0, add = 3.5)
+      expand = 0
     ) +
     coord_cartesian(expand = TRUE) +
     scale_color_model()

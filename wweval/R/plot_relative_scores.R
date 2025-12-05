@@ -131,7 +131,7 @@ plot_rel_score_t <- function(
     scale_x_date(
       date_breaks = "1 week",
       date_labels = "%Y-%m-%d",
-      expand = ggplot2::expansion(mult = 0, add = 3.5)
+      expand = 0
     ) +
     coord_cartesian(
       expand = TRUE,
@@ -207,6 +207,12 @@ plot_rel_score_dists <- function(
       )
   }
 
+  if (is.null(x)) {
+    x_scale <- ggplot2::scale_x_continuous(breaks = NULL)
+  } else {
+    x_scale <- ggplot2::scale_x_discrete()
+  }
+
   colors <- plot_components()
   horizon_color <- colors$horizon_colors[["overall"]]
 
@@ -230,6 +236,7 @@ plot_rel_score_dists <- function(
     xlab("") +
     ylab(.relative_metric_display_name(metric_to_compare)) +
     scale_y_continuous(transform = "log10") +
+    x_scale +
     coord_cartesian(
       ylim = forecasttools::sym_limits(
         relative_scores$mean_scores_ratio,
@@ -240,6 +247,7 @@ plot_rel_score_dists <- function(
       x_axis_dates = TRUE,
       y_axis_title_size = 8
     )
+
   return(p)
 }
 
@@ -270,7 +278,10 @@ plot_rel_score_heatmap <- function(
     baseline_model = baseline_model,
     by = c("forecast_date", "location"),
     metric_to_compare = metric_to_compare
-  )
+  ) |>
+    dplyr::arrange(dplyr::desc(.data$location)) |>
+    order_col("location")
+
   rel_metric_name <- .relative_metric_display_name(metric_to_compare)
 
   p <- ggplot(relative_scores) +
@@ -287,6 +298,7 @@ plot_rel_score_heatmap <- function(
       midpoint = 1,
       guide = "colourbar",
       aesthetics = "fill",
+      name = rel_metric_name,
       labels = scales::number_format(accuracy = 0.01)
     ) +
     geom_text(
@@ -304,68 +316,11 @@ plot_rel_score_heatmap <- function(
     theme(legend.text = element_text(size = 6)) +
     scale_x_date(
       date_breaks = "1 week",
-      labels = scales::date_format("%Y-%m-%d")
+      labels = scales::date_format("%Y-%m-%d"),
+      expand = 0
     ) +
     xlab("") +
-    ylab("Location") +
-    labs(
-      fill = glue::glue(
-        "{rel_metric_name} by ",
-        "forecast date and location"
-      )
-    )
-
-  return(p)
-}
-
-#' Get a dotsinterval plot of a relative score distribution
-#' for individual location/forecast-date forecast problems.
-#'
-#' @param scores table of scores by horizon day,
-#' forecast date, and location
-#' @param target_models Model for which to plot relative CRPS
-#' @param baseline_model Baseline model for the relative CRPS
-#' @param metric_to_compare Metric for which to compute the
-#' relative score. One of `"wis"` or `"crps"`. Passed as the
-#' `metric_to_compare` argument to
-#' [scoringutils::get_pairwise_comparisons()] via
-#' [forecasttools::summarise_scores_with_baseline()].
-#'
-#' @return ggplot object of distribution of relative CRPS scores
-#' @export
-plot_rel_score_distribution <- function(
-  scores,
-  target_models,
-  baseline_model,
-  metric_to_compare
-) {
-  relative_scores <- .target_model_relative_scores(
-    scores = scores,
-    target_models = target_models,
-    baseline_model = baseline_model,
-    metric_to_compare = metric_to_compare,
-    by = c("location", "forecast_date")
-  )
-
-  p <- ggplot(data = relative_scores) +
-    tidybayes::stat_dotsinterval(
-      aes(y = .data$mean_scores_ratio),
-      alpha = 0.5,
-      position = position_dodge(width = 0.75),
-      show.legend = FALSE,
-      fill = "darkblue"
-    ) +
-    geom_hline(aes(yintercept = 1), linetype = "dashed") +
-    get_plot_theme() +
-    ylab(.relative_metric_display_name(metric_to_compare)) +
-    xlab("Count") +
-    scale_y_continuous(transform = "log10") +
-    coord_cartesian(
-      ylim = forecasttools::sym_limits(
-        relative_scores$mean_scores_ratio,
-        transform = "log10"
-      )
-    )
+    ylab("Location")
 
   return(p)
 }

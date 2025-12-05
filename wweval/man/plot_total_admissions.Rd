@@ -2,24 +2,21 @@
 % Please edit documentation in R/plot_admissions.R
 \name{plot_total_admissions}
 \alias{plot_total_admissions}
-\title{Make a figure of overall admissions (summed across locations)
-for context}
+\title{Make a figure of overall hospital admissions eval data}
 \usage{
-plot_total_admissions(eval_hosp_data, first_forecast_date, last_forecast_date)
+plot_total_admissions(eval_hosp_data, first_date, last_date)
 }
 \arguments{
-\item{eval_hosp_data}{Hospital admissions data for evaluating against
-for all locations}
+\item{eval_hosp_data}{Location-level admissions data to summarize}
 
-\item{first_forecast_date}{The first forecast date we are evaluating}
+\item{first_date}{First date to plot}
 
-\item{last_forecast_date}{The last forecast date we are evaluating}
+\item{last_date}{Last date to plot}
 }
 \value{
 ggplot object displaying a timeseries of total
 hospital admissions.
 }
 \description{
-Make a figure of overall admissions (summed across locations)
-for context
+Make a figure of overall hospital admissions eval data
 }

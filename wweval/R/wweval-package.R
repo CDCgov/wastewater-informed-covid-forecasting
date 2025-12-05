@@ -6,7 +6,7 @@
 #' @importFrom jsonlite fromJSON
 #' @importFrom readr read_csv write_csv
 #' @importFrom glue glue
-#' @importFrom rlang sym arg_match
+#' @importFrom rlang sym arg_match %||% .data
 #' @importFrom lubridate ymd
 #' @importFrom yaml read_yaml
 #' @importFrom tidybayes spread_draws stat_halfeye stat_slab

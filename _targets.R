@@ -631,6 +631,14 @@ collated_output_targets <- list(
       ) |>
       targets::tar_group(),
     iteration = "group"
+  ),
+  tar_target(
+    name = first_eval_date_retro,
+    command = min(crps_cfa_models_retro$date)
+  ),
+  tar_target(
+    name = last_eval_date_retro,
+    command = max(crps_cfa_models_retro$date)
   )
 )
 
@@ -723,6 +731,14 @@ real_time_rel_targets <- list(
       ) |>
       dplyr::ungroup() |>
       dplyr::distinct(.data$forecast_date)
+  ),
+  tar_target(
+    name = first_eval_date_real_time,
+    command = min(wis_cfa_models_real_time$date)
+  ),
+  tar_target(
+    name = last_eval_date_real_time,
+    command = max(wis_cfa_models_real_time$date)
   )
 )
 
@@ -959,9 +975,8 @@ hub_comparison_targets <- list(
     name = total_admissions_real_time,
     command = plot_total_admissions(
       eval_hosp_data,
-      first_forecast_date = lubridate::ymd("2024-02-05") -
-        lubridate::days(7),
-      last_forecast_date = max(eval_config$forecast_date_ww)
+      first_date = first_eval_date_real_time,
+      last_date = last_eval_date_real_time
     )
   ),
   tar_target(
@@ -1004,7 +1019,8 @@ hub_comparison_targets <- list(
       scoringutils::summarise_scores(
         by = c("forecast_date", "model")
       ) |>
-      plot_score_decomposed_bars(x = "forecast_date")
+      plot_score_decomposed_bars(x = "forecast_date", width = 5) +
+      ggplot2::scale_x_date(expand = 0)
   ),
   tar_target(
     name = decomposed_wis_loc_cfa_models_real_time,
@@ -1022,7 +1038,7 @@ hub_comparison_targets <- list(
       ) |>
       plot_score_decomposed_bars(
         x = "location",
-        width = 0.5
+        width = 0.8
       )
   ),
   tar_target(
@@ -1066,17 +1082,17 @@ hub_comparison_targets <- list(
     command = compose_rel_performance_fig(
       rel_score_heatmap = rel_wis_heatmap_real_time,
       rel_score_dist = rel_wis_dist_real_time,
-      abs_score_by_time = fig_rwis_t_cfa_models_real_time,
+      rel_score_by_time = fig_rwis_t_cfa_models_real_time,
       total_admissions = total_admissions_real_time,
-      scores_by_time = decomposed_wis_t_cfa_models_real_time,
-      scores_by_location = decomposed_wis_loc_cfa_models_real_time
+      abs_scores_by_time = decomposed_wis_t_cfa_models_real_time,
+      abs_scores_by_location = decomposed_wis_loc_cfa_models_real_time
     )
   ),
   tar_target(
     name = save_figure_rel_performance_real_time,
     command = save_fig_main(
       figure_rel_performance_real_time,
-      base_width = 10,
+      base_width = 15,
       base_height = 12
     ),
     format = "file"
@@ -1757,8 +1773,8 @@ composite_figure_targets <- list(
     name = total_admissions_all_time,
     command = plot_total_admissions(
       eval_hosp_data,
-      first_forecast_date = min(eval_config$forecast_date_ww),
-      last_forecast_date = max(eval_config$forecast_date_ww)
+      first_date = first_eval_date_retro,
+      last_date = last_eval_date_retro
     )
   ),
   tar_target(
@@ -1804,7 +1820,9 @@ composite_figure_targets <- list(
       plot_score_decomposed_bars(
         x = "forecast_date",
         width = 5
-      )
+      ) +
+      ggplot2::scale_x_date(expand = 0) +
+      ggplot2::ylab("Absolute CRPS")
   ),
   tar_target(
     name = save_decomposed_crps_t_cfa_models_all_time,
@@ -1831,8 +1849,9 @@ composite_figure_targets <- list(
       ) |>
       plot_score_decomposed_bars(
         x = "location",
-        width = 0.5
-      )
+        width = 0.8
+      ) +
+      ggplot2::ylab("Absolute CRPS")
   ),
   tar_target(
     name = save_decomposed_crps_loc_cfa_models_all_time,
@@ -1906,17 +1925,17 @@ composite_figure_targets <- list(
     command = compose_rel_performance_fig(
       rel_score_heatmap = rel_crps_heatmap_cfa_models,
       rel_score_dist = rel_crps_distribution_overall_cfa_models,
-      abs_score_by_time = fig_rcrps_t_cfa_models_retro,
+      rel_score_by_time = fig_rcrps_t_cfa_models_retro,
       total_admissions = total_admissions_all_time,
-      scores_by_time = decomposed_crps_t_cfa_models_all_time,
-      scores_by_location = decomposed_crps_loc_cfa_models_all_time
+      abs_scores_by_time = decomposed_crps_t_cfa_models_all_time,
+      abs_scores_by_location = decomposed_crps_loc_cfa_models_all_time
     )
   ),
   tar_target(
     name = save_figure_rel_performance_all_time,
     command = save_fig_main(
       figure_rel_performance_all_time,
-      base_width = 10,
+      base_width = 15,
       base_height = 12
     )
   )
