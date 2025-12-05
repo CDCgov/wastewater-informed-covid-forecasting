@@ -244,10 +244,10 @@ compose_rel_performance_fig <- function(
   abs_scores_by_location
 ) {
   design <- "
-AACCC
-AADDD
-BBEEE
-BBFFF
+AAAEE
+BBBEE
+CCCFF
+DDDFF
 "
   shared_lims <- get_shared_xy_raw_limits(list(
     rel_score_heatmap,
@@ -265,14 +265,14 @@ BBFFF
   )
 
   fig <- patchwork::wrap_plots(
-    A = rel_score_heatmap,
-    B = rel_score_dist,
-    C = total_admissions + shared_x_dates,
-    D = rel_score_by_time +
+    A = total_admissions + shared_x_dates,
+    B = rel_score_by_time +
       shared_x_dates +
       ggplot2::guides(fill = "none", color = "none"),
-    E = abs_scores_by_time + shared_x_dates,
-    F = abs_scores_by_location,
+    C = abs_scores_by_time + shared_x_dates,
+    D = abs_scores_by_location,
+    E = rel_score_heatmap,
+    F = rel_score_dist,
     design = design,
     axes = "collect",
     guides = "collect"
