@@ -270,7 +270,7 @@ DDDFF
   )
 
   fig <- patchwork::wrap_plots(
-    pathwork::guide_area(),
+    patchwork::guide_area(),
     A = total_admissions + shared_x_dates,
     B = rel_score_by_time +
       shared_x_dates +
