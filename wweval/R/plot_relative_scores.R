@@ -207,11 +207,11 @@ plot_rel_score_dists <- function(
       )
   }
 
-  x_scale <- ifelse(
-    is.null(x),
-    scale_x_continuous(breaks = NULL),
-    scale_x_discrete()
-  )
+  if (is.null(x)) {
+    x_scale <- ggplot2::scale_x_continuous(breaks = NULL)
+  } else {
+    x_scale <- ggplot2::scale_x_discrete()
+  }
 
   colors <- plot_components()
   horizon_color <- colors$horizon_colors[["overall"]]
