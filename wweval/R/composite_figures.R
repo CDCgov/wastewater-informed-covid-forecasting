@@ -1,3 +1,46 @@
+#' Get the x and y limits of an individual ggplot,
+#' on the raw data scale.
+#'
+#' Adapted from this stackoverflow implementation
+#' https://stackoverflow.com/a/40304848
+#'
+#' @param plot plot whose limits to extract
+#' @return The x and y limits, as a named list with
+#' entries xmin, xmax, ymin, and ymax
+get_plot_xy_raw_limits <- function(plot) {
+  p_built <- ggplot_build(plot)
+  x_inv <- p_built$layout$panel_scales_x[[1]]$trans$inverse %||% identity
+  y_inv <- p_built$layout$panel_scales_y[[1]]$trans$inverse %||% identity
+  xlim <- x_inv(p_built$layout$panel_params[[1]]$x.range)
+  ylim <- y_inv(p_built$layout$panel_params[[1]]$y.range)
+  return(list(
+    xmin = xlim[1],
+    xmax = xlim[2],
+    ymin = ylim[1],
+    ymax = ylim[2]
+  ))
+}
+
+#' Get shared (spanning) x and y limits for a set of
+#' ggplot objects, on the raw data scale.
+#'
+#' @param list_of_plots List of ggplot objects for which to obtain
+#' the spanning limits
+#' @return The shared limits, as a named list with entries
+#' entries xmin, xmax, ymin, and ymax
+get_shared_xy_raw_limits <- function(list_of_plots) {
+  limits <- purrr::map_df(list_of_plots, get_plot_xy_raw_limits) |>
+    dplyr::summarise(
+      xmin = min(.data$xmin),
+      xmax = max(.data$xmax),
+      ymin = min(.data$ymin),
+      ymax = max(.data$ymax)
+    ) |>
+    as.list()
+
+  return(limits)
+}
+
 #' Functions for creating multi-panel
 #' composite figures
 
@@ -183,43 +226,62 @@ OSTU
 #' @param rel_score_heatmap heatmap of relative score by forecast date
 #' and location
 #' @param rel_score_dist distibution plot comparing overall distribution
-#' of relative scores across forecast_date, date, location, and model
-#' @param abs_score_by_time timeseries plot of absolute score across
-#' by forecast date
+#' of relative scores by forecast_date and location
+#' @param rel_score_by_time timeseries plot of relative score
+#' by forecast date.
 #' @param total_admissions timeseries plot of total hospital
-#' admissions by day
-#' @param scores_by_time plot (location-specific) score values by forecast_date.
-#' @param scores_by_location plot of (date-specific) score values by location.
+#' admissions by day.
+#' @param abs_scores_by_time plot (location-specific) score values by forecast_date.
+#' @param abs_scores_by_location plot of (date-specific) score values by location.
 #' @return ggplot object with all the elements combined
 #' @export
 compose_rel_performance_fig <- function(
   rel_score_heatmap,
   rel_score_dist,
-  abs_score_by_time,
+  rel_score_by_time,
   total_admissions,
-  scores_by_time,
-  scores_by_location
+  abs_scores_by_time,
+  abs_scores_by_location
 ) {
-  layout <- "
-AACCC
-AADDD
-BBEEE
-BBFFF
+  design <- "
+11111
+AAACC
+AAADD
+BBBEE
+BBBFF
 "
+  shared_lims <- get_shared_xy_raw_limits(list(
+    rel_score_heatmap,
+    rel_score_by_time,
+    total_admissions,
+    abs_scores_by_time
+  ))
+
+  date_lims <- as.Date(c(shared_lims$xmin, shared_lims$xmax))
+
+  shared_x_dates <- scale_x_date(
+    date_breaks = "week",
+    expand = 0,
+    limits = date_lims
+  )
 
   fig <- patchwork::wrap_plots(
-    rel_score_heatmap,
-    rel_score_dist,
-    total_admissions,
-    abs_score_by_time,
-    scores_by_time,
-    scores_by_location,
-    design = layout,
-    axes = "collect"
+    patchwork::guide_area(),
+    A = rel_score_heatmap,
+    B = rel_score_dist,
+    C = total_admissions + shared_x_dates,
+    D = rel_score_by_time +
+      shared_x_dates +
+      ggplot2::guides(fill = "none", color = "none"),
+    E = abs_scores_by_time + shared_x_dates,
+    F = abs_scores_by_location,
+    design = design,
+    axes = "collect",
+    guides = "collect"
   ) +
     patchwork::plot_annotation(tag_levels = "A") &
     theme(
-      legend.position = "bottom",
+      legend.position = "top",
       legend.justification = "center"
     )
 

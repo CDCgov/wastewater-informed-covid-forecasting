@@ -131,7 +131,7 @@ plot_rel_score_t <- function(
     scale_x_date(
       date_breaks = "1 week",
       date_labels = "%Y-%m-%d",
-      expand = ggplot2::expansion(mult = 0, add = 3.5)
+      expand = 0
     ) +
     coord_cartesian(
       expand = TRUE,
@@ -287,6 +287,7 @@ plot_rel_score_heatmap <- function(
       midpoint = 1,
       guide = "colourbar",
       aesthetics = "fill",
+      name = rel_metric_name,
       labels = scales::number_format(accuracy = 0.01)
     ) +
     geom_text(
@@ -304,16 +305,11 @@ plot_rel_score_heatmap <- function(
     theme(legend.text = element_text(size = 6)) +
     scale_x_date(
       date_breaks = "1 week",
-      labels = scales::date_format("%Y-%m-%d")
+      labels = scales::date_format("%Y-%m-%d"),
+      expand = 0
     ) +
     xlab("") +
-    ylab("Location") +
-    labs(
-      fill = glue::glue(
-        "{rel_metric_name} by ",
-        "forecast date and location"
-      )
-    )
+    ylab("Location")
 
   return(p)
 }
@@ -353,7 +349,9 @@ plot_rel_score_distribution <- function(
       alpha = 0.5,
       position = position_dodge(width = 0.75),
       show.legend = FALSE,
-      fill = "darkblue"
+      fill = "darkblue",
+      color = "darkblue",
+      size = 1
     ) +
     geom_hline(aes(yintercept = 1), linetype = "dashed") +
     get_plot_theme() +

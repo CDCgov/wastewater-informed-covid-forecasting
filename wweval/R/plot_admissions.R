@@ -1,18 +1,16 @@
-#' Make a figure of overall admissions (summed across locations)
-#' for context
+#' Make a figure of overall hospital admissions eval data
 #'
-#' @param eval_hosp_data Hospital admissions data for evaluating against
-#' for all locations
-#' @param first_forecast_date The first forecast date we are evaluating
-#' @param last_forecast_date The last forecast date we are evaluating
+#' @param eval_hosp_data Location-level admissions data to summarize
+#' @param first_date First date to plot
+#' @param last_date Last date to plot
 #'
 #' @return ggplot object displaying a timeseries of total
 #' hospital admissions.
 #' @export
 plot_total_admissions <- function(
   eval_hosp_data,
-  first_forecast_date,
-  last_forecast_date
+  first_date,
+  last_date
 ) {
   hosp_data <- eval_hosp_data |>
     dplyr::distinct(
@@ -20,15 +18,8 @@ plot_total_admissions <- function(
       .data$daily_hosp_admits,
       .data$date
     ) |>
-    dplyr::group_by(.data$date) |>
-    dplyr::summarise(total_hosp = sum(daily_hosp_admits))
-
-  max_total_hosp <- max(hosp_data$total_hosp)
-
-  date_lims <- c(
-    as.Date(first_forecast_date),
-    as.Date(last_forecast_date)
-  )
+    dplyr::summarise(total_hosp = sum(.data$daily_hosp_admits), .by = "date") |>
+    dplyr::filter(.data$date >= !!first_date, .data$date <= !!last_date)
 
   p <- ggplot(
     data = hosp_data,
@@ -37,10 +28,10 @@ plot_total_admissions <- function(
       y = .data$total_hosp
     )
   ) +
-    geom_point() +
+    forecasttools::geom_line_point() +
     get_plot_theme(x_axis_dates = TRUE) +
     xlab("") +
-    ylab("National admissions") +
+    ylab("Incident hospital admissions") +
     get_plot_theme(
       y_axis_title_size = 8,
       x_axis_dates = TRUE
@@ -48,7 +39,7 @@ plot_total_admissions <- function(
     scale_x_date(
       date_breaks = "1 week",
       date_labels = "%Y-%m-%d",
-      limits = date_lims
+      expand = 0
     )
   return(p)
 }

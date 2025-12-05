@@ -8,10 +8,10 @@ performance.}
 compose_rel_performance_fig(
   rel_score_heatmap,
   rel_score_dist,
-  abs_score_by_time,
+  rel_score_by_time,
   total_admissions,
-  scores_by_time,
-  scores_by_location
+  abs_scores_by_time,
+  abs_scores_by_location
 )
 }
 \arguments{
@@ -19,17 +19,17 @@ compose_rel_performance_fig(
 and location}
 
 \item{rel_score_dist}{distibution plot comparing overall distribution
-of relative scores across forecast_date, date, location, and model}
+of relative scores by forecast_date and location}
 
-\item{abs_score_by_time}{timeseries plot of absolute score across
-by forecast date}
+\item{rel_score_by_time}{timeseries plot of relative score
+by forecast date.}
 
 \item{total_admissions}{timeseries plot of total hospital
-admissions by day}
+admissions by day.}
 
-\item{scores_by_time}{plot (location-specific) score values by forecast_date.}
+\item{abs_scores_by_time}{plot (location-specific) score values by forecast_date.}
 
-\item{scores_by_location}{plot of (date-specific) score values by location.}
+\item{abs_scores_by_location}{plot of (date-specific) score values by location.}
 }
 \value{
 ggplot object with all the elements combined
