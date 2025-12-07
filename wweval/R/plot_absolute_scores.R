@@ -77,9 +77,9 @@ plot_score_t <- function(
     scale_shape_model() +
     get_plot_theme(
       rotate_x_ticks = TRUE
-    ) +
+    )
 
-    return(p)
+  return(p)
 }
 
 #' Barplot of WIS or CRPS decomposed into
