@@ -132,8 +132,7 @@ plot_hub_performance_by_period <- function(
     guides(fill = guide_legend(nrow = 2)) +
     coord_trans(ylim = c(0, 2)) +
     get_plot_theme(
-      x_axis_dates = TRUE,
-      y_axis_title_size = 8
+      rotate_x_ticks = TRUE
     ) +
     theme(
       legend.justification = "left",
@@ -189,8 +188,7 @@ relative_wis_histogram <- function(
     ) +
     scale_y_continuous(trans = "log10") +
     get_plot_theme(
-      x_axis_dates = TRUE,
-      y_axis_title_size = 8
+      rotate_x_ticks = TRUE
     ) +
     scale_fill_manual(
       values = colors$model_colors,
@@ -282,8 +280,7 @@ plot_heatmap_relative_wis <- function(
       guide = "colourbar"
     ) +
     get_plot_theme(
-      x_axis_dates = TRUE,
-      y_axis_text_size = 3
+      rotate_x_ticks = TRUE
     ) +
     xlab("") +
     ylab("") +

@@ -70,8 +70,7 @@ plot_score_t <- function(
       ylab = toupper(metric)
     ) +
     get_plot_theme(
-      x_axis_dates = TRUE,
-      y_axis_title_size = 8
+      rotate_x_ticks = TRUE
     ) +
     theme(axis.title.x = element_blank()) +
     scale_x_date(
@@ -117,8 +116,7 @@ plot_score_decomposed_bars <- function(
   ) +
     geom_decomposed_scores(position = position, width = width, ...) +
     get_plot_theme(
-      x_axis_dates = TRUE,
-      y_axis_title_size = 8
+      rotate_x_ticks = TRUE
     ) +
     theme(legend.position = "none") +
     scale_fill_model() +
@@ -285,8 +283,7 @@ heatmap_scores_by_loc_date <- function(scores, metric, models_to_plot) {
     ) +
     facet_wrap(~model) +
     get_plot_theme(
-      x_axis_dates = TRUE,
-      y_axis_text_size = 4
+      rotate_x_ticks = TRUE
     ) +
     scale_x_date(
       date_breaks = "1 week",
@@ -341,8 +338,7 @@ plot_score_by_horizon_t <- function(
   ) +
     forecasttools::geom_line_point(size = 2, linewidth = 1.5, alpha = 0.5) +
     get_plot_theme(
-      x_axis_dates = TRUE,
-      y_axis_title_size = 8
+      rotate_x_ticks = TRUE
     ) +
     facet_wrap(~ .data$horizon, ncol = 1) +
     scale_x_date(

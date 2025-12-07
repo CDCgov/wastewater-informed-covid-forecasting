@@ -17,8 +17,7 @@ plot_bias_t <- function(scores) {
       color = .data$model
     )) +
     get_plot_theme(
-      x_axis_dates = TRUE,
-      y_axis_title_size = 8
+      rotate_x_ticks = TRUE
     ) +
     scale_x_date(
       date_breaks = "2 weeks",

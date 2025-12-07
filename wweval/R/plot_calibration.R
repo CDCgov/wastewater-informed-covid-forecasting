@@ -150,7 +150,7 @@ forecast_interval_coverage_plot <- function(
     ) +
     scale_x_discrete() +
     get_plot_theme(
-      x_axis_dates = TRUE
+      rotate_x_ticks = TRUE
     ) +
     scale_color_model()
 

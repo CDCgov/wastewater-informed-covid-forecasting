@@ -287,7 +287,7 @@ plot_ribbon_hosp_quantiles <- function(
     ylab("Daily hospital admissions") +
     scale_color_model() +
     scale_fill_model() +
-    get_plot_theme(x_axis_dates = TRUE) +
+    get_plot_theme(rotate_x_ticks = TRUE) +
     theme(
       legend.position = "top",
       legend.justification = "left"
@@ -436,7 +436,7 @@ plot_ribbon_ww_quantiles <- function(
       labels = scales::date_format("%Y-%m-%d")
     ) +
     scale_y_continuous(transform = "log10") +
-    get_plot_theme(x_axis_dates = TRUE) +
+    get_plot_theme(rotate_x_ticks = TRUE) +
     scale_fill_manual(values = colors$observation_status_colors) +
     scale_color_manual(values = colors$observation_status_colors) +
     scale_shape_manual(values = colors$observation_status_shapes)
@@ -554,7 +554,7 @@ plot_pred_actual_hosp <- function(
     ylab("Daily hospital admissions") +
     scale_color_model() +
     scale_fill_model() +
-    get_plot_theme(x_axis_dates = TRUE) +
+    get_plot_theme(rotate_x_ticks = TRUE) +
     theme(
       legend.position = "top",
       legend.justification = "left"
@@ -704,7 +704,7 @@ plot_pred_actual_ww <- function(
       date_breaks = "2 weeks",
       labels = scales::date_format("%Y-%m-%d")
     ) +
-    get_plot_theme(x_axis_dates = TRUE) +
+    get_plot_theme(rotate_x_ticks = TRUE) +
     scale_fill_manual(values = colors$observation_status_colors) +
     scale_color_manual(values = colors$observation_status_colors) +
     scale_shape_manual(values = colors$observation_status_shapes)

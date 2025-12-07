@@ -124,8 +124,7 @@ plot_rel_score_t <- function(
       x = x
     ) +
     get_plot_theme(
-      x_axis_dates = TRUE,
-      y_axis_title_size = 8
+      rotate_x_ticks = TRUE
     ) +
     theme(axis.title.x = element_blank()) +
     scale_x_date(
@@ -244,8 +243,7 @@ plot_rel_score_dists <- function(
       )
     ) +
     get_plot_theme(
-      x_axis_dates = TRUE,
-      y_axis_title_size = 8
+      rotate_x_ticks = TRUE
     )
 
   return(p)
@@ -310,8 +308,7 @@ plot_rel_score_heatmap <- function(
       size = 1.5
     ) +
     get_plot_theme(
-      x_axis_dates = TRUE,
-      y_axis_text_size = 4
+      rotate_x_ticks = TRUE
     ) +
     theme(legend.text = element_text(size = 6)) +
     scale_x_date(
@@ -398,10 +395,7 @@ plot_rel_score_dists_by_horizon <- function(
         transform = "log10"
       )
     ) +
-    get_plot_theme(
-      y_axis_title_size = 8,
-      x_axis_title_size = 8
-    ) +
+    get_plot_theme() +
     scale_fill_horizon() +
     scale_color_horizon()
 

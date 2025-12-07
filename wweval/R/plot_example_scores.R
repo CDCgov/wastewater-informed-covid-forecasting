@@ -226,9 +226,7 @@ plot_forecast_comparison_t <- function(
       limits = date_lims
     ) +
     get_plot_theme(
-      x_axis_dates = TRUE,
-      y_axis_title_size = 6,
-      y_axis_text_size = 6
+      rotate_x_ticks = TRUE
     ) +
     guides(fill = "none", color = "none") +
     ylim(0, 2 * max_obs)

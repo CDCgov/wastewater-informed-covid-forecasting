@@ -14,7 +14,7 @@ get_plot_theme(
   facet_x_text_size = 8,
   facet_y_text_size = 8,
   plot_title_size = 10,
-  x_axis_dates = FALSE
+  rotate_x_ticks = FALSE
 )
 }
 \arguments{
@@ -45,9 +45,8 @@ x-xaxis, to be passed to theme. Default is \code{8}}
 \item{plot_title_size}{integer indicating thesize of plot title, to be passed
 to theme. Default is \code{10}}
 
-\item{x_axis_dates}{boolean indicating whether or not the x axis are dates.
-If they are dates, we will rotate x axis tick text 45 degrees. Default is
-\code{FALSE}}
+\item{rotate_x_ticks}{boolean indicating whether to rotate x axis
+tick text 45 degrees. Default is \code{FALSE}}
 }
 \value{
 a theme object to add to a \code{\link[ggplot2:ggplot]{ggplot2::ggplot()}} object to specify

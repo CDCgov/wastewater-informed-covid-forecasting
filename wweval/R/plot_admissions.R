@@ -29,13 +29,9 @@ plot_total_admissions <- function(
     )
   ) +
     forecasttools::geom_line_point() +
-    get_plot_theme(x_axis_dates = TRUE) +
     xlab("") +
     ylab("Incident hospital admissions") +
-    get_plot_theme(
-      y_axis_title_size = 8,
-      x_axis_dates = TRUE
-    ) +
+    get_plot_theme(rotate_x_ticks = TRUE) +
     scale_x_date(
       date_breaks = "1 week",
       date_labels = "%Y-%m-%d",

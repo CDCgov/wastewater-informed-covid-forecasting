@@ -18,9 +18,8 @@
 #' x-xaxis, to be passed to theme. Default is `8`
 #' @param plot_title_size integer indicating thesize of plot title, to be passed
 #'  to theme. Default is `10`
-#' @param x_axis_dates boolean indicating whether or not the x axis are dates.
-#' If they are dates, we will rotate x axis tick text 45 degrees. Default is
-#' `FALSE`
+#' @param rotate_x_ticks boolean indicating whether to rotate x axis
+#' tick text 45 degrees. Default is `FALSE`
 #'
 #' @return a theme object to add to a [ggplot2::ggplot()] object to specify
 #' line size and formatting
@@ -35,7 +34,7 @@ get_plot_theme <- function(
   facet_x_text_size = 8,
   facet_y_text_size = 8,
   plot_title_size = 10,
-  x_axis_dates = FALSE
+  rotate_x_ticks = FALSE
 ) {
   ww_theme <-
     cowplot::theme_half_open() +
@@ -61,13 +60,10 @@ get_plot_theme <- function(
       plot.background = element_rect(fill = "white")
     )
 
-  if (isTRUE(x_axis_dates)) {
-    # If x-axis are dates, default to 2 week date breaks
-    # and rotate 45 degrees
+  if (isTRUE(rotate_x_ticks)) {
     ww_theme <- ww_theme +
       theme(
         axis.text.x = element_text(
-          size = x_axis_text_size - 2,
           vjust = 1,
           hjust = 1,
           angle = 45
