@@ -253,7 +253,7 @@ scale_fill_score_ratio <- function(...) {
 #' @param dispersion_alpha Alpha parameter for the dispersion tile.
 #' Default 0.6.
 #' @param ... keyword arguments passed to [ggplot2::geom_tile()].
-geom_decomposed_scores <- function(alpha, dispersion_alpha = 0.6, ...) {
+geom_decomposed_scores <- function(dispersion_alpha = 0.6, ...) {
   return(
     list(
       ggplot2::geom_tile(
