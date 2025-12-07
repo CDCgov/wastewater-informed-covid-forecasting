@@ -293,7 +293,13 @@ plot_rel_score_heatmap <- function(
   ) +
     geom_tile() +
     geom_text(size = 1.5) +
-    scale_fill_score_ratio(name = glue::glue("Relative {metric_to_compare}")) +
+    scale_fill_score_ratio(
+      name = glue::glue("Relative {metric_to_compare}"),
+      limits = forecasttools::sym_limits(
+        relative_scores$mean_scores_ratio,
+        transform = "log10"
+      )
+    ) +
     scale_x_date(
       date_breaks = "1 week",
       labels = scales::date_format("%Y-%m-%d"),

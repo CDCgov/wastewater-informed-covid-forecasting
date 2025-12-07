@@ -243,7 +243,6 @@ scale_fill_score_ratio <- function(...) {
     guide = "colourbar",
     aesthetics = "fill",
     labels = scales::number_format(accuracy = 0.01),
-    limits = c(1 / 5, 5),
     ...
   ))
 }

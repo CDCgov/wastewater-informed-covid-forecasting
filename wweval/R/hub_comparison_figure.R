@@ -271,7 +271,13 @@ plot_hub_heatmap_relative_wis <- function(
   ) +
     geom_tile() +
     geom_text(size = 1.5) +
-    scale_fill_score_ratio(name = "Relative WIS") +
+    scale_fill_score_ratio(
+      name = "Relative WIS",
+      limits = forecasttools::sym_limits(
+        relative_scores$mean_scores_ratio,
+        transform = "log10"
+      )
+    ) +
     get_plot_theme(
       rotate_x_ticks = TRUE
     ) +
