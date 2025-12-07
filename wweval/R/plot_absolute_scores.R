@@ -63,7 +63,7 @@ plot_score_t <- function(
     )
   ) +
     forecasttools::geom_line_point(
-      linewidth = 2,
+      linewidth = 1.25,
       size = 3,
       alpha = 0.75
     ) +
@@ -82,9 +82,9 @@ plot_score_t <- function(
       expand = 0
     ) +
     coord_cartesian(expand = TRUE) +
-      scale_color_model() +
-      scale_fill_model() +
-      scale_shape_model()
+    scale_color_model() +
+    scale_fill_model() +
+    scale_shape_model()
 
   return(p)
 }

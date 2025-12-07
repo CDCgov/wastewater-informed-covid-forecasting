@@ -132,13 +132,13 @@ model_colors <- c(
 )
 
 model_shapes <- c(
-    "cfa-wwrenewal(retro)" = 21,
-    "cfa-wwrenewal(real-time)" = 21,
-    "cfa-hosponlyrenewal(real-time*)" = 22,
-    "cfa-hosponlyrenewal(retro)" = 22,
-    "COVIDhub-4_week_ensemble" = 23,
-    "UMass-sarix" = 24,
-    "CMU-TimeSeries" = 25
+  "cfa-wwrenewal(retro)" = 21,
+  "cfa-wwrenewal(real-time)" = 21,
+  "cfa-hosponlyrenewal(real-time*)" = 22,
+  "cfa-hosponlyrenewal(retro)" = 22,
+  "COVIDhub-4_week_ensemble" = 23,
+  "UMass-sarix" = 24,
+  "CMU-TimeSeries" = 25
 )
 
 
@@ -187,7 +187,7 @@ scale_color_model <- function(...) {
 
 #' @rdname scale_fill_model
 #' @export
-scale_shape_model <-  function(...) {
+scale_shape_model <- function(...) {
   return(ggplot2::scale_shape_manual(
     values = model_shapes
   ))
