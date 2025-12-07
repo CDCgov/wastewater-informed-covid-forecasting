@@ -1730,17 +1730,6 @@ composite_figure_targets <- list(
     )
   ),
   tar_target(
-    name = rel_crps_distribution_t_cfa_models,
-    command = plot_rel_score_dists(
-      scores = crps_cfa_models_retro,
-      target_models = "cfa-wwrenewal(retro)",
-      baseline_model = "cfa-hosponlyrenewal(retro)",
-      metric_to_compare = "crps",
-      x = "forecast_date",
-      by = "location"
-    )
-  ),
-  tar_target(
     name = rel_crps_cfa_models_by_loc,
     command = forecasttools::summarise_scores_with_baseline(
       crps_cfa_models_retro,
