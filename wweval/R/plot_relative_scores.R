@@ -301,9 +301,9 @@ plot_rel_score_heatmap <- function(
     ) +
     get_plot_theme(
       rotate_x_ticks = TRUE
-    ) +
+    )
 
-    return(p)
+  return(p)
 }
 
 
