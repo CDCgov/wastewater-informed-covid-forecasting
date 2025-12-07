@@ -233,7 +233,7 @@ plot_hub_heatmap_relative_wis <- function(
   baseline_model = "COVIDhub-4_week_ensemble"
 ) {
   message("Computing relative scores. This may take time...")
-  rel_scores <- scores |>
+  relative_scores <- scores |>
     dplyr::filter(
       .data$model %in%
         c(
@@ -261,8 +261,8 @@ plot_hub_heatmap_relative_wis <- function(
 
   message("Plotting heatmap...")
   p <- ggplot(
-    rel_scores,
-    aes(
+    data = relative_scores,
+    mapping = aes(
       x = .data$model,
       y = .data$location,
       fill = .data$mean_scores_ratio,
