@@ -238,11 +238,12 @@ scale_fill_score_ratio <- function(...) {
     high = "red",
     mid = "white",
     low = "blue",
-    transform = "log2",
+    transform = "log10",
     midpoint = 1,
     guide = "colourbar",
     aesthetics = "fill",
     labels = scales::number_format(accuracy = 0.01),
+    limits = c(1 / 100, 100),
     ...
   ))
 }
