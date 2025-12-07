@@ -282,28 +282,28 @@ plot_rel_score_heatmap <- function(
 
   rel_metric_name <- .relative_metric_display_name(metric_to_compare)
 
-  p <- ggplot(relative_scores) +
-    geom_tile(aes(
+  p <- ggplot(
+    data = relative_scores,
+    mapping = aes(
       x = .data$forecast_date,
       y = .data$location,
       fill = .data$mean_scores_ratio,
       label = round(.data$mean_scores_ratio, 2)
-    )) +
-    scale_fill_score_ratio(name = glue::glue("Relative {metric_to_compare}")) +
+    )
+  ) +
+    geom_tile() +
     geom_text(size = 1.5) +
-    get_plot_theme(
-      rotate_x_ticks = TRUE
-    ) +
-    theme(legend.text = element_text(size = 6)) +
+    scale_fill_score_ratio(name = glue::glue("Relative {metric_to_compare}")) +
     scale_x_date(
       date_breaks = "1 week",
       labels = scales::date_format("%Y-%m-%d"),
       expand = 0
     ) +
-    xlab("") +
-    ylab("Location")
+    get_plot_theme(
+      rotate_x_ticks = TRUE
+    ) +
 
-  return(p)
+    return(p)
 }
 
 
