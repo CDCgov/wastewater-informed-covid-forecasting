@@ -57,7 +57,8 @@ plot_score_t <- function(
     aes(
       x = .data$forecast_date,
       y = .data[[metric]],
-      color = .data$model
+      color = .data$model,
+      shape = .data$model,
     )
   ) +
     forecasttools::geom_line_point(
@@ -79,7 +80,8 @@ plot_score_t <- function(
       expand = 0
     ) +
     coord_cartesian(expand = TRUE) +
-    scale_color_model()
+      scale_color_model() +
+      scale_shape_model()
 
   return(p)
 }

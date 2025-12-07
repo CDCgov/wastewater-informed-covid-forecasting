@@ -131,6 +131,16 @@ model_colors <- c(
   "MOBS-GLEAM_COVID" = pastel_model[8]
 )
 
+model_shapes <- c(
+    "cfa-wwrenewal(retro)" = 21,
+    "cfa-wwrenewal(real-time)" = 21,
+    "cfa-hosponlyrenewal(real-time*)" = 22,
+    "cfa-hosponlyrenewal(retro)" = 22,
+    "COVIDhub-4_week_ensemble" = 23,
+    "UMass-sarix" = 24,
+    "CMU-TimeSeries" = 25
+)
+
 
 #' Get plot components (colors for now)
 #'
@@ -172,6 +182,14 @@ scale_fill_model <- function(...) {
 scale_color_model <- function(...) {
   return(ggplot2::scale_color_manual(
     values = model_colors
+  ))
+}
+
+#' @rdname scale_fill_model
+#' @export
+scale_shape_model <-  function(...) {
+  return(ggplot2::scale_shape_manual(
+    values = model_shapes
   ))
 }
 
@@ -231,9 +249,9 @@ scale_fill_score_ratio <- function(...) {
 #' undeprediction, overprediction, and dispersion components
 #'
 #' @param dispersion_alpha Alpha parameter for the dispersion tile.
-#' Default 0.5
+#' Default 0.6.
 #' @param ... keyword arguments passed to [ggplot2::geom_tile()].
-geom_decomposed_scores <- function(dispersion_alpha = 0.6, ...) {
+geom_decomposed_scores <- function(alpha, dispersion_alpha = 0.6, ...) {
   return(
     list(
       ggplot2::geom_tile(
@@ -249,7 +267,7 @@ geom_decomposed_scores <- function(dispersion_alpha = 0.6, ...) {
           height = .data$dispersion,
           y = .data$underprediction + .data$dispersion / 2
         ),
-        alpha = dispersion_alpha,
+        alpha = alpha * dispersion_alpha,
         linetype = "solid",
         ...
       ),
