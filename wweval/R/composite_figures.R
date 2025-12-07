@@ -79,9 +79,6 @@ compose_hub_fig <- function(
     patchwork::plot_layout(
       design = design,
       axes = "collect",
-      guides = "collect",
-      heights = 1,
-      widths = 1
     ) +
     patchwork::plot_annotation(tag_levels = "A") &
     theme(
