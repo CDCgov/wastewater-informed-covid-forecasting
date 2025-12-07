@@ -64,7 +64,7 @@ compose_hub_fig <- function(
   heatmap_rel_wis,
   qq_plot
 ) {
-    design <- "
+  design <- "
 11
 AB
 AB
@@ -75,7 +75,7 @@ CE
 "
   no_guides <- ggplot2::guides(fill = "none", color = "none", shape = "none")
 
-    fig <- patchwork::wrap_plots(
+  fig <- patchwork::wrap_plots(
     patchwork::guide_area(),
     A = barplot_wis + no_guides,
     B = plot_wis_t,
