@@ -241,7 +241,9 @@ scale_fill_score_ratio <- function(...) {
     transform = "log2",
     midpoint = 1,
     guide = "colourbar",
-    aesthetics = "fill"
+    aesthetics = "fill",
+    labels = scales::number_format(accuracy = 0.01),
+    ...
   ))
 }
 

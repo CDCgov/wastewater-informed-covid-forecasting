@@ -286,27 +286,11 @@ plot_rel_score_heatmap <- function(
     geom_tile(aes(
       x = .data$forecast_date,
       y = .data$location,
-      fill = .data$mean_scores_ratio
+      fill = .data$mean_scores_ratio,
+      label = round(.data$mean_scores_ratio, 2)
     )) +
-    scale_fill_gradient2(
-      high = "red",
-      mid = "white",
-      low = "blue",
-      transform = "log2",
-      midpoint = 1,
-      guide = "colourbar",
-      aesthetics = "fill",
-      name = rel_metric_name,
-      labels = scales::number_format(accuracy = 0.01)
-    ) +
-    geom_text(
-      aes(
-        x = .data$forecast_date,
-        y = .data$location,
-        label = round(.data$mean_scores_ratio, 2)
-      ),
-      size = 1.5
-    ) +
+    scale_fill_score_ratio(name = glue::glue("Relative {metric_to_compare}")) +
+    geom_text(size = 1.5) +
     get_plot_theme(
       rotate_x_ticks = TRUE
     ) +

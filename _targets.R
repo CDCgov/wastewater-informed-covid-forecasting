@@ -1131,7 +1131,7 @@ hub_comparison_targets <- list(
   ),
   tar_target(
     name = hub_heatmap_rel_wis_all_time,
-    command = plot_heatmap_relative_wis(
+    command = plot_hub_heatmap_relative_wis(
       scores = hub_scores,
       models_to_show = hub_models_to_plot_retro,
       time_period = "Oct 2023-Mar 2024",
@@ -1140,7 +1140,7 @@ hub_comparison_targets <- list(
   ),
   tar_target(
     name = hub_heatmap_rel_wis_real_time,
-    command = plot_heatmap_relative_wis(
+    command = plot_hub_heatmap_relative_wis(
       scores = hub_scores_real_time,
       models_to_show = hub_models_to_plot_retro,
       time_period = "Feb 2024-Mar 2024",

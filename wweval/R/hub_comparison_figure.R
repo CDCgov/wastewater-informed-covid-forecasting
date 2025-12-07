@@ -226,7 +226,7 @@ relative_wis_histogram <- function(
 #' and fill by relative WIS score across forecast dates and horizons
 #' @export
 #'
-plot_heatmap_relative_wis <- function(
+plot_hub_heatmap_relative_wis <- function(
   scores,
   time_period,
   models_to_show,
@@ -270,23 +270,13 @@ plot_heatmap_relative_wis <- function(
     )
   ) +
     geom_tile() +
-    geom_text() +
-    scale_fill_gradient2(
-      high = "red",
-      mid = "white",
-      low = "blue",
-      transform = "log2",
-      midpoint = 1,
-      guide = "colourbar"
-    ) +
+      geom_text(size = 1.5) +
+      scale_fill_score_ratio(name = "Relative WIS") +
     get_plot_theme(
       rotate_x_ticks = TRUE
     ) +
-    xlab("") +
-    ylab("") +
-    labs(fill = "Relative WIS") +
     ggtitle(glue::glue(
-      "Relative WIS compared to \n {baseline_model}"
+      "rWIS vs {baseline_model}"
     ))
 
   return(p)
