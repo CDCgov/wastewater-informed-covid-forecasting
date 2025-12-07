@@ -64,7 +64,8 @@ plot_score_t <- function(
   ) +
     forecasttools::geom_line_point(
       linewidth = 2,
-      size = 3
+      size = 3,
+      alpha = 0.75
     ) +
     labs(
       col = "Model",
