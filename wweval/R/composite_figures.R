@@ -64,9 +64,11 @@ compose_hub_fig <- function(
   heatmap_rel_wis,
   qq_plot
 ) {
-  design <- "AB
-               CD
-               CE"
+  design <- "
+AB
+CD
+CE
+"
   no_guides <- ggplot2::guides(fill = "none", color = "none", shape = "none")
 
   fig <- patchwork::wrap_plots(
@@ -79,6 +81,8 @@ compose_hub_fig <- function(
     patchwork::plot_layout(
       design = design,
       axes = "collect",
+      widths = 1,
+      heights = 1
     ) +
     patchwork::plot_annotation(tag_levels = "A") &
     theme(

@@ -67,26 +67,19 @@ plot_score_t <- function(
       size = 3,
       alpha = 0.75
     ) +
-    labs(
-      col = "Model",
-      xlab = "",
-      ylab = toupper(metric)
-    ) +
-    get_plot_theme(
-      rotate_x_ticks = TRUE
-    ) +
-    theme(axis.title.x = element_blank()) +
     scale_x_date(
       date_breaks = "1 week",
       date_labels = "%Y-%m-%d",
       expand = 0
     ) +
-    coord_cartesian(expand = TRUE) +
     scale_color_model() +
     scale_fill_model() +
-    scale_shape_model()
+    scale_shape_model() +
+    get_plot_theme(
+      rotate_x_ticks = TRUE
+    ) +
 
-  return(p)
+    return(p)
 }
 
 #' Barplot of WIS or CRPS decomposed into
