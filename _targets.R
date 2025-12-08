@@ -976,7 +976,8 @@ hub_comparison_targets <- list(
     command = plot_total_admissions(
       eval_hosp_data,
       first_date = first_eval_date_real_time,
-      last_date = last_eval_date_real_time
+      last_date = lubridate::ymd(eval_config$last_real_time_forecast_date) +
+        lubridate::weeks(1)
     )
   ),
   tar_target(
@@ -1768,7 +1769,7 @@ composite_figure_targets <- list(
     command = plot_total_admissions(
       eval_hosp_data,
       first_date = first_eval_date_retro,
-      last_date = last_eval_date_retro
+      last_date = max(scored_forecast_dates) + lubridate::weeks(1)
     )
   ),
   tar_target(
