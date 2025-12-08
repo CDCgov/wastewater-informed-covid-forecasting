@@ -72,14 +72,30 @@ CD
 CD
 CE
 CE
+CE
 "
+  ymax_wis <- max(
+    get_plot_xy_raw_limits(barplot_wis)$ymax,
+    get_plot_xy_raw_limits(plot_wis_t)$ymax
+  )
+
+  shared_y_wis <- ggplot2::scale_y_continuous(
+    limits = c(0, ymax_wis)
+  )
+
   no_guides <- ggplot2::guides(fill = "none", color = "none", shape = "none")
+  no_xlab <- ggplot2::theme(axis.title.x = ggplot2::element_blank())
 
   fig <- patchwork::wrap_plots(
     patchwork::guide_area(),
-    A = barplot_wis + no_guides,
-    B = plot_wis_t,
-    C = heatmap_rel_wis,
+    A = barplot_wis + shared_y_wis + no_guides + ggplot2::ylab("WIS"),
+    B = plot_wis_t +
+      shared_y_wis +
+      ggplot2::labs(
+        x = "Forecast date",
+        y = "WIS"
+      ),
+    C = heatmap_rel_wis + no_xlab,
     D = hist_rwis + no_guides,
     E = qq_plot + no_guides
   ) +
@@ -268,7 +284,6 @@ DDDFF
 DDDFF
 "
   shared_lims <- get_shared_xy_raw_limits(list(
-    rel_score_heatmap,
     rel_score_by_time,
     total_admissions,
     abs_scores_by_time
@@ -276,22 +291,37 @@ DDDFF
 
   date_lims <- as.Date(c(shared_lims$xmin, shared_lims$xmax))
 
-  shared_x_dates <- scale_x_date(
-    date_breaks = "week",
-    expand = 0,
-    limits = date_lims
+  shared_x_dates <- scale_x_weekly_iso_date(
+    name = "Forecast date",
+    limits = date_lims,
+    expand = 0
   )
+
+  ymax_score <- max(
+    get_plot_xy_raw_limits(abs_scores_by_time)$ymax,
+    get_plot_xy_raw_limits(abs_scores_by_location)$ymax
+  )
+
+  shared_y_score <- ggplot2::scale_y_continuous(
+    limits = c(0, ymax_score)
+  )
+  no_xlab <- ggplot2::theme(axis.title.x = ggplot2::element_blank())
 
   fig <- patchwork::wrap_plots(
     patchwork::guide_area(),
-    A = total_admissions + shared_x_dates,
+    A = total_admissions + shared_x_dates + no_xlab,
     B = rel_score_by_time +
       shared_x_dates +
-      ggplot2::guides(fill = "none", color = "none"),
-    C = abs_scores_by_time + shared_x_dates,
-    D = abs_scores_by_location,
+      ggplot2::guides(fill = "none", color = "none") +
+      no_xlab,
+    C = abs_scores_by_time + shared_x_dates + shared_y_score,
+    D = abs_scores_by_location + shared_y_score,
     E = rel_score_dist,
-    F = rel_score_heatmap,
+    F = rel_score_heatmap +
+      scale_x_weekly_iso_date(
+        name = "Forecast date",
+        expand = 0
+      ),
     design = design,
     axes = "collect_x",
     guides = "collect"

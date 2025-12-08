@@ -1020,7 +1020,8 @@ hub_comparison_targets <- list(
         by = c("forecast_date", "model")
       ) |>
       plot_score_decomposed_bars(x = "forecast_date", width = 5) +
-      ggplot2::scale_x_date(expand = 0)
+      scale_x_weekly_iso_date(expand = 0) +
+      ggplot2::ylab("WIS")
   ),
   tar_target(
     name = decomposed_wis_loc_cfa_models_real_time,
@@ -1039,12 +1040,14 @@ hub_comparison_targets <- list(
       plot_score_decomposed_bars(
         x = "location",
         width = 0.8
-      )
+      ) +
+      ggplot2::ylab("WIS")
   ),
   tar_target(
     name = qq_plot_real_time,
     command = forecast_qq_plot(
-      hub_forecasts_cfa_real_time
+      hub_forecasts_cfa_real_time,
+      alpha = 0.75
     )
   ),
   tar_target(
@@ -1092,8 +1095,8 @@ hub_comparison_targets <- list(
     name = save_figure_rel_performance_real_time,
     command = save_fig_main(
       figure_rel_performance_real_time,
-      base_width = 10,
-      base_height = 7
+      base_width = 12,
+      base_height = 12
     ),
     format = "file"
   ),
@@ -1142,7 +1145,7 @@ hub_comparison_targets <- list(
     name = hub_heatmap_rel_wis_real_time,
     command = plot_hub_heatmap_relative_wis(
       scores = hub_scores_real_time,
-      models_to_show = hub_models_to_plot_retro,
+      models_to_show = hub_models_to_plot_real_time,
       time_period = "Feb 2024-Mar 2024",
       baseline_model = "COVIDhub-4_week_ensemble"
     )
@@ -1151,7 +1154,8 @@ hub_comparison_targets <- list(
     name = hub_qq_plot_all_time,
     command = forecast_qq_plot(
       filter_to_plotted_models_retro(hub_forecasts),
-      model_z_order = hub_models_to_plot_retro
+      model_z_order = hub_models_to_plot_retro,
+      alpha = 0.75
     )
   ),
   tar_target(
@@ -1160,7 +1164,8 @@ hub_comparison_targets <- list(
       hub_forecasts |>
         filter_to_scored_dates_real_time() |>
         filter_to_plotted_models_real_time(),
-      model_z_order = hub_models_to_plot_real_time
+      model_z_order = hub_models_to_plot_real_time,
+      alpha = 0.75
     )
   ),
   tar_target(
@@ -1810,17 +1815,8 @@ composite_figure_targets <- list(
         x = "forecast_date",
         width = 5
       ) +
-      ggplot2::scale_x_date(expand = 0) +
-      ggplot2::ylab("Absolute CRPS")
-  ),
-  tar_target(
-    name = save_decomposed_crps_t_cfa_models_all_time,
-    command = save_fig_supp(
-      decomposed_crps_t_cfa_models_all_time,
-      base_width = 7,
-      base_height = 5
-    ),
-    format = "file"
+      scale_x_weekly_iso_date(expand = 0) +
+      ggplot2::ylab("CRPS")
   ),
   tar_target(
     name = decomposed_crps_loc_cfa_models_all_time,
@@ -1840,7 +1836,7 @@ composite_figure_targets <- list(
         x = "location",
         width = 0.8
       ) +
-      ggplot2::ylab("Absolute CRPS")
+      ggplot2::ylab("CRPS")
   ),
   tar_target(
     name = save_decomposed_crps_loc_cfa_models_all_time,
@@ -1884,7 +1880,8 @@ composite_figure_targets <- list(
   tar_target(
     name = qq_plot_retro_all_time,
     command = forecast_qq_plot(
-      calibration_input_cfa_all_time
+      calibration_input_cfa_all_time,
+      alpha = 0.75
     )
   ),
   tar_target(
@@ -1924,8 +1921,8 @@ composite_figure_targets <- list(
     name = save_figure_rel_performance_all_time,
     command = save_fig_main(
       figure_rel_performance_all_time,
-      base_width = 9,
-      base_height = 9
+      base_width = 12,
+      base_height = 12
     )
   )
 )

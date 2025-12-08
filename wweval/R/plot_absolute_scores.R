@@ -67,11 +67,7 @@ plot_score_t <- function(
       size = 3,
       alpha = 0.75
     ) +
-    scale_x_date(
-      date_breaks = "1 week",
-      date_labels = "%Y-%m-%d",
-      expand = 0
-    ) +
+    scale_x_weekly_iso_date() +
     scale_color_model() +
     scale_fill_model() +
     scale_shape_model() +
@@ -116,10 +112,9 @@ plot_score_decomposed_bars <- function(
     get_plot_theme(
       rotate_x_ticks = TRUE
     ) +
+    ylab("Score") +
     theme(legend.position = "none") +
-    scale_fill_model() +
-    xlab("") +
-    ylab("Score")
+    scale_fill_model()
 
   return(p)
 }
@@ -283,10 +278,7 @@ heatmap_scores_by_loc_date <- function(scores, metric, models_to_plot) {
     get_plot_theme(
       rotate_x_ticks = TRUE
     ) +
-    scale_x_date(
-      date_breaks = "1 week",
-      labels = scales::date_format("%Y-%m-%d")
-    ) +
+    scale_x_weekly_iso_date() +
     coord_cartesian(expand = FALSE) +
     xlab("") +
     ylab("Location") +
@@ -339,10 +331,7 @@ plot_score_by_horizon_t <- function(
       rotate_x_ticks = TRUE
     ) +
     facet_wrap(~ .data$horizon, ncol = 1) +
-    scale_x_date(
-      date_breaks = "2 weeks",
-      date_labels = "%Y-%m-%d"
-    ) +
+    scale_x_weekly_iso_date() +
     scale_color_model() +
     xlab(NULL) +
     ylab(glue::glue("Average {score_display_name}")) +

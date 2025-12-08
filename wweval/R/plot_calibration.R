@@ -10,14 +10,15 @@
 #' If `NULL` (default), plot the models in the order they appear in
 #' `forecasts`.
 #' @param linewidth `width` parameter for the Q-Q lines for
-#' individual models. Default 2.
+#' individual models. Default 1.25.
 #' @param reference_linecolor `color` parameter for the r
 #' eference y = x line. Default `"gray"`.
 #' @param reference_linewidth `width` parameter for the
 #' reference y = x line. Default `2`.
 #' @param reference_linetype `linetype` parameter for the
 #' reference y = x line. Default `"dashed"`.
-#' @param ... additional keyword arguments passed to [ggplot2::geom_line()]
+#' @param ... additional keyword arguments passed to
+#' [forecasttools::geom_line_point()]
 #' for the Q-Q lines for individual models.
 #' @return a ggplot object containing a plot of the proportion of data
 #' within each interval for each model.
@@ -25,7 +26,7 @@
 forecast_qq_plot <- function(
   forecasts,
   model_z_order = NULL,
-  linewidth = 2,
+  linewidth = 1.25,
   reference_linecolor = "gray",
   reference_linewidth = 2,
   reference_linetype = "dashed",
@@ -40,7 +41,12 @@ forecast_qq_plot <- function(
 
   p <- ggplot(
     data = coverage,
-    mapping = aes(x = .data$quantile_level, color = .data$model)
+    mapping = aes(
+      x = .data$quantile_level,
+      color = .data$model,
+      fill = .data$model,
+      shape = .data$model
+    )
   ) +
     geom_polygon(
       data = data.frame(
@@ -67,11 +73,11 @@ forecast_qq_plot <- function(
         x = .data$x,
         y = .data$y,
         group = .data$g,
-        fill = .data$g
       ),
       alpha = 0.15,
       colour = "olivedrab3",
-      fill = "olivedrab3"
+      fill = "olivedrab3",
+      inherit.aes = FALSE
     ) +
     geom_abline(
       color = reference_linecolor,
@@ -80,7 +86,11 @@ forecast_qq_plot <- function(
       slope = 1,
       linewidth = reference_linewidth
     ) +
-    geom_line(aes(y = .data$quantile_coverage), linewidth = linewidth, ...) +
+    forecasttools::geom_line_point(
+      aes(y = .data$quantile_coverage),
+      linewidth = linewidth,
+      ...
+    ) +
     xlab("Quantile level") +
     ylab("Obs < level") +
     scale_y_continuous(
@@ -91,6 +101,8 @@ forecast_qq_plot <- function(
     ) +
     get_plot_theme() +
     scale_color_model() +
+    scale_shape_model() +
+    scale_fill_model() +
     coord_fixed(expand = FALSE)
   return(p)
 }
