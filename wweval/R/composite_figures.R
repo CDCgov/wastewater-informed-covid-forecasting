@@ -291,11 +291,10 @@ DDDFF
 
   date_lims <- as.Date(c(shared_lims$xmin, shared_lims$xmax))
 
-  shared_x_dates <- list(scale_x_weekly_iso_date(
+  shared_x_dates <- scale_x_weekly_iso_date(
     name = "Forecast date",
     limits = date_lims,
-    expand = 0
-  ), ggplot2::xlab("Forecast date"))
+    expand = 0)
 
   ymax_score <- max(
     get_plot_xy_raw_limits(abs_scores_by_time)$ymax,
@@ -305,13 +304,15 @@ DDDFF
   shared_y_score <- ggplot2::scale_y_continuous(
     limits = c(0, ymax_score)
   )
+  no_xlab <- ggplot2::theme(axis.title.x = ggplot2::element_blank())
 
   fig <- patchwork::wrap_plots(
     patchwork::guide_area(),
-    A = total_admissions + shared_x_dates,
+    A = total_admissions + shared_x_dates + no_xlab,
     B = rel_score_by_time +
       shared_x_dates +
-      ggplot2::guides(fill = "none", color = "none"),
+      ggplot2::guides(fill = "none", color = "none") +
+      no_xlab,
     C = abs_scores_by_time + shared_x_dates + shared_y_score,
     D = abs_scores_by_location + shared_y_score,
     E = rel_score_dist,
