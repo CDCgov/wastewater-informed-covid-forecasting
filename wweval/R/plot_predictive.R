@@ -165,7 +165,7 @@ plot_spaghetti_ww_draws <- function(
       date_breaks = "2 weeks",
       labels = scales::date_format("%Y-%m-%d")
     ) +
-      get_plot_theme(rotate_x_ticks = TRUE)
+    get_plot_theme(rotate_x_ticks = TRUE)
   return(p)
 }
 
