@@ -237,7 +237,7 @@ plot_rel_score_dists <- function(
     ) +
     geom_hline(yintercept = 1, linetype = "dashed") +
     xlab("") +
-    ylab(.relative_metric_display_abbr(metric_to_compare)) +
+    ylab(.relative_metric_display_name(metric_to_compare)) +
     scale_y_continuous(transform = "log10") +
     x_scale +
     coord_cartesian(
