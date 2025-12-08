@@ -1095,8 +1095,8 @@ hub_comparison_targets <- list(
     name = save_figure_rel_performance_real_time,
     command = save_fig_main(
       figure_rel_performance_real_time,
-      base_width = 10,
-      base_height = 7
+      base_width = 12,
+      base_height = 12
     ),
     format = "file"
   ),
