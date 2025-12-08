@@ -296,7 +296,7 @@ DDDFF
     name = "Forecast date",
     limits = date_lims,
     expand = 0
-  )
+  ) + ggplot2::xlab("Forecast date")
 
   ymax_score <- max(
     get_plot_xy_raw_limits(abs_scores_by_time)$ymax,
