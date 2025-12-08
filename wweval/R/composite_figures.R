@@ -293,6 +293,7 @@ DDDFF
   date_lims <- as.Date(c(shared_lims$xmin, shared_lims$xmax))
 
   shared_x_dates <- scale_x_weekly_iso_date(
+    name = "Forecast date",
     limits = date_lims,
     expand = 0
   )
