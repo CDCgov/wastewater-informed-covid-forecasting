@@ -257,7 +257,10 @@ plot_hub_heatmap_relative_wis <- function(
         .data$mean_scores_ratio,
         digits = 2
       )
-    )
+    ) |>
+    dplyr::arrange(dplyr::desc(.data$location)) |>
+    order_col("location")
+  ## show locations alphabetically top to bottom of plot
 
   message("Plotting heatmap...")
   p <- ggplot(

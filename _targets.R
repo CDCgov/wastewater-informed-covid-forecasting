@@ -1145,7 +1145,7 @@ hub_comparison_targets <- list(
     name = hub_heatmap_rel_wis_real_time,
     command = plot_hub_heatmap_relative_wis(
       scores = hub_scores_real_time,
-      models_to_show = hub_models_to_plot_retro,
+      models_to_show = hub_models_to_plot_real_time,
       time_period = "Feb 2024-Mar 2024",
       baseline_model = "COVIDhub-4_week_ensemble"
     )

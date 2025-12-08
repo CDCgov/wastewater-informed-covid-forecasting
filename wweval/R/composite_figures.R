@@ -294,7 +294,8 @@ DDDFF
   shared_x_dates <- scale_x_weekly_iso_date(
     name = "Forecast date",
     limits = date_lims,
-    expand = 0)
+    expand = 0
+  )
 
   ymax_score <- max(
     get_plot_xy_raw_limits(abs_scores_by_time)$ymax,
@@ -316,9 +317,11 @@ DDDFF
     C = abs_scores_by_time + shared_x_dates + shared_y_score,
     D = abs_scores_by_location + shared_y_score,
     E = rel_score_dist,
-    F = rel_score_heatmap + scale_x_weekly_iso_date(
-                                name = "Forecast date",
-                                expand = 0),
+    F = rel_score_heatmap +
+      scale_x_weekly_iso_date(
+        name = "Forecast date",
+        expand = 0
+      ),
     design = design,
     axes = "collect_x",
     guides = "collect"
