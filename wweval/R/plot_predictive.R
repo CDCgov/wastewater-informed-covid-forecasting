@@ -159,29 +159,13 @@ plot_spaghetti_ww_draws <- function(
     ggtitle(glue::glue(
       "Site-level expected observed wastewater concentration in {location} from {model_type} model"
     )) +
-    theme_bw() +
     scale_color_discrete() +
     scale_fill_discrete() +
     scale_x_date(
       date_breaks = "2 weeks",
       labels = scales::date_format("%Y-%m-%d")
     ) +
-    theme_bw() +
-    theme(
-      axis.text.x = element_text(
-        size = 8,
-        vjust = 1,
-        hjust = 1,
-        angle = 45
-      ),
-      axis.title.x = element_text(size = 12),
-      axis.title.y = element_text(size = 12),
-      plot.title = element_text(
-        size = 10,
-        vjust = 0.5,
-        hjust = 0.5
-      )
-    )
+      get_plot_theme(rotate_x_ticks = TRUE)
   return(p)
 }
 
