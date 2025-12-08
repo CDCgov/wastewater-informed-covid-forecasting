@@ -284,7 +284,6 @@ DDDFF
 DDDFF
 "
   shared_lims <- get_shared_xy_raw_limits(list(
-    rel_score_heatmap,
     rel_score_by_time,
     total_admissions,
     abs_scores_by_time
@@ -316,7 +315,9 @@ DDDFF
     C = abs_scores_by_time + shared_x_dates + shared_y_score,
     D = abs_scores_by_location + shared_y_score,
     E = rel_score_dist,
-    F = rel_score_heatmap,
+    F = rel_score_heatmap + scale_x_weekly_iso_date(
+                                name = "Forecast date",
+                                expand = 0),
     design = design,
     axes = "collect_x",
     guides = "collect"

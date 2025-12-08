@@ -260,7 +260,8 @@ scale_fill_score_ratio <- function(...) {
 scale_x_weekly_iso_date <- function(...) {
   return(scale_x_date(
     date_breaks = "1 week",
-    labels = scales::date_format("%Y-%m-%d")
+    labels = scales::date_format("%Y-%m-%d"),
+    ...
   ))
 }
 
