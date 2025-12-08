@@ -292,11 +292,11 @@ DDDFF
 
   date_lims <- as.Date(c(shared_lims$xmin, shared_lims$xmax))
 
-  shared_x_dates <- scale_x_weekly_iso_date(
+  shared_x_dates <- list(scale_x_weekly_iso_date(
     name = "Forecast date",
     limits = date_lims,
     expand = 0
-  ) + ggplot2::xlab("Forecast date")
+  ), ggplot2::xlab("Forecast date"))
 
   ymax_score <- max(
     get_plot_xy_raw_limits(abs_scores_by_time)$ymax,
