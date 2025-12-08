@@ -206,7 +206,7 @@ relative_wis_histogram <- function(
       legend.title = element_blank(),
       legend.text = element_text(size = 7)
     ) +
-    ylab(glue::glue("Relative WIS compared to \n {baseline_model}"))
+    ylab(glue::glue("rWIS"))
 
   return(p)
 }

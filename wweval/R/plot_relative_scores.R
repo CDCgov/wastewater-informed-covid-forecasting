@@ -7,6 +7,16 @@
   return(glue::glue("Relative {toupper(metric_to_compare)}"))
 }
 
+#' Internal function for abbreviated display names of relative metrics
+#' @param metric_to_compare Name of the absolute metric,
+#' as it would be passed as a `metric_to_compare` argument to
+#' [scoringutils::get_pairwise_comparisons()].
+#' @return The relative metric display name, as a character string.
+.relative_metric_display_abbr <- function(metric_to_compare) {
+  return(glue::glue("r{toupper(metric_to_compare)}"))
+}
+
+
 #' internal function for two-model relative score computations
 #'
 #' @param scores table of scores, as the output of
@@ -105,7 +115,6 @@ plot_rel_score_t <- function(
     retain_baseline = retain_baseline
   ) |>
     order_col("model", model_z_order)
-
   p <- ggplot(
     rel_scores,
     aes(
@@ -120,26 +129,21 @@ plot_rel_score_t <- function(
       size = 3
     ) +
     labs(
-      y = glue::glue("Relative {toupper(metric_to_compare)}"),
+      y = .relative_metric_display_name(metric_to_compare),
       x = x
     ) +
     get_plot_theme(
       rotate_x_ticks = TRUE
     ) +
     theme(axis.title.x = element_blank()) +
-    scale_x_date(
-      date_breaks = "1 week",
-      date_labels = "%Y-%m-%d",
-      expand = 0
-    ) +
+    scale_x_weekly_iso_date(expand = 0) +
+    scale_y_continuous(transform = "log10") +
     coord_cartesian(
-      expand = TRUE,
       ylim = forecasttools::sym_limits(
         rel_scores$mean_scores_ratio,
         transform = "log10"
       )
     ) +
-    scale_y_continuous(transform = "log10") +
     scale_color_model()
 
   return(p)
@@ -233,7 +237,7 @@ plot_rel_score_dists <- function(
     ) +
     geom_hline(yintercept = 1, linetype = "dashed") +
     xlab("") +
-    ylab(.relative_metric_display_name(metric_to_compare)) +
+    ylab(.relative_metric_display_abbr(metric_to_compare)) +
     scale_y_continuous(transform = "log10") +
     x_scale +
     coord_cartesian(
@@ -280,8 +284,6 @@ plot_rel_score_heatmap <- function(
     dplyr::arrange(dplyr::desc(.data$location)) |>
     order_col("location")
 
-  rel_metric_name <- .relative_metric_display_name(metric_to_compare)
-
   p <- ggplot(
     data = relative_scores,
     mapping = aes(
@@ -294,17 +296,13 @@ plot_rel_score_heatmap <- function(
     geom_tile() +
     geom_text(size = 1.5) +
     scale_fill_score_ratio(
-      name = glue::glue("Relative {metric_to_compare}"),
+      name = .relative_metric_display_name(metric_to_compare),
       limits = forecasttools::sym_limits(
         relative_scores$mean_scores_ratio,
         transform = "log10"
       )
     ) +
-    scale_x_date(
-      date_breaks = "1 week",
-      labels = scales::date_format("%Y-%m-%d"),
-      expand = 0
-    ) +
+    scale_x_weekly_iso_date() +
     get_plot_theme(
       rotate_x_ticks = TRUE
     )

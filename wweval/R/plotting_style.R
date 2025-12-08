@@ -233,6 +233,8 @@ scale_alpha_score_component <- function(...) {
 #'
 #' @param ... Keyword arguments passed to
 #' [ggplot2::scale_fill_gradient2()]
+#' @return The scale.
+#' @export
 scale_fill_score_ratio <- function(...) {
   return(ggplot2::scale_fill_gradient2(
     high = "red",
@@ -247,12 +249,28 @@ scale_fill_score_ratio <- function(...) {
   ))
 }
 
+#' Default x axis date scale
+#'
+#' Dates formatted in ISO YYYY-MM-DD format, weekly breaks.
+#'
+#' @param ... Keyword arguments passed to
+#' [ggplot2::scale_x_date()].
+#' @return The scale.
+#' @export
+scale_x_weekly_iso_date <- function(...) {
+  return(scale_x_date(
+    date_breaks = "1 week",
+    labels = scales::date_format("%Y-%m-%d")
+  ))
+}
+
 #' Composite geometric object for barplots of scores decomposed into
 #' undeprediction, overprediction, and dispersion components
 #'
 #' @param dispersion_alpha Alpha parameter for the dispersion tile.
 #' Default 0.6.
 #' @param ... keyword arguments passed to [ggplot2::geom_tile()].
+#' @export
 geom_decomposed_scores <- function(dispersion_alpha = 0.6, ...) {
   return(
     list(
@@ -269,7 +287,7 @@ geom_decomposed_scores <- function(dispersion_alpha = 0.6, ...) {
           height = .data$dispersion,
           y = .data$underprediction + .data$dispersion / 2
         ),
-        alpha = alpha * dispersion_alpha,
+        alpha = dispersion_alpha,
         linetype = "solid",
         ...
       ),

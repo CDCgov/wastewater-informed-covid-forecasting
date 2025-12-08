@@ -8,7 +8,7 @@ Get quantile-quantile plot}
 forecast_qq_plot(
   forecasts,
   model_z_order = NULL,
-  linewidth = 2,
+  linewidth = 1.25,
   reference_linecolor = "gray",
   reference_linewidth = 2,
   reference_linetype = "dashed",
@@ -24,7 +24,7 @@ If \code{NULL} (default), plot the models in the order they appear in
 \code{forecasts}.}
 
 \item{linewidth}{\code{width} parameter for the Q-Q lines for
-individual models. Default 2.}
+individual models. Default 1.25.}
 
 \item{reference_linecolor}{\code{color} parameter for the r
 eference y = x line. Default \code{"gray"}.}
@@ -35,7 +35,8 @@ reference y = x line. Default \code{2}.}
 \item{reference_linetype}{\code{linetype} parameter for the
 reference y = x line. Default \code{"dashed"}.}
 
-\item{...}{additional keyword arguments passed to \code{\link[ggplot2:geom_path]{ggplot2::geom_line()}}
+\item{...}{additional keyword arguments passed to
+\code{\link[forecasttools:geom_path_point]{forecasttools::geom_line_point()}}
 for the Q-Q lines for individual models.}
 }
 \value{

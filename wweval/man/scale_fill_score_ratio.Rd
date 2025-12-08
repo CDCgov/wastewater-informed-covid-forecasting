@@ -10,6 +10,9 @@ scale_fill_score_ratio(...)
 \item{...}{Keyword arguments passed to
 \code{\link[ggplot2:scale_gradient]{ggplot2::scale_fill_gradient2()}}}
 }
+\value{
+The scale.
+}
 \description{
 ggplot fill scale for score ratios
 }
