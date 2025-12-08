@@ -5,7 +5,7 @@
 \title{Composite geometric object for barplots of scores decomposed into
 undeprediction, overprediction, and dispersion components}
 \usage{
-geom_decomposed_scores(alpha, dispersion_alpha = 0.6, ...)
+geom_decomposed_scores(dispersion_alpha = 0.6, ...)
 }
 \arguments{
 \item{dispersion_alpha}{Alpha parameter for the dispersion tile.
