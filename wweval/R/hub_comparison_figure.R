@@ -132,8 +132,7 @@ plot_hub_performance_by_period <- function(
     guides(fill = guide_legend(nrow = 2)) +
     coord_trans(ylim = c(0, 2)) +
     get_plot_theme(
-      x_axis_dates = TRUE,
-      y_axis_title_size = 8
+      rotate_x_ticks = TRUE
     ) +
     theme(
       legend.justification = "left",
@@ -189,8 +188,7 @@ relative_wis_histogram <- function(
     ) +
     scale_y_continuous(trans = "log10") +
     get_plot_theme(
-      x_axis_dates = TRUE,
-      y_axis_title_size = 8
+      rotate_x_ticks = TRUE
     ) +
     scale_fill_manual(
       values = colors$model_colors,
@@ -228,14 +226,14 @@ relative_wis_histogram <- function(
 #' and fill by relative WIS score across forecast dates and horizons
 #' @export
 #'
-plot_heatmap_relative_wis <- function(
+plot_hub_heatmap_relative_wis <- function(
   scores,
   time_period,
   models_to_show,
   baseline_model = "COVIDhub-4_week_ensemble"
 ) {
   message("Computing relative scores. This may take time...")
-  rel_scores <- scores |>
+  relative_scores <- scores |>
     dplyr::filter(
       .data$model %in%
         c(
@@ -263,8 +261,8 @@ plot_heatmap_relative_wis <- function(
 
   message("Plotting heatmap...")
   p <- ggplot(
-    rel_scores,
-    aes(
+    data = relative_scores,
+    mapping = aes(
       x = .data$model,
       y = .data$location,
       fill = .data$mean_scores_ratio,
@@ -272,24 +270,19 @@ plot_heatmap_relative_wis <- function(
     )
   ) +
     geom_tile() +
-    geom_text() +
-    scale_fill_gradient2(
-      high = "red",
-      mid = "white",
-      low = "blue",
-      transform = "log2",
-      midpoint = 1,
-      guide = "colourbar"
+    geom_text(size = 1.5) +
+    scale_fill_score_ratio(
+      name = "Relative WIS",
+      limits = forecasttools::sym_limits(
+        relative_scores$mean_scores_ratio,
+        transform = "log10"
+      )
     ) +
     get_plot_theme(
-      x_axis_dates = TRUE,
-      y_axis_text_size = 3
+      rotate_x_ticks = TRUE
     ) +
-    xlab("") +
-    ylab("") +
-    labs(fill = "Relative WIS") +
     ggtitle(glue::glue(
-      "Relative WIS compared to \n {baseline_model}"
+      "rWIS vs {baseline_model}"
     ))
 
   return(p)

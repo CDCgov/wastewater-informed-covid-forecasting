@@ -78,7 +78,7 @@ get_plot_scores_and_forecasts <- function(
         show.legend = FALSE
       ) +
       get_plot_theme(
-        x_axis_dates = TRUE
+        rotate_x_ticks = TRUE
       ) +
       scale_x_date(
         date_breaks = "1 week",
@@ -99,9 +99,7 @@ get_plot_scores_and_forecasts <- function(
         position = "dodge",
         show.legend = FALSE
       ) +
-      get_plot_theme(
-        x_axis_dates = FALSE
-      ) +
+      get_plot_theme() +
       xlab("Model") +
       ylab("Mean CRPS") +
       scale_fill_manual(values = colors$model_colors)
@@ -160,7 +158,7 @@ get_plot_scores_and_forecasts <- function(
       ylab("Daily hospital admissions") +
       scale_color_manual(values = colors$model_colors) +
       scale_fill_manual(values = colors$model_colors) +
-      get_plot_theme(x_axis_dates = TRUE) +
+      get_plot_theme(rotate_x_ticks = TRUE) +
       theme(
         legend.position = "top",
         legend.justification = "left"
@@ -273,7 +271,7 @@ get_plot_scores_and_forecasts <- function(
     ylab("Daily hospital admissions") +
     scale_color_manual(values = colors$model_colors) +
     scale_fill_manual(values = colors$model_colors) +
-    get_plot_theme(x_axis_dates = TRUE) +
+    get_plot_theme(rotate_x_ticks = TRUE) +
     theme(
       legend.position = "top",
       legend.justification = "left"

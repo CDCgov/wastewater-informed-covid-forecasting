@@ -1092,8 +1092,8 @@ hub_comparison_targets <- list(
     name = save_figure_rel_performance_real_time,
     command = save_fig_main(
       figure_rel_performance_real_time,
-      base_width = 15,
-      base_height = 12
+      base_width = 10,
+      base_height = 7
     ),
     format = "file"
   ),
@@ -1131,7 +1131,7 @@ hub_comparison_targets <- list(
   ),
   tar_target(
     name = hub_heatmap_rel_wis_all_time,
-    command = plot_heatmap_relative_wis(
+    command = plot_hub_heatmap_relative_wis(
       scores = hub_scores,
       models_to_show = hub_models_to_plot_retro,
       time_period = "Oct 2023-Mar 2024",
@@ -1140,7 +1140,7 @@ hub_comparison_targets <- list(
   ),
   tar_target(
     name = hub_heatmap_rel_wis_real_time,
-    command = plot_heatmap_relative_wis(
+    command = plot_hub_heatmap_relative_wis(
       scores = hub_scores_real_time,
       models_to_show = hub_models_to_plot_retro,
       time_period = "Feb 2024-Mar 2024",
@@ -1730,17 +1730,6 @@ composite_figure_targets <- list(
     )
   ),
   tar_target(
-    name = rel_crps_distribution_t_cfa_models,
-    command = plot_rel_score_dists(
-      scores = crps_cfa_models_retro,
-      target_models = "cfa-wwrenewal(retro)",
-      baseline_model = "cfa-hosponlyrenewal(retro)",
-      metric_to_compare = "crps",
-      x = "forecast_date",
-      by = "location"
-    )
-  ),
-  tar_target(
     name = rel_crps_cfa_models_by_loc,
     command = forecasttools::summarise_scores_with_baseline(
       crps_cfa_models_retro,
@@ -1935,8 +1924,8 @@ composite_figure_targets <- list(
     name = save_figure_rel_performance_all_time,
     command = save_fig_main(
       figure_rel_performance_all_time,
-      base_width = 15,
-      base_height = 12
+      base_width = 9,
+      base_height = 9
     )
   )
 )

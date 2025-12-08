@@ -3,11 +3,14 @@
 \name{scale_fill_model}
 \alias{scale_fill_model}
 \alias{scale_color_model}
+\alias{scale_shape_model}
 \title{ggplot discrete scales for forecast models}
 \usage{
 scale_fill_model(...)
 
 scale_color_model(...)
+
+scale_shape_model(...)
 }
 \arguments{
 \item{...}{Keyword arguments passed to

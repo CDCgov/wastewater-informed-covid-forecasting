@@ -124,8 +124,7 @@ plot_rel_score_t <- function(
       x = x
     ) +
     get_plot_theme(
-      x_axis_dates = TRUE,
-      y_axis_title_size = 8
+      rotate_x_ticks = TRUE
     ) +
     theme(axis.title.x = element_blank()) +
     scale_x_date(
@@ -244,8 +243,7 @@ plot_rel_score_dists <- function(
       )
     ) +
     get_plot_theme(
-      x_axis_dates = TRUE,
-      y_axis_title_size = 8
+      rotate_x_ticks = TRUE
     )
 
   return(p)
@@ -284,43 +282,32 @@ plot_rel_score_heatmap <- function(
 
   rel_metric_name <- .relative_metric_display_name(metric_to_compare)
 
-  p <- ggplot(relative_scores) +
-    geom_tile(aes(
+  p <- ggplot(
+    data = relative_scores,
+    mapping = aes(
       x = .data$forecast_date,
       y = .data$location,
-      fill = .data$mean_scores_ratio
-    )) +
-    scale_fill_gradient2(
-      high = "red",
-      mid = "white",
-      low = "blue",
-      transform = "log2",
-      midpoint = 1,
-      guide = "colourbar",
-      aesthetics = "fill",
-      name = rel_metric_name,
-      labels = scales::number_format(accuracy = 0.01)
+      fill = .data$mean_scores_ratio,
+      label = round(.data$mean_scores_ratio, 2)
+    )
+  ) +
+    geom_tile() +
+    geom_text(size = 1.5) +
+    scale_fill_score_ratio(
+      name = glue::glue("Relative {metric_to_compare}"),
+      limits = forecasttools::sym_limits(
+        relative_scores$mean_scores_ratio,
+        transform = "log10"
+      )
     ) +
-    geom_text(
-      aes(
-        x = .data$forecast_date,
-        y = .data$location,
-        label = round(.data$mean_scores_ratio, 2)
-      ),
-      size = 1.5
-    ) +
-    get_plot_theme(
-      x_axis_dates = TRUE,
-      y_axis_text_size = 4
-    ) +
-    theme(legend.text = element_text(size = 6)) +
     scale_x_date(
       date_breaks = "1 week",
       labels = scales::date_format("%Y-%m-%d"),
       expand = 0
     ) +
-    xlab("") +
-    ylab("Location")
+    get_plot_theme(
+      rotate_x_ticks = TRUE
+    )
 
   return(p)
 }
@@ -398,10 +385,7 @@ plot_rel_score_dists_by_horizon <- function(
         transform = "log10"
       )
     ) +
-    get_plot_theme(
-      y_axis_title_size = 8,
-      x_axis_title_size = 8
-    ) +
+    get_plot_theme() +
     scale_fill_horizon() +
     scale_color_horizon()
 

@@ -74,8 +74,7 @@ plot_heatmap_metadata_retro <- function(metadata) {
     )) +
     scale_fill_discrete() +
     get_plot_theme(
-      x_axis_dates = TRUE,
-      y_axis_text_size = 4
+      rotate_x_ticks = TRUE
     ) +
     scale_x_date(
       date_breaks = "1 week",
@@ -102,8 +101,7 @@ plot_heatmap_metadata_retro <- function(metadata) {
     scale_fill_discrete() +
     facet_wrap(~ .data$model_name) +
     get_plot_theme(
-      x_axis_dates = TRUE,
-      y_axis_text_size = 4
+      rotate_x_ticks = TRUE
     ) +
     scale_x_date(
       date_breaks = "1 week",

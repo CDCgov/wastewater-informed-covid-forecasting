@@ -159,29 +159,13 @@ plot_spaghetti_ww_draws <- function(
     ggtitle(glue::glue(
       "Site-level expected observed wastewater concentration in {location} from {model_type} model"
     )) +
-    theme_bw() +
     scale_color_discrete() +
     scale_fill_discrete() +
     scale_x_date(
       date_breaks = "2 weeks",
       labels = scales::date_format("%Y-%m-%d")
     ) +
-    theme_bw() +
-    theme(
-      axis.text.x = element_text(
-        size = 8,
-        vjust = 1,
-        hjust = 1,
-        angle = 45
-      ),
-      axis.title.x = element_text(size = 12),
-      axis.title.y = element_text(size = 12),
-      plot.title = element_text(
-        size = 10,
-        vjust = 0.5,
-        hjust = 0.5
-      )
-    )
+    get_plot_theme(rotate_x_ticks = TRUE)
   return(p)
 }
 
@@ -287,7 +271,7 @@ plot_ribbon_hosp_quantiles <- function(
     ylab("Daily hospital admissions") +
     scale_color_model() +
     scale_fill_model() +
-    get_plot_theme(x_axis_dates = TRUE) +
+    get_plot_theme(rotate_x_ticks = TRUE) +
     theme(
       legend.position = "top",
       legend.justification = "left"
@@ -436,7 +420,7 @@ plot_ribbon_ww_quantiles <- function(
       labels = scales::date_format("%Y-%m-%d")
     ) +
     scale_y_continuous(transform = "log10") +
-    get_plot_theme(x_axis_dates = TRUE) +
+    get_plot_theme(rotate_x_ticks = TRUE) +
     scale_fill_manual(values = colors$observation_status_colors) +
     scale_color_manual(values = colors$observation_status_colors) +
     scale_shape_manual(values = colors$observation_status_shapes)
@@ -554,7 +538,7 @@ plot_pred_actual_hosp <- function(
     ylab("Daily hospital admissions") +
     scale_color_model() +
     scale_fill_model() +
-    get_plot_theme(x_axis_dates = TRUE) +
+    get_plot_theme(rotate_x_ticks = TRUE) +
     theme(
       legend.position = "top",
       legend.justification = "left"
@@ -704,7 +688,7 @@ plot_pred_actual_ww <- function(
       date_breaks = "2 weeks",
       labels = scales::date_format("%Y-%m-%d")
     ) +
-    get_plot_theme(x_axis_dates = TRUE) +
+    get_plot_theme(rotate_x_ticks = TRUE) +
     scale_fill_manual(values = colors$observation_status_colors) +
     scale_color_manual(values = colors$observation_status_colors) +
     scale_shape_manual(values = colors$observation_status_shapes)

@@ -18,9 +18,8 @@
 #' x-xaxis, to be passed to theme. Default is `8`
 #' @param plot_title_size integer indicating thesize of plot title, to be passed
 #'  to theme. Default is `10`
-#' @param x_axis_dates boolean indicating whether or not the x axis are dates.
-#' If they are dates, we will rotate x axis tick text 45 degrees. Default is
-#' `FALSE`
+#' @param rotate_x_ticks boolean indicating whether to rotate x axis
+#' tick text 45 degrees. Default is `FALSE`
 #'
 #' @return a theme object to add to a [ggplot2::ggplot()] object to specify
 #' line size and formatting
@@ -35,7 +34,7 @@ get_plot_theme <- function(
   facet_x_text_size = 8,
   facet_y_text_size = 8,
   plot_title_size = 10,
-  x_axis_dates = FALSE
+  rotate_x_ticks = FALSE
 ) {
   ww_theme <-
     cowplot::theme_half_open() +
@@ -61,13 +60,10 @@ get_plot_theme <- function(
       plot.background = element_rect(fill = "white")
     )
 
-  if (isTRUE(x_axis_dates)) {
-    # If x-axis are dates, default to 2 week date breaks
-    # and rotate 45 degrees
+  if (isTRUE(rotate_x_ticks)) {
     ww_theme <- ww_theme +
       theme(
         axis.text.x = element_text(
-          size = x_axis_text_size - 2,
           vjust = 1,
           hjust = 1,
           angle = 45
@@ -135,6 +131,16 @@ model_colors <- c(
   "MOBS-GLEAM_COVID" = pastel_model[8]
 )
 
+model_shapes <- c(
+  "cfa-wwrenewal(retro)" = 21,
+  "cfa-wwrenewal(real-time)" = 21,
+  "cfa-hosponlyrenewal(real-time*)" = 22,
+  "cfa-hosponlyrenewal(retro)" = 22,
+  "COVIDhub-4_week_ensemble" = 23,
+  "UMass-sarix" = 24,
+  "CMU-TimeSeries" = 25
+)
+
 
 #' Get plot components (colors for now)
 #'
@@ -176,6 +182,14 @@ scale_fill_model <- function(...) {
 scale_color_model <- function(...) {
   return(ggplot2::scale_color_manual(
     values = model_colors
+  ))
+}
+
+#' @rdname scale_fill_model
+#' @export
+scale_shape_model <- function(...) {
+  return(ggplot2::scale_shape_manual(
+    values = model_shapes
   ))
 }
 
@@ -224,10 +238,12 @@ scale_fill_score_ratio <- function(...) {
     high = "red",
     mid = "white",
     low = "blue",
-    transform = "log2",
+    transform = "log10",
     midpoint = 1,
     guide = "colourbar",
-    aesthetics = "fill"
+    aesthetics = "fill",
+    labels = scales::number_format(accuracy = 0.01),
+    ...
   ))
 }
 
@@ -235,7 +251,7 @@ scale_fill_score_ratio <- function(...) {
 #' undeprediction, overprediction, and dispersion components
 #'
 #' @param dispersion_alpha Alpha parameter for the dispersion tile.
-#' Default 0.5
+#' Default 0.6.
 #' @param ... keyword arguments passed to [ggplot2::geom_tile()].
 geom_decomposed_scores <- function(dispersion_alpha = 0.6, ...) {
   return(
@@ -253,7 +269,7 @@ geom_decomposed_scores <- function(dispersion_alpha = 0.6, ...) {
           height = .data$dispersion,
           y = .data$underprediction + .data$dispersion / 2
         ),
-        alpha = dispersion_alpha,
+        alpha = alpha * dispersion_alpha,
         linetype = "solid",
         ...
       ),

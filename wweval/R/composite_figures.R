@@ -64,26 +64,38 @@ compose_hub_fig <- function(
   heatmap_rel_wis,
   qq_plot
 ) {
-  design <- "AB
-               CD
-               CE"
+  design <- "
+11
+AB
+AB
+CD
+CD
+CE
+CE
+"
+  no_guides <- ggplot2::guides(fill = "none", color = "none", shape = "none")
 
   fig <- patchwork::wrap_plots(
-    barplot_wis,
-    plot_wis_t,
-    heatmap_rel_wis,
-    hist_rwis,
-    qq_plot
+    patchwork::guide_area(),
+    A = barplot_wis + no_guides,
+    B = plot_wis_t,
+    C = heatmap_rel_wis,
+    D = hist_rwis + no_guides,
+    E = qq_plot + no_guides
   ) +
     patchwork::plot_layout(
       design = design,
       axes = "collect",
       guides = "collect",
-      heights = 1,
-      widths = 1
+      widths = 1,
+      heights = 1
     ) +
     patchwork::plot_annotation(tag_levels = "A") &
-    theme(legend.position = "bottom")
+    theme(
+      legend.position = "top",
+      legend.justification = "center",
+      legend.title.position = "top"
+    )
 
   return(fig)
 }
@@ -213,7 +225,8 @@ OSTU
     patchwork::plot_annotation(tag_levels = "A") &
     theme(
       legend.position = "top",
-      legend.justification = "left"
+      legend.justification = "center",
+      legend.title.position = "top"
     )
 
   return(fig)
