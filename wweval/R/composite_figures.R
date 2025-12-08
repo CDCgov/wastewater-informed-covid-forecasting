@@ -317,7 +317,7 @@ DDDFF
     E = rel_score_dist,
     F = rel_score_heatmap,
     design = design,
-    axes = "collect",
+    axes = "collect_x",
     guides = "collect"
   ) +
     patchwork::plot_annotation(tag_levels = "A") &
