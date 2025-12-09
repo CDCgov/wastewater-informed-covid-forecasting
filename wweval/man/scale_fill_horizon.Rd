@@ -7,10 +7,10 @@
 \usage{
 scale_fill_horizon(name = "Horizon", ...)
 
-scale_color_horizon(...)
+scale_color_horizon(name = "Horizon", ...)
 }
 \arguments{
-\item{name}{Display name for the scale. Default\code{ "Horizon"}.}
+\item{name}{Display name for the scale. Default \code{"Horizon"}.}
 
 \item{...}{Keyword arguments passed to
 \code{\link[ggplot2:scale_manual]{ggplot2::scale_*_manual()}}.}
