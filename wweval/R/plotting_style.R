@@ -236,8 +236,8 @@ scale_color_horizon <- function(name = "Horizon", ...) {
 #' @export
 scale_alpha_score_component <- function(...) {
   return(ggplot2::scale_alpha_manual(
-                      values = score_component_alphas,
-                      ...
+    values = score_component_alphas,
+    ...
   ))
 }
 
