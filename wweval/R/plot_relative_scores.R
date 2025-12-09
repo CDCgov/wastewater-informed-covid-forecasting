@@ -391,7 +391,6 @@ plot_rel_score_dists_by_horizon <- function(
 }
 
 
-
 #' Get stats on number of improved forecasts
 #'
 #' @param scores tibble of scores for every location, forecast date,

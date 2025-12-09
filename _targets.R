@@ -1935,7 +1935,7 @@ composite_figure_targets <- list(
     format = "file"
   ),
   tar_target(
-      name = interval_coverage_plot_all_time,
+    name = interval_coverage_plot_all_time,
     command = forecast_interval_coverage_plot(
       calibration_input_cfa_all_time,
       ranges = c(30, 60, 90),
