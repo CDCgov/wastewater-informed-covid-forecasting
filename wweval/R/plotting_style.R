@@ -172,27 +172,27 @@ score_component_alphas <- c(
 #' @return the ggplot scale
 #' @export
 scale_fill_model <- function(name = "Model", ...) {
-    return(ggplot2::scale_fill_manual(
-                        name = name,
-                        values = model_colors
+  return(ggplot2::scale_fill_manual(
+    name = name,
+    values = model_colors
   ))
 }
 
 #' @rdname scale_fill_model
 #' @export
 scale_color_model <- function(name = "Model", ...) {
-    return(ggplot2::scale_color_manual(
-                        name = name,
-                        values = model_colors
+  return(ggplot2::scale_color_manual(
+    name = name,
+    values = model_colors
   ))
 }
 
 #' @rdname scale_fill_model
 #' @export
 scale_shape_model <- function(name = "Model", ...) {
-    return(ggplot2::scale_shape_manual(
-                        name = name,
-                        values = model_shapes
+  return(ggplot2::scale_shape_manual(
+    name = name,
+    values = model_shapes
   ))
 }
 
@@ -205,19 +205,19 @@ scale_shape_model <- function(name = "Model", ...) {
 #'
 #' @export
 scale_fill_horizon <- function(name = "Horizon", ...) {
-    return(ggplot2::scale_fill_manual(
-                        name = name,
-                        values = horizon_colors
+  return(ggplot2::scale_fill_manual(
+    name = name,
+    values = horizon_colors
   ))
 }
 
 #' @rdname scale_fill_horizon
 #' @export
 scale_color_horizon <- function(...) {
-    return(ggplot2::scale_color_manual(
-                        name = name,
-                        values = horizon_colors
-                    ))
+  return(ggplot2::scale_color_manual(
+    name = name,
+    values = horizon_colors
+  ))
 }
 
 
