@@ -141,7 +141,9 @@ forecast_interval_coverage_plot <- function(
     mapping = aes(
       x = .data$horizon,
       y = .data$interval_coverage,
-      color = .data$model
+      color = .data$model,
+      fill = .data$model,
+      shape = .data$model
     )
   ) +
     geom_line(aes(group = .data$model), linetype = "dashed") +
@@ -153,18 +155,19 @@ forecast_interval_coverage_plot <- function(
     facet_wrap(~ .data$named_facet, scales = "free_y") +
     labs(
       y = "Proportion of data within interval",
-      x = "Forecast horizon",
-      col = "Model"
+      x = "Forecast horizon"
     ) +
     scale_y_continuous(
       expand = expansion(c(0.2, 0.2)),
       labels = scales::label_percent()
     ) +
     scale_x_discrete() +
+    scale_color_model() +
+    scale_fill_model() +
+    scale_shape_model() +
     get_plot_theme(
       rotate_x_ticks = TRUE
-    ) +
-    scale_color_model()
+    )
 
   return(p)
 }
