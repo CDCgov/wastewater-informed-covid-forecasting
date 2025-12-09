@@ -213,7 +213,7 @@ scale_fill_horizon <- function(name = "Horizon", ...) {
 
 #' @rdname scale_fill_horizon
 #' @export
-scale_color_horizon <- function(...) {
+scale_color_horizon <- function(name = "Horizon", ...) {
   return(ggplot2::scale_color_manual(
     name = name,
     values = horizon_colors
