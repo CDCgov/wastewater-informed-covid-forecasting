@@ -1348,8 +1348,8 @@ trend_analysis_targets <- list(
           "forecast_date",
           "location"
         )
-        ) |>
-        dplyr::mutate(diff_slope_ww_hosp = global_slope_ww - global_slope_hosp)
+      ) |>
+      dplyr::mutate(diff_slope_ww_hosp = global_slope_ww - global_slope_hosp)
   ),
   tar_target(
     name = diff_and_trend_qi,
@@ -1358,18 +1358,19 @@ trend_analysis_targets <- list(
         .data$forecast_date,
         .data$location,
         .data$scenario,
-        ) |>
+      ) |>
       ggdist::mean_qi(.exclude = "draw")
   ),
   tar_target(
-      name = trend_diff_metric_names,
-      command = c(
-          "global_slope_hosp" = "Admissions trend (global slope)",
-          "global_slope_ww" = "Wastewater trend (global slope)",
-          "sd_slope_ww" = "Wastewater trend variability (slope s.d.)",
-          "diff_slope_ww_hosp" = "Trend difference (wastewater slope minus admissions slope)",
-          "log_diff_ww_hosp" = "Prediction difference (ww-informed vs admissions-only)",
-          "rel_crps" = "Relative CRPS")
+    name = trend_diff_metric_names,
+    command = c(
+      "global_slope_hosp" = "Admissions trend (global slope)",
+      "global_slope_ww" = "Wastewater trend (global slope)",
+      "sd_slope_ww" = "Wastewater trend variability (slope s.d.)",
+      "diff_slope_ww_hosp" = "Trend difference (wastewater slope minus admissions slope)",
+      "log_diff_ww_hosp" = "Prediction difference (ww-informed vs admissions-only)",
+      "rel_crps" = "Relative CRPS"
+    )
   ),
   tar_map(
     tidyr::crossing(
@@ -1412,9 +1413,11 @@ trend_analysis_targets <- list(
         color = "black",
         alpha = 0.5
       ) +
-          ggplot2::labs(x = trend_diff_metric_names[[trend_metric]],
-                        y = trend_diff_metric_names[[diff_metric]],
-                        fill = trend_diff_metric_names[[fill_metric]])
+        ggplot2::labs(
+          x = trend_diff_metric_names[[trend_metric]],
+          y = trend_diff_metric_names[[diff_metric]],
+          fill = trend_diff_metric_names[[fill_metric]]
+        )
     ),
     tar_target(
       name = save_fig_trend_diff_scatter,
