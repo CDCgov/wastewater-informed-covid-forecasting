@@ -298,13 +298,13 @@ plot_hub_heatmap_relative_wis <- function(
     ) |>
     dplyr::group_by(.data$forecast_date, .data$location) |>
     dplyr::mutate(std_rank = dplyr::percent_rank(dplyr::desc(.data$wis))) |>
-      dplyr::ungroup() |>
-      dplyr::group_by(.data$model) |>
-      dplyr::mutate(q25_rank = quantile(std_rank, probs = 0.25, na.rm = TRUE)) |>
-      dplyr::ungroup() |>
-      dplyr::arrange(.data$q25_rank) |>
-      order_col("model") |>
-      dplyr::select(-"q25_rank")
+    dplyr::ungroup() |>
+    dplyr::group_by(.data$model) |>
+    dplyr::mutate(q25_rank = quantile(std_rank, probs = 0.25, na.rm = TRUE)) |>
+    dplyr::ungroup() |>
+    dplyr::arrange(.data$q25_rank) |>
+    order_col("model") |>
+    dplyr::select(-"q25_rank")
   return(std_ranks)
 }
 
