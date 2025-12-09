@@ -75,22 +75,21 @@ get_diagnostic_flags <- function(
 #'
 get_convergence_df <- function(all_flags, scenario) {
   convergence_df <- all_flags |>
-    dplyr::filter(scenario == {{ scenario }}) |>
-    tidyr::gather(key, value, starts_with("flag")) |>
-    dplyr::group_by(
-      location,
-      forecast_date,
-      scenario,
-      model_type
-    ) |>
-    dplyr::mutate(any_flags = any(value == TRUE)) |>
-    tidyr::spread(key, value) |>
-    dplyr::ungroup() |>
+      dplyr::filter(.data$scenario == {{ scenario }}) |>
+      dplyr::summarise(
+                 any_flags = dplyr::if_any(
+                                        tidyselect::starts_with("flag"),
+                                        ~ . == TRUE),
+                 .by = c("location",
+                         "forecast_date",
+                         "scenario",
+                         "model_type")
+             ) |>
     dplyr::select(
-      location,
-      forecast_date,
-      any_flags
-    )
+      "location",
+      "forecast_date",
+      "any_flags"
+      )
 
   return(convergence_df)
 }
