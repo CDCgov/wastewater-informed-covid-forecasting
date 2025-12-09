@@ -129,18 +129,30 @@ CE
 #' @return a combined ggplot object
 #' @export
 compose_pred_actual_fig <- function(hosp1, hosp2, hosp3, ww1, ww2, ww3) {
+  design <- "
+11111
+AABBB
+AABBB
+AABBB
+CCDDD
+CCDDD
+CCDDD
+EEFFF
+EEFFF
+EEFFF
+"
+
   fig <- patchwork::wrap_plots(
-    hosp1,
-    ww1,
-    hosp2,
-    ww2,
-    hosp3,
-    ww3,
+    patchwork::guide_area(),
+    A = hosp1,
+    B = ww1,
+    C = hosp2,
+    D = ww2,
+    E = hosp3,
+    F = ww3,
+    design = design,
     guides = "collect",
-    nrow = 3,
-    ncol = 2,
-    axes = "collect",
-    widths = c(1, 1.5)
+    axes = "collect"
   ) +
     patchwork::plot_annotation(tag_levels = "A") &
     theme(

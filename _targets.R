@@ -588,6 +588,14 @@ collated_output_targets <- list(
       submitted_fcsts_ww_retro,
       submitted_fcsts_hosp_retro
     ) |>
+      dplyr::mutate(
+        model = dplyr::case_match(
+          .data$model_type,
+          "ww" ~ "cfa-wwrenewal(retro)",
+          "hosp" ~ "cfa-hosponlyrenewal(retro)",
+          .default = NA
+        )
+      ) |>
       dplyr::left_join(
         last_hosp_data_date_map,
         by = c("location", "forecast_date")
@@ -621,6 +629,19 @@ collated_output_targets <- list(
       scoringutils:::as_scores(
         metrics = names(wweval::sample_metrics)
       )
+  ),
+  tar_target(
+    name = save_table_crps_cfa_models_retro,
+    command = {
+      fp <- fs::path(
+        eval_config$score_subdir,
+        "crps_cfa_models_retro",
+        ext = "parquet"
+      )
+      forecasttools::write_tabular(crps_cfa_models_retro, fp)
+      fp
+    },
+    format = "file"
   ),
   tar_target(
     name = crps_cfa_models_retro_grouped,
@@ -889,7 +910,7 @@ hub_comparison_targets <- list(
         "hub_scores_all_time",
         ext = "parquet"
       )
-      forecasttools::write_tabular_file(hub_scores, fp)
+      forecasttools::write_tabular(hub_scores, fp)
       fp
     },
     format = "file"
@@ -1490,6 +1511,11 @@ composite_figure_targets <- list(
       dplyr::filter(
         quantile_level %in% quantile_levels_to_plot,
         location %in% locs_to_plot
+      ) |>
+      dplyr::rename(
+        quantile = "quantile_level",
+        value = "predicted",
+        eval_data = "observed"
       )
   ),
   tar_target(
@@ -1505,7 +1531,7 @@ composite_figure_targets <- list(
   ),
   tar_target(
     name = example_hosp_t_1,
-    command = plot_pred_actual_hosp(
+    command = plot_ribbon_hosp_quantiles(
       hosp_quants_plot,
       loc_to_plot = locs_to_plot[1],
       date_to_plot = forecast_date_to_plot
@@ -1513,7 +1539,7 @@ composite_figure_targets <- list(
   ),
   tar_target(
     name = example_hosp_t_2,
-    command = plot_pred_actual_hosp(
+    command = plot_ribbon_hosp_quantiles(
       hosp_quants_plot,
       loc_to_plot = locs_to_plot[2],
       date_to_plot = forecast_date_to_plot
@@ -1521,7 +1547,7 @@ composite_figure_targets <- list(
   ),
   tar_target(
     name = example_hosp_t_3,
-    command = plot_pred_actual_hosp(
+    command = plot_ribbon_hosp_quantiles(
       hosp_quants_plot,
       loc_to_plot = locs_to_plot[3],
       date_to_plot = forecast_date_to_plot
@@ -1529,7 +1555,7 @@ composite_figure_targets <- list(
   ),
   tar_target(
     name = example_ww_conc_1,
-    command = plot_pred_actual_ww(
+    command = plot_ribbon_ww_quantiles(
       ww_quants_plot,
       loc_to_plot = locs_to_plot[1],
       date_to_plot = forecast_date_to_plot,
@@ -1542,7 +1568,7 @@ composite_figure_targets <- list(
   ),
   tar_target(
     name = example_ww_conc_2,
-    command = plot_pred_actual_ww(
+    command = plot_ribbon_ww_quantiles(
       ww_quants_plot,
       loc_to_plot = locs_to_plot[2],
       date_to_plot = forecast_date_to_plot
@@ -1550,7 +1576,7 @@ composite_figure_targets <- list(
   ),
   tar_target(
     name = example_ww_conc_3,
-    command = plot_pred_actual_ww(
+    command = plot_ribbon_ww_quantiles(
       ww_quants_plot,
       loc_to_plot = locs_to_plot[3],
       date_to_plot = forecast_date_to_plot
@@ -1571,8 +1597,8 @@ composite_figure_targets <- list(
     name = save_figure_pred_act_three_locs,
     command = save_fig_main(
       figure_pred_act_three_locs,
-      base_width = 10,
-      base_height = 12
+      base_width = 12,
+      base_height = 10
     ),
     format = "file"
   ),
@@ -1745,6 +1771,15 @@ composite_figure_targets <- list(
     )
   ),
   tar_target(
+    name = table_rel_crps_cfa_models_by_t_loc,
+    command = forecasttools::summarise_scores_with_baseline(
+      crps_cfa_models_retro,
+      compare = "model",
+      baseline = "cfa-hosponlyrenewal(retro)",
+      by = c("forecast_date", "location")
+    )
+  ),
+  tar_target(
     rel_crps_heatmap_cfa_models,
     command = plot_rel_score_heatmap(
       scores = crps_cfa_models_retro,
@@ -1873,10 +1908,10 @@ composite_figure_targets <- list(
           "pop",
           "name",
           "horizon_days",
-          "period"
+          "period",
+          "model_type"
         ))
-      ) |>
-      dplyr::rename(model = "model_type")
+      )
   ),
   tar_target(
     name = qq_plot_retro_all_time,
