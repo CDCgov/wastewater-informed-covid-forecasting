@@ -192,7 +192,8 @@ scale_color_model <- function(name = "Model", ...) {
 scale_shape_model <- function(name = "Model", ...) {
   return(ggplot2::scale_shape_manual(
     name = name,
-    values = model_shapes
+    values = model_shapes,
+    ...
   ))
 }
 
