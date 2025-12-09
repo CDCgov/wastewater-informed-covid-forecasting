@@ -1935,7 +1935,7 @@ composite_figure_targets <- list(
     format = "file"
   ),
   tar_target(
-    name = coverage_plot_retro_all_time,
+    name = interval_coverage_plot_all_time,
     command = forecast_interval_coverage_plot(
       calibration_input_cfa_all_time,
       ranges = c(30, 60, 90),
@@ -1943,9 +1943,9 @@ composite_figure_targets <- list(
     )
   ),
   tar_target(
-    name = save_coverage_plot_retro_all_time,
+    name = save_interval_coverage_plot_all_time,
     command = save_fig_supp(
-      coverage_plot_retro_all_time,
+      interval_coverage_plot_all_time,
       base_width = 10,
       base_height = 6
     ),
