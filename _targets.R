@@ -1348,7 +1348,8 @@ trend_analysis_targets <- list(
           "forecast_date",
           "location"
         )
-      )
+        ) |>
+        dplyr::mutate(diff_slope_ww_hosp = global_slope_ww - global_slope_hosp)
   ),
   tar_target(
     name = diff_and_trend_qi,
@@ -1357,16 +1358,8 @@ trend_analysis_targets <- list(
         .data$forecast_date,
         .data$location,
         .data$scenario,
-      ) |>
-      ggdist::mean_qi(.exclude = "draw") |>
-      dplyr::mutate(
-        global_slope_hosp_normed = .data$global_slope_hosp /
-          sd(.data$global_slope_hosp),
-        global_slope_ww_normed = .data$global_slope_ww /
-          sd(.data$global_slope_ww),
-        diff_slope_ww_hosp = global_slope_ww_normed -
-          global_slope_hosp_normed
-      )
+        ) |>
+      ggdist::mean_qi(.exclude = "draw")
   ),
   tar_target(
       name = trend_diff_metric_names,
