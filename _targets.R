@@ -666,7 +666,7 @@ collated_output_targets <- list(
 
 real_time_rel_targets <- list(
   tar_target(
-    name = unfiltered_crps_cfa_models_real_time, # nolint
+    name = unfiltered_crps_cfa_models_real_time,
     command = score_real_time_outputs(
       score_type = "crps",
       real_time_output_dir = eval_config$real_time_output_dir,
@@ -976,7 +976,7 @@ hub_comparison_targets <- list(
     name = rel_wis_heatmap_real_time,
     command = plot_rel_score_heatmap(
       scores = wis_cfa_models_real_time,
-      target_models = "cfa-wwrenewal(real-time)",
+      target_model = "cfa-wwrenewal(real-time)",
       baseline_model = "cfa-hosponlyrenewal(real-time*)",
       metric_to_compare = "wis"
     )
@@ -985,7 +985,7 @@ hub_comparison_targets <- list(
     name = rel_wis_dist_real_time,
     command = plot_rel_score_dists(
       scores = wis_cfa_models_real_time,
-      target_models = "cfa-wwrenewal(real-time)",
+      target_model = "cfa-wwrenewal(real-time)",
       baseline_model = "cfa-hosponlyrenewal(real-time*)",
       metric_to_compare = "wis",
       x = NULL,
@@ -1021,7 +1021,7 @@ hub_comparison_targets <- list(
     name = fig_rwis_t_cfa_models_real_time,
     command = plot_rel_score_t(
       wis_cfa_models_real_time,
-      target_models = "cfa-wwrenewal(real-time)",
+      target_model = "cfa-wwrenewal(real-time)",
       baseline_model = "cfa-hosponlyrenewal(real-time*)",
       metric_to_compare = "wis"
     ) +
@@ -1792,7 +1792,7 @@ composite_figure_targets <- list(
     rel_crps_heatmap_cfa_models,
     command = plot_rel_score_heatmap(
       scores = crps_cfa_models_retro,
-      target_models = "cfa-wwrenewal(retro)",
+      target_model = "cfa-wwrenewal(retro)",
       baseline_model = "cfa-hosponlyrenewal(retro)",
       metric_to_compare = "crps"
     )
@@ -1801,7 +1801,7 @@ composite_figure_targets <- list(
     name = rel_crps_distribution_overall_cfa_models,
     command = plot_rel_score_dists(
       scores = crps_cfa_models_retro,
-      target_models = "cfa-wwrenewal(retro)",
+      target_model = "cfa-wwrenewal(retro)",
       baseline_model = "cfa-hosponlyrenewal(retro)",
       metric_to_compare = "crps",
       x = NULL,
@@ -1836,7 +1836,7 @@ composite_figure_targets <- list(
     name = fig_rcrps_t_cfa_models_retro,
     command = plot_rel_score_t(
       crps_cfa_models_retro,
-      target_models = "cfa-wwrenewal(retro)",
+      target_model = "cfa-wwrenewal(retro)",
       baseline_model = "cfa-hosponlyrenewal(retro)",
       metric_to_compare = "crps"
     ) +
@@ -1896,7 +1896,7 @@ composite_figure_targets <- list(
     name = rel_crps_dist_by_horizon,
     command = plot_rel_score_dists_by_horizon(
       scores = crps_cfa_models_retro,
-      target_models = "cfa-wwrenewal(retro)",
+      target_model = "cfa-wwrenewal(retro)",
       baseline_model = "cfa-hosponlyrenewal(retro)",
       metric_to_compare = "crps"
     )

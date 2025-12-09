@@ -5,18 +5,13 @@
 \title{Plot a heatmap of the relative crps by locations and forecast date
 for the head-to-head comparison}
 \usage{
-plot_rel_score_heatmap(
-  scores,
-  target_models,
-  baseline_model,
-  metric_to_compare
-)
+plot_rel_score_heatmap(scores, target_model, baseline_model, metric_to_compare)
 }
 \arguments{
 \item{scores}{A tibble of daily scores by forecast date, location,
 and model}
 
-\item{target_models}{Model for which to plot relative CRPS}
+\item{target_model}{Model for which to plot relative CRPS}
 
 \item{baseline_model}{Baseline model for the relative CRPS}
 

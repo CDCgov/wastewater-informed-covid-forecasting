@@ -6,7 +6,7 @@
 \usage{
 .target_model_relative_scores(
   scores,
-  target_models,
+  target_model,
   baseline_model,
   metric_to_compare,
   by = NULL,
@@ -17,7 +17,7 @@
 \item{scores}{table of scores, as the output of
 \code{\link[scoringutils:score]{scoringutils::score()}}}
 
-\item{target_models}{Target model(s) (numerator for the relative scores)}
+\item{target_model}{Target model(s) (numerator for the relative scores)}
 
 \item{baseline_model}{Baseline model (denominator for the relative scores)}
 

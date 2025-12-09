@@ -6,7 +6,7 @@
 \usage{
 plot_rel_score_t(
   scores,
-  target_models,
+  target_model,
   baseline_model,
   metric_to_compare,
   x = "forecast_date",
@@ -18,7 +18,7 @@ plot_rel_score_t(
 \arguments{
 \item{scores}{Output of \code{\link[scoringutils:score]{scoringutils::score()}}, not yet summarized.}
 
-\item{target_models}{Model for which to plot relative scores}
+\item{target_model}{Model for which to plot relative scores}
 
 \item{baseline_model}{Baseline model for the relative scores
 computation.}
