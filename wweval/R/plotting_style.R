@@ -174,7 +174,8 @@ score_component_alphas <- c(
 scale_fill_model <- function(name = "Model", ...) {
   return(ggplot2::scale_fill_manual(
     name = name,
-    values = model_colors
+    values = model_colors,
+    ...
   ))
 }
 
@@ -200,7 +201,7 @@ scale_shape_model <- function(name = "Model", ...) {
 
 #' ggplot discrete scales for forecast horizons
 #'
-#' @param name Display name for the scale. Default` "Horizon"`.
+#' @param name Display name for the scale. Default `"Horizon"`.
 #' @param ... Keyword arguments passed to
 #' [`ggplot2::scale_*_manual()`][ggplot2::scale_fill_manual()].
 #' @return the ggplot scale
@@ -219,7 +220,8 @@ scale_fill_horizon <- function(name = "Horizon", ...) {
 scale_color_horizon <- function(name = "Horizon", ...) {
   return(ggplot2::scale_color_manual(
     name = name,
-    values = horizon_colors
+    values = horizon_colors,
+    ...
   ))
 }
 
@@ -234,7 +236,8 @@ scale_color_horizon <- function(name = "Horizon", ...) {
 #' @export
 scale_alpha_score_component <- function(...) {
   return(ggplot2::scale_alpha_manual(
-    values = score_component_alphas
+                      values = score_component_alphas,
+                      ...
   ))
 }
 
