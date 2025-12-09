@@ -207,7 +207,8 @@ scale_shape_model <- function(name = "Model", ...) {
 scale_fill_horizon <- function(name = "Horizon", ...) {
   return(ggplot2::scale_fill_manual(
     name = name,
-    values = horizon_colors
+    values = horizon_colors,
+    ...
   ))
 }
 
