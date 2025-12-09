@@ -156,8 +156,7 @@ forecast_interval_coverage_plot <- function(
     facet_wrap(~ .data$named_facet, scales = "free_y") +
     labs(
       y = "Proportion of data within interval",
-      x = "Forecast horizon",
-      col = "Model"
+      x = "Forecast horizon"
     ) +
     scale_y_continuous(
       expand = expansion(c(0.2, 0.2)),
