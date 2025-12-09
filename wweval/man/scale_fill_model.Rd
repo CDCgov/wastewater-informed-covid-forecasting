@@ -6,15 +6,13 @@
 \alias{scale_shape_model}
 \title{ggplot discrete scales for forecast models}
 \usage{
-scale_fill_model(name = "Model", ...)
+scale_fill_model(...)
 
-scale_color_model(name = "Model", ...)
+scale_color_model(...)
 
-scale_shape_model(name = "Model", ...)
+scale_shape_model(...)
 }
 \arguments{
-\item{name}{Display name for the scale. Default \code{"Model"}.}
-
 \item{...}{Keyword arguments passed to
 \code{\link[ggplot2:scale_manual]{ggplot2::scale_*_manual()}}.}
 }

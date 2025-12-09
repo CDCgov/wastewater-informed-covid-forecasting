@@ -666,7 +666,7 @@ collated_output_targets <- list(
 
 real_time_rel_targets <- list(
   tar_target(
-    name = unfiltered_crps_cfa_models_real_time, # nolint
+    name = unfiltered_crps_cfa_models_real_time,
     command = score_real_time_outputs(
       score_type = "crps",
       real_time_output_dir = eval_config$real_time_output_dir,
@@ -1935,7 +1935,7 @@ composite_figure_targets <- list(
     format = "file"
   ),
   tar_target(
-    name = interval_coverage_plot_all_time,
+      name = interval_coverage_plot_all_time,
     command = forecast_interval_coverage_plot(
       calibration_input_cfa_all_time,
       ranges = c(30, 60, 90),

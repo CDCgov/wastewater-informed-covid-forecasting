@@ -166,62 +166,51 @@ score_component_alphas <- c(
 
 #' ggplot discrete scales for forecast models
 #'
-#' @param name Display name for the scale. Default `"Model"`.
 #' @param ... Keyword arguments passed to
 #' [`ggplot2::scale_*_manual()`][ggplot2::scale_fill_manual()].
 #' @return the ggplot scale
+#'
 #' @export
-scale_fill_model <- function(name = "Model", ...) {
+scale_fill_model <- function(...) {
   return(ggplot2::scale_fill_manual(
-    name = name,
-    values = model_colors,
-    ...
+    values = model_colors
   ))
 }
 
 #' @rdname scale_fill_model
 #' @export
-scale_color_model <- function(name = "Model", ...) {
+scale_color_model <- function(...) {
   return(ggplot2::scale_color_manual(
-    name = name,
-    values = model_colors,
-    ...
+    values = model_colors
   ))
 }
 
 #' @rdname scale_fill_model
 #' @export
-scale_shape_model <- function(name = "Model", ...) {
+scale_shape_model <- function(...) {
   return(ggplot2::scale_shape_manual(
-    name = name,
-    values = model_shapes,
-    ...
+    values = model_shapes
   ))
 }
 
 #' ggplot discrete scales for forecast horizons
 #'
-#' @param name Display name for the scale. Default `"Horizon"`.
 #' @param ... Keyword arguments passed to
 #' [`ggplot2::scale_*_manual()`][ggplot2::scale_fill_manual()].
 #' @return the ggplot scale
 #'
 #' @export
-scale_fill_horizon <- function(name = "Horizon", ...) {
+scale_fill_horizon <- function(...) {
   return(ggplot2::scale_fill_manual(
-    name = name,
-    values = horizon_colors,
-    ...
+    values = horizon_colors
   ))
 }
 
 #' @rdname scale_fill_horizon
 #' @export
-scale_color_horizon <- function(name = "Horizon", ...) {
+scale_color_horizon <- function(...) {
   return(ggplot2::scale_color_manual(
-    name = name,
-    values = horizon_colors,
-    ...
+    values = horizon_colors
   ))
 }
 
@@ -236,8 +225,7 @@ scale_color_horizon <- function(name = "Horizon", ...) {
 #' @export
 scale_alpha_score_component <- function(...) {
   return(ggplot2::scale_alpha_manual(
-    values = score_component_alphas,
-    ...
+    values = score_component_alphas
   ))
 }
 
