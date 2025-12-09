@@ -183,7 +183,8 @@ scale_fill_model <- function(name = "Model", ...) {
 scale_color_model <- function(name = "Model", ...) {
   return(ggplot2::scale_color_manual(
     name = name,
-    values = model_colors
+    values = model_colors,
+    ...
   ))
 }
 
