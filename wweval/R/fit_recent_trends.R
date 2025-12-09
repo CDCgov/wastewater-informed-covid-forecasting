@@ -81,18 +81,16 @@ fit_recent_trends <- function(
     dplyr::transmute(
       time = as.numeric(
         .data$date - !!first_hosp_trend_date
-      ) +
-        1L,
+      ),
       hosp = .data$count
     ) |>
-    dplyr::filter(.data$time > 0)
+    dplyr::filter(.data$time >= 0)
 
   input_ww_data <- load_object("input_ww_data") |>
     dplyr::mutate(
       time = as.numeric(
         .data$date - !!first_ww_trend_date
-      ) +
-        1L,
+      ),
       conc = ifelse(
         .data$below_lod,
         .data$log_lod,
@@ -100,7 +98,7 @@ fit_recent_trends <- function(
       ),
       cens = ifelse(.data$below_lod, -1, 0)
     ) |>
-    dplyr::filter(.data$time > 0) |>
+    dplyr::filter(.data$time >= 0) |>
     dplyr::select(
       "time",
       "lab_site_index",
@@ -293,8 +291,15 @@ fit_ww_trend <- function(
     return(NULL)
   }
 
+  if (max(data$site_index) == 1) {
+    message(
+      "Cannot fit hierarchical model when there is only one wastewater site"
+    )
+    return(NULL)
+  }
+
   ww_formula <- brms::bf(
-    conc | cens(cens) ~ time + (time || lab_site_index),
+    conc | cens(cens) ~ time + (time || site_index),
     sigma ~ (1 || lab_site_index)
   )
   ww_priors <- c(
@@ -315,7 +320,7 @@ fit_ww_trend <- function(
       ),
       class = "sd",
       coef = "time",
-      group = "lab_site_index"
+      group = "site_index"
     ),
     brms::prior_string(
       glue::glue(
