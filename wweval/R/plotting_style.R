@@ -166,52 +166,58 @@ score_component_alphas <- c(
 
 #' ggplot discrete scales for forecast models
 #'
+#' @param name Display name for the scale. Default `"Model"`.
 #' @param ... Keyword arguments passed to
 #' [`ggplot2::scale_*_manual()`][ggplot2::scale_fill_manual()].
 #' @return the ggplot scale
-#'
 #' @export
-scale_fill_model <- function(...) {
-  return(ggplot2::scale_fill_manual(
-    values = model_colors
+scale_fill_model <- function(name = "Model", ...) {
+    return(ggplot2::scale_fill_manual(
+                        name = name,
+                        values = model_colors
   ))
 }
 
 #' @rdname scale_fill_model
 #' @export
-scale_color_model <- function(...) {
-  return(ggplot2::scale_color_manual(
-    values = model_colors
+scale_color_model <- function(name = "Model", ...) {
+    return(ggplot2::scale_color_manual(
+                        name = name,
+                        values = model_colors
   ))
 }
 
 #' @rdname scale_fill_model
 #' @export
-scale_shape_model <- function(...) {
-  return(ggplot2::scale_shape_manual(
-    values = model_shapes
+scale_shape_model <- function(name = "Model", ...) {
+    return(ggplot2::scale_shape_manual(
+                        name = name,
+                        values = model_shapes
   ))
 }
 
 #' ggplot discrete scales for forecast horizons
 #'
+#' @param name Display name for the scale. Default` "Horizon"`.
 #' @param ... Keyword arguments passed to
 #' [`ggplot2::scale_*_manual()`][ggplot2::scale_fill_manual()].
 #' @return the ggplot scale
 #'
 #' @export
-scale_fill_horizon <- function(...) {
-  return(ggplot2::scale_fill_manual(
-    values = horizon_colors
+scale_fill_horizon <- function(name = "Horizon", ...) {
+    return(ggplot2::scale_fill_manual(
+                        name = name,
+                        values = horizon_colors
   ))
 }
 
 #' @rdname scale_fill_horizon
 #' @export
 scale_color_horizon <- function(...) {
-  return(ggplot2::scale_color_manual(
-    values = horizon_colors
-  ))
+    return(ggplot2::scale_color_manual(
+                        name = name,
+                        values = horizon_colors
+                    ))
 }
 
 

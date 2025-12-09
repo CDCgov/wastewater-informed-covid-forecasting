@@ -5,11 +5,13 @@
 \alias{scale_color_horizon}
 \title{ggplot discrete scales for forecast horizons}
 \usage{
-scale_fill_horizon(...)
+scale_fill_horizon(name = "Horizon", ...)
 
 scale_color_horizon(...)
 }
 \arguments{
+\item{name}{Display name for the scale. Default\code{ "Horizon"}.}
+
 \item{...}{Keyword arguments passed to
 \code{\link[ggplot2:scale_manual]{ggplot2::scale_*_manual()}}.}
 }
