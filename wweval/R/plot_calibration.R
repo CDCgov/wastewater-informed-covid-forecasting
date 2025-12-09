@@ -146,8 +146,8 @@ forecast_interval_coverage_plot <- function(
       shape = .data$model
     )
   ) +
-      forecasttools::geom_line_point(linetype = "dashed",
-                                     linewidth = 1) +
+      geom_line(linetype = "dashed") +
+      geom_point() +
     geom_hline(
       aes(yintercept = .data$interval_range / 100),
       linetype = "dashed"
