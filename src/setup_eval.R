@@ -92,17 +92,18 @@ write_eval_config <- function(
   )
 
   # Specify other variables
-  ww_data_dir <- file.path("input", "ww_data", "monday_datasets")
-  scenario_dir <- file.path("input", "config", "eval", "scenarios")
-  hosp_data_dir <- file.path("input", "hosp_data", "vintage_datasets")
-  population_data_path <- file.path("input", "locations.csv")
+  input_dir <- file.path("input")
+  ww_data_dir <- file.path(input_dir, "ww_data", "monday_datasets")
+  scenario_dir <- file.path(input_dir, "config", "eval", "scenarios")
+  hosp_data_dir <- file.path(input_dir, "hosp_data", "vintage_datasets")
+  population_data_path <- file.path(input_dir, "locations.csv")
   real_time_metadata_dir <- file.path("output", "forecasts")
   baseline_score_table_dir <- file.path("output", "baseline_score")
   output_dir <- file.path("output", "eval_latest")
-  figure_dir <- file.path("output", "eval_latest", "plots")
-  hub_subdir <- file.path("output", "eval_latest", "hub")
-  retro_rt_path <- file.path("input", "retro_Rt", "Rt_draws.parquet")
-  score_subdir <- file.path("output", "eval_latest", "hub")
+  figure_dir <- file.path(output_dir, "plots")
+  hub_subdir <- file.path(output_dir, "hub")
+  score_subdir <- file.path(output_dir, "hub")
+  params_path <- file.path(input_dir, "params.toml")
   min_submissions_hub <- 20
   min_locs_per_submission_hub <- 40
   min_paired_forecasts_per_jurisdiction <- 4 #nolint

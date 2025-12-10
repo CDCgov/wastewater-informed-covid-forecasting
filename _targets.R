@@ -1426,6 +1426,34 @@ trend_analysis_targets <- list(
       ),
       format = "file"
     ),
+    tar_target(
+      name = fig_trend_diff_scatter_downsampled,
+      command = plot_trend_versus_diff(
+        diff_and_trend_qi |> dplyr::filter(abs(log(rel_crps)) > log(2)),
+        x_metric = trend_metric,
+        y_metric = diff_metric,
+        fill_metric = fill_metric,
+        x_transform = x_transform,
+        y_transform = y_transform,
+        x_center = x_center,
+        shape = 21,
+        size = 3,
+        color = "black",
+        alpha = 0.5
+      ) +
+        ggplot2::labs(
+          x = trend_diff_metric_names[[trend_metric]],
+          y = trend_diff_metric_names[[diff_metric]],
+          fill = trend_diff_metric_names[[fill_metric]]
+        )
+    ),
+    tar_target(
+      name = save_fig_trend_diff_scatter_downsampled,
+      command = save_fig_supp(
+        fig_trend_diff_scatter_downsampled
+      ),
+      format = "file"
+    ),
     names = c("trend_metric", "diff_metric")
   )
 )
