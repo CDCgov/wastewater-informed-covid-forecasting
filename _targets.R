@@ -2351,6 +2351,17 @@ reported_quantities_targets <- list(
       dplyr::arrange(.data$model, .data$rel_crps)
   ),
   tar_target(
+    name = paired_crps_by_date_location_retro,
+    command = crps_cfa_models_retro |>
+      forecasttools::summarise_scores_with_baseline(
+        compare = "model",
+        baseline = "cfa-hosponlyrenewal(retro)",
+        by = c("forecast_date", "location")
+      ) |>
+      dplyr::rename(rel_crps = "mean_scores_ratio") |>
+      dplyr::arrange(.data$model, .data$rel_crps)
+  ),
+  tar_target(
     name = hub_wis_rel_ensemble_real_time,
     command = hub_scores_real_time |>
       forecasttools::summarize_scores_with_baseline(
@@ -2381,6 +2392,42 @@ reported_quantities_targets <- list(
       forecasttools::summarize_scores_with_baseline(
         baseline = "COVIDhub-4_week_ensemble",
         by = "location"
+      ) |>
+      dplyr::arrange(.data$mean_scores_ratio)
+  ),
+  tar_target(
+    name = hub_wis_rel_ensemble_by_forecast_date_real_time,
+    command = hub_scores_real_time |>
+      forecasttools::summarize_scores_with_baseline(
+        baseline = "COVIDhub-4_week_ensemble",
+        by = "forecast_date"
+      ) |>
+      dplyr::arrange(.data$mean_scores_ratio)
+  ),
+  tar_target(
+    name = hub_wis_rel_ensemble_by_forecast_date_retro,
+    command = hub_scores |>
+      forecasttools::summarize_scores_with_baseline(
+        baseline = "COVIDhub-4_week_ensemble",
+        by = "forecast_date"
+      ) |>
+      dplyr::arrange(.data$mean_scores_ratio)
+  ),
+  tar_target(
+    name = hub_wis_rel_ensemble_by_date_location_real_time,
+    command = hub_scores_real_time |>
+      forecasttools::summarize_scores_with_baseline(
+        baseline = "COVIDhub-4_week_ensemble",
+        by = c("forecast_date", "location")
+      ) |>
+      dplyr::arrange(.data$mean_scores_ratio)
+  ),
+  tar_target(
+    name = hub_wis_rel_ensemble_by_date_location_retro,
+    command = hub_scores |>
+      forecasttools::summarize_scores_with_baseline(
+        baseline = "COVIDhub-4_week_ensemble",
+        by = c("forecast_date", "location")
       ) |>
       dplyr::arrange(.data$mean_scores_ratio)
   )
