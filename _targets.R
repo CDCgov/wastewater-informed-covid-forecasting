@@ -2413,7 +2413,7 @@ reported_quantities_targets <- list(
       ) |>
       dplyr::arrange(.data$mean_scores_ratio)
   ),
-    tar_target(
+  tar_target(
     name = hub_wis_rel_ensemble_by_date_location_real_time,
     command = hub_scores_real_time |>
       forecasttools::summarize_scores_with_baseline(
