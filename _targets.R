@@ -2383,6 +2383,24 @@ reported_quantities_targets <- list(
         by = "location"
       ) |>
       dplyr::arrange(.data$mean_scores_ratio)
+  ),
+  tar_target(
+    name = hub_wis_rel_ensemble_by_forecast_date_real_time,
+    command = hub_scores_real_time |>
+      forecasttools::summarize_scores_with_baseline(
+        baseline = "COVIDhub-4_week_ensemble",
+        by = "forecast_date"
+      ) |>
+      dplyr::arrange(.data$mean_scores_ratio)
+  ),
+  tar_target(
+    name = hub_wis_rel_ensemble_by_forecast_date_retro,
+    command = hub_scores |>
+      forecasttools::summarize_scores_with_baseline(
+        baseline = "COVIDhub-4_week_ensemble",
+        by = "forecast_date"
+      ) |>
+      dplyr::arrange(.data$mean_scores_ratio)
   )
 )
 
