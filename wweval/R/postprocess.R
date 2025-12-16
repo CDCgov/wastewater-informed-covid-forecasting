@@ -453,11 +453,6 @@ postprocess_successful_fit <- function(
       )
     }
   }
-  hosp_quant_savename <- ifelse(
-    ww_model,
-    "full_hosp_quantiles",
-    "full_hosp_model_quantiles"
-  )
   save_object(full_hosp_quantiles)
 
   hosp_quantiles <- {
