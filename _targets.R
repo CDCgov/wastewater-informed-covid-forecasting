@@ -1789,6 +1789,17 @@ composite_figure_targets <- list(
     )
   ),
   tar_target(
+    name = save_table_rel_crps_cfa_models_by_t_loc,
+    command = {
+        fs::path(eval_config$score_subdir,
+                 "rel_crps_cfa_models_by_t_loc",
+                 ext = "parquet")
+        forecasttools::write_tabular(crps_cfa_models_retro, fp)
+        fp
+    },
+    format = "file"
+  ),
+  tar_target(
     rel_crps_heatmap_cfa_models,
     command = plot_rel_score_heatmap(
       scores = crps_cfa_models_retro,
