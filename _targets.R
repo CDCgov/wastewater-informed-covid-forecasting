@@ -1792,9 +1792,9 @@ composite_figure_targets <- list(
     name = save_table_rel_crps_cfa_models_by_t_loc,
     command = {
         fp <- fs::path(eval_config$score_subdir,
-                 "rel_crps_cfa_models_by_t_loc",
-                 ext = "parquet")
-        forecasttools::write_tabular(crps_cfa_models_retro, fp)
+                       "rel_crps_cfa_models_by_t_loc",
+                       ext = "parquet")
+        forecasttools::write_tabular(table_rel_crps_cfa_models_by_t_loc, fp)
         fp
     },
     format = "file"
