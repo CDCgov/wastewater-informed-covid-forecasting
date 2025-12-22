@@ -1197,7 +1197,8 @@ hub_comparison_targets <- list(
       scoringutils::summarise_scores(by = "model") |>
       dplyr::arrange(.data$wis) |>
       order_col("model") |>
-      plot_score_decomposed_bars(color = "black")
+        plot_score_decomposed_bars(color = "black") +
+        ggplot2::labs(x = NULL)
   ),
   tar_target(
     name = hub_barplot_wis_real_time,
@@ -1206,7 +1207,8 @@ hub_comparison_targets <- list(
       scoringutils::summarise_scores(by = "model") |>
       dplyr::arrange(.data$wis) |>
       order_col("model") |>
-      plot_score_decomposed_bars(color = "black")
+        plot_score_decomposed_bars(color = "black") +
+        ggplot2::labs(x = NULL)
   ),
   tar_target(
     name = hub_wis_t_all_time_all_models,

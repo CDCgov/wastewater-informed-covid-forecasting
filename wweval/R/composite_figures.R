@@ -88,13 +88,17 @@ CE
 
   fig <- patchwork::wrap_plots(
     patchwork::guide_area(),
-    A = barplot_wis + shared_y_wis + no_guides + ggplot2::ylab("WIS"),
+    A = barplot_wis + shared_y_wis + no_guides +
+        ggplot2::labs(y = "WIS"),
     B = plot_wis_t +
       shared_y_wis +
       ggplot2::labs(
-        x = "Forecast date",
-        y = "WIS"
-      ),
+                   y = "WIS",
+                   x = "Forecast Date"
+               ) +
+      ggplot2::theme(
+                   axis.title.x = ggplot2::element_text(
+                                               margin = ggplot2::margin(t = -40))),
     C = heatmap_rel_wis + no_xlab,
     D = hist_rwis + no_guides,
     E = qq_plot + no_guides
@@ -103,6 +107,7 @@ CE
       design = design,
       axes = "collect",
       guides = "collect",
+      axis_titles = "keep",
       widths = 1,
       heights = 1
     ) +
