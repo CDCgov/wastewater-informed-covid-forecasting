@@ -1297,7 +1297,7 @@ hub_comparison_targets <- list(
     name = save_figure_hub_comparison_real_time,
     command = save_fig_main(
       figure_hub_comparison_real_time,
-      base_width = 10,
+      base_width = 10.5,
       base_height = 12
     ),
     format = "file"
@@ -1306,7 +1306,7 @@ hub_comparison_targets <- list(
     name = save_figure_hub_comparison_all_time,
     command = save_fig_main(
       figure_hub_comparison_all_time,
-      base_width = 10,
+      base_width = 10.5,
       base_height = 12
     ),
     format = "file"
