@@ -243,8 +243,8 @@ plot_rel_score_dists <- function(
         transform = "log10"
       )
     ) +
-    scale_color_model() +
-    scale_fill_model() +
+  scale_color_model() +
+  scale_fill_model() +
     get_plot_theme(
       rotate_x_ticks = TRUE
     )
@@ -293,12 +293,13 @@ plot_rel_score_heatmap <- function(
     )
   ) +
     geom_tile() +
-    geom_text(size = 1.5) +
+    geom_text() +
     scale_fill_score_ratio(
       name = .relative_metric_display_name(metric_to_compare),
       limits = forecasttools::sym_limits(
         relative_scores$mean_scores_ratio,
-        transform = "log10"
+        transform = "log10",
+        breaks = 2^(-4:4)
       )
     ) +
     scale_x_weekly_iso_date() +
