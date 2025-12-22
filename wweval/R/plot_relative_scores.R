@@ -243,8 +243,8 @@ plot_rel_score_dists <- function(
         transform = "log10"
       )
     ) +
-  scale_color_model() +
-  scale_fill_model() +
+    scale_color_model() +
+    scale_fill_model() +
     get_plot_theme(
       rotate_x_ticks = TRUE
     )
