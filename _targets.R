@@ -982,7 +982,7 @@ hub_comparison_targets <- list(
     )
   ),
   tar_target(
-    name = rel_wis_dist_real_time,
+    name = rel_wis_distribution_cfa_models_real_time,
     command = plot_rel_score_dists(
       scores = wis_cfa_models_real_time,
       target_model = "cfa-wwrenewal(real-time)",
@@ -1106,7 +1106,7 @@ hub_comparison_targets <- list(
     name = figure_rel_performance_real_time,
     command = compose_rel_performance_fig(
       rel_score_heatmap = rel_wis_heatmap_real_time,
-      rel_score_dist = rel_wis_dist_real_time,
+      rel_score_dist = rel_wis_distribution_cfa_models_real_time,
       rel_score_by_time = fig_rwis_t_cfa_models_real_time,
       total_admissions = total_admissions_real_time,
       abs_scores_by_time = decomposed_wis_t_cfa_models_real_time,
@@ -1789,6 +1789,19 @@ composite_figure_targets <- list(
     )
   ),
   tar_target(
+    name = save_table_rel_crps_cfa_models_by_t_loc,
+    command = {
+      fp <- fs::path(
+        eval_config$score_subdir,
+        "rel_crps_cfa_models_by_t_loc",
+        ext = "parquet"
+      )
+      forecasttools::write_tabular(table_rel_crps_cfa_models_by_t_loc, fp)
+      fp
+    },
+    format = "file"
+  ),
+  tar_target(
     rel_crps_heatmap_cfa_models,
     command = plot_rel_score_heatmap(
       scores = crps_cfa_models_retro,
@@ -1798,7 +1811,7 @@ composite_figure_targets <- list(
     )
   ),
   tar_target(
-    name = rel_crps_distribution_overall_cfa_models,
+    name = rel_crps_distribution_cfa_models_retro,
     command = plot_rel_score_dists(
       scores = crps_cfa_models_retro,
       target_model = "cfa-wwrenewal(retro)",
@@ -1955,7 +1968,7 @@ composite_figure_targets <- list(
     name = figure_rel_performance_all_time,
     command = compose_rel_performance_fig(
       rel_score_heatmap = rel_crps_heatmap_cfa_models,
-      rel_score_dist = rel_crps_distribution_overall_cfa_models,
+      rel_score_dist = rel_crps_distribution_cfa_models_retro,
       rel_score_by_time = fig_rcrps_t_cfa_models_retro,
       total_admissions = total_admissions_all_time,
       abs_scores_by_time = decomposed_crps_t_cfa_models_all_time,
