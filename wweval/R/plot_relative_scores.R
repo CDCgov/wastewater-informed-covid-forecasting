@@ -216,14 +216,13 @@ plot_rel_score_dists <- function(
     x_scale <- ggplot2::scale_x_discrete()
   }
 
-  colors <- plot_components()
-  horizon_color <- colors$horizon_colors[["overall"]]
-
   p <- ggplot(
     data = relative_scores,
     mapping = aes(
       x = if (!is.null(x)) .data[[x]] else NULL,
-      y = .data$mean_scores_ratio
+      y = .data$mean_scores_ratio,
+      fill = .data$model,
+      color = .data$model
     )
   ) +
     tidybayes::stat_dotsinterval(
@@ -231,9 +230,7 @@ plot_rel_score_dists <- function(
       point_color = "black",
       interval_color = "black",
       position = position_dodge(width = 0.75),
-      show.legend = FALSE,
-      fill = horizon_color,
-      color = horizon_color
+      show.legend = FALSE
     ) +
     geom_hline(yintercept = 1, linetype = "dashed") +
     xlab("") +
@@ -246,6 +243,8 @@ plot_rel_score_dists <- function(
         transform = "log10"
       )
     ) +
+  scale_color_model() +
+  scale_fill_model() +
     get_plot_theme(
       rotate_x_ticks = TRUE
     )
