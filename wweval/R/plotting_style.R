@@ -117,7 +117,7 @@ model_colors <- c(
   "cfa-hosponlyrenewal(real-time*)" = "orange3",
   "cfa-hosponlyrenewal(retro)" = pal_model[2],
   "COVIDhub-4_week_ensemble" = "#545454", # darker grey
-  "COVIDhub-baseline" = "#CCCCCC", # lighter gray
+  "COVIDhub-baseline" = "#7a7a7a", # lighter gray
   "MUNI-ARIMA" = pal_horizons[2],
   "UMass-trends_ensemble" = pastel_model[4],
   "UT-Osiris" = pastel_model[5],
