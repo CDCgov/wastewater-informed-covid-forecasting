@@ -116,7 +116,7 @@ model_colors <- c(
   "cfa-wwrenewal(real-time)" = pal_model[5],
   "cfa-hosponlyrenewal(real-time*)" = "orange3",
   "cfa-hosponlyrenewal(retro)" = pal_model[2],
-  "COVIDhub-4_week_ensemble" = "545454", # darker grey
+  "COVIDhub-4_week_ensemble" = "#545454", # darker grey
   "COVIDhub-baseline" = "#CCCCCC", # lighter gray
   "MUNI-ARIMA" = pal_horizons[2],
   "UMass-trends_ensemble" = pastel_model[4],
@@ -124,7 +124,7 @@ model_colors <- c(
   "CEPH-Rtrend_covid" = pastel_model[1],
   "CMU-TimeSeries" = pastel_model[2],
   "SGroup-RandomForest" = pastel_model[7],
-  "UMass-gbq" = pastel_model[3],
+  "UMass-gbq" = pastel_model[6],
   "UMass-sarix" = pal_model[3],
   "MOBS-GLEAM_COVID" = pastel_model[8]
 )
