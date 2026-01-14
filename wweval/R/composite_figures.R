@@ -85,15 +85,11 @@ CE
 
   no_guides <- ggplot2::guides(fill = "none", color = "none", shape = "none")
   no_xlab <- ggplot2::theme(axis.title.x = ggplot2::element_blank())
-  widen_left_margin <- ggplot2::theme(plot.margin = ggplot2::margin_auto(l = 1))
+  widen_left_margin <- ggplot2::theme(plot.margin = ggplot2::margin_auto(l = 10))
 
   fig <- patchwork::wrap_plots(
     patchwork::guide_area(),
-    A = barplot_wis +
-      shared_y_wis +
-      no_guides +
-      ggplot2::ylab("WIS") +
-      widen_left_margin,
+    A = barplot_wis + shared_y_wis + no_guides + ggplot2::ylab("WIS") + widen_left_margin,
     B = plot_wis_t +
       shared_y_wis +
       ggplot2::labs(
