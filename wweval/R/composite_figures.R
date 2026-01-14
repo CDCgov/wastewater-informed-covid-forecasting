@@ -86,7 +86,7 @@ CE
   no_guides <- ggplot2::guides(fill = "none", color = "none", shape = "none")
   no_xlab <- ggplot2::theme(axis.title.x = ggplot2::element_blank())
   widen_left_margin <- ggplot2::theme(
-    plot.margin = ggplot2::margin_auto(l = 25)
+    plot.margin = ggplot2::margin_auto(l = 30)
   )
   # needed for long model names at left of plot
 
