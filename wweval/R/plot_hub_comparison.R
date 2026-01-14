@@ -277,8 +277,9 @@ plot_hub_heatmap_relative_wis <- function(
     scale_fill_score_ratio(
       name = "Relative WIS",
       limits = forecasttools::sym_limits(
-        relative_scores$mean_scores_ratio,
-        transform = "log10"
+       relative_scores$mean_scores_ratio,
+       transform = "log10",
+       breaks = c(1 / 4, 1 / 2, 2 / 3, 1, 3 / 2, 2, 4) # need manual breaks for nice display
       )
     ) +
     get_plot_theme(
