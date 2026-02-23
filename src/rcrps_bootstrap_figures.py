@@ -238,4 +238,4 @@ if __name__ == "__main__":
     )
     args = parser.parse_args()
 
-    rcrps_boostrap_figures(**vars(args))
+    rcrps_boostrap_figures(args.scores_path, args.output_dir, args.figext)
