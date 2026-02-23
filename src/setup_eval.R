@@ -102,7 +102,7 @@ write_eval_config <- function(
   figure_dir <- file.path("output", "eval_latest", "plots")
   hub_subdir <- file.path("output", "eval_latest", "hub")
   retro_rt_path <- file.path("input", "retro_Rt", "Rt_draws.parquet")
-  score_subdir <- file.path("output", "eval_latest", "hub")
+  score_subdir <- file.path("output", "eval_latest", "scores")
   min_submissions_hub <- 20
   min_locs_per_submission_hub <- 40
   min_paired_forecasts_per_jurisdiction <- 4 #nolint
