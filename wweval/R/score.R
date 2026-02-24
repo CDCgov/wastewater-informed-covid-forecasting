@@ -395,7 +395,7 @@ check_any_flags <- function(forecast_dir, forecast_date, run_on_date, run_id) {
     dplyr::filter(.data$diagnostic %in% !!flags_to_check) |>
     dplyr::pull(.data$value)
 
-  return(any(flags == TRUE))
+  return(any(flags))
 }
 
 

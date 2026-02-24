@@ -493,7 +493,7 @@ collated_output_targets <- list(
     name = date_locs_ww_converged_retro,
     command = dplyr::filter(
       convergence_df_ww,
-      .data$any_flags_ww == FALSE
+      !.data$any_flags_ww
     ) |>
       dplyr::select("forecast_date", "location")
   ),
@@ -501,7 +501,7 @@ collated_output_targets <- list(
     name = date_locs_hosp_converged_retro,
     command = dplyr::filter(
       convergence_df_hosp,
-      .data$any_flags_hosp == FALSE
+      !.data$any_flags_hosp
     ) |>
       dplyr::select("forecast_date", "location")
   ),

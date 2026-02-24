@@ -67,5 +67,5 @@ test_that("Quantile levels are correctly assigned in get_state_level_quantiles",
 test_that("There aren't NAs where there shouldn't be, all dates compelte", {
   result <- get_state_level_quantiles(sample_draws)
 
-  expect_true(!any(is.na(result$date)))
+  expect_true(!anyNA(result$date))
 })
