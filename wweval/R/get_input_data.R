@@ -337,40 +337,42 @@ get_last_hosp_data_date <- function(input_hosp) {
 clean_and_filter_nwss_data <- function(raw_nwss_data) {
   nwss_subset_raw <- raw_nwss_data |>
     dplyr::filter(
-      sample_location == "wwtp",
-      sample_matrix != "primary sludge",
-      pcr_target_units != "copies/g dry sludge",
-      pcr_target == "sars-cov-2"
+      .data$sample_location == "wwtp",
+      .data$sample_matrix != "primary sludge",
+      .data$pcr_target_units != "copies/g dry sludge",
+      .data$pcr_target == "sars-cov-2"
     ) |>
     #* Note, we need to figure out how to convert copies/g dry sludge to a WW concentration,
     #* but now now we're just going to exclude
     select(
-      lab_id,
-      sample_collect_date,
-      wwtp_name,
-      pcr_target_avg_conc,
-      wwtp_jurisdiction,
-      county_names,
-      population_served,
-      pcr_target_units,
-      pcr_target_below_lod,
-      lod_sewage,
-      quality_flag
+      "lab_id",
+      "sample_collect_date",
+      "wwtp_name",
+      "pcr_target_avg_conc",
+      "pcr_target_flowpop_lin",
+      "wwtp_jurisdiction",
+      "county_names",
+      "population_served",
+      "pcr_target_units",
+      "pcr_target_below_lod",
+      "lod_sewage",
+      "quality_flag"
     ) |>
     mutate(
       pcr_target_avg_conc = dplyr::case_when(
-        pcr_target_units == "copies/l wastewater" ~ pcr_target_avg_conc / 1000,
+        pcr_target_units == "copies/l wastewater" ~
+          .data$pcr_target_avg_conc / 1000,
         pcr_target_units == "log10 copies/l wastewater" ~
-          (10^(pcr_target_avg_conc)) / 1000
+          (10^(.data$pcr_target_avg_conc)) / 1000
       ),
       lod_sewage = dplyr::case_when(
-        pcr_target_units == "copies/l wastewater" ~ lod_sewage / 1000,
+        pcr_target_units == "copies/l wastewater" ~ .data$lod_sewage / 1000,
         pcr_target_units == "log10 copies/l wastewater" ~
-          (10^(lod_sewage)) / 1000
+          (10^(.data$lod_sewage)) / 1000
       ),
     ) |>
     dplyr::filter(
-      !quality_flag %in%
+      !.data$quality_flag %in%
         c(
           "yes",
           "y",
@@ -386,32 +388,34 @@ clean_and_filter_nwss_data <- function(raw_nwss_data) {
   )
   nwss_subset <- nwss_subset_raw |>
     mutate(
-      lod_sewage = ifelse(is.na(lod_sewage), conservative_lod, lod_sewage),
-      sample_collect_date = lubridate::ymd(sample_collect_date)
+      lod_sewage = tidyr::replace_na(.data$lod_sewage, !!conservative_lod),
+      sample_collect_date = lubridate::ymd(.data$sample_collect_date)
     )
 
   # If there are multiple values per lab-site-day, replace with the mean
   nwss_subset_clean <- nwss_subset |>
-    group_by(wwtp_name, lab_id, sample_collect_date) |>
+    group_by(.data$wwtp_name, .data$lab_id, .data$sample_collect_date) |>
     mutate(
-      pcr_target_avg_conc = mean(pcr_target_avg_conc, na.rm = TRUE)
+      pcr_target_avg_conc = mean(.data$pcr_target_avg_conc, na.rm = TRUE),
+      pcr_target_flowpop_lin = mean(.data$pcr_target_flowpop_lin, na.rm = TRUE)
     ) |>
     ungroup() |>
     distinct() |>
     # If there are multiple population sizes in a site, replace with the mean
     # and round to the nearest whole number
-    group_by(wwtp_name) |>
+    group_by(.data$wwtp_name) |>
     mutate(
-      population_served = round(mean(population_served, na.rm = TRUE), 0),
+      population_served = round(mean(.data$population_served, na.rm = TRUE), 0),
     ) |>
     dplyr::select(
-      sample_collect_date,
-      wwtp_name,
-      lab_id,
-      pcr_target_avg_conc,
-      wwtp_jurisdiction,
-      lod_sewage,
-      population_served
+      "sample_collect_date",
+      "wwtp_name",
+      "lab_id",
+      "pcr_target_avg_conc",
+      "pcr_target_flowpop_lin",
+      "wwtp_jurisdiction",
+      "lod_sewage",
+      "population_served"
     )
 
   return(nwss_subset_clean)

@@ -233,6 +233,7 @@ collated_output_targets <- list(
           .default = .data$model
         )
       ) |>
+      # jarl-ignore internal_function: workaround for non-scoringutils table save
       scoringutils:::as_scores(
         metrics = names(wweval::sample_metrics)
       )
@@ -255,6 +256,7 @@ collated_output_targets <- list(
           .default = .data$model
         )
       ) |>
+      # jarl-ignore internal_function: workaround for non-scoringutils table save
       scoringutils:::as_scores(
         metrics = names(wweval::sample_metrics)
       )
@@ -338,6 +340,7 @@ collated_output_targets <- list(
           .default = .data$model
         )
       ) |>
+      # jarl-ignore internal_function: workaround for non-scoringutils table save
       scoringutils:::as_scores(
         metrics = names(wweval::quantile_metrics)
       )
@@ -360,6 +363,7 @@ collated_output_targets <- list(
           .default = .data$model
         )
       ) |>
+      # jarl-ignore internal_function: workaround for non-scoringutils table save
       scoringutils:::as_scores(
         metrics = names(wweval::quantile_metrics)
       )
@@ -493,7 +497,7 @@ collated_output_targets <- list(
     name = date_locs_ww_converged_retro,
     command = dplyr::filter(
       convergence_df_ww,
-      .data$any_flags_ww == FALSE
+      !.data$any_flags_ww
     ) |>
       dplyr::select("forecast_date", "location")
   ),
@@ -501,7 +505,7 @@ collated_output_targets <- list(
     name = date_locs_hosp_converged_retro,
     command = dplyr::filter(
       convergence_df_hosp,
-      .data$any_flags_hosp == FALSE
+      !.data$any_flags_hosp
     ) |>
       dplyr::select("forecast_date", "location")
   ),
@@ -626,6 +630,7 @@ collated_output_targets <- list(
       ) |>
       add_horizons(target_end_date_col = "date") |>
       dplyr::select(-"scenario") |>
+      # jarl-ignore internal_function: workaround for non-scoringutils table save
       scoringutils:::as_scores(
         metrics = names(wweval::sample_metrics)
       )
@@ -715,6 +720,7 @@ real_time_rel_targets <- list(
         date_locs_to_compare_real_time,
         by = c("forecast_date", "location")
       ) |>
+      # jarl-ignore internal_function: workaround for non-scoringutils table save
       scoringutils:::as_scores(
         metrics = names(
           wweval::quantile_metrics
@@ -1787,6 +1793,19 @@ composite_figure_targets <- list(
       baseline = "cfa-hosponlyrenewal(retro)",
       by = c("forecast_date", "location")
     )
+  ),
+  tar_target(
+    name = save_table_rel_crps_cfa_models_by_t_loc,
+    command = {
+      fp <- fs::path(
+        eval_config$score_subdir,
+        "rel_crps_cfa_models_by_t_loc",
+        ext = "parquet"
+      )
+      forecasttools::write_tabular(table_rel_crps_cfa_models_by_t_loc, fp)
+      fp
+    },
+    format = "file"
   ),
   tar_target(
     rel_crps_heatmap_cfa_models,

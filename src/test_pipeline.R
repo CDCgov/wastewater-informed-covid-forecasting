@@ -4,7 +4,7 @@ e2e_result <- testthat::test_file(here::here(
   "test_end_to_end.R"
 ))
 
-if ("error" %in% class(e2e_result[[1]]$results[[1]])) {
+if (inherits(e2e_result[[1]]$results[[1]], "error")) {
   message("test failure")
   quit(save = "no", status = 1)
 }

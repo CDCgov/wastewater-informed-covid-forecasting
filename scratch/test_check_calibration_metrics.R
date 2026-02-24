@@ -43,7 +43,7 @@ get_interval_coverage <- function(quantile_coverage) {
   }
   # if observed data is above both quantiles, then the data is outside the
   # interval
-  if (all(!quantile_coverage)) {
+  if (!any(quantile_coverage)) {
     ic <- FALSE
   }
   # if observed data is above the lower quantile but below the upper quartile,
