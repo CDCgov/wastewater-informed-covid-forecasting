@@ -367,7 +367,7 @@ get_summary_ww_table <- function(
 
   n_insuff_ww <- ww_metadata |>
     dplyr::summarise(
-      n_ww_insuff = sum(.data$ww_sufficient == FALSE, na.rm = TRUE)
+      n_ww_insuff = sum(!.data$ww_sufficient, na.rm = TRUE)
     ) |>
     dplyr::pull("n_ww_insuff")
 
