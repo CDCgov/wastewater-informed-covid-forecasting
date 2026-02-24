@@ -2,9 +2,9 @@ name: "Lint R Code With JARL"
 
 on:
     push:
-        branches: [main]
+        branches: [prod]
     pull_request:
-        branches: [main]
+        branches: [prod]
 
 jobs:
     lint:
