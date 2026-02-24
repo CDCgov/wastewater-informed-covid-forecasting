@@ -32,7 +32,7 @@ order_horizons <- function(df) {
     dplyr::filter(!is.na(horizon)) |>
     dplyr::pull()
 
-  if (any(!horizon_names %in% horizon_order)) {
+  if (!all(horizon_names %in% horizon_order)) {
     cli::cli_abort(
       message = c(
         "Horizon names in dataframe differ from",
@@ -77,7 +77,7 @@ order_periods <- function(df) {
     dplyr::filter(!is.na(period)) |>
     dplyr::pull()
 
-  if (any(!period_names %in% period_order)) {
+  if (!all(period_names %in% period_order)) {
     cli::cli_abort(
       message = c(
         "Period names in dataframe differ from",
@@ -124,7 +124,7 @@ order_phases <- function(df) {
     dplyr::filter(!is.na(phase)) |>
     dplyr::pull()
 
-  if (any(!phase_names %in% phase_order)) {
+  if (!all(phase_names %in% phase_order)) {
     cli::cli_abort(
       message = c(
         "Phase names in dataframe differ from",

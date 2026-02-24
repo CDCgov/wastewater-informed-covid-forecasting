@@ -16,13 +16,13 @@ get_summary_metadata <- function(metadata) {
     )
 
   metadata_remove_insuff_ww <- metadata_summarized |>
-    dplyr::filter(ww_data_present == 1, ww_sufficient == TRUE)
+    dplyr::filter(ww_data_present == 1, ww_sufficient)
 
   n_insuff_ww <- nrow(metadata_summarized) -
     nrow(metadata_remove_insuff_ww)
 
   metadata_remove_conv_issues <- metadata_remove_insuff_ww |>
-    dplyr::filter(any_flags_hosp == FALSE, any_flags_ww == FALSE)
+    dplyr::filter(!any_flags_hosp, !any_flags_ww)
 
   n_conv_issues <- nrow(metadata_remove_insuff_ww) -
     nrow(metadata_remove_conv_issues)
@@ -59,9 +59,9 @@ plot_heatmap_metadata_retro <- function(metadata) {
     dplyr::mutate(
       metadata_cat = case_when(
         ww_data_present != 1 ~ "Wastewater data absent",
-        ww_sufficient != TRUE ~ "Wastewater data present but insufficient",
-        any_flags_ww == TRUE ~ "Wastewater model had convergence issues",
-        any_flags_hosp == TRUE ~ "Admissions-only model had convergence issues",
+        !ww_sufficient ~ "Wastewater data present but insufficient",
+        any_flags_ww ~ "Wastewater model had convergence issues",
+        any_flags_hosp ~ "Admissions-only model had convergence issues",
         TRUE ~ "Paired forecasts available for comparison"
       )
     )
@@ -178,8 +178,8 @@ plot_hub_submit_info_retro <- function(metadata) {
     dplyr::mutate(
       model_submitted = dplyr::case_when(
         ww_data_present != 1 ~ "hosp",
-        ww_sufficient != TRUE ~ "hosp",
-        any_flags_ww == TRUE ~ "hosp",
+        !ww_sufficient ~ "hosp",
+        any_flags_ww ~ "hosp",
         TRUE ~ "ww"
       )
     ) |>

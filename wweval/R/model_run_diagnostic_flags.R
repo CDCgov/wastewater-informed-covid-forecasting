@@ -77,10 +77,7 @@ get_convergence_df <- function(all_flags, scenario) {
   convergence_df <- all_flags |>
     dplyr::filter(.data$scenario == {{ scenario }}) |>
     dplyr::summarise(
-      any_flags = dplyr::if_any(
-        tidyselect::starts_with("flag"),
-        ~ . == TRUE
-      ),
+      any_flags = dplyr::if_any(tidyselect::starts_with("flag")),
       .by = c("location", "forecast_date", "scenario", "model_type")
     ) |>
     dplyr::select(
