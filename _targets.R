@@ -31,12 +31,12 @@ save_figure <- function(
     fig_name <- deparse(substitute(fig))
   }
   purrr::walk(formats, \(format) {
-      outpath <- fs::path(dir, fig_name, ext = format)
-      cowplot::save_plot(
-                   filename = outpath,
-                   plot = fig,
-                   ...
-               )
+    outpath <- fs::path(dir, fig_name, ext = format)
+    cowplot::save_plot(
+      filename = outpath,
+      plot = fig,
+      ...
+    )
   })
   invisible()
 }
