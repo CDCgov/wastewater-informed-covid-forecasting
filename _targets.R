@@ -24,19 +24,21 @@ save_figure <- function(
   fig,
   dir = fs::path_wd(),
   fig_name = NULL,
-  ext = "jpg",
+  formats = c("jpg", "eps"),
   ...
 ) {
   if (is.null(fig_name)) {
     fig_name <- deparse(substitute(fig))
   }
-  outpath <- fs::path(dir, fig_name, ext = ext)
-  cowplot::save_plot(
-    filename = outpath,
-    plot = fig,
-    ...
-  )
-  return(outpath)
+  purrr::walk(formats, \(format) {
+    outpath <- fs::path(dir, fig_name, ext = format)
+    cowplot::save_plot(
+      filename = outpath,
+      plot = fig,
+      ...
+    )
+  })
+  invisible()
 }
 
 filter_is_in <- function(df, column, values) {
@@ -1084,8 +1086,7 @@ hub_comparison_targets <- list(
       qq_plot_real_time,
       base_width = 7,
       base_height = 7
-    ),
-    format = "file"
+    )
   ),
   tar_target(
     name = interval_coverage_plot_real_time,
@@ -1105,8 +1106,7 @@ hub_comparison_targets <- list(
       interval_coverage_plot_real_time,
       base_width = 10,
       base_height = 6
-    ),
-    format = "file"
+    )
   ),
   tar_target(
     name = figure_rel_performance_real_time,
@@ -1125,8 +1125,7 @@ hub_comparison_targets <- list(
       figure_rel_performance_real_time,
       base_width = 12,
       base_height = 12
-    ),
-    format = "file"
+    )
   ),
   tar_target(
     name = hub_hist_rwis_all_time,
@@ -1258,8 +1257,7 @@ hub_comparison_targets <- list(
       fig_std_rank_all_time,
       base_width = 7,
       base_height = 7
-    ),
-    format = "file"
+    )
   ),
   tar_target(
     name = fig_std_rank_real_time,
@@ -1276,8 +1274,7 @@ hub_comparison_targets <- list(
       fig_std_rank_real_time,
       base_width = 7,
       base_height = 7
-    ),
-    format = "file"
+    )
   ),
   tar_target(
     name = figure_hub_comparison_all_time,
@@ -1305,8 +1302,7 @@ hub_comparison_targets <- list(
       figure_hub_comparison_real_time,
       base_width = 10.5,
       base_height = 12
-    ),
-    format = "file"
+    )
   ),
   tar_target(
     name = save_figure_hub_comparison_all_time,
@@ -1314,8 +1310,7 @@ hub_comparison_targets <- list(
       figure_hub_comparison_all_time,
       base_width = 10.5,
       base_height = 12
-    ),
-    format = "file"
+    )
   )
 )
 
@@ -1429,8 +1424,7 @@ trend_analysis_targets <- list(
       name = save_fig_trend_diff_scatter,
       command = save_fig_supp(
         fig_trend_diff_scatter
-      ),
-      format = "file"
+      )
     ),
     names = c("trend_metric", "diff_metric")
   )
@@ -1465,8 +1459,7 @@ composite_figure_targets <- list(
       fig_heatmap_metadata_retro,
       base_width = 8,
       base_height = 6
-    ),
-    format = "file"
+    )
   ),
   tar_target(
     name = fig_hub_submit_info_retro,
@@ -1480,8 +1473,7 @@ composite_figure_targets <- list(
       fig_hub_submit_info_retro,
       base_width = 8,
       base_height = 6
-    ),
-    format = "file"
+    )
   ),
   tar_target(
     name = fig_hub_submit_info_real_time,
@@ -1497,8 +1489,7 @@ composite_figure_targets <- list(
       fig_hub_submit_info_real_time,
       base_width = 8,
       base_height = 6
-    ),
-    format = "file"
+    )
   ),
   tar_target(
     name = list_of_summary_ww_tables,
@@ -1614,8 +1605,7 @@ composite_figure_targets <- list(
       figure_pred_act_three_locs,
       base_width = 12,
       base_height = 10
-    ),
-    format = "file"
+    )
   ),
   tar_target(
     name = fig_crps_three_example_locs,
@@ -1630,8 +1620,7 @@ composite_figure_targets <- list(
       fig_crps_three_example_locs,
       base_width = 10,
       base_height = 4
-    ),
-    format = "file"
+    )
   ),
   tar_target(
     name = ex_CA_forecast_score,
@@ -1767,8 +1756,7 @@ composite_figure_targets <- list(
       figure_example_scores,
       base_width = 10,
       base_height = 12
-    ),
-    format = "file"
+    )
   ),
   tar_target(
     name = score_summary_tables_cfa_models,
@@ -1908,8 +1896,7 @@ composite_figure_targets <- list(
       decomposed_crps_loc_cfa_models_all_time,
       base_width = 10,
       base_height = 5
-    ),
-    format = "file"
+    )
   ),
   tar_target(
     name = rel_crps_dist_by_horizon,
@@ -1950,8 +1937,7 @@ composite_figure_targets <- list(
   ),
   tar_target(
     name = save_qq_plot_retro_all_time,
-    command = save_fig_supp(qq_plot_retro_all_time),
-    format = "file"
+    command = save_fig_supp(qq_plot_retro_all_time)
   ),
   tar_target(
     name = interval_coverage_plot_all_time,
@@ -1967,8 +1953,7 @@ composite_figure_targets <- list(
       interval_coverage_plot_all_time,
       base_width = 10,
       base_height = 6
-    ),
-    format = "file"
+    )
   ),
   tar_target(
     name = figure_rel_performance_all_time,
@@ -2006,8 +1991,7 @@ additional_figure_targets <- list(
       plot_heatmap_hub_wis_retro,
       base_width = 10,
       base_height = 5
-    ),
-    format = "file"
+    )
   ),
   tar_target(
     name = plot_heatmap_crps_retro,
@@ -2023,8 +2007,7 @@ additional_figure_targets <- list(
       plot_heatmap_crps_retro,
       base_width = 10,
       base_height = 5
-    ),
-    format = "file"
+    )
   ),
   tar_target(
     name = plot_heatmap_wis_real_time,
@@ -2040,8 +2023,7 @@ additional_figure_targets <- list(
       plot_heatmap_wis_real_time,
       base_width = 10,
       base_height = 5
-    ),
-    format = "file"
+    )
   ),
   tar_target(
     name = fig_bias_t_cfa_retro,
@@ -2055,8 +2037,7 @@ additional_figure_targets <- list(
       fig_bias_t_cfa_retro,
       base_width = 10,
       base_height = 5
-    ),
-    format = "file"
+    )
   ),
   tar_target(
     name = fig_bias_t_hub,
@@ -2070,8 +2051,7 @@ additional_figure_targets <- list(
       fig_bias_t_hub,
       base_width = 10,
       base_height = 5
-    ),
-    format = "file"
+    )
   ),
   tar_target(
     name = fig_crps_by_horizon,
@@ -2086,8 +2066,7 @@ additional_figure_targets <- list(
       fig_crps_by_horizon,
       base_height = 8,
       base_width = 4
-    ),
-    format = "file"
+    )
   ),
   tar_target(
     name = fig_wis_by_horizon_hub,
@@ -2102,8 +2081,7 @@ additional_figure_targets <- list(
       fig_wis_by_horizon_hub,
       base_height = 8,
       base_width = 4
-    ),
-    format = "file"
+    )
   ),
   tar_target(
     name = avg_crps_by_horizon,
@@ -2174,8 +2152,7 @@ additional_figure_targets <- list(
         plot_ww_feb,
         base_width = 7,
         base_height = 7
-      ),
-      format = "file"
+      )
     )
   ),
   tar_map(
@@ -2211,8 +2188,7 @@ additional_figure_targets <- list(
         plot_score_scatter_real_time,
         base_width = 5,
         base_height = 5
-      ),
-      format = "file"
+      )
     )
   ),
   tar_map(
@@ -2248,8 +2224,7 @@ additional_figure_targets <- list(
         plot_score_scatter_retro,
         base_width = 5,
         base_height = 5
-      ),
-      format = "file"
+      )
     )
   )
 )
