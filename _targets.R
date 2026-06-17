@@ -638,9 +638,10 @@ collated_output_targets <- list(
       )
   ),
   tar_target(
-      name = score_subdir,
-      command = fs::dir_create(eval_config$score_subdir),
-      format = "file"),
+    name = score_subdir,
+    command = fs::dir_create(eval_config$score_subdir),
+    format = "file"
+  ),
   tar_target(
     name = save_table_crps_cfa_models_retro,
     command = {
@@ -917,8 +918,8 @@ hub_comparison_targets <- list(
   tar_target(
     name = save_hub_scores,
     command = {
-        fp <- fs::path(
-                      score_subdir,
+      fp <- fs::path(
+        score_subdir,
         "hub_scores_all_time",
         ext = "parquet"
       )
