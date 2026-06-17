@@ -638,10 +638,14 @@ collated_output_targets <- list(
       )
   ),
   tar_target(
+      name = score_subdir,
+      command = fs::dir_create(eval_config$score_subdir),
+      format = "file"),
+  tar_target(
     name = save_table_crps_cfa_models_retro,
     command = {
       fp <- fs::path(
-        eval_config$score_subdir,
+        score_subdir,
         "crps_cfa_models_retro",
         ext = "parquet"
       )
@@ -913,8 +917,8 @@ hub_comparison_targets <- list(
   tar_target(
     name = save_hub_scores,
     command = {
-      fp <- fs::path(
-        eval_config$score_subdir,
+        fp <- fs::path(
+                      score_subdir,
         "hub_scores_all_time",
         ext = "parquet"
       )
@@ -931,7 +935,7 @@ hub_comparison_targets <- list(
     name = save_scores_real_time,
     command = {
       fp <- fs::path(
-        eval_config$score_subdir,
+        score_subdir,
         "hub_scores_real_time",
         ext = "parquet"
       )
@@ -1786,7 +1790,7 @@ composite_figure_targets <- list(
     name = save_table_rel_crps_cfa_models_by_t_loc,
     command = {
       fp <- fs::path(
-        eval_config$score_subdir,
+        score_subdir,
         "rel_crps_cfa_models_by_t_loc",
         ext = "parquet"
       )
