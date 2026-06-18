@@ -2014,7 +2014,7 @@ bootstrap_targets <- list(
         command = plot_bootstrapped_score_ratios(table_bstrap_crps_by_t,
                                                  by = "forecast_date",
                                                  connect_points = TRUE)
-    )    
+    )
 )
 
 additional_figure_targets <- list(

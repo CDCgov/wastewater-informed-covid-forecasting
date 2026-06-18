@@ -8,7 +8,7 @@
 #' organized by bootstrap replicate id.
 #' @keywords internal
 .process_bstrap_samples <- function(df) {
-    df |> 
+    df |>
         dplyr::mutate(splits = purrr::map(.data$splits, as.data.frame)) |>
         tidyr::unnest(splits) |>
         dplyr::rename(crps_ww = "crps") |>
@@ -65,8 +65,8 @@
 #' models.
 #'
 #' Produces bootstrapped values  mean CRPS
-#' for each value of the provided grouping variable. Each 
-#' 
+#' for each value of the provided grouping variable. Each
+#'
 #' @param scores data frame of relative scores for the wastewater
 #' model with the admissions-only model as a baseline.
 #' @param n_replicates Number of bootstrap replicate datasets to produce.
@@ -81,16 +81,16 @@
 #'       sampled for that replicate.
 #'    - `bstrap_rel_crps`: ratio (ww / hosp) of the mean CRPS values for the two models
 #'       in that replicate dataset.
-#' 
+#'
 #' @export
 bootstrap_crps_values <- function(scores, n_replicates, by = NULL) {
-    
+
     .do_bootstrap <- function(scores, grp) {
         rsample::bootstraps(scores, times = n_replicates) |>
             .process_bstrap_samples() |>
-            .summarize_bstrap_crps() 
+            .summarize_bstrap_crps()
     }
-    
+
     samples <- scores |>
         dplyr::group_by(dplyr::pick(!!by)) |>
         dplyr::group_modify(.do_bootstrap)
@@ -138,7 +138,7 @@ plot_bootstrapped_score_ratios <- function(replicates,
 
     point_estimate_geom <- if(connect_points) forecasttools::geom_line_point else ggplot2::geom_point
 
-    
+
     plot <- dat_plot |>
         ggplot2::ggplot(ggplot2::aes(x = .data[[by]],
                                      y = .data$value)) +
@@ -153,7 +153,7 @@ plot_bootstrapped_score_ratios <- function(replicates,
                             fill = "darkblue") +
         ggplot2::scale_y_continuous(transform = "log10") +
         ggplot2::coord_cartesian(ylim = forecasttools::sym_limits(dat_plot$value,
-                                                                  transform = "log10")) + 
+                                                                  transform = "log10")) +
         get_plot_theme()
 
     if(by == ".x_value_placeholder") {
@@ -161,6 +161,6 @@ plot_bootstrapped_score_ratios <- function(replicates,
                                       axis.text.x = ggplot2::element_blank(),
                                       axis.title.x = ggplot2::element_blank())
     }
-    
+
     return(plot)
 }
