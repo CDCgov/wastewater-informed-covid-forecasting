@@ -89,7 +89,8 @@ Imports:
     rstan,
     tarchetypes,
     crew,
-    svglite
+    svglite,
+    rsample
 Suggests:
     httr,
     sessioninfo,
