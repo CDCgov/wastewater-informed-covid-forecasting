@@ -19,9 +19,9 @@ process_recent_trend_fits(
 )
 }
 \arguments{
-\item{hosp_fit}{\link[brms:brmsfit-class]{brms::brmsfit} object for the hospital admissions trend.}
+\item{hosp_fit}{\link[brms:brmsfit]{brms::brmsfit} object for the hospital admissions trend.}
 
-\item{ww_fit}{\link[brms:brmsfit-class]{brms::brmsfit} object for the wastewater trend.}
+\item{ww_fit}{\link[brms:brmsfit]{brms::brmsfit} object for the wastewater trend.}
 
 \item{forecast_date}{forecast_date for the trend fits.}
 

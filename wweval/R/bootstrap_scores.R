@@ -1,11 +1,12 @@
 #' Process a dataframe of bootstrapped CRPS values.
 #'
-#' @param df Output of [rsample::boostraps()] applied to a table of
+#' @param df Output of [rsample::bootstraps()] applied to a table of
 #' relative scores for the wastewater model, with columns `crps` and
 #' `mean_scores_ratio`.
 #'
 #' @return A tibble of replicate values for `crps_hosp` and `crps_ww`,
-#' organized by boostrap replicate id.
+#' organized by bootstrap replicate id.
+#' @keywords internal
 .process_bstrap_samples <- function(df) {
     df |> 
         dplyr::mutate(splits = purrr::map(.data$splits, as.data.frame)) |>
@@ -15,7 +16,7 @@
 }
 
 
-#' Summarize boostrapped CRPS
+#' Summarize bootstrapped CRPS
 #'
 #' @param df Data frame of replicate CRPS values for the two models,
 #' as the output of [.process_bstrap_samples()].
@@ -28,6 +29,7 @@
 #' for each replicate dataset and group, the mean CRPS for the admissions-only model
 #' for each replicate dataset and group, and the ratio of those two means for each
 #' replicate dataset and group.
+#' @keywords internal
 .summarize_bstrap_crps <- function(df, by = NULL) {
     by = c("id", by)
     return(dplyr::summarize(df,
@@ -37,14 +39,17 @@
                             .by = !!by))
 }
 
-#' Compute the ratio of boostrapped mean CRPS values for the two
+#' Compute the ratio of bootstrapped mean CRPS values for the two
 #' models.
 #'
-#' @param df Data frame of boostrapped CRPS values, as the output of
+#' @param df Data frame of bootstrapped CRPS values, as the output of
 #' [.summarize_bstrap_crps()]
 #' @param by Variables to summarize by when computing ratio of means.
 #' Passed as the `.by` argument to [dplyr::summarize()]. Default `NULL`.
-#' 
+#'
+#' @return table of the ratios
+#'
+#' @keywords internal
 .get_ratio_of_bstrap_means <- function(df, by = NULL) {
     return(dplyr::summarize(
                       df,
@@ -55,11 +60,11 @@
 }
 
 
-#' Create boostrapped replicates to estimate uncertainty in
+#' Create bootstrapped replicates to estimate uncertainty in
 #' the mean CRPS for the admissions-only and wastewater-informed
 #' models.
 #'
-#' Produces boostrapped values  mean CRPS
+#' Produces bootstrapped values  mean CRPS
 #' for each value of the provided grouping variable. Each 
 #' 
 #' @param scores data frame of relative scores for the wastewater
@@ -96,7 +101,7 @@ bootstrap_crps_values <- function(scores, n_replicates, by = NULL) {
 #' Plot bootstrapped CRPS ratios as pointintervals
 #'
 #' @param replicates Data frame of bootstrapped replicates,
-#' as the output of [boostrap_crps_values()].
+#' as the output of [bootstrap_crps_values()].
 #' @param by Stratification variable. Will become the x-axis
 #' of the plot. Default `NULL` (plot a single point-interval.
 #' @param connect_points Connect the points in the point intervals with lines?
@@ -106,7 +111,7 @@ bootstrap_crps_values <- function(scores, n_replicates, by = NULL) {
 #'
 #' @return The plot, as a ggplot object.
 #' @export
-plot_bootstrapped_ratios <- function(replicates,
+plot_bootstrapped_score_ratios <- function(replicates,
                                      by = NULL,
                                      connect_points = FALSE,
                                      order_by_point_estimate = FALSE) {

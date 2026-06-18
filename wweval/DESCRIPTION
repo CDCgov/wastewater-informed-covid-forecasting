@@ -100,10 +100,10 @@ SystemRequirements: CmdStan (>=2.34.1)
 Encoding: UTF-8
 Roxygen: list(markdown = TRUE)
 Config/Needs/check: rcmdcheck, testthat
-RoxygenNote: 7.3.2
 Remotes:
     stan-dev/cmdstanr,
     wwinference=CDCgov/ww-inference-model@v0.1.1,
     forecasttools=CDCgov/forecasttools
 LazyData: true
 Config/testthat/edition: 3
+Config/roxygen2/version: 8.0.0
