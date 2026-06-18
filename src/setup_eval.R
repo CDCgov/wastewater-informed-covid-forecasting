@@ -117,6 +117,8 @@ write_eval_config <- function(
   scoring_offset <- 1
   forecast_log_diff_offset <- scoring_offset
 
+  n_crps_bootstrap_replicates <- 10000
+
   iter_warmup <- 750
   iter_sampling <- 500
   n_chains <- 4
@@ -238,7 +240,8 @@ write_eval_config <- function(
     trend_hosp_lookback_days = trend_lookback_days,
     trend_ww_lookback_days = trend_lookback_days,
     scoring_offset = scoring_offset,
-    forecast_log_diff_offset = forecast_log_diff_offset
+    forecast_log_diff_offset = forecast_log_diff_offset,
+    n_crps_bootstrap_replicates = n_crps_bootstrap_replicates
   )
 
   wwinference::create_dir(config_dir)
