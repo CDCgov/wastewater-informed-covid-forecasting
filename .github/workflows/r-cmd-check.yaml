@@ -19,7 +19,9 @@ jobs:
       with:
         r-version: ${{matrix.r-version}}
         use-public-rspm: true
-        extra-repositories: "https://mc-stan.org/r-packages/"
+        extra-repositories:
+          - "https://mc-stan.org/r-packages/"
+          - "https://hubverse-org.r-universe.dev"
     - name: "Set up dependencies for wweval"
       uses: r-lib/actions/setup-r-dependencies@v2
       with:
