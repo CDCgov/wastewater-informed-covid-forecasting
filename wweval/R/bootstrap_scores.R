@@ -8,11 +8,11 @@
 #' organized by bootstrap replicate id.
 #' @keywords internal
 .process_bstrap_samples <- function(df) {
-    df |>
-        dplyr::mutate(splits = purrr::map(.data$splits, as.data.frame)) |>
-        tidyr::unnest(splits) |>
-        dplyr::rename(crps_ww = "crps") |>
-        dplyr::mutate(crps_hosp = .data$crps_ww / .data$mean_scores_ratio)
+  df |>
+    dplyr::mutate(splits = purrr::map(.data$splits, as.data.frame)) |>
+    tidyr::unnest(splits) |>
+    dplyr::rename(crps_ww = "crps") |>
+    dplyr::mutate(crps_hosp = .data$crps_ww / .data$mean_scores_ratio)
 }
 
 
@@ -31,12 +31,14 @@
 #' replicate dataset and group.
 #' @keywords internal
 .summarize_bstrap_crps <- function(df, by = NULL) {
-    by = c("id", by)
-    return(dplyr::summarize(df,
-                            bstrap_crps_ww = mean(.data$crps_ww),
-                            bstrap_crps_hosp = mean(.data$crps_hosp),
-                            bstrap_rel_crps = .data$bstrap_crps_ww / .data$bstrap_crps_hosp,
-                            .by = !!by))
+  by = c("id", by)
+  return(dplyr::summarize(
+    df,
+    bstrap_crps_ww = mean(.data$crps_ww),
+    bstrap_crps_hosp = mean(.data$crps_hosp),
+    bstrap_rel_crps = .data$bstrap_crps_ww / .data$bstrap_crps_hosp,
+    .by = !!by
+  ))
 }
 
 #' Compute the ratio of bootstrapped mean CRPS values for the two
@@ -51,12 +53,15 @@
 #'
 #' @keywords internal
 .get_ratio_of_bstrap_means <- function(df, by = NULL) {
-    return(dplyr::summarize(
-                      df,
-                      ratio_of_bstrap_means = mean(.data$bstrap_crps_ww) / mean(.data$bstrap_crps_hosp),
-                      .by = !!by) |>
-           dplyr::arrange(.data$ratio_of_bstrap_means)
-           )
+  return(
+    dplyr::summarize(
+      df,
+      ratio_of_bstrap_means = mean(.data$bstrap_crps_ww) /
+        mean(.data$bstrap_crps_hosp),
+      .by = !!by
+    ) |>
+      dplyr::arrange(.data$ratio_of_bstrap_means)
+  )
 }
 
 
@@ -84,18 +89,17 @@
 #'
 #' @export
 bootstrap_crps_values <- function(scores, n_replicates, by = NULL) {
+  .do_bootstrap <- function(scores, grp) {
+    rsample::bootstraps(scores, times = n_replicates) |>
+      .process_bstrap_samples() |>
+      .summarize_bstrap_crps()
+  }
 
-    .do_bootstrap <- function(scores, grp) {
-        rsample::bootstraps(scores, times = n_replicates) |>
-            .process_bstrap_samples() |>
-            .summarize_bstrap_crps()
-    }
+  samples <- scores |>
+    dplyr::group_by(dplyr::pick(!!by)) |>
+    dplyr::group_modify(.do_bootstrap)
 
-    samples <- scores |>
-        dplyr::group_by(dplyr::pick(!!by)) |>
-        dplyr::group_modify(.do_bootstrap)
-
-    return(samples)
+  return(samples)
 }
 
 #' Plot bootstrapped CRPS ratios as pointintervals
@@ -111,56 +115,66 @@ bootstrap_crps_values <- function(scores, n_replicates, by = NULL) {
 #'
 #' @return The plot, as a ggplot object.
 #' @export
-plot_bootstrapped_score_ratios <- function(replicates,
-                                     by = NULL,
-                                     connect_points = FALSE,
-                                     order_by_point_estimate = FALSE) {
-    replicates <- dplyr::ungroup(replicates)
-    if(is.null(by)) {
-        by <- ".x_value_placeholder"
-        replicates  <- replicates |> dplyr::mutate(!!by := by)
-    }
+plot_bootstrapped_score_ratios <- function(
+  replicates,
+  by = NULL,
+  connect_points = FALSE,
+  order_by_point_estimate = FALSE
+) {
+  replicates <- dplyr::ungroup(replicates)
+  if (is.null(by)) {
+    by <- ".x_value_placeholder"
+    replicates <- replicates |> dplyr::mutate(!!by := by)
+  }
 
-    point_estimates <- .get_ratio_of_bstrap_means(replicates, by = by)
+  point_estimates <- .get_ratio_of_bstrap_means(replicates, by = by)
 
+  if (order_by_point_estimate) {
+    replicates <- replicates |>
+      dplyr::mutate(
+        !!by := factor(
+          .data[[by]],
+          ordered = TRUE,
+          levels = point_estimates[[by]]
+        )
+      )
+  }
 
-    if(order_by_point_estimate) {
-        replicates <- replicates |>
-            dplyr::mutate(!!by := factor(
-                                .data[[by]],
-                                ordered = TRUE,
-                                levels = point_estimates[[by]]))
-    }
+  dat_plot <- replicates |>
+    dplyr::select(tidyselect::all_of(c("id", !!by, "bstrap_rel_crps"))) |>
+    tidyr::pivot_longer("bstrap_rel_crps")
 
-    dat_plot <- replicates |>
-        dplyr::select(tidyselect::all_of(c("id", !!by, "bstrap_rel_crps"))) |>
-        tidyr::pivot_longer("bstrap_rel_crps")
+  point_estimate_geom <- if (connect_points) {
+    forecasttools::geom_line_point
+  } else {
+    ggplot2::geom_point
+  }
 
-    point_estimate_geom <- if(connect_points) forecasttools::geom_line_point else ggplot2::geom_point
+  plot <- dat_plot |>
+    ggplot2::ggplot(ggplot2::aes(x = .data[[by]], y = .data$value)) +
+    ggplot2::geom_hline(yintercept = 1, linetype = "dashed", linewidth = 2) +
+    ggdist::stat_pointinterval(show_point = FALSE) +
+    point_estimate_geom(
+      data = point_estimates,
+      mapping = ggplot2::aes(y = .data$ratio_of_bstrap_means),
+      shape = 21,
+      size = 5,
+      fill = "darkblue"
+    ) +
+    ggplot2::scale_y_continuous(transform = "log10") +
+    ggplot2::coord_cartesian(
+      ylim = forecasttools::sym_limits(dat_plot$value, transform = "log10")
+    ) +
+    get_plot_theme()
 
+  if (by == ".x_value_placeholder") {
+    plot <- plot +
+      ggplot2::theme(
+        axis.ticks.x = ggplot2::element_blank(),
+        axis.text.x = ggplot2::element_blank(),
+        axis.title.x = ggplot2::element_blank()
+      )
+  }
 
-    plot <- dat_plot |>
-        ggplot2::ggplot(ggplot2::aes(x = .data[[by]],
-                                     y = .data$value)) +
-        ggplot2::geom_hline(yintercept = 1,
-                            linetype = "dashed",
-                            linewidth = 2) +
-        ggdist::stat_pointinterval(show_point = FALSE) +
-        point_estimate_geom(data = point_estimates,
-                            mapping = ggplot2::aes(y = .data$ratio_of_bstrap_means),
-                            shape = 21,
-                            size = 5,
-                            fill = "darkblue") +
-        ggplot2::scale_y_continuous(transform = "log10") +
-        ggplot2::coord_cartesian(ylim = forecasttools::sym_limits(dat_plot$value,
-                                                                  transform = "log10")) +
-        get_plot_theme()
-
-    if(by == ".x_value_placeholder") {
-        plot <- plot + ggplot2::theme(axis.ticks.x = ggplot2::element_blank(),
-                                      axis.text.x = ggplot2::element_blank(),
-                                      axis.title.x = ggplot2::element_blank())
-    }
-
-    return(plot)
+  return(plot)
 }
