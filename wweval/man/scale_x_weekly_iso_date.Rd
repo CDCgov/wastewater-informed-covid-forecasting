@@ -8,7 +8,7 @@ scale_x_weekly_iso_date(...)
 }
 \arguments{
 \item{...}{Keyword arguments passed to
-\code{\link[ggplot2:scale_date]{ggplot2::scale_x_date()}}.}
+\code{\link[ggplot2:scale_x_date]{ggplot2::scale_x_date()}}.}
 }
 \value{
 The scale.
