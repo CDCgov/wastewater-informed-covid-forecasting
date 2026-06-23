@@ -5,6 +5,8 @@ RUN Rscript -e "pak::pkg_install('github::stan-dev/cmdstanr')"
 RUN Rscript -e "cmdstanr::install_cmdstan()"
 RUN Rscript -e "pak::pkg_install('github::cdcgov/ww-inference-model')"
 RUN Rscript -e "pak::pkg_install('argparser')"
+RUN Rscript -e "pak::pkg_install('github::cdcgov/forecasttools@0.1.7')"
+
 
 ADD . /.
 
