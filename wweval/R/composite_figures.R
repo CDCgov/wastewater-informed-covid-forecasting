@@ -380,7 +380,6 @@ DDDD
 "
 
   fig <- patchwork::wrap_plots(
-    patchwork::guide_area(),
     A = abs_score_overall,
     B = rel_score_overall,
     C = rel_score_by_time,
@@ -388,11 +387,8 @@ DDDD
     design = design,
     guides = "collect"
   ) +
-    patchwork::plot_annotation(tag_levels = "A") &
-    theme(
-      legend.position = "top",
-      legend.justification = "center",
-      legend.title.position = "top"
+    patchwork::plot_annotation(tag_levels = "A") & theme(
+      legend.position = "none"
     )
 
   return(fig)
