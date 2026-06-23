@@ -78,4 +78,3 @@ bootstrap_crps_values <- function(scores, n_replicates, by = NULL) {
 
   return(samples)
 }
-

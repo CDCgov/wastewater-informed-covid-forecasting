@@ -42,8 +42,8 @@ plot_bootstrapped_score_values <- function(replicates) {
                         factor(ordered = TRUE,
                                levels = c("cfa-wwrenewal(retro)",
                                           "cfa-hosponlyrenewal(retro)")))
-  
-  
+
+
   plot <- dat_plot |>
       ggplot2::ggplot(ggplot2::aes(x = .data$name,
                                    y = .data$value,
