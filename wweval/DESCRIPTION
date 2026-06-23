@@ -103,6 +103,6 @@ RoxygenNote: 7.3.2
 Remotes:
     stan-dev/cmdstanr,
     wwinference=CDCgov/ww-inference-model@v0.1.1,
-    forecasttools=CDCgov/forecasttools
+    forecasttools=CDCgov/forecasttools@*release
 LazyData: true
 Config/testthat/edition: 3
