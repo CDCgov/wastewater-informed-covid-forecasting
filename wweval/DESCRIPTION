@@ -82,7 +82,7 @@ Imports:
     scoringutils,
     stringr,
     tidyselect,
-    forecasttools (>= 0.1.6),
+    forecasttools,
     brms,
     ggdist,
     RColorBrewer,
