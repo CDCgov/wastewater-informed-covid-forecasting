@@ -2006,8 +2006,8 @@ bootstrap_targets <- list(
     )
   ),
   tar_target(
-      name = fig_bstrap_abs_crps_overall,
-      command = plot_bootstrapped_score_values(table_bstrap_crps_overall)
+    name = fig_bstrap_abs_crps_overall,
+    command = plot_bootstrapped_score_values(table_bstrap_crps_overall)
   ),
   tar_target(
     name = fig_bstrap_rel_crps_overall,
@@ -2030,12 +2030,13 @@ bootstrap_targets <- list(
     )
   ),
   tar_target(
-      name = fig_bootstrap,
-      command = compose_bootstrap_fig(
-          fig_bstrap_abs_crps_overall,
-          fig_bstrap_rel_crps_overall,
-          fig_bstrap_rel_crps_by_t,
-          fig_bstrap_rel_crps_by_loc)
+    name = fig_bootstrap,
+    command = compose_bootstrap_fig(
+      fig_bstrap_abs_crps_overall,
+      fig_bstrap_rel_crps_overall,
+      fig_bstrap_rel_crps_by_t,
+      fig_bstrap_rel_crps_by_loc
+    )
   ),
   tar_target(
     name = save_fig_bootstrap,

@@ -369,11 +369,13 @@ DDDFF
 #' @param rel_score_by_location plot of (date-specific) score values by location with bootstrapped uncertainty intervals.
 #' @return patchwork object with all the elements combined
 #' @export
-compose_bootstrap_fig <- function(abs_score_overall,
-                                  rel_score_overall,
-                                  rel_score_by_time,
-                                  rel_score_by_location) {
-    design <- "
+compose_bootstrap_fig <- function(
+  abs_score_overall,
+  rel_score_overall,
+  rel_score_by_time,
+  rel_score_by_location
+) {
+  design <- "
 AABB
 CCCC
 DDDD
@@ -387,7 +389,8 @@ DDDD
     design = design,
     guides = "collect"
   ) +
-    patchwork::plot_annotation(tag_levels = "A") & theme(
+    patchwork::plot_annotation(tag_levels = "A") &
+    theme(
       legend.position = "none"
     )
 

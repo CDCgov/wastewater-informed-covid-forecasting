@@ -31,28 +31,34 @@
 plot_bootstrapped_score_values <- function(replicates) {
   replicates <- dplyr::ungroup(replicates)
   dat_plot <- replicates |>
-      dplyr::select(tidyselect::all_of(c("id",
-                                         "bstrap_crps_hosp",
-                                         "bstrap_crps_ww"))) |>
-      tidyr::pivot_longer(-"id") |>
-      dplyr::mutate(name = dplyr::recode_values(.data$name,
-                                                "bstrap_crps_hosp" ~ "cfa-hosponlyrenewal(retro)",
-                                                "bstrap_crps_ww" ~ "cfa-wwrenewal(retro)",
-                                                unmatched = "error") |>
-                        factor(ordered = TRUE,
-                               levels = c("cfa-wwrenewal(retro)",
-                                          "cfa-hosponlyrenewal(retro)")))
-
-
+    dplyr::select(tidyselect::all_of(c(
+      "id",
+      "bstrap_crps_hosp",
+      "bstrap_crps_ww"
+    ))) |>
+    tidyr::pivot_longer(-"id") |>
+    dplyr::mutate(
+      name = dplyr::recode_values(
+        .data$name,
+        "bstrap_crps_hosp" ~ "cfa-hosponlyrenewal(retro)",
+        "bstrap_crps_ww" ~ "cfa-wwrenewal(retro)",
+        unmatched = "error"
+      ) |>
+        factor(
+          ordered = TRUE,
+          levels = c("cfa-wwrenewal(retro)", "cfa-hosponlyrenewal(retro)")
+        )
+    )
   plot <- dat_plot |>
-      ggplot2::ggplot(ggplot2::aes(x = .data$name,
-                                   y = .data$value,
-                                   fill = .data$name)) +
-      ggdist::stat_pointinterval(point_interval = "mean_qi",
-                                 shape = 21) +
-      ggplot2::scale_y_continuous(transform = "log10") +
-      scale_fill_model() +
-      get_plot_theme()
+    ggplot2::ggplot(ggplot2::aes(
+      x = .data$name,
+      y = .data$value,
+      fill = .data$name
+    )) +
+    ggdist::stat_pointinterval(point_interval = "mean_qi", shape = 21) +
+    ggplot2::scale_y_continuous(transform = "log10") +
+    scale_fill_model() +
+    get_plot_theme()
 
   return(plot)
 }
