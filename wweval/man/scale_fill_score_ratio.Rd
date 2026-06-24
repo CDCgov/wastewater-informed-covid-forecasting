@@ -8,7 +8,7 @@ scale_fill_score_ratio(...)
 }
 \arguments{
 \item{...}{Keyword arguments passed to
-\code{\link[ggplot2:scale_gradient]{ggplot2::scale_fill_gradient2()}}}
+\code{\link[ggplot2:scale_fill_gradient2]{ggplot2::scale_fill_gradient2()}}}
 }
 \value{
 The scale.

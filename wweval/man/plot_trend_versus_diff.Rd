@@ -16,7 +16,7 @@ plot_trend_versus_diff(
 )
 }
 \arguments{
-\item{data}{Dataframe to plot, as the output of \code{\link[ggdist:point_interval]{ggdist::mean_qi()}}
+\item{data}{Dataframe to plot, as the output of \code{\link[ggdist:mean_qi]{ggdist::mean_qi()}}
 or a related function.}
 
 \item{x_metric}{Name of the column containing the point estimate

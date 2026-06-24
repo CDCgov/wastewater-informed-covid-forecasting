@@ -2,7 +2,7 @@
 % Please edit documentation in R/pull_data.R
 \name{soql_is_in}
 \alias{soql_is_in}
-\title{Return a \code{\link[soql:soql_queries]{soql::soql_where()}} construct
+\title{Return a \code{\link[soql:soql_where]{soql::soql_where()}} construct
 for a given column being in a list of values}
 \usage{
 soql_is_in(soql_list, column, match_values)
@@ -22,6 +22,6 @@ A new soql object with the filter added,
 for use in other functions.
 }
 \description{
-Return a \code{\link[soql:soql_queries]{soql::soql_where()}} construct
+Return a \code{\link[soql:soql_where]{soql::soql_where()}} construct
 for a given column being in a list of values
 }

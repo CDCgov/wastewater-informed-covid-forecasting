@@ -36,7 +36,7 @@ reference y = x line. Default \code{2}.}
 reference y = x line. Default \code{"dashed"}.}
 
 \item{...}{additional keyword arguments passed to
-\code{\link[forecasttools:geom_path_point]{forecasttools::geom_line_point()}}
+\code{\link[forecasttools:geom_line_point]{forecasttools::geom_line_point()}}
 for the Q-Q lines for individual models.}
 }
 \value{
