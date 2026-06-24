@@ -14,7 +14,7 @@ scale_shape_model(...)
 }
 \arguments{
 \item{...}{Keyword arguments passed to
-\code{\link[ggplot2:scale_manual]{ggplot2::scale_*_manual()}}.}
+\code{\link[ggplot2:scale_fill_manual]{ggplot2::scale_*_manual()}}.}
 }
 \value{
 the ggplot scale
