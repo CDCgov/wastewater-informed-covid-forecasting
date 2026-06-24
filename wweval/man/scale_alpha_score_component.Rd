@@ -9,7 +9,7 @@ scale_alpha_score_component(...)
 }
 \arguments{
 \item{...}{Keyword arguments passed to
-\code{\link[ggplot2:scale_manual]{ggplot2::scale_alpha_manual()}}}
+\code{\link[ggplot2:scale_alpha_manual]{ggplot2::scale_alpha_manual()}}}
 }
 \value{
 the ggplot scale
