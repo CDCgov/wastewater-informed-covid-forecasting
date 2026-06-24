@@ -31,7 +31,7 @@
 #' replicate dataset and group.
 #' @keywords internal
 .summarize_bstrap_crps <- function(df, by = NULL) {
-  by = c("id", by)
+  by <- c("id", by)
   return(dplyr::summarize(
     df,
     bstrap_crps_ww = mean(.data$crps_ww),
