@@ -82,7 +82,7 @@ Imports:
     scoringutils,
     stringr,
     tidyselect,
-    forecasttools (>= 0.1.6),
+    forecasttools,
     brms,
     ggdist,
     RColorBrewer,
@@ -99,10 +99,10 @@ SystemRequirements: CmdStan (>=2.34.1)
 Encoding: UTF-8
 Roxygen: list(markdown = TRUE)
 Config/Needs/check: rcmdcheck, testthat
-RoxygenNote: 7.3.2
 Remotes:
     stan-dev/cmdstanr,
     wwinference=CDCgov/ww-inference-model@v0.1.1,
-    forecasttools=CDCgov/forecasttools
+    forecasttools=CDCgov/forecasttools@v0.1.7
 LazyData: true
 Config/testthat/edition: 3
+Config/roxygen2/version: 8.0.0
