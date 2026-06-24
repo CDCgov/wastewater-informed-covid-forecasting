@@ -8,7 +8,7 @@ Scatterplot of pointintervals, with both x and y intervals.}
 plot_pointinterval_scatter(data, x, y, ...)
 }
 \arguments{
-\item{data}{Dataframe to plot, as the output of \code{\link[ggdist:point_interval]{ggdist::mean_qi()}}
+\item{data}{Dataframe to plot, as the output of \code{\link[ggdist:mean_qi]{ggdist::mean_qi()}}
 or a related function.}
 
 \item{x}{Name of the x axis variable.}
