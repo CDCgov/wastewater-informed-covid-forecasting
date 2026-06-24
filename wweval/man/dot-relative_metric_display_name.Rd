@@ -17,3 +17,4 @@ The relative metric display name, as a character string.
 \description{
 Internal function for display names of relative metrics
 }
+\keyword{internal}

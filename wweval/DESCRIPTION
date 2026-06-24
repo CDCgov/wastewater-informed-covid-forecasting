@@ -82,7 +82,7 @@ Imports:
     scoringutils,
     stringr,
     tidyselect,
-    forecasttools (>= 0.1.6),
+    forecasttools,
     brms,
     ggdist,
     RColorBrewer,
@@ -103,7 +103,7 @@ Config/Needs/check: rcmdcheck, testthat
 Remotes:
     stan-dev/cmdstanr,
     wwinference=CDCgov/ww-inference-model@v0.1.1,
-    forecasttools=CDCgov/forecasttools
+    forecasttools=CDCgov/forecasttools@v0.1.7
 LazyData: true
 Config/testthat/edition: 3
 Config/roxygen2/version: 8.0.0
