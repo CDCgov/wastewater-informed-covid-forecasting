@@ -3,17 +3,9 @@
 #' as it would be passed as a `metric_to_compare` argument to
 #' [scoringutils::get_pairwise_comparisons()].
 #' @return The relative metric display name, as a character string.
+#' @keywords internal
 .relative_metric_display_name <- function(metric_to_compare) {
   return(glue::glue("Relative {toupper(metric_to_compare)}"))
-}
-
-#' Internal function for abbreviated display names of relative metrics
-#' @param metric_to_compare Name of the absolute metric,
-#' as it would be passed as a `metric_to_compare` argument to
-#' [scoringutils::get_pairwise_comparisons()].
-#' @return The relative metric display name, as a character string.
-.relative_metric_display_abbr <- function(metric_to_compare) {
-  return(glue::glue("r{toupper(metric_to_compare)}"))
 }
 
 
