@@ -361,7 +361,7 @@ DDDFF
 #' performance with bootstrapping
 #'
 #' @param abs_score_overall plot of overall absolute scores
-#' with boostrapped uncertainty intervals.
+#' with bootstrapped uncertainty intervals.
 #' @param rel_score_overall plot of overall relative score
 #' with bootstrapped uncertainty intervals.
 #' @param rel_score_by_time timeseries plot of relative score
