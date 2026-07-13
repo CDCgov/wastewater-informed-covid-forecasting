@@ -22,7 +22,7 @@
 }
 
 
-#' Plot boostrapped absolute CRPS values as pointintervals.
+#' Plot bootstrapped absolute CRPS values as pointintervals.
 #'
 #' @param replicates Data frame of bootstrapped replicates,
 #' as the output of [bootstrap_crps_values()].
@@ -69,7 +69,7 @@ plot_bootstrapped_score_values <- function(replicates) {
 #' @param replicates Data frame of bootstrapped replicates,
 #' as the output of [bootstrap_crps_values()].
 #' @param by Stratification variable. Will become the x-axis
-#' of the plot. Default `NULL` (plot a single point-interval.
+#' of the plot. Default `NULL` (plot a single point-interval).
 #' @param connect_points Connect the points in the point intervals with lines?
 #' Boolean, default `FALSE`.
 #' @param order_by_point_estimate Order x-axis values by the value of the point estimate
