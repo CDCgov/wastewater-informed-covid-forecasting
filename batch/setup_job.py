@@ -1,7 +1,11 @@
 import argparse
 import itertools
 import cfa.cloudops
-from azure.batch.models import BatchTaskDependencies
+from azure.batch.models import (
+    BatchTaskDependencies,
+    BatchJobCreateOptions,
+    BatchPoolInfo,
+)
 import yaml
 from cfa.cloudops.task import get_container_settings, get_task_config
 from cfa.cloudops.util import ensure_listlike
@@ -163,12 +167,15 @@ def main(
     log_blob_container = "wastewater-azure-logs"
 
     client = cfa.cloudops.CloudClient(keyvault="cfa-predict")
-    client.create_job(
-        job_name=job_id,
-        pool_name=pool_id,
-        save_logs_to_blob=log_blob_container,
-        logs_folder=job_id,
+
+    job = BatchJobCreateOptions(
+        id=job_id,
+        display_name=job_id,
+        pool_info=BatchPoolInfo(pool_id=pool_id),
+        uses_task_dependencies=uses_deps,
     )
+
+    client.batch_service_client.create_job(job)
     container_image = (
         f"ghcr.io/cdcgov/{container_image_name}:{container_image_version}"
     )
