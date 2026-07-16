@@ -1,7 +1,7 @@
 import argparse
 import itertools
 import cfa.cloudops
-import azure.batch.models as batchmodels
+from azure.batch.models import BatchTaskDependencies
 import yaml
 from cfa.cloudops.task import get_container_settings, get_task_config
 from cfa.cloudops.util import ensure_listlike
@@ -213,7 +213,7 @@ def main(
         task_deps = None
         if uses_task_dependencies:
             if task_type == "diff":
-                task_deps = batchmodels.TaskDependencies(
+                task_deps = BatchTaskDependencies(
                     task_ids=list(
                         {
                             f"{job_id}-postprocess-{task_name}",
@@ -222,14 +222,14 @@ def main(
                     )
                 )
             elif task_type == "postprocess" and model == "ww":
-                task_deps = batchmodels.TaskDependencies(
+                task_deps = BatchTaskDependencies(
                     task_ids=[
                         f"{job_id}-fit-{task_name}",
                         f"{job_id}-trendfit-{task_name}",
                     ]
                 )
             elif task_type != "fit":
-                task_deps = batchmodels.TaskDependencies(
+                task_deps = BatchTaskDependencies(
                     task_ids=[
                         f"{job_id}-fit-{task_name}",
                     ]
