@@ -1,4 +1,4 @@
-FROM docker.io/rocker/r-ver:4.5.0
+FROM docker.io/rocker/r-ver:4.6.0
 
 RUN Rscript -e "install.packages('pak')"
 RUN Rscript -e "pak::pkg_install('github::stan-dev/cmdstanr')"
