@@ -246,7 +246,7 @@ def main(
             log_blob_account=client.cred.azure_blob_storage_account,
             log_subdir=job_id,
         )
-        client.batch_service_client.task.add(job_id, task)
+        client.batch_service_client.create_task(job_id, task)
         return None
 
     possible_tasks = itertools.product(["ww", "hosp"], task_types)
