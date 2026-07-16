@@ -101,7 +101,7 @@ Roxygen: list(markdown = TRUE)
 Config/Needs/check: rcmdcheck, testthat
 Remotes:
     stan-dev/cmdstanr,
-    wwinference=CDCgov/ww-inference-model@v0.1.1,
+    wwinference=CDCgov/ww-inference-model@v0.1.2,
     forecasttools=CDCgov/forecasttools@v0.1.7
 LazyData: true
 Config/testthat/edition: 3
