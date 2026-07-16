@@ -72,10 +72,7 @@ Once you have followed the [general set-up instructions](#general-setup-for-inte
 az account show
 ```
 - Be inside a Python virtual environment in which the dependencies specified in `pyproject.toml` have been installed.
-- Have appropriately environment variables. You can check this by trying to `echo` one to the Terminal:
-```bash
-echo $AZURE_BATCH_ACCOUNT
-```
+
 
 ### Configuration files
 We specify evaluation jobs using [YAML-formatted](https://yaml.org/spec/) configuration files. These tell the pipeline to make and evaluate forecasts for one or more individual "forecasting problems". A forecasting problem is a forecast for a particular location as of a particular date using a particular model and particular set of available data.
@@ -101,7 +98,7 @@ We can now run compute jobs on our `wastewater-demo-pool`.
 A job is a set of tasks. Each task (by default) gets handed to 1 "node" (virtual machine) which (by default) runs it within a specified [OCI container](https://en.wikipedia.org/wiki/Open_Container_Initiative). "Containers" in this sense are a way of packaging code so it can run easily on a variety of operating systems / computers. For more on containers and how to customize the one we're use here, see ["Building the container image"](#building-the-container-image) below.
 
 > [!NOTE]
-> Containers have a default working directory. Azure Batch tasks _don't_ default to starting in the container's own default working directory. In this tutorial, we _would_ like to start our tasks in the container's working directory. For that reason, `setup_job.py` contains [this line](https://github.com/cdcent/cfa-forecast-renewal-ww/blob/91080eaf42ad63f3b1de9e89c6221f58fa55a941/batch/setup_job.py#L70), which explicitly instructs Azure to use the container's default working directory.
+> Containers have a default working directory. Azure Batch tasks in general _don't_ default to starting in the container's own default working directory. In this tutorial, we _would_ like to start our tasks in the container's working directory. But we are interacting with Batch via `cfa-cloudops`, which explicitly asks Azure to use the container's default working directory.
 
 In our example, `setup_job.py` creates a bunch of tasks. All of them consist of running the `run_eval.R` script for a given model fitting or postprocessing problem. To see a detailed help message that lists all the arguments, run
 ```bash
