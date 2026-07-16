@@ -1,13 +1,8 @@
 import argparse
 import itertools
-
-import azure.batch.models as batchmodels
 import yaml
-from azuretools.auth import EnvCredentialHandler
-from azuretools.client import get_batch_service_client
-from azuretools.job import create_job
-from azuretools.task import get_container_settings, get_task_config
-from azuretools.util import ensure_listlike
+import cfa.cloudops
+from cfa.cloudops.util import ensure_listlike
 
 
 def base_call(
@@ -151,6 +146,8 @@ def main(
     None
         Creating the job and its tasks as a side effect.
     """
+    client = cfa.cloudops.CloudClient(keyvault="cfa-predict")
+
     valid_job_types = ["fit", "trendfit", "postprocess", "diff", "all"]
     if job_type not in valid_job_types:
         raise ValueError(
@@ -161,32 +158,22 @@ def main(
     else:
         task_types = ensure_listlike(job_type)
 
-    creds = EnvCredentialHandler()
-
-    batch_service_client = get_batch_service_client(creds)
     uses_deps = job_type == "all"
-    job = batchmodels.JobAddParameter(
-        id=job_id,
-        pool_info=batchmodels.PoolInformation(pool_id=pool_id),
-        uses_task_dependencies=uses_deps,
+
+    client.create_job(
+        job_name=job_id,
+        pool_name=pool_id,
+        save_logs_to_blob="wastewater-azure-logs",
+        logs_folder=job_id,
     )
-    create_job(batch_service_client, job)
 
     container_image = (
         f"ghcr.io/cdcgov/{container_image_name}:{container_image_version}"
     )
-    container_settings = get_container_settings(
-        container_image,
-        working_directory="containerImageDefault",
-        mount_pairs=[
-            {"source": "input", "target": "/input"},
-            {
-                "source": "output",
-                "target": "/output",
-            },
-        ],
-    )
-    log_blob_container = "wastewater-azure-logs"
+    mount_pairs = [
+        {"source": "input", "target": "/input"},
+        {"source": "output", "target": "/output"},
+    ]
 
     with open(eval_config_file, "r") as stream:
         eval_spec = yaml.safe_load(stream)
@@ -213,45 +200,32 @@ def main(
         """
         task_name = f"{scenario}-{forecast_date}-{location}"
         associated_no_ww_task = f"no_wastewater-{forecast_date}-{location}"
-        task_id = f"{job_id}-{task_type}-{task_name}"
         task_deps = None
         if uses_task_dependencies:
             if task_type == "diff":
-                task_deps = batchmodels.TaskDependencies(
-                    task_ids=list(
-                        {
-                            f"{job_id}-postprocess-{task_name}",
-                            f"{job_id}-postprocess-{associated_no_ww_task}",
-                        }
-                    )
-                )
+                task_deps = [
+                    f"{job_id}-postprocess-{task_name}",
+                    f"{job_id}-postprocess-{associated_no_ww_task}",
+                ]
             elif task_type == "postprocess" and model == "ww":
-                task_deps = batchmodels.TaskDependencies(
-                    task_ids=[
-                        f"{job_id}-fit-{task_name}",
-                        f"{job_id}-trendfit-{task_name}",
-                    ]
-                )
+                task_deps = [
+                    f"{job_id}-fit-{task_name}",
+                    f"{job_id}-trendfit-{task_name}",
+                ]
             elif task_type != "fit":
-                task_deps = batchmodels.TaskDependencies(
-                    task_ids=[
-                        f"{job_id}-fit-{task_name}",
-                    ]
-                )
+                task_deps = [
+                    f"{job_id}-fit-{task_name}",
+                ]
         call = base_call(
             location, forecast_date, scenario, model, task_type, eval_spec
         )
-        task = get_task_config(
-            task_id,
-            base_call=call,
-            container_settings=container_settings,
+        client.add_task(
+            job_id,
+            call,
+            mount_pairs=mount_pairs,
+            container_image_name=container_image,
             depends_on=task_deps,
-            log_blob_container=log_blob_container,
-            log_blob_account=creds.azure_blob_storage_account,
-            log_subdir=job_id,
-            log_compute_node_identity_reference=creds.compute_node_identity_reference,
         )
-        batch_service_client.task.add(job_id, task)
         return None
 
     possible_tasks = itertools.product(["ww", "hosp"], task_types)

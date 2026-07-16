@@ -1,12 +1,7 @@
 #!/usr/bin/env python3
 
 import argparse
-
-import azuretools.defaults as d
-from azure.mgmt.batch import models
-from azuretools import blob
-from azuretools.auth import EnvCredentialHandler
-from azuretools.client import get_batch_management_client
+import cfa.cloudops
 
 
 def main(pool_name: str) -> None:
@@ -24,39 +19,19 @@ def main(pool_name: str) -> None:
     None
     """
 
-    creds = EnvCredentialHandler()
-    client = get_batch_management_client(creds)
-    node_id_ref = creds.compute_node_identity_reference
-    mount_config = blob.get_node_mount_config(
-        storage_containers=[
-            "wastewater-input",
-            "wastewater-ms-output",
+    client = cfa.cloudops.CloudClient(keyvault="cfa-predict")
+    client.create_pool(
+        pool_name=pool_name,
+        vm_size="small",
+        mounts=[
+            dict(source="wastewater-input", target="input"),
+            dict(source="wastewater-ms-output", target="output"),
         ],
-        mount_names=["input", "output"],
-        account_names=creds.azure_blob_storage_account,
-        identity_references=node_id_ref,
-    )
-    pool_config = d.get_default_pool_config(
-        pool_name=pool_name,
-        subnet_id=creds.azure_subnet_id,
-        user_assigned_identity=creds.azure_user_assigned_identity,
-        mount_configuration=mount_config,
-        vm_size=d.default_vm_size,
-    )
-
-    d.assign_container_config(
-        pool_config,
-        models.ContainerConfiguration(
-            type="dockerCompatible",
-            container_image_names=["ghcr.io/cdcgov/renewalww:latest"],
-        ),
-    )
-
-    client.pool.create(
-        resource_group_name=creds.azure_resource_group_name,
-        account_name=creds.azure_batch_account,
-        pool_name=pool_name,
-        parameters=pool_config,
+        container_image_name="ghcr.io/cdcgov/renewalww:latest",
+        max_autoscale_nodes=400,
+        low_priority_nodes=0,
+        cache_blobfuse=True,
+        replace_existing_pool=True,
     )
 
 
