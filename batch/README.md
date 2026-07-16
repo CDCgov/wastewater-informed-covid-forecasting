@@ -90,7 +90,7 @@ Once you have followed the [general set-up instructions](#general-setup-for-inte
 ```bash
 az account show
 ```
-- Be inside a Python virtual environment in which the dependencies specified in `batch/requirements.txt` have been installed.
+- Be inside a Python virtual environment in which the dependencies specified in `pyproject.toml` have been installed.
 - Have appropriately environment variables. You can check this by trying to `echo` one to the Terminal:
 ```bash
 echo $AZURE_BATCH_ACCOUNT
