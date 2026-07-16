@@ -245,7 +245,6 @@ def main(
             log_blob_container=log_blob_container,
             log_blob_account=client.cred.azure_blob_storage_account,
             log_subdir=job_id,
-            log_compute_node_identity_reference=client.cred.compute_node_identity_reference,
         )
         client.batch_service_client.task.add(job_id, task)
         return None
