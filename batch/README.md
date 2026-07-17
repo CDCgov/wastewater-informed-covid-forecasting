@@ -35,6 +35,14 @@ az login
 ```
 This will prompt you to go to a website to log in. A browser window will open automatically if you have one set up. CFA VAP WSL2 setups don't have a browser set up by default, so you may need to click on or copy paste the link you see in the terminal into a browser you open manually. In the browser, log in with your `@ext.cdc.gov` account when prompted. Once you have logged in, you can return to the command prompt.
 
+#### Credential handling
+The batch `setup_job.py` and `setup_pool.py` scripts require you to:
+- Be within the `ext.cdc.gov` subdomain (typically via working on the CFA VAP).
+- Be logged into an Azure account with access to the `cfa-predict` Azure keyvault.
+- Be logged into an Azure account with privileges to create pools, jobs, and tasks on within the default batch account specified in that keyvault.
+
+Provided all of that is true, the pool creation and job creation scripts should run succesfully without need for further authentication or configuration on your part. If you encounter authentication or privileges errors and have checked the above conditions, speak to a CFA Predict technical administrator.
+
 #### Python
 You will need a working installation of Python 3. Install it with:
 
