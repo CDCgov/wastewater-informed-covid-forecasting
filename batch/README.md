@@ -35,36 +35,25 @@ az login
 ```
 This will prompt you to go to a website to log in. A browser window will open automatically if you have one set up. CFA VAP WSL2 setups don't have a browser set up by default, so you may need to click on or copy paste the link you see in the terminal into a browser you open manually. In the browser, log in with your `@ext.cdc.gov` account when prompted. Once you have logged in, you can return to the command prompt.
 
+#### Credential handling
+The batch `setup_job.py` and `setup_pool.py` scripts require you to:
+- Be within the `ext.cdc.gov` subdomain (typically via working on the CFA VAP).
+- Be logged into an Azure account with access to the `cfa-predict` Azure keyvault.
+- Be logged into an Azure account with privileges to create pools, jobs, and tasks within the default batch account specified in that keyvault.
+
+Provided all of that is true, the pool creation and job creation scripts should run successfully without need for further authentication or configuration on your part. If you encounter authentication or privilege errors and have checked the above conditions, speak to a CFA Predict technical administrator.
+
 #### Python
-You will need a working installation of Python 3. Install and the default package manager `pip`. Install them with
+You will need a working installation of Python 3. Install it with:
 
 ```bash
 sudo apt install -y python3-pip
 ```
 
-Confirm you have working installations with `which python3` and `which pip`
+Confirm you have a working installation by running `python3` at the command line.
 
 #### Python virtual environments
 If you would like to isolate this project's required dependencies from the rest of your system Python 3 installation, you can use a Python virtual environment. This project is set up to use [`uv`](https://docs.astral.sh/uv/). Follow official instructions there to download and install it, and confirm you have it with `which uv`. The rest of this tutorial will assume you are using `uv`. If you are not, you will have to install dependencies against your system Python (or in your preferred virtual environment of choice), and replace all `uv run python` commands the appropriate `python`/`python3` etc command for your environment.
-
-### Set up environment variables
-We'll use the `EnvCredentialHandler` from the [`azuretools`](https://github.com/CDCgov/cfa-azuretools) Python library to handle credentials for CFA Azure resources. It looks for key configuration in your environment variables. CFA's STF Team provide a secret-free (but private) `azureconfig.sh` script to configure environment variables appropriately in their [SharePoint](https://cdc.sharepoint.com/:u:/r/teams/CenterforForecastingandOutbreakAnalytics/Shared%20Documents/General/02%20-%20Predict/Real%20Time%20Monitoring%20(RTM)%20Branch/Short%20Term%20Forecasts/azure/azureconfig.sh?csf=1&web=1&e=e7YBqr). Contact @dylanhmorris if you believe you should have access and do not. We recommend setting these environment variables as part of your Terminal setup.
-
-#### Recommended approach
-1. Save `azureconfig.sh` to your Linux user home directory. Confirm this worked by running `ls ~/` and checking that `azureconfig.sh` is among the files listed.
-1. Create or open the [`.bash_profile`](https://linuxopsys.com/dotfiles-in-linux-explained) file in your user home directory, i.e. the file located at
-```
-~/.bash_profile
-```
-
-3. Add the following line to your `.bash_profile`:
-```bash
-. azureconfig.sh
-```
-Note the `. `!
-
-
-Provided you have logged in to Azure at the command line (via `az login`) `EnvCredentialHandler` will be able to retrieve a set of valid credentials on your behalf from an Azure Key Vault. It will do this using the values of the environment variables defined in `azureconfig.sh`.
 
 
 ### Useful Azure GUI applications
@@ -90,11 +79,8 @@ Once you have followed the [general set-up instructions](#general-setup-for-inte
 ```bash
 az account show
 ```
-- Be inside a Python virtual environment in which the dependencies specified in `batch/requirements.txt` have been installed.
-- Have appropriately environment variables. You can check this by trying to `echo` one to the Terminal:
-```bash
-echo $AZURE_BATCH_ACCOUNT
-```
+- Be inside a Python virtual environment in which the dependencies specified in `pyproject.toml` have been installed.
+
 
 ### Configuration files
 We specify evaluation jobs using [YAML-formatted](https://yaml.org/spec/) configuration files. These tell the pipeline to make and evaluate forecasts for one or more individual "forecasting problems". A forecasting problem is a forecast for a particular location as of a particular date using a particular model and particular set of available data.
@@ -120,7 +106,7 @@ We can now run compute jobs on our `wastewater-demo-pool`.
 A job is a set of tasks. Each task (by default) gets handed to 1 "node" (virtual machine) which (by default) runs it within a specified [OCI container](https://en.wikipedia.org/wiki/Open_Container_Initiative). "Containers" in this sense are a way of packaging code so it can run easily on a variety of operating systems / computers. For more on containers and how to customize the one we're use here, see ["Building the container image"](#building-the-container-image) below.
 
 > [!NOTE]
-> Containers have a default working directory. Azure Batch tasks _don't_ default to starting in the container's own default working directory. In this tutorial, we _would_ like to start our tasks in the container's working directory. For that reason, `setup_job.py` contains [this line](https://github.com/cdcent/cfa-forecast-renewal-ww/blob/91080eaf42ad63f3b1de9e89c6221f58fa55a941/batch/setup_job.py#L70), which explicitly instructs Azure to use the container's default working directory.
+> Containers have a default working directory. Azure Batch tasks in general _don't_ default to starting in the container's own default working directory. In this tutorial, we _would_ like to start our tasks in the container's working directory. For this reason, `setup_job.py` explicitly sets the container working directory for batch jobs to the `"containerImageDefault"`.
 
 In our example, `setup_job.py` creates a bunch of tasks. All of them consist of running the `run_eval.R` script for a given model fitting or postprocessing problem. To see a detailed help message that lists all the arguments, run
 ```bash
