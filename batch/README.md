@@ -106,7 +106,7 @@ We can now run compute jobs on our `wastewater-demo-pool`.
 A job is a set of tasks. Each task (by default) gets handed to 1 "node" (virtual machine) which (by default) runs it within a specified [OCI container](https://en.wikipedia.org/wiki/Open_Container_Initiative). "Containers" in this sense are a way of packaging code so it can run easily on a variety of operating systems / computers. For more on containers and how to customize the one we're use here, see ["Building the container image"](#building-the-container-image) below.
 
 > [!NOTE]
-> Containers have a default working directory. Azure Batch tasks in general _don't_ default to starting in the container's own default working directory. In this tutorial, we _would_ like to start our tasks in the container's working directory. For this reason `setup_job.py` explicitly configures the container working directory for batch jobs defer to the `"containerImageDefault"`.
+> Containers have a default working directory. Azure Batch tasks in general _don't_ default to starting in the container's own default working directory. In this tutorial, we _would_ like to start our tasks in the container's working directory. For this reason, `setup_job.py` explicitly sets the container working directory for batch jobs to the `"containerImageDefault"`.
 
 In our example, `setup_job.py` creates a bunch of tasks. All of them consist of running the `run_eval.R` script for a given model fitting or postprocessing problem. To see a detailed help message that lists all the arguments, run
 ```bash
