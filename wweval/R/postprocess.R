@@ -364,9 +364,7 @@ postprocess_successful_fit <- function(
       )
   }
 
-  message("Saving raw draws and diagnostics...")
-  raw_draws <- stan_fit_obj$draws()
-  save_object(raw_draws, basename = glue::glue("{model}_raw_draws"))
+  message("Saving diagnostics...")
   diagnostic_df <- stan_fit_obj$sampler_diagnostics(format = "df")
   save_object(diagnostic_df, basename = glue::glue("{model}_diagnostics"))
   diagnostic_summary <- stan_fit_obj$diagnostic_summary()
@@ -396,9 +394,10 @@ postprocess_successful_fit <- function(
     type_of_output = "flags"
   )
 
-  message("Done with raw draws and diagnostics.")
-
   message("Plotting histograms of marginal posteriors...")
+
+  raw_draws <- stan_fit_obj$draws()
+
   hist_table_params <- c(
     "inf_feedback" = "infection_feedback",
     "sigma_rt" = "sigma_rt",
