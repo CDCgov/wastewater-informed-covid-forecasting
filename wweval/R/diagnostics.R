@@ -57,6 +57,37 @@ get_diagnostic_flags <- function(
   return(flag_df)
 }
 
+#' Compute the maximum rhat and minimum bulk and tail ESS from an array of parameters
+#'
+#' @param stanfit CmdStanR fit object
+#' @param parameter name of the array-valued parameter
+#' @param index_subject optional subset of indices to consider,
+#' e.g. `10:15`
+#' from the overall array
+#' @return tibble with the summary
+#' @export
+extract_parameter_diagnostics <- function(stanfit, parameter, index_subset) {
+  param_summary <- stanfit$summary(variables = parameter)
+
+  if (!is.null(index_subset)) {
+    param_summary <- param_summary[index_subset, ]
+  }
+
+  diagnostics <- param_summary |>
+    tibble::as_tibble() |>
+    dplyr::summarise(
+      max_rhat = max(.data$rhat),
+      which_max_rhat = .data$variable[which.max(.data$rhat)],
+
+      min_ess_bulk = min(.data$ess_bulk),
+      which_min_ess_bulk = .data$variable[which.min(.data$ess_bulk)],
+      min_ess_tail = min(.data$ess_tail),
+      which_min_ess_tail = .data$variable[which.min(.data$ess_tail)]
+    )
+
+  return(diagnostics)
+}
+
 
 #' Get convergence dataframe
 #' @description This function takes the larger dataframe of convergence
