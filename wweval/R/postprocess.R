@@ -812,16 +812,9 @@ eval_postprocess <- function(
 
   fit_obj_wwinference <- load_object(fit_obj_name)
   fit_obj <- fit_obj_wwinference$fit$result
-
+  fit_succeeded <- is.null(fit_obj$error)
   # If model fit failed, dont produce any of the below outputs
-  if (!is.null(fit_obj$error)) {
-    errors <- as.character(fit_obj$error)
-    save_object(errors)
-    save_fit_table(
-      data_to_save = errors,
-      type_of_output = "errors"
-    )
-  } else {
+  if (fit_succeeded) {
     postprocess_successful_fit(
       wwinference_fit_obj = fit_obj_wwinference,
       stan_fit_obj = fit_obj,
@@ -836,6 +829,13 @@ eval_postprocess <- function(
       eval_hosp_data = eval_hosp_data,
       eval_ww_data = eval_ww_data,
       offset = scoring_offset
+    )
+  } else {
+    errors <- as.character(fit_obj$error)
+    save_object(errors)
+    save_fit_table(
+      data_to_save = errors,
+      type_of_output = "errors"
     )
   }
 
