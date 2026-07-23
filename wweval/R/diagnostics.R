@@ -66,7 +66,11 @@ get_diagnostic_flags <- function(
 #' from the overall array
 #' @return tibble with the summary
 #' @export
-extract_parameter_diagnostics <- function(stanfit, parameter, index_subset) {
+extract_parameter_diagnostics <- function(
+  stanfit,
+  parameter,
+  index_subset = NULL
+) {
   param_summary <- stanfit$summary(variables = parameter)
 
   if (!is.null(index_subset)) {

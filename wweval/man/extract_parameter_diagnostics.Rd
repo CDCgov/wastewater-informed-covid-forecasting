@@ -4,7 +4,7 @@
 \alias{extract_parameter_diagnostics}
 \title{Compute the maximum rhat and minimum bulk and tail ESS from an array of parameters}
 \usage{
-extract_parameter_diagnostics(stanfit, parameter, index_subset)
+extract_parameter_diagnostics(stanfit, parameter, index_subset = NULL)
 }
 \arguments{
 \item{stanfit}{CmdStanR fit object}
