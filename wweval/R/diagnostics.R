@@ -57,28 +57,17 @@ get_diagnostic_flags <- function(
   return(flag_df)
 }
 
-#' Compute the maximum rhat and minimum bulk and tail ESS from an array of parameters
+#' Compute the maximum rhat and minimum bulk and tail ESS for
+#' all or a subset of parameters in a stan fit object.
 #'
 #' @param stanfit CmdStanR fit object
-#' @param parameter name of the array-valued parameter
-#' @param index_subject optional subset of indices to consider,
-#' e.g. `10:15`
-#' from the overall array
+#' @param variables parameter(s) to consider. Passed as the
+#' `variables` argument to [cmdstanr::CmdStanFit$summary].
+#' Default NULL (consider all).
 #' @return tibble with the summary
 #' @export
-extract_parameter_diagnostics <- function(
-  stanfit,
-  parameter,
-  index_subset = NULL
-) {
-  param_summary <- stanfit$summary(variables = parameter)
-
-  if (!is.null(index_subset)) {
-    param_summary <- param_summary[index_subset, ]
-  }
-
-  diagnostics <- param_summary |>
-    tibble::as_tibble() |>
+extract_diagnostic_extrema <- function(stanfit, variables = NULL) {
+  stanfit$summary(variables = variables, c("rhat", "ess_bulk", "ess_tail")) |>
     dplyr::summarise(
       max_rhat = max(.data$rhat),
       which_max_rhat = .data$variable[which.max(.data$rhat)],
@@ -88,8 +77,6 @@ extract_parameter_diagnostics <- function(
       min_ess_tail = min(.data$ess_tail),
       which_min_ess_tail = .data$variable[which.min(.data$ess_tail)]
     )
-
-  return(diagnostics)
 }
 
 
