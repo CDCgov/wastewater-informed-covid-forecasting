@@ -389,7 +389,7 @@ postprocess_successful_fit <- function(
 
   purrr::iwalk(diagnostic_param_groups, \(param, name) {
     extract_diagnostic_extrema(stan_fit_obj, variables = param) |>
-      save_fit_table(type_of_output = glue::glue("dianostic_extrema_{name}"))
+      save_fit_table(type_of_output = glue::glue("diagnostic_extrema_{name}"))
   })
 
   chain_run_time <- stan_fit_obj$time()$chains |>
