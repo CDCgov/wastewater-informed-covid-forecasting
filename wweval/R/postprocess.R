@@ -375,22 +375,22 @@ postprocess_successful_fit <- function(
 
   date_time_spine <- wwinference_fit_obj$raw_input_data$date_time_spine
   last_hosp_data_t <- wwinference_fit_obj$raw_input_data$input_count_data |>
-      dplyr::pull("t") |>
-      max()
+    dplyr::pull("t") |>
+    max()
   times_all <- date_time_spine$t
   times_scored <- times_all[times_all > last_hosp_data_t]
 
   diagnostic_param_groups <- c(
-      "lp" = "lp__",
-      "preds_all" = glue::glue("pred_hosp[{times_all}]"),
-      "preds_scored" = glue::glue("pred_hosp[{times_scored}]"),
-      "all" = NULL)
+    "lp" = "lp__",
+    "preds_all" = glue::glue("pred_hosp[{times_all}]"),
+    "preds_scored" = glue::glue("pred_hosp[{times_scored}]"),
+    "all" = NULL
+  )
 
   purrr::iwalk(diagnostic_param_groups, \(param, name) {
-      extract_diagnostic_extrema(stanfit, variables = param) |>
-          save_fit_table(type_of_output = glue::glue("dianostic_extrema_{name}"))
+    extract_diagnostic_extrema(stanfit, variables = param) |>
+      save_fit_table(type_of_output = glue::glue("dianostic_extrema_{name}"))
   })
-      
 
   chain_run_time <- stan_fit_obj$time()$chains |>
     tibble::as_tibble() |>
