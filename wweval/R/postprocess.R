@@ -388,7 +388,7 @@ postprocess_successful_fit <- function(
   )
 
   purrr::iwalk(diagnostic_param_groups, \(param, name) {
-    extract_diagnostic_extrema(stanfit, variables = param) |>
+    extract_diagnostic_extrema(stan_fit_obj, variables = param) |>
       save_fit_table(type_of_output = glue::glue("dianostic_extrema_{name}"))
   })
 
