@@ -380,7 +380,7 @@ postprocess_successful_fit <- function(
   times_all <- date_time_spine$t
   times_scored <- times_all[times_all > last_hosp_data_t]
 
-  diagnostic_param_groups <- c(
+  diagnostic_param_groups <- list(
     "lp" = "lp__",
     "preds_all" = glue::glue("pred_hosp[{times_all}]"),
     "preds_scored" = glue::glue("pred_hosp[{times_scored}]"),
