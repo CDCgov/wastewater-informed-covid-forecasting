@@ -437,7 +437,8 @@ get_filepath <- function(
       output_subdir,
       scenario,
       forecast_date,
-      model_type
+      model_type,
+      location
     ),
     output_type,
     ext = file_extension
