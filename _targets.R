@@ -424,6 +424,32 @@ collated_output_targets <- list(
     )
   ),
   tar_target(
+    name = chain_run_time_hosp,
+    command = combine_outputs(
+      output_type = "chain_run_time",
+      scenarios = "no_wastewater",
+      forecast_dates = eval_config$forecast_date_hosp,
+      locations = eval_config$location_hosp,
+      eval_output_subdir = eval_config$output_dir,
+      model_type = "hosp"
+    )
+  ),
+  tar_target(
+    name = chain_run_time_ww,
+    command = combine_outputs(
+      output_type = "chain_run_time",
+      scenarios = eval_config$scenario,
+      forecast_dates = eval_config$forecast_date_ww,
+      locations = eval_config$location_ww,
+      eval_output_subdir = eval_config$output_dir,
+      model_type = "ww"
+    )
+  ),
+  tar_target(
+    name = chain_run_time,
+    command = dplyr::bind_rows(chain_run_time_hosp, chain_run_time_ww)
+  ),
+  tar_target(
     name = all_ww_errors,
     command = combine_outputs(
       output_type = "errors",
