@@ -453,6 +453,9 @@ collated_output_targets <- list(
     name = worst_chain_run_times,
     command = dplyr::summarise(
       chain_run_time,
+      slowest_warmup_s = max(warmup),
+      slowest_sample_s = max(sample),
+      slowest_total_s = max(total),
       by = c("forecast_date", "location", "model_type", "scenario")
     )
   ),
