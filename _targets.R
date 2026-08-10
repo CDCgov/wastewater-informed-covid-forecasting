@@ -450,6 +450,13 @@ collated_output_targets <- list(
     command = dplyr::bind_rows(chain_run_time_hosp, chain_run_time_ww)
   ),
   tar_target(
+    name = worst_chain_run_times,
+    command = dplyr::summarise(
+      chain_run_time,
+      by = c("forecast_date", "location", "model_type", "scenario")
+    )
+  ),
+  tar_target(
     name = diagnostic_extrema_preds_scored_hosp,
     command = combine_outputs(
       output_type = "diagnostic_extrema_preds_scored",
