@@ -450,7 +450,7 @@ collated_output_targets <- list(
     command = dplyr::bind_rows(chain_run_time_hosp, chain_run_time_ww)
   ),
   tar_target(
-    name = worst_chain_run_times,
+    name = slowest_chain_run_times,
     command = dplyr::summarise(
       chain_run_time,
       slowest_warmup_s = max(warmup),
