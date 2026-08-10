@@ -42,7 +42,12 @@ combine_outputs <- function(
       "flags",
       "errors",
       "ww_data_flags",
-      "trend_draws"
+      "trend_draws",
+      "chain_run_time",
+      "diagnostic_extrema_all",
+      "diagnostic_extrema_lp",
+      "diagnostic_extrema_preds_all",
+      "diagnostic_extrema_preds_scored"
     )
   )
   to_combine <- tibble::tibble(
