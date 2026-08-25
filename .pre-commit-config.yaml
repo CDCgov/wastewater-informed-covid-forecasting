@@ -51,4 +51,4 @@ repos:
     rev: 0.5.0
     hooks:
       - id: jarl-check
-        args: ["--fix"]
+        args: ["--fix", "--allow-dirty"]
