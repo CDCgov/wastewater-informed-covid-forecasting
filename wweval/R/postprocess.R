@@ -246,11 +246,11 @@ get_state_level_ww_quantiles <- function(ww_draws) {
 save_table <- function(
   data_to_save,
   type_of_output,
-  output_dir,
-  scenario,
-  forecast_date,
+  output_dir = NULL,
+  scenario = NULL,
+  forecast_date = NULL,
   model_type = c("ww", "hosp"),
-  location
+  location = NULL
 ) {
   model_type <- arg_match(model_type)
   if (!is.null(data_to_save)) {
@@ -260,7 +260,7 @@ save_table <- function(
       forecast_date,
       model_type,
       location,
-      glue::glue("{type_of_output}"),
+      type_of_output,
       "tsv"
     )
 
@@ -333,6 +333,16 @@ postprocess_successful_fit <- function(
   )
   fs::dir_create(fig_save_dir)
 
+  ## get a function for saving tables with the appropriate structure
+  save_fit_table <- purrr::partial(
+    save_table,
+    output_dir = output_dir,
+    scenario = scenario,
+    forecast_date = forecast_date,
+    model_type = model,
+    location = location
+  )
+
   ggsave_plot <- function(plot, basename = NULL, ext = "png", ...) {
     if (is.null(basename)) {
       basename <- deparse(substitute(plot))
@@ -344,9 +354,17 @@ postprocess_successful_fit <- function(
     )
   }
 
-  message("Saving raw draws and diagnostics...")
-  raw_draws <- stan_fit_obj$draws()
-  save_object(raw_draws, basename = glue::glue("{model}_raw_draws"))
+  with_run_columns <- function(df) {
+    df |>
+      dplyr::mutate(
+        scenario = !!scenario,
+        forecast_date = !!forecast_date,
+        model_type = !!model,
+        location = !!location
+      )
+  }
+
+  message("Saving diagnostics...")
   diagnostic_df <- stan_fit_obj$sampler_diagnostics(format = "df")
   save_object(diagnostic_df, basename = glue::glue("{model}_diagnostics"))
   diagnostic_summary <- stan_fit_obj$diagnostic_summary()
@@ -355,32 +373,50 @@ postprocess_successful_fit <- function(
     basename = glue::glue("{model}_diagnostic_summary")
   )
 
+  date_time_spine <- wwinference_fit_obj$raw_input_data$date_time_spine
+  last_hosp_data_t <- wwinference_fit_obj$raw_input_data$input_count_data |>
+    dplyr::pull("t") |>
+    max()
+  times_all <- date_time_spine$t
+  times_scored <- times_all[times_all > last_hosp_data_t]
+
+  diagnostic_param_groups <- list(
+    "lp" = "lp__",
+    "preds_all" = glue::glue("pred_hosp[{times_all}]"),
+    "preds_scored" = glue::glue("pred_hosp[{times_scored}]"),
+    "all" = NULL
+  )
+
+  purrr::iwalk(diagnostic_param_groups, \(param, name) {
+    extract_diagnostic_extrema(stan_fit_obj, variables = param) |>
+      save_fit_table(type_of_output = glue::glue("diagnostic_extrema_{name}"))
+  })
+
+  chain_run_time <- stan_fit_obj$time()$chains |>
+    tibble::as_tibble() |>
+    with_run_columns()
+
+  save_fit_table(
+    data_to_save = chain_run_time,
+    type_of_output = "chain_run_time"
+  )
+
   raw_flags <- get_diagnostic_flags(
     stan_fit_obj
   )
   save_object(raw_flags)
 
-  flags <- raw_flags |>
-    dplyr::mutate(
-      scenario = scenario,
-      forecast_date = forecast_date,
-      model_type = model,
-      location = location
-    )
+  flags <- raw_flags |> with_run_columns()
   # Save flags
-  save_table(
+  save_fit_table(
     data_to_save = flags,
-    type_of_output = "flags",
-    output_dir = output_dir,
-    scenario = scenario,
-    forecast_date = forecast_date,
-    model_type = model,
-    location = location
+    type_of_output = "flags"
   )
 
-  message("Done with raw draws and diagnostics.")
-
   message("Plotting histograms of marginal posteriors...")
+
+  raw_draws <- stan_fit_obj$draws()
+
   hist_table_params <- c(
     "inf_feedback" = "infection_feedback",
     "sigma_rt" = "sigma_rt",
@@ -398,14 +434,9 @@ postprocess_successful_fit <- function(
       ggplot(aes(x = .data[[param_name]])) +
       geom_histogram()
     ggsave_plot(param_plot, basename = save_name)
-    save_table(
+    save_fit_table(
       data_to_save = param_draws,
-      type_of_output = save_name,
-      output_dir = output_dir,
-      scenario = scenario,
-      forecast_date = forecast_date,
-      model_type = model,
-      location = location
+      type_of_output = save_name
     )
   }
 
@@ -465,18 +496,13 @@ postprocess_successful_fit <- function(
   }
   save_object(hosp_quantiles)
 
-  save_table(
+  save_fit_table(
     data_to_save = full_hosp_quantiles,
     type_of_output = ifelse(
       ww_model,
       "hosp_quantiles",
       "quantiles"
-    ),
-    output_dir = output_dir,
-    scenario = scenario,
-    forecast_date = forecast_date,
-    model_type = model,
-    location = location
+    )
   )
 
   if (ww_model) {
@@ -498,14 +524,9 @@ postprocess_successful_fit <- function(
     }
     save_object(full_ww_quantiles)
     save_object(ww_quantiles)
-    save_table(
+    save_fit_table(
       data_to_save = full_ww_quantiles,
-      type_of_output = "ww_quantiles",
-      output_dir = output_dir,
-      scenario = scenario,
-      forecast_date = forecast_date,
-      model_type = model,
-      location = location
+      type_of_output = "ww_quantiles"
     )
   }
 
@@ -616,14 +637,9 @@ postprocess_successful_fit <- function(
     offset
   )
   save_object(hosp_scores)
-  save_table(
+  save_fit_table(
     data_to_save = hosp_scores,
-    type_of_output = "scores",
-    output_dir = output_dir,
-    scenario = scenario,
-    forecast_date = forecast_date,
-    model_type = model,
-    location = location
+    type_of_output = "scores"
   )
   hosp_scores_quantiles <- score_quantiles(
     hosp_quantiles,
@@ -631,14 +647,9 @@ postprocess_successful_fit <- function(
     offset
   )
   save_object(hosp_scores_quantiles)
-  save_table(
+  save_fit_table(
     data_to_save = hosp_scores_quantiles,
-    type_of_output = "scores_quantiles",
-    output_dir = output_dir,
-    scenario = scenario,
-    forecast_date = forecast_date,
-    model_type = model,
-    location = location
+    type_of_output = "scores_quantiles"
   )
 }
 
@@ -715,6 +726,15 @@ eval_postprocess <- function(
     scenario,
     raw_output_dir
   )
+  ## generate function for saving tsvs
+  save_fit_table <- purrr::partial(
+    save_table,
+    output_dir = output_dir,
+    scenario = scenario,
+    forecast_date = forecast_date,
+    model_type = model,
+    location = location
+  )
 
   wwinference::create_dir(output_dir)
   wwinference::create_dir(raw_output_dir)
@@ -737,14 +757,9 @@ eval_postprocess <- function(
       daily_hosp_admits = "count",
       pop = "total_pop"
     )
-  save_table(
+  save_fit_table(
     data_to_save = input_hosp_data_wweval,
-    type_of_output = "input_hosp_data",
-    output_dir = output_dir,
-    scenario = scenario,
-    forecast_date = forecast_date,
-    model_type = model,
-    location = location
+    type_of_output = "input_hosp_data"
   )
 
   if (ww_model) {
@@ -754,14 +769,9 @@ eval_postprocess <- function(
       location = location,
       forecast_date = forecast_date
     )
-    save_table(
+    save_fit_table(
       data_to_save = ww_data_flags,
-      type_of_output = "ww_data_flags",
-      output_dir = output_dir,
-      scenario = scenario,
-      forecast_date = forecast_date,
-      model_type = model,
-      location = location
+      type_of_output = "ww_data_flags"
     )
 
     if (!is.null(input_ww_data)) {
@@ -778,14 +788,9 @@ eval_postprocess <- function(
       input_ww_data_wweval <- NULL
     }
 
-    save_table(
+    save_fit_table(
       data_to_save = input_ww_data_wweval,
-      type_of_output = "input_ww_data",
-      output_dir = output_dir,
-      scenario = scenario,
-      forecast_date = forecast_date,
-      model_type = model,
-      location = location
+      type_of_output = "input_ww_data"
     )
 
     eval_ww_data <- purrr::safely(get_input_ww_data)(
@@ -825,21 +830,9 @@ eval_postprocess <- function(
 
   fit_obj_wwinference <- load_object(fit_obj_name)
   fit_obj <- fit_obj_wwinference$fit$result
-
+  fit_succeeded <- is.null(fit_obj$error)
   # If model fit failed, dont produce any of the below outputs
-  if (!is.null(fit_obj$error)) {
-    errors <- as.character(fit_obj$error)
-    save_object(errors)
-    save_table(
-      data_to_save = errors,
-      type_of_output = "errors",
-      output_dir = output_dir,
-      scenario = scenario,
-      forecast_date = forecast_date,
-      model_type = model,
-      location = location
-    )
-  } else {
+  if (fit_succeeded) {
     postprocess_successful_fit(
       wwinference_fit_obj = fit_obj_wwinference,
       stan_fit_obj = fit_obj,
@@ -854,6 +847,13 @@ eval_postprocess <- function(
       eval_hosp_data = eval_hosp_data,
       eval_ww_data = eval_ww_data,
       offset = scoring_offset
+    )
+  } else {
+    errors <- as.character(fit_obj$error)
+    save_object(errors)
+    save_fit_table(
+      data_to_save = errors,
+      type_of_output = "errors"
     )
   }
 

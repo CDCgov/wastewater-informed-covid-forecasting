@@ -97,6 +97,7 @@ def main(
     container_image_version: str = "latest",
     locations_only: list[str] = None,
     models_only: list[str] = None,
+    dates_only: list[str] = None,
 ) -> None:
     """
     Create an Azure batch evaluation job according to the given
@@ -274,7 +275,10 @@ def main(
             eval_spec[f"forecast_date_{model}"],
             eval_spec["scenario"],
         ):
-            if locations_only is None or loc in locations_only:
+            task_loc_and_date_valid = (
+                locations_only is None or loc in locations_only
+            ) and (dates_only is None or f_date in dates_only)
+            if task_loc_and_date_valid:
                 add_task(
                     location=loc,
                     forecast_date=f_date,
@@ -330,6 +334,18 @@ if __name__ == "__main__":
         ),
     )
     parser.add_argument(
+        "--dates-only",
+        type=str,
+        help=(
+            "Forecast dates to include in the Wob, as "
+            "a whitespace-separated string with dates in "
+            "YYYY-MM-DD format. Useful for "
+            "troubleshooting or for rerunning. "
+            "If not provided, use all dates specified "
+            "in the config."
+        ),
+    )
+    parser.add_argument(
         "--models-only",
         type=str,
         help=(
@@ -359,4 +375,6 @@ if __name__ == "__main__":
         parsed.locations_only = parsed.locations_only.split()
     if parsed.models_only is not None:
         parsed.models_only = parsed.models_only.split()
+    if parsed.dates_only is not None:
+        parsed.dates_only = parsed.dates_only.split()
     main(**vars(parsed))
