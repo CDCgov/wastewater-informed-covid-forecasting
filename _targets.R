@@ -638,10 +638,15 @@ collated_output_targets <- list(
       )
   ),
   tar_target(
+    name = score_subdir,
+    command = fs::dir_create(eval_config$score_subdir),
+    format = "file"
+  ),
+  tar_target(
     name = save_table_crps_cfa_models_retro,
     command = {
       fp <- fs::path(
-        eval_config$score_subdir,
+        score_subdir,
         "crps_cfa_models_retro",
         ext = "parquet"
       )
@@ -914,7 +919,7 @@ hub_comparison_targets <- list(
     name = save_hub_scores,
     command = {
       fp <- fs::path(
-        eval_config$score_subdir,
+        score_subdir,
         "hub_scores_all_time",
         ext = "parquet"
       )
@@ -931,7 +936,7 @@ hub_comparison_targets <- list(
     name = save_scores_real_time,
     command = {
       fp <- fs::path(
-        eval_config$score_subdir,
+        score_subdir,
         "hub_scores_real_time",
         ext = "parquet"
       )
@@ -1786,7 +1791,7 @@ composite_figure_targets <- list(
     name = save_table_rel_crps_cfa_models_by_t_loc,
     command = {
       fp <- fs::path(
-        eval_config$score_subdir,
+        score_subdir,
         "rel_crps_cfa_models_by_t_loc",
         ext = "parquet"
       )
@@ -1972,6 +1977,73 @@ composite_figure_targets <- list(
       figure_rel_performance_all_time,
       base_width = 12,
       base_height = 12
+    )
+  )
+)
+
+bootstrap_targets <- list(
+  tar_target(
+    name = table_bstrap_crps_overall,
+    command = bootstrap_crps_values(
+      table_rel_crps_cfa_models_by_t_loc,
+      n_replicates = eval_config$n_crps_bootstrap_replicates
+    )
+  ),
+  tar_target(
+    name = table_bstrap_crps_by_loc,
+    command = bootstrap_crps_values(
+      table_rel_crps_cfa_models_by_t_loc,
+      n_replicates = eval_config$n_crps_bootstrap_replicates,
+      by = "location"
+    )
+  ),
+  tar_target(
+    name = table_bstrap_crps_by_t,
+    command = bootstrap_crps_values(
+      table_rel_crps_cfa_models_by_t_loc,
+      n_replicates = eval_config$n_crps_bootstrap_replicates,
+      by = "forecast_date"
+    )
+  ),
+  tar_target(
+    name = fig_bstrap_abs_crps_overall,
+    command = plot_bootstrapped_score_values(table_bstrap_crps_overall)
+  ),
+  tar_target(
+    name = fig_bstrap_rel_crps_overall,
+    command = plot_bootstrapped_score_ratios(table_bstrap_crps_overall)
+  ),
+  tar_target(
+    name = fig_bstrap_rel_crps_by_loc,
+    command = plot_bootstrapped_score_ratios(
+      table_bstrap_crps_by_loc,
+      by = "location",
+      order_by_point_estimate = TRUE
+    )
+  ),
+  tar_target(
+    name = fig_bstrap_rel_crps_by_t,
+    command = plot_bootstrapped_score_ratios(
+      table_bstrap_crps_by_t,
+      by = "forecast_date",
+      connect_points = TRUE
+    )
+  ),
+  tar_target(
+    name = fig_bootstrap,
+    command = compose_bootstrap_fig(
+      fig_bstrap_abs_crps_overall,
+      fig_bstrap_rel_crps_overall,
+      fig_bstrap_rel_crps_by_t,
+      fig_bstrap_rel_crps_by_loc
+    )
+  ),
+  tar_target(
+    name = save_fig_bootstrap,
+    command = save_fig_supp(
+      fig_bootstrap,
+      base_width = 8,
+      base_height = 10
     )
   )
 )
@@ -2437,5 +2509,6 @@ list(
   trend_analysis_targets,
   composite_figure_targets,
   additional_figure_targets,
+  bootstrap_targets,
   reported_quantities_targets
 )

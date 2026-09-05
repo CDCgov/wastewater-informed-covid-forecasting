@@ -207,7 +207,7 @@ assert_needed_env_vars <- function(needed_vars) {
   which_missing <- vars == ""
   if (any(which_missing)) {
     cli::cli_abort(c(
-      "Could not find required environment variables ",
+      "Could not find required environment variable ",
       "{names(vars)[which_missing]}"
     ))
   }
