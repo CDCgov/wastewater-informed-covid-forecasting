@@ -11,6 +11,8 @@
 #' @param benchmark_dir the directory where to save the benchmarked performance
 #' for this run
 #' @param eval_date the data of the evaluation dataset, in ISO YYYY-MM-DD format
+#' @param param_file Path to the from which to read priors and other configuration
+#' not in this config.
 #' @param overwrite_summary_table Boolean indicating whether or not to overwrite
 #' internal summary table
 #' @param wwinference_version Character string indicating the version
@@ -32,6 +34,7 @@ write_eval_config <- function(
   scenario_dir,
   benchmark_dir,
   eval_date,
+  param_file,
   overwrite_summary_table,
   wwinference_version = sessioninfo::package_info(
     "wwinference",
@@ -202,6 +205,7 @@ write_eval_config <- function(
     output_dir = output_dir,
     hub_subdir = hub_subdir,
     benchmark_dir = benchmark_dir,
+    param_file = param_file,
     overwrite_benchmark = overwrite_benchmark,
     wwinference_version = wwinference_version,
     min_submissions_hub = min_submissions_hub,
@@ -322,10 +326,11 @@ write_eval_config(
   benchmark_dir = file.path("output", "benchmarking"),
   scenario_dir = file.path("input", "config", "eval", "scenarios"),
   eval_date = "2025-03-10",
+  param_file = "input/params_default.toml",
   overwrite_summary_table = FALSE, # Set as TRUE if trying to get a baseline
   # score for all locations one forecast date
   overwrite_benchmark = FALSE, # Set as TRUE if want to save outputs of
 
   # benchmarking in directory
-  wwinference_version = "v0.1.1"
+  wwinference_version = "v0.1.2"
 )
