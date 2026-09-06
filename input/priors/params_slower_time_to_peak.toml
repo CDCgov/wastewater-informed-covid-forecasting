@@ -1,7 +1,3 @@
-[metadata]
-parameter_set_name = "slower_time_to_peak"
-parameter_set_description = "Prior sensitivity analysis with slower time to peak."
-
 [timescale]
 uot = 50
 

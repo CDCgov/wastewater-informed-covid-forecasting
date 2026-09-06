@@ -1,7 +1,3 @@
-[metadata]
-parameter_set_name = "no_infection_feedback"
-parameter_set_description = "Prior sensitivity analysis reducing infection feedback to near zero."
-
 [timescale]
 uot = 50
 

@@ -1,7 +1,3 @@
-[metadata]
-parameter_set_name = "increased_rt_stepsize"
-parameter_set_description = "Prior sensitivity analysis with increased sigma_r (R(t) stepsize)"
-
 [timescale]
 uot = 50
 

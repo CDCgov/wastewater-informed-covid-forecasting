@@ -1,7 +1,3 @@
-[metadata]
-parameter_set_name = "default"
-parameter_set_description = "Default parameters for wastewater effect retrospective analysis."
-
 [timescale]
 uot = 50
 

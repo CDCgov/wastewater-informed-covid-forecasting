@@ -1,7 +1,3 @@
-[metadata]
-parameter_set_name = "increased_shedding_duration"
-parameter_set_description = "Prior sensitivity analysis with increased duration of shedding."
-
 [timescale]
 uot = 50
 

@@ -1,7 +1,3 @@
-[metadata]
-parameter_set_name = "increased_infection_feedback"
-parameter_set_description = "Prior sensitivity analysis with increased infection feedback."
-
 [timescale]
 uot = 50
 

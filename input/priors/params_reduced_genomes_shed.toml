@@ -1,7 +1,3 @@
-[metadata]
-parameter_set_name = "reduced_genomes_shed"
-parameter_set_description = "Prior sensitivity analysis on reducing number of genomes shed per infected individual"
-
 [timescale]
 uot = 50
 
