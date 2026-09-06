@@ -11,6 +11,7 @@
 #' @param benchmark_dir the directory where to save the benchmarked performance
 #' for this run
 #' @param eval_date the data of the evaluation dataset, in ISO YYYY-MM-DD format
+#' @param output_dir name of the directory in which to save output
 #' @param param_file Path to the from which to read priors and other configuration
 #' not in this config.
 #' @param overwrite_summary_table Boolean indicating whether or not to overwrite
@@ -34,6 +35,7 @@ write_eval_config <- function(
   scenario_dir,
   benchmark_dir,
   eval_date,
+  output_dir,
   param_file,
   overwrite_summary_table,
   wwinference_version = sessioninfo::package_info(
@@ -101,11 +103,10 @@ write_eval_config <- function(
   population_data_path <- file.path("input", "locations.csv")
   real_time_metadata_dir <- file.path("output", "forecasts")
   baseline_score_table_dir <- file.path("output", "baseline_score")
-  output_dir <- file.path("output", "eval_latest")
-  figure_dir <- file.path("output", "eval_latest", "plots")
-  hub_subdir <- file.path("output", "eval_latest", "hub")
+  figure_dir <- file.path(output_dir, "plots")
+  hub_subdir <- file.path(output_dir, "hub")
   retro_rt_path <- file.path("input", "retro_Rt", "Rt_draws.parquet")
-  score_subdir <- file.path("output", "eval_latest", "scores")
+  score_subdir <- file.path(output_dir, "scores")
   min_submissions_hub <- 20
   min_locs_per_submission_hub <- 40
   min_paired_forecasts_per_jurisdiction <- 4 #nolint
@@ -326,7 +327,8 @@ write_eval_config(
   benchmark_dir = file.path("output", "benchmarking"),
   scenario_dir = file.path("input", "config", "eval", "scenarios"),
   eval_date = "2025-03-10",
-  param_file = "input/params_default.toml",
+  output_dir = file.path("output", "zero_inf_feedback"),
+  param_file = "input/priors/params_no_infection_feedback.toml",
   overwrite_summary_table = FALSE, # Set as TRUE if trying to get a baseline
   # score for all locations one forecast date
   overwrite_benchmark = FALSE, # Set as TRUE if want to save outputs of
