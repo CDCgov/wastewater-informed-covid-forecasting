@@ -1,3 +1,7 @@
+[metadata]
+parameter_set_name = "increased_shedding_duration"
+parameter_set_description = "Prior sensitivity analysis with increased duration of shedding."
+
 [timescale]
 uot = 50
 
@@ -68,12 +72,10 @@ t_peak_mean = 5
 t_peak_sd = 1
 viral_peak_mean = 5.1
 viral_peak_sd = 0.5
-duration_shedding_mean = 17
+duration_shedding_mean = 28 # tail value from https://www.medrxiv.org/content/10.1101/2025.04.29.25326628v1.full
 duration_shedding_sd = 3
 log10_g_prior_mean = 12
 log10_g_prior_sd = 2
-log_g_prior_mean = 27.63102 # 12 * log(10)
-log_g_prior_sd = 4.60517 # 2 * log(10)
 
 mode_sigma_ww_site_prior_mode = 1
 mode_sigma_ww_site_prior_sd = 1
