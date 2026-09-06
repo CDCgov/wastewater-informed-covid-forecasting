@@ -38,7 +38,7 @@ def base_call(
             f"--scenario-dir {eval_spec['scenario_dir']} "
             f"--calibration-time {int(eval_spec['calibration_time'])} "
             f"--forecast-horizon {int(eval_spec['forecast_time'])} "
-            f"--params-path {eval_spec['params_path']} "
+            f"--params-path {eval_spec['param_file']} "
             f"--output-dir {eval_spec['output_dir']} "
             f"--raw-output-dir {eval_spec['raw_output_dir']} "
             f"--seed {int(eval_spec['seed'])} "
