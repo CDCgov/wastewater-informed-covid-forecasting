@@ -52,7 +52,7 @@ create_mock_submission_scores <- function(
           forecast_date == forecast_dates[i]
         )
       locs_present <- unique(scores_from_model$location)
-      needed_locs <- locations[!locations %in% locs_present]
+      needed_locs <- locations[locations %notin% locs_present]
 
       replacement_scores <- all_scores |>
         dplyr::filter(
