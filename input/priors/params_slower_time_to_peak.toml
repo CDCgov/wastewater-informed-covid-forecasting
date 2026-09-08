@@ -64,16 +64,15 @@ hosp_wday_effect_prior_alpha = [5, 5, 5, 5, 5, 5, 5]
 
 [wastewater_observation_process]
 ml_of_ww_per_person_day = 22.7e4
-t_peak_mean = 5
-t_peak_sd = 1
+t_peak_mean = 6
+t_peak_sd = 1.5
+# (95% PI approx 3-9, see https://www.medrxiv.org/content/10.1101/2025.04.29.25326628v1.full))
 viral_peak_mean = 5.1
 viral_peak_sd = 0.5
 duration_shedding_mean = 17
 duration_shedding_sd = 3
 log10_g_prior_mean = 12
 log10_g_prior_sd = 2
-log_g_prior_mean = 27.63102 # 12 * log(10)
-log_g_prior_sd = 4.60517 # 2 * log(10)
 
 mode_sigma_ww_site_prior_mode = 1
 mode_sigma_ww_site_prior_sd = 1
