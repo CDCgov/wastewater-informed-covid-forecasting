@@ -56,18 +56,13 @@ configuration_targets <- list(
     command = yaml::read_yaml(fs::path(
       "input",
       "config",
-      "eval",
-      "eval_config",
+      "prior_sens_slower_time_to_peak",
       ext = "yaml"
     ))
   ),
   tar_target(
     name = params,
-    command = wwinference::get_params(fs::path(
-      "input",
-      "params",
-      ext = "toml"
-    )) |>
+    command = wwinference::get_params(eval_config$param_file) |>
       tibble::as_tibble()
   ),
   tar_target(
@@ -119,6 +114,10 @@ configuration_targets <- list(
   tar_target(
     name = fig_supp_dir,
     command = fs::dir_create(fs::path(fig_output_dir, "supp"))
+  ),
+  tar_target(
+    name = score_subdir,
+    command = fs::dir_create(eval_config$score_subdir)
   ),
   tar_target(
     name = save_fig_main,
@@ -641,7 +640,7 @@ collated_output_targets <- list(
     name = save_table_crps_cfa_models_retro,
     command = {
       fp <- fs::path(
-        eval_config$score_subdir,
+        score_subdir,
         "crps_cfa_models_retro",
         ext = "parquet"
       )
@@ -914,7 +913,7 @@ hub_comparison_targets <- list(
     name = save_hub_scores,
     command = {
       fp <- fs::path(
-        eval_config$score_subdir,
+        score_subdir,
         "hub_scores_all_time",
         ext = "parquet"
       )
@@ -931,7 +930,7 @@ hub_comparison_targets <- list(
     name = save_scores_real_time,
     command = {
       fp <- fs::path(
-        eval_config$score_subdir,
+        score_subdir,
         "hub_scores_real_time",
         ext = "parquet"
       )
@@ -1786,7 +1785,7 @@ composite_figure_targets <- list(
     name = save_table_rel_crps_cfa_models_by_t_loc,
     command = {
       fp <- fs::path(
-        eval_config$score_subdir,
+        score_subdir,
         "rel_crps_cfa_models_by_t_loc",
         ext = "parquet"
       )
