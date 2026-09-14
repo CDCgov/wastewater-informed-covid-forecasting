@@ -39,7 +39,7 @@ exclude_hosp_outliers <- function(
     dates_to_exclude <- exclusions |>
       dplyr::pull({{ col_name_dates_to_exclude }})
     input_hosp_data <- raw_input_hosp_data |>
-      dplyr::filter(!date %in% c(dates_to_exclude))
+      dplyr::filter(date %notin% c(dates_to_exclude))
   }
 
   return(input_hosp_data)

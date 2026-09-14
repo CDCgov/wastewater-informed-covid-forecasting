@@ -19,7 +19,7 @@ order_horizons <- function(df) {
     "4 wks"
   )
 
-  if (!"horizon" %in% colnames(df)) {
+  if ("horizon" %notin% colnames(df)) {
     cli::cli_abort(
       message = c(
         "Column named `horizon` is missing from the dataframe"
@@ -64,7 +64,7 @@ order_periods <- function(df) {
     "Feb 2024-Mar 2024"
   )
 
-  if (!"period" %in% colnames(df)) {
+  if ("period" %notin% colnames(df)) {
     cli::cli_abort(
       message = c(
         "Column named `period` is missing from the dataframe"
@@ -111,7 +111,7 @@ order_phases <- function(df) {
     "uncertain"
   )
 
-  if (!"phase" %in% colnames(df)) {
+  if ("phase" %notin% colnames(df)) {
     cli::cli_abort(
       message = c(
         "Column named `phase` is missing from the dataframe"
@@ -160,7 +160,7 @@ order_locations <- function(df, score_name) {
     dplyr::arrange(geom_mean_rel_score, "desc") |>
     dplyr::pull(location)
 
-  if (!"location" %in% colnames(df)) {
+  if ("location" %notin% colnames(df)) {
     cli::cli_abort(
       message = c(
         "Column named `location` is missing from the dataframe"
