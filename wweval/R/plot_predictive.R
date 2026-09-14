@@ -205,7 +205,7 @@ plot_ribbon_hosp_quantiles <- function(
     )
 
   ## if no "model" column, substitute model_type
-  if (!("model" %in% colnames(hosp))) {
+  if ("model" %notin% colnames(hosp)) {
     hosp$model <- hosp$model_type
   }
 
