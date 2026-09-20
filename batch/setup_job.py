@@ -203,7 +203,7 @@ def main(
     ]:
         eval_spec[key] = ensure_listlike(eval_spec[key])
 
-    def add_task(
+    def configure_task(
         location: str,
         forecast_date: str,
         scenario: str,
@@ -244,7 +244,7 @@ def main(
         call = base_call(
             location, forecast_date, scenario, model, task_type, eval_spec
         )
-        task = get_task_config(
+        return get_task_config(
             task_id,
             base_call=call,
             container_settings=container_settings,
@@ -253,8 +253,6 @@ def main(
             log_blob_account=client.cred.azure_blob_storage_account,
             log_subdir=job_id,
         )
-        client.batch_service_client.create_task(job_id, task)
-        return None
 
     possible_tasks = itertools.product(["ww", "hosp"], task_types)
 
@@ -267,6 +265,7 @@ def main(
         return model_valid and not task_type_invalid
 
     tasks_to_create = filter(task_filter, possible_tasks)
+    task_configs_to_create = []
 
     for model, task_type in tasks_to_create:
         for loc, f_date, scen in zip(
@@ -275,16 +274,21 @@ def main(
             eval_spec["scenario"],
         ):
             if locations_only is None or loc in locations_only:
-                add_task(
-                    location=loc,
-                    forecast_date=f_date,
-                    scenario=scen if model == "ww" else "no_wastewater",
-                    model=model,
-                    task_type=task_type,
-                    uses_task_dependencies=uses_deps,
+                task_configs_to_create.append(
+                    configure_task(
+                        location=loc,
+                        forecast_date=f_date,
+                        scenario=scen if model == "ww" else "no_wastewater",
+                        model=model,
+                        task_type=task_type,
+                        uses_task_dependencies=uses_deps,
+                    )
                 )
             pass
         pass
+    client.batch_service_client.create_tasks(
+        job_id=job_id, task_collection=task_configs_to_create
+    )
     return None
 
 
