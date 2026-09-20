@@ -179,7 +179,10 @@ configuration_targets <- list(
       column = "model",
       values = cfa_model_names_retro
     )
-  ),
+  )
+)
+
+data_targets <- list(
   tar_target(
     name = eval_hosp_data,
     command = get_input_hosp_data(
@@ -189,30 +192,6 @@ configuration_targets <- list(
       calibration_time = 365, # Grab sufficient data for eval
       for_eval = TRUE # So we don't run wwinference::preprocess
     )
-  )
-)
-
-data_targets <- list(
-  tar_target(
-    name = eval_ww_data,
-    command = get_input_ww_data(
-      forecast_date_i = eval_config$eval_date,
-      location_i = unique(eval_config$location_ww),
-      scenario_i = "status_quo",
-      scenario_dir = eval_config$scenario_dir,
-      ww_data_dir = eval_config$ww_data_dir,
-      calibration_time = 365, # Grab sufficient data for eval
-      last_hosp_data_date = eval_config$eval_date,
-      ww_data_mapping = "most recent",
-      for_eval = TRUE
-    )
-  ),
-  tar_target(
-    name = grouped_eval_ww_data,
-    command = eval_ww_data |>
-      dplyr::group_by(.data$location) |>
-      targets::tar_group(),
-    iteration = "group"
   )
 )
 
