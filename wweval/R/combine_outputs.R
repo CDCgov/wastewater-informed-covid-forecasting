@@ -17,9 +17,12 @@
 #' @param locations The vector of character strings of all the locations
 #' @param eval_output_subdir The outer subdirectory of the nested file structure
 #' @param model_type The type of model, either `"ww"` or `"hosp"`
+#' @param strict Error if any of the expected outputs to combine are missing?
+#' Boolean, default `FALSE`.
 #'
 #' @return combined_output: a tibble with output types for all combinations of
-#' forecast_dates, locations, and scenarios
+#' forecast_dates, locations, and scenarios, or `NULL` if no outputs found
+#' and `strict` is `FALSE`
 #' @export
 #'
 combine_outputs <- function(
@@ -28,7 +31,8 @@ combine_outputs <- function(
   forecast_dates,
   locations,
   eval_output_subdir,
-  model_type
+  model_type,
+  strict = FALSE
 ) {
   checkmate::assert_scalar(output_type)
   checkmate::assert_names(
@@ -73,6 +77,14 @@ combine_outputs <- function(
       ) |>
         dplyr::mutate(success = TRUE)
     } else {
+      if (strict) {
+        cli::cli_abort(paste0(
+          "Could not find file at {fp} and strict ",
+          "was set to `TRUE`. Set strict = `FALSE` ",
+          "to allow missing files when collating ",
+          "output."
+        ))
+      }
       warning(glue::glue(
         "File missing for {scenario} ",
         "in {location} on {forecast_date}"

@@ -325,52 +325,6 @@ collated_output_targets <- list(
     )
   ),
   tar_target(
-    name = all_ww_scores_quantiles,
-    command = combine_outputs(
-      output_type = "scores_quantiles",
-      scenarios = eval_config$scenario,
-      forecast_dates = eval_config$forecast_date_ww,
-      locations = eval_config$location_ww,
-      eval_output_subdir = eval_config$output_dir,
-      model_type = "ww"
-    ) |>
-      dplyr::mutate(
-        model = dplyr::case_match(
-          .data$model,
-          "ww" ~ "cfa-wwrenewal(retro)",
-          "hosp" ~ "cfa-hosponlyrenewal(retro)",
-          .default = .data$model
-        )
-      ) |>
-      # jarl-ignore internal_function: workaround for non-scoringutils table save
-      scoringutils:::as_scores(
-        metrics = names(wweval::quantile_metrics)
-      )
-  ),
-  tar_target(
-    name = all_hosp_scores_quantiles,
-    command = combine_outputs(
-      output_type = "scores_quantiles",
-      scenarios = "no_wastewater",
-      forecast_dates = eval_config$forecast_date_hosp,
-      locations = eval_config$location_hosp,
-      eval_output_subdir = eval_config$output_dir,
-      model_type = "hosp"
-    ) |>
-      dplyr::mutate(
-        model = dplyr::case_match(
-          .data$model,
-          "ww" ~ "cfa-wwrenewal(retro)",
-          "hosp" ~ "cfa-hosponlyrenewal(retro)",
-          .default = .data$model
-        )
-      ) |>
-      # jarl-ignore internal_function: workaround for non-scoringutils table save
-      scoringutils:::as_scores(
-        metrics = names(wweval::quantile_metrics)
-      )
-  ),
-  tar_target(
     name = quantile_fcsts_ww_retro,
     command = combine_outputs(
       output_type = "hosp_quantiles",
@@ -505,9 +459,9 @@ collated_output_targets <- list(
   ),
   tar_target(
     name = date_locs_hosp_converged_retro,
-    command = dplyr::filter(
+    command = dplyr::filter_out(
       convergence_df_hosp,
-      !.data$any_flags_hosp
+      .data$any_flags_hosp
     ) |>
       dplyr::select("forecast_date", "location")
   ),
@@ -1532,7 +1486,8 @@ composite_figure_targets <- list(
       forecast_dates = forecast_date_to_plot,
       locations = locs_to_plot,
       eval_output_subdir = eval_config$output_dir,
-      model_type = "ww"
+      model_type = "ww",
+      strict = TRUE
     )
   ),
   tar_target(
@@ -2132,7 +2087,8 @@ additional_figure_targets <- list(
       forecast_dates = c("2024-02-12"),
       locations = c("OH", "IL"),
       eval_output_subdir = eval_config$output_dir,
-      model_type = "ww"
+      model_type = "ww",
+      strict = TRUE
     )
   ),
   tar_map(
