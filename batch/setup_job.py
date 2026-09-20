@@ -267,6 +267,8 @@ def main(
     tasks_to_create = filter(task_filter, possible_tasks)
     task_configs_to_create = []
 
+    print("Creating task configurations...")
+
     for model, task_type in tasks_to_create:
         for loc, f_date, scen in zip(
             eval_spec[f"location_{model}"],
@@ -286,9 +288,13 @@ def main(
                 )
             pass
         pass
+
+    print("Adding tasks to batch...")
     client.batch_service_client.create_tasks(
         job_id=job_id, task_collection=task_configs_to_create
     )
+    print("Done!")
+
     return None
 
 
