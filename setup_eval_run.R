@@ -1,3 +1,18 @@
+library(argparser)
+
+default_locations <- forecasttools::us_location_table |>
+  dplyr::filter_out(.data$abbr %in% c("GU", "MP", "UM", "VI", "AS", "US")) |>
+  dplyr::pull("abbr") # 50 states, DC, PR
+
+
+default_forecast_dates <- as.character(
+  seq(
+    from = lubridate::ymd("2023-10-16"),
+    to = lubridate::ymd("2024-03-25"),
+    by = "week"
+  )
+)
+
 #' Write evaluation config file
 #'
 #' @param locations locations to iterate through, for a full run this should
@@ -5,40 +20,33 @@
 #' @param forecast_dates the forecast dates we want to run the model on
 #' @param scenatios the scenarios (which will pertain to site ids) to
 #' run the model on
-#' @param config_dir the directory where we want to save the config file
 #' @param scenario_dir the directory where the files defining scenarios
 #' (default `.tsv` format) are located
-#' @param benchmark_dir the directory where to save the benchmarked performance
-#' for this run
 #' @param eval_date the data of the evaluation dataset, in ISO YYYY-MM-DD format
-#' @param overwrite_summary_table Boolean indicating whether or not to overwrite
-#' internal summary table
+#' @param output_dir name of the directory in which to save output
+#' @param param_file Path to the from which to read priors and other
+#' configuration not in this config.
 #' @param wwinference_version Character string indicating the version
 #' of the wwinference model being run. Default's to the version on disk.
-#' @param name_of_config Character string indicating the name of the
-#' config file to write, default is 'eval_config'
-#' @param overwrite_benchmark Boolean indicating whether or not to overwrite
-#' the benchmarking, default is false
 #'
 #' @return
 #' @export
 #'
 #' @examples
 write_eval_config <- function(
+  config_path,
   locations,
   forecast_dates,
   scenarios,
   config_dir,
   scenario_dir,
-  benchmark_dir,
   eval_date,
-  overwrite_summary_table,
+  output_dir,
+  param_file,
   wwinference_version = sessioninfo::package_info(
     "wwinference",
     dependencies = FALSE
-  )$source, # nolint
-  name_of_config = "eval_config",
-  overwrite_benchmark = FALSE
+  )$source # nolint
 ) {
   forecast_dates <- as.Date(forecast_dates)
   first_real_time_forecast_date <- max(
@@ -97,12 +105,10 @@ write_eval_config <- function(
   hosp_data_dir <- file.path("input", "hosp_data", "vintage_datasets")
   population_data_path <- file.path("input", "locations.csv")
   real_time_metadata_dir <- file.path("output", "forecasts")
-  baseline_score_table_dir <- file.path("output", "baseline_score")
-  output_dir <- file.path("output", "eval_latest")
-  figure_dir <- file.path("output", "eval_latest", "plots")
-  hub_subdir <- file.path("output", "eval_latest", "hub")
+  figure_dir <- file.path(output_dir, "plots")
+  hub_subdir <- file.path(output_dir, "hub")
   retro_rt_path <- file.path("input", "retro_Rt", "Rt_draws.parquet")
-  score_subdir <- file.path("output", "eval_latest", "scores")
+  score_subdir <- file.path(output_dir, "scores")
   min_submissions_hub <- 20
   min_locs_per_submission_hub <- 40
   min_paired_forecasts_per_jurisdiction <- 4 #nolint
@@ -198,11 +204,9 @@ write_eval_config <- function(
     ww_data_dir = ww_data_dir,
     scenario_dir = scenario_dir,
     hosp_data_dir = hosp_data_dir,
-    baseline_score_table_dir = baseline_score_table_dir,
     output_dir = output_dir,
     hub_subdir = hub_subdir,
-    benchmark_dir = benchmark_dir,
-    overwrite_benchmark = overwrite_benchmark,
+    param_file = param_file,
     wwinference_version = wwinference_version,
     min_submissions_hub = min_submissions_hub,
     min_locs_per_submission_hub = min_locs_per_submission_hub,
@@ -214,7 +218,6 @@ write_eval_config <- function(
     figure_dir = figure_dir,
     real_time_metadata_dir = real_time_metadata_dir,
     population_data_path = population_data_path,
-    overwrite_summary_table = overwrite_summary_table,
     calibration_time = calibration_time,
     forecast_time = forecast_time,
     ww_data_mapping = ww_data_mapping,
@@ -230,7 +233,6 @@ write_eval_config <- function(
     adapt_delta = adapt_delta,
     max_treedepth = max_treedepth,
     seed = seed,
-    name_of_config = name_of_config,
     # Input delay distributions
     generation_interval = generation_interval,
     infection_feedback_pmf = generation_interval,
@@ -241,91 +243,42 @@ write_eval_config <- function(
     forecast_log_diff_offset = forecast_log_diff_offset
   )
 
-  wwinference::create_dir(config_dir)
-  yaml::write_yaml(
-    config,
-    file = file.path(
-      config_dir,
-      glue::glue("{name_of_config}.yaml")
-    )
-  )
+  config_path |>
+    fs::path_dir() |>
+    fs::dir_create()
+
+  yaml::write_yaml(config, file = config_path)
 
   return(config)
 }
 
+
+parsed <- arg_parser(
+  "Generate a YAML configuration file for an evaluation run."
+) |>
+  add_argument(
+    "output_dir",
+    help = "Output directory for the evaluation run."
+  ) |>
+  add_argument(
+    "config_path",
+    help = "Path to save the config."
+  ) |>
+  add_argument(
+    "--priors",
+    help = "Path to a TOML file containing prior parameters for the evaluation run.",
+    default = "input/priors/params_default.toml"
+  ) |>
+  parse_args()
+
+
 write_eval_config(
-  locations = c(
-    "AK",
-    "AL",
-    "AR",
-    "AZ",
-    "CA",
-    "CO",
-    "CT",
-    "DC",
-    "DE",
-    "FL",
-    "GA",
-    "ND",
-    "HI",
-    "IA",
-    "ID",
-    "IL",
-    "IN",
-    "KS",
-    "KY",
-    "LA",
-    "MA",
-    "MD",
-    "ME",
-    "MI",
-    "MN",
-    "MO",
-    "MS",
-    "MT",
-    "NC",
-    "NE",
-    "NH",
-    "NJ",
-    "NM",
-    "NV",
-    "NY",
-    "OH",
-    "OK",
-    "OR",
-    "PA",
-    "PR",
-    "RI",
-    "SC",
-    "SD",
-    "TN",
-    "TX",
-    "UT",
-    "VA",
-    "VT",
-    "WA",
-    "WI",
-    "WV",
-    "WY"
-  ),
-  forecast_dates = as.character(
-    seq(
-      from = lubridate::ymd("2023-10-16"),
-      to = lubridate::ymd("2024-03-25"),
-      by = "week"
-    )
-  ),
-  scenarios = c(
-    "status_quo"
-  ),
-  config_dir = file.path("input", "config", "eval"),
-  benchmark_dir = file.path("output", "benchmarking"),
+  config_path = parsed$config_path,
+  locations = default_locations,
+  forecast_dates = default_forecast_dates,
+  scenarios = "status_quo",
   scenario_dir = file.path("input", "config", "eval", "scenarios"),
   eval_date = "2025-03-10",
-  overwrite_summary_table = FALSE, # Set as TRUE if trying to get a baseline
-  # score for all locations one forecast date
-  overwrite_benchmark = FALSE, # Set as TRUE if want to save outputs of
-
-  # benchmarking in directory
-  wwinference_version = "v0.1.1"
+  output_dir = parsed$output_dir,
+  param_file = parsed$priors
 )
