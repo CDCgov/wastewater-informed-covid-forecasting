@@ -38,11 +38,10 @@ combine_outputs <- function(
   checkmate::assert_names(
     output_type,
     subset.of = c(
-      "quantiles",
       "scores",
+      "hosp_quantiles",
       "ww_quantiles",
       "scores_quantiles",
-      "hosp_quantiles",
       "flags",
       "errors",
       "ww_data_flags",
