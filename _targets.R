@@ -46,7 +46,7 @@ filter_is_in <- function(df, column, values) {
 }
 
 filter_not_in <- function(df, column, values) {
-  return(dplyr::filter(df, !.data[[column]] %in% .env$values))
+  return(dplyr::filter_out(df, .data[[column]] %in% .env$values))
 }
 
 
@@ -56,7 +56,7 @@ configuration_targets <- list(
     command = yaml::read_yaml(fs::path(
       "input",
       "config",
-      "prior_sens_slower_time_to_peak",
+      config_file_name,
       ext = "yaml"
     ))
   ),
@@ -2426,8 +2426,20 @@ reported_quantities_targets <- list(
   )
 )
 
+configs <- tibble::tibble(
+  config_file_name = c(
+    "main_analysis",
+    "prior_sens_increased_inf_feedback",
+    "prior_sens_increased_rt_stepsize",
+    #    "prior_sens_increased_shedding_duration",
+    #    "prior_sens_no_infection_feedback",
+    #    "prior_sens_reduced_genomes_shed",
+    #    "prior_sens_slower_time_to_peak"
+  )
+)
 
-list(
+
+targets_for_all_analyses <- list(
   configuration_targets,
   data_targets,
   collated_output_targets,
@@ -2437,4 +2449,9 @@ list(
   composite_figure_targets,
   additional_figure_targets,
   reported_quantities_targets
+)
+
+tar_map(
+  configs,
+  targets_for_all_analyses
 )
