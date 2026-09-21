@@ -7,8 +7,13 @@ from azure.batch.models import (
     BatchPoolInfo,
 )
 import yaml
-from cfa.cloudops.task import get_container_settings, get_task_config
+from cfa.cloudops.task import (
+    get_container_settings,
+    get_task_config,
+    get_batch_compute_id,
+)
 from cfa.cloudops.util import ensure_listlike
+from cfa.cloudops.auth import get_compute_node_identity_reference
 
 
 def base_call(
@@ -38,7 +43,7 @@ def base_call(
             f"--scenario-dir {eval_spec['scenario_dir']} "
             f"--calibration-time {int(eval_spec['calibration_time'])} "
             f"--forecast-horizon {int(eval_spec['forecast_time'])} "
-            f"--params-path input/params.toml "
+            f"--params-path {eval_spec['param_file']} "
             f"--output-dir {eval_spec['output_dir']} "
             f"--raw-output-dir {eval_spec['raw_output_dir']} "
             f"--seed {int(eval_spec['seed'])} "
@@ -128,7 +133,7 @@ def main(
         the job. Default 'renewalww'.
         The container registry account name and endpoint
         will be obtained from local environment variables
-        via a :class``azuretools.auth.EnvCredentialHandler`.
+        by cfa-cloudops
 
     container_image_version
         Version of the container to use. Default 'latest'.
@@ -203,7 +208,10 @@ def main(
     ]:
         eval_spec[key] = ensure_listlike(eval_spec[key])
 
-    def add_task(
+    # do once to avoid many unnecessary calls in configure_task
+    node_id_ref = get_batch_compute_id(get_compute_node_identity_reference())
+
+    def configure_task(
         location: str,
         forecast_date: str,
         scenario: str,
@@ -244,7 +252,7 @@ def main(
         call = base_call(
             location, forecast_date, scenario, model, task_type, eval_spec
         )
-        task = get_task_config(
+        return get_task_config(
             task_id,
             base_call=call,
             container_settings=container_settings,
@@ -252,39 +260,74 @@ def main(
             log_blob_container=log_blob_container,
             log_blob_account=client.cred.azure_blob_storage_account,
             log_subdir=job_id,
+            log_compute_node_identity_reference=node_id_ref,
         )
-        client.batch_service_client.create_task(job_id, task)
-        return None
 
-    possible_tasks = itertools.product(["ww", "hosp"], task_types)
+    ww_forecast_problems = [
+        {
+            "model_type": "ww",
+            "location": loc,
+            "forecast_date": date,
+            "scenario": scen,
+        }
+        for loc, date, scen in zip(
+            eval_spec["location_ww"],
+            eval_spec["forecast_date_ww"],
+            eval_spec["scenario"],
+        )
+    ]
+    hosp_forecast_problems = [
+        {
+            "model_type": "hosp",
+            "location": loc,
+            "forecast_date": date,
+            "scenario": "no_wastewater",
+        }
+        for loc, date in zip(
+            eval_spec["location_hosp"], eval_spec["forecast_date_hosp"]
+        )
+    ]
+
+    forecast_problems = ww_forecast_problems + hosp_forecast_problems
+
+    possible_tasks = itertools.product(task_types, forecast_problems)
 
     def task_filter(task):
-        model, task_type = task
-        model_valid = models_only is None or model in models_only
-        task_type_invalid = (
-            task_type in ["trendfit", "diff"] and model == "hosp"
+        t_type, t_data = task
+        model_valid = (
+            models_only is None or t_data["model_type"] in models_only
         )
-        return model_valid and not task_type_invalid
+        location_valid = (
+            locations_only is None or t_data["location"] in locations_only
+        )
+        task_type_invalid = (
+            t_type in ["trendfit", "diff"] and t_data["model_type"] == "hosp"
+        )
 
-    tasks_to_create = filter(task_filter, possible_tasks)
+        return model_valid and location_valid and not task_type_invalid
 
-    for model, task_type in tasks_to_create:
-        for loc, f_date, scen in zip(
-            eval_spec[f"location_{model}"],
-            eval_spec[f"forecast_date_{model}"],
-            eval_spec["scenario"],
-        ):
-            if locations_only is None or loc in locations_only:
-                add_task(
-                    location=loc,
-                    forecast_date=f_date,
-                    scenario=scen if model == "ww" else "no_wastewater",
-                    model=model,
-                    task_type=task_type,
-                    uses_task_dependencies=uses_deps,
-                )
-            pass
-        pass
+    tasks_to_create = list(filter(task_filter, possible_tasks))
+    print(f"{len(tasks_to_create)} tasks to create")
+
+    print("Creating task configurations...")
+    task_configs = [
+        configure_task(
+            location=t_data["location"],
+            forecast_date=t_data["forecast_date"],
+            scenario=t_data["scenario"],
+            model=t_data["model_type"],
+            task_type=t_type,
+            uses_task_dependencies=uses_deps,
+        )
+        for t_type, t_data in tasks_to_create
+    ]
+
+    print("Adding tasks to batch...")
+    client.batch_service_client.create_tasks(
+        job_id=job_id, task_collection=task_configs
+    )
+    print("Done!")
+
     return None
 
 

@@ -31,7 +31,7 @@ input/config/eval/*
 # Do track certain static data
 !input/saved_pmfs
 !input/locations.csv
-!input/params.toml
+!input/priors
 
 # do track example eval configuration
 !input/config/
