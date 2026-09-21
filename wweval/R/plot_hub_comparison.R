@@ -184,7 +184,7 @@ relative_wis_histogram <- function(
       ),
       point_interval = "mean_qi",
       alpha = 0.5,
-      position = position_dodge(width = 0.75),
+      position = position_dodge(width = 0.75)
     ) +
     scale_y_continuous(trans = "log10") +
     get_plot_theme(
@@ -206,7 +206,7 @@ relative_wis_histogram <- function(
       legend.title = element_blank(),
       legend.text = element_text(size = 7)
     ) +
-    ylab(glue::glue("rWIS"))
+    ylab("rWIS")
 
   return(p)
 }
@@ -353,7 +353,7 @@ plot_std_rank_distribution <- function(
       point_shape = "|",
       point_size = 3,
       point_alpha = 1,
-      alpha = 0.7,
+      alpha = 0.7
     ) +
     scale_fill_viridis_d(guide = "none") +
     get_plot_theme() +

@@ -263,7 +263,7 @@ plot_ribbon_hosp_quantiles <- function(
         ymax = .data$`0.75`,
         fill = .data$model
       ),
-      alpha = 0.2,
+      alpha = 0.2
     ) +
     geom_vline(
       xintercept = lubridate::ymd(date_to_plot),
