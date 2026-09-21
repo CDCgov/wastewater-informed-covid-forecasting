@@ -372,7 +372,8 @@ clean_and_filter_nwss_data <- function(raw_nwss_data) {
       ),
     ) |>
     dplyr::filter(
-      .data$quality_flag %notin% c(
+      .data$quality_flag %notin%
+        c(
           "yes",
           "y",
           "result is not quantifiable",
