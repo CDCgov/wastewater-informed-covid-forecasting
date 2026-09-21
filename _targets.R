@@ -56,7 +56,7 @@ configuration_targets <- list(
     command = yaml::read_yaml(fs::path(
       "input",
       "config",
-      "prior_sens_slower_time_to_peak",
+      "main_analysis",
       ext = "yaml"
     ))
   ),

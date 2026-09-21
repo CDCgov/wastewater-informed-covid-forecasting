@@ -7,8 +7,13 @@ from azure.batch.models import (
     BatchPoolInfo,
 )
 import yaml
-from cfa.cloudops.task import get_container_settings, get_task_config
+from cfa.cloudops.task import (
+    get_container_settings,
+    get_task_config,
+    get_batch_compute_id,
+)
 from cfa.cloudops.util import ensure_listlike
+from cfa.cloudops.auth import get_compute_node_identity_reference
 
 
 def base_call(
@@ -128,7 +133,7 @@ def main(
         the job. Default 'renewalww'.
         The container registry account name and endpoint
         will be obtained from local environment variables
-        via a :class``azuretools.auth.EnvCredentialHandler`.
+        by cfa-cloudops
 
     container_image_version
         Version of the container to use. Default 'latest'.
@@ -203,6 +208,9 @@ def main(
     ]:
         eval_spec[key] = ensure_listlike(eval_spec[key])
 
+    # do once to avoid many unnecessary calls in configure_task
+    node_id_ref = get_batch_compute_id(get_compute_node_identity_reference())
+
     def configure_task(
         location: str,
         forecast_date: str,
@@ -252,6 +260,7 @@ def main(
             log_blob_container=log_blob_container,
             log_blob_account=client.cred.azure_blob_storage_account,
             log_subdir=job_id,
+            log_compute_node_identity_reference=node_id_ref,
         )
 
     ww_forecast_problems = [
@@ -297,7 +306,7 @@ def main(
 
         return model_valid and location_valid and not task_type_invalid
 
-    tasks_to_create = filter(task_filter, possible_tasks)
+    tasks_to_create = list(filter(task_filter, possible_tasks))
     print(f"{len(tasks_to_create)} tasks to create")
 
     print("Creating task configurations...")
