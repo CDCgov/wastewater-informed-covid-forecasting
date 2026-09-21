@@ -254,44 +254,68 @@ def main(
             log_subdir=job_id,
         )
 
-    possible_tasks = itertools.product(["ww", "hosp"], task_types)
+    ww_forecast_problems = [
+        {
+            "model_type": "ww",
+            "location": loc,
+            "forecast_date": date,
+            "scenario": scen,
+        }
+        for loc, date, scen in zip(
+            eval_spec["location_ww"],
+            eval_spec["forecast_date_ww"],
+            eval_spec["scenario"],
+        )
+    ]
+    hosp_forecast_problems = [
+        {
+            "model_type": "hosp",
+            "location": loc,
+            "forecast_date": date,
+            "scenario": "no_wastewater",
+        }
+        for loc, date in zip(
+            eval_spec["location_hosp"], eval_spec["forecast_date_hosp"]
+        )
+    ]
+
+    forecast_problems = ww_forecast_problems + hosp_forecast_problems
+
+    possible_tasks = itertools.product(task_types, forecast_problems)
 
     def task_filter(task):
-        model, task_type = task
-        model_valid = models_only is None or model in models_only
-        task_type_invalid = (
-            task_type in ["trendfit", "diff"] and model == "hosp"
+        t_type, t_data = task
+        model_valid = (
+            models_only is None or t_data["model_type"] in models_only
         )
-        return model_valid and not task_type_invalid
+        location_valid = (
+            locations_only is None or t_data["location"] in locations_only
+        )
+        task_type_invalid = (
+            t_type in ["trendfit", "diff"] and t_data["model_type"] == "hosp"
+        )
+
+        return model_valid and location_valid and not task_type_invalid
 
     tasks_to_create = filter(task_filter, possible_tasks)
-    task_configs_to_create = []
+    print(f"{len(tasks_to_create)} tasks to create")
 
     print("Creating task configurations...")
-
-    for model, task_type in tasks_to_create:
-        for loc, f_date, scen in zip(
-            eval_spec[f"location_{model}"],
-            eval_spec[f"forecast_date_{model}"],
-            eval_spec["scenario"],
-        ):
-            if locations_only is None or loc in locations_only:
-                task_configs_to_create.append(
-                    configure_task(
-                        location=loc,
-                        forecast_date=f_date,
-                        scenario=scen if model == "ww" else "no_wastewater",
-                        model=model,
-                        task_type=task_type,
-                        uses_task_dependencies=uses_deps,
-                    )
-                )
-            pass
-        pass
+    task_configs = [
+        configure_task(
+            location=t_data["location"],
+            forecast_date=t_data["forecast_date"],
+            scenario=t_data["scenario"],
+            model=t_data["model_type"],
+            task_type=t_type,
+            uses_task_dependencies=uses_deps,
+        )
+        for t_type, t_data in tasks_to_create
+    ]
 
     print("Adding tasks to batch...")
     client.batch_service_client.create_tasks(
-        job_id=job_id, task_collection=task_configs_to_create
+        job_id=job_id, task_collection=task_configs
     )
     print("Done!")
 
