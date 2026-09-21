@@ -372,7 +372,7 @@ clean_and_filter_nwss_data <- function(raw_nwss_data) {
       ),
     ) |>
     dplyr::filter(
-      !.data$quality_flag %in%
+      .data$quality_flag %notin%
         c(
           "yes",
           "y",

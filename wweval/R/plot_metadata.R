@@ -84,9 +84,7 @@ plot_heatmap_metadata_retro <- function(metadata) {
     xlab("") +
     ylab("Location") +
     labs(fill = "Metadata Information") +
-    ggtitle(glue::glue(
-      "Summary of retrospective comparison analysis"
-    ))
+    ggtitle("Summary of retrospective comparison analysis")
 
   return(p)
 }
@@ -112,7 +110,7 @@ plot_heatmap_metadata_retro <- function(metadata) {
     xlab("") +
     ylab("Location") +
     labs(fill = "Model submitted") +
-    ggtitle(glue::glue("Summary of models used in Hub analysis"))
+    ggtitle("Summary of models used in Hub analysis")
 
   return(p)
 }

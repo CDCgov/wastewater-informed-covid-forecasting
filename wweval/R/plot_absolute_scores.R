@@ -59,7 +59,7 @@ plot_score_t <- function(
       y = .data[[metric]],
       color = .data$model,
       shape = .data$model,
-      fill = .data$model,
+      fill = .data$model
     )
   ) +
     forecasttools::geom_line_point(
