@@ -34,7 +34,7 @@
 .plot_hosp_trend_fit <- function(hosp_fit, save_dir, figure_ext) {
   hosp_plot <- brms::conditional_effects(
     hosp_fit,
-    "time",
+    "time"
   ) |>
     plot(points = TRUE)
   hosp_plot <- hosp_plot$time +
@@ -68,7 +68,7 @@
 .spread_hosp_trend_fit_draws <- function(hosp_fit) {
   df <- hosp_fit |>
     tidybayes::spread_draws(
-      !!str2lang("b_time"),
+      !!str2lang("b_time")
     ) |>
     dplyr::rename(
       global_slope_hosp = "b_time"

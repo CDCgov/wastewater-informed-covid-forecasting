@@ -1,19 +1,20 @@
 import argparse
 import itertools
+
 import cfa.cloudops
+import yaml
 from azure.batch.models import (
-    BatchTaskDependencies,
     BatchJobCreateOptions,
     BatchPoolInfo,
+    BatchTaskDependencies,
 )
-import yaml
+from cfa.cloudops.auth import get_compute_node_identity_reference
 from cfa.cloudops.task import (
+    get_batch_compute_id,
     get_container_settings,
     get_task_config,
-    get_batch_compute_id,
 )
 from cfa.cloudops.util import ensure_listlike
-from cfa.cloudops.auth import get_compute_node_identity_reference
 
 
 def base_call(
@@ -100,8 +101,8 @@ def main(
     job_type: str,
     container_image_name: str = "renewalww",
     container_image_version: str = "latest",
-    locations_only: list[str] = None,
-    models_only: list[str] = None,
+    locations_only: list[str] | None = None,
+    models_only: list[str] | None = None,
 ) -> None:
     """
     Create an Azure batch evaluation job according to the given
@@ -327,8 +328,6 @@ def main(
         job_id=job_id, task_collection=task_configs
     )
     print("Done!")
-
-    return None
 
 
 if __name__ == "__main__":

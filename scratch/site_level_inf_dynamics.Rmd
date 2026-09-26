@@ -160,7 +160,7 @@ ggplot(train_data) +
   guides(fill = guide_legend(title = "Outlier?"))
 
 ggplot(train_data) +
-  geom_density(aes(x = log(ww), ), alpha = 0.3, fill = "gray") +
+  geom_density(aes(x = log(ww)), alpha = 0.3, fill = "gray") +
   theme_bw()
 ```
 <br/>

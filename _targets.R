@@ -4,7 +4,7 @@ library(tarchetypes) # tar_render() calls
 controller <- crew::crew_controller_local(
   workers = 8,
   seconds_idle = 600,
-  seconds_timeout = 120,
+  seconds_timeout = 120
 )
 
 # Set target options:
@@ -1290,7 +1290,7 @@ trend_analysis_targets <- list(
       dplyr::group_by(
         .data$forecast_date,
         .data$location,
-        .data$scenario,
+        .data$scenario
       ) |>
       ggdist::mean_qi(.exclude = "draw")
   ),
@@ -2219,7 +2219,7 @@ reported_quantities_targets <- list(
     command = wis_cfa_models_real_time |>
       forecasttools::summarise_scores_with_baseline(
         compare = "model",
-        baseline = "cfa-hosponlyrenewal(real-time*)",
+        baseline = "cfa-hosponlyrenewal(real-time*)"
       ) |>
       dplyr::rename(rel_wis = "mean_scores_ratio")
   ),
@@ -2252,7 +2252,7 @@ reported_quantities_targets <- list(
     command = crps_cfa_models_retro |>
       forecasttools::summarise_scores_with_baseline(
         compare = "model",
-        baseline = "cfa-hosponlyrenewal(retro)",
+        baseline = "cfa-hosponlyrenewal(retro)"
       ) |>
       dplyr::rename(rel_crps = "mean_scores_ratio")
   ),

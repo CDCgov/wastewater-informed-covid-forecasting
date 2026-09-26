@@ -205,7 +205,7 @@ plot_ribbon_hosp_quantiles <- function(
     )
 
   ## if no "model" column, substitute model_type
-  if (!("model" %in% colnames(hosp))) {
+  if ("model" %notin% colnames(hosp)) {
     hosp$model <- hosp$model_type
   }
 
@@ -263,7 +263,7 @@ plot_ribbon_hosp_quantiles <- function(
         ymax = .data$`0.75`,
         fill = .data$model
       ),
-      alpha = 0.2,
+      alpha = 0.2
     ) +
     geom_vline(
       xintercept = lubridate::ymd(date_to_plot),

@@ -214,7 +214,7 @@ plot_forecast_comparison_t <- function(
         group = interaction(.data$forecast_date, .data$model_type),
         color = .data$model_type,
         show.legend = FALSE
-      ),
+      )
     ) +
     xlab("") +
     ylab("Daily hospital \n admissions") +
