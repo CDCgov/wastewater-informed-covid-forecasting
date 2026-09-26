@@ -179,13 +179,13 @@ make_baseline_score_table <- function(
 ) {
   # Get metadata
   locations <- all_ww_scores |>
-    dplyr::pull(location) |>
+    dplyr::pull("location") |>
     unique()
   forecast_dates <- all_ww_scores |>
-    dplyr::pull(forecast_date) |>
+    dplyr::pull("forecast_date") |>
     unique()
   scenario <- all_ww_scores |>
-    dplyr::pull(scenario) |>
+    dplyr::pull("scenario") |>
     unique()
 
   # Score forecasts
@@ -197,10 +197,10 @@ make_baseline_score_table <- function(
     )
   ) |>
     dplyr::mutate(
-      locations = paste(locations, collapse = ",")
+      locations = paste(!!locations, collapse = ",")
     )
 
-  if (isTRUE(overwrite_table)) {
+  if (overwrite_table) {
     model_type <- if (scenario == "status_quo") "ww" else "hosp"
     # Check that is only one scenario
     stopifnot(
@@ -221,9 +221,10 @@ make_baseline_score_table <- function(
 
     write.table(
       scores,
-      file.path(
+      fs::path(
         baseline_score_table_dir,
-        glue::glue("baseline_scores_{model_type}.tsv")
+        glue::glue("baseline_scores_{model_type}"),
+        ext = "tsv"
       )
     )
   }

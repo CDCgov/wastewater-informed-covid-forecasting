@@ -345,7 +345,7 @@ get_summary_ww_table <- function(
     dplyr::summarize(
       complete_ww = all(.data$ww_data_present == 1)
     ) |>
-    ungroup() |>
+    dplyr::ungroup() |>
     dplyr::summarize(n_complete_ww = sum(.data$complete_ww)) |>
     dplyr::pull(.data$n_complete_ww)
 

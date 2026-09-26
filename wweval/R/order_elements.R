@@ -28,8 +28,8 @@ order_horizons <- function(df) {
   }
 
   horizon_names <- df |>
-    dplyr::distinct(horizon) |>
-    dplyr::filter_out(is.na(horizon)) |>
+    dplyr::distinct(.data$horizon) |>
+    dplyr::filter_out(is.na(.data$horizon)) |>
     dplyr::pull()
 
   if (!all(horizon_names %in% horizon_order)) {
@@ -73,8 +73,8 @@ order_periods <- function(df) {
   }
 
   period_names <- df |>
-    dplyr::distinct(period) |>
-    dplyr::filter_out(is.na(period)) |>
+    dplyr::distinct(.data$period) |>
+    dplyr::filter_out(is.na(.data$period)) |>
     dplyr::pull()
 
   if (!all(period_names %in% period_order)) {
@@ -120,8 +120,8 @@ order_phases <- function(df) {
   }
 
   phase_names <- df |>
-    dplyr::distinct(phase) |>
-    dplyr::filter(!is.na(phase)) |>
+    dplyr::distinct(.data$phase) |>
+    dplyr::filter_out(is.na(.data$phase)) |>
     dplyr::pull()
 
   if (!all(phase_names %in% phase_order)) {
@@ -155,10 +155,10 @@ order_locations <- function(df, score_name) {
   loc_order <- df |>
     dplyr::group_by(location) |>
     dplyr::summarize(
-      geom_mean_rel_score = exp(mean(log(.data[[score_name]])))
+      mean_log_rel_score = mean(log(.data[[score_name]]))
     ) |>
-    dplyr::arrange(geom_mean_rel_score, "desc") |>
-    dplyr::pull(location)
+    dplyr::arrange(dplyr::desc(.data$mean_log_rel_score)) |>
+    dplyr::pull("location")
 
   if ("location" %notin% colnames(df)) {
     cli::cli_abort(
@@ -170,7 +170,7 @@ order_locations <- function(df, score_name) {
 
   df_w_order <- df |>
     dplyr::mutate(
-      location = factor(location, ordered = TRUE, levels = loc_order)
+      location = factor(.data$location, ordered = TRUE, levels = loc_order)
     )
   return(df_w_order)
 }
