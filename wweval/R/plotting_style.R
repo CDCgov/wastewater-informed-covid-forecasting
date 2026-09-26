@@ -74,7 +74,7 @@ get_plot_theme <- function(
   return(ww_theme)
 }
 
-#' Get an R Color Brewer palette by number of entries and nam
+#' Get an R Color Brewer palette by number of entries and name
 #'
 #' Wrapper to avoid R CMD check complaint about unused
 #' RColorBrewer import
