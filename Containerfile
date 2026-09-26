@@ -8,4 +8,4 @@ RUN Rscript -e "pak::pkg_install('argparser')"
 
 ADD . /.
 
-RUN Rscript -e "pak::local_install('wweval')"
+RUN Rscript -e "pak::repo_add(hubverse = 'https://hubverse-org.r-universe.dev'); pak::local_install('wweval')"
