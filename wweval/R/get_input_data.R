@@ -167,6 +167,12 @@ get_scenario_site_ids <- function(
 #' is for evaluation. Default is FALSE which means it will be used to fit
 #' a single model, TRUE means we will combine with multiple locations and a
 #' longer time span than we would fit to.
+#' @param load_from_epidatr boolean indicating whether or not the hospital
+#' admissions datasets should be loaded directly from epidatr.
+#' `default = FALSE` because we are assuming that we have already created a
+#' folder with time stamped datasets
+#' @param population_data_path path to a table of state populations, default is
+#' `NULL`, only needed if pulling from epidatr
 #'
 #' @return a tibble containing the preprocessed hospital admissions data ready
 #' to be passed into the wwinference function
@@ -176,11 +182,47 @@ get_input_hosp_data <- function(
   location_i,
   hosp_data_dir,
   calibration_time,
-  for_eval = FALSE
+  for_eval = FALSE,
+  load_from_epidatr = FALSE,
+  population_data_path = NA
 ) {
-  fp <- fs::path(hosp_data_dir, forecast_date_i, ext = "csv")
+  fp <- file.path(hosp_data_dir, paste0(forecast_date_i, ".csv"))
 
-  hosp <- readr::read_csv(fp)
+  # Load in the appropriate time-stamped hospital admissions dataset
+  if (isTRUE(load_from_epidatr)) {
+    # These codechunk depends on the epidatr package
+    check_package_is_installed("epidatr")
+    options(covidcast.auth = get_secret("covidcast_api_key"))
+
+    hosp_raw <- quiet(epidatr::pub_covidcast(
+      source = "hhs",
+      signals = "confirmed_admissions_covid_1d",
+      geo_type = "state",
+      time_type = "day",
+      geo_values = "*",
+      time_values = "*",
+      as_of = forecast_date_i
+    ))
+
+    state_population_table <- readr::read_csv(population_data_path) |>
+      dplyr::mutate(population = as.numeric(.data$population))
+
+    hosp <- hosp_raw |>
+      tibble::as_tibble() |>
+      dplyr::mutate(abbreviation = toupper(.data$geo_value)) |>
+      dplyr::left_join(state_population_table, by = "abbreviation") |>
+      dplyr::select(
+        date = "time_value",
+        ABBR = "abbreviation",
+        daily_hosp_admits = "value",
+        pop = "population"
+      )
+    message("Writing full time stamped dataset to local storage")
+
+    readr::write_csv(hosp, fp)
+  } else {
+    hosp <- readr::read_csv(fp)
+  }
   last_hosp_data_date <- max(hosp$date, na.rm = TRUE)
   input_hosp <- hosp |>
     dplyr::rename(location = "ABBR") |>

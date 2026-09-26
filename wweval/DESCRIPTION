@@ -63,6 +63,7 @@ Imports:
     readr,
     rlang,
     cli,
+    epidatr,
     data.table,
     purrr,
     scales,
