@@ -259,13 +259,17 @@ plot_benchmarks <- function(
   write_files = TRUE
 ) {
   # Load in table
-  fp <- glue::glue("{benchmark_dir}/{benchmark_scope}_by_{grouping_var}.tsv")
+  fp <- fs::path(
+    benchmark_dir,
+    glue::glue("{benchmark_scope}_by_{grouping_var}"),
+    ext = "tsv"
+  )
   df <- readr::read_tsv(fp)
 
   # pivot_longer for plotting
   df_long <- df |>
     tidyr::pivot_longer(
-      cols = crps_hosp:ae_ww,
+      cols = c("crps_hosp", "ae_ww"),
       names_to = c("score_type", "model"),
       names_pattern = "(.*)_(.*)",
       values_to = "score"
@@ -287,17 +291,20 @@ plot_benchmarks <- function(
         stat = "identity",
         position = "dodge"
       ) +
-      facet_wrap(~score_type, scales = "free_y") +
+      facet_wrap(~ .data$score_type, scales = "free_y") +
       guides(fill = guide_legend(nrow = 2, byrow = TRUE)) +
       theme(
         legend.position = "bottom",
         panel.background = element_rect(fill = "white")
       ) +
       ggtitle("Overall performance benchmarking")
-    if (isTRUE(write_files)) {
+    if (write_files) {
       ggsave(
-        filename = glue::glue(
-          "{benchmark_dir}/plots/{benchmark_scope}_overall.png"
+        filename = fs::path(
+          benchmark_dir,
+          "plots",
+          glue::glue("{benchmark_scope}_overall"),
+          ext = "png"
         ),
         plot = p_all,
         create.dir = TRUE
@@ -308,10 +315,7 @@ plot_benchmarks <- function(
   p <- ggplot(
     df_long |>
       dplyr::filter(
-        score_type ==
-          {
-            score_to_plot
-          }
+        score_type == !!score_to_plot
       )
   ) +
     geom_bar(
@@ -335,10 +339,13 @@ plot_benchmarks <- function(
     ) +
     ylab("CRPS")
 
-  if (isTRUE(write_files)) {
+  if (write_files) {
     ggsave(
-      filename = glue::glue(
-        "{benchmark_dir}/plots/{benchmark_scope}_by_{grouping_var}.png"
+      filename = fs::path(
+        benchmark_dir,
+        "plots",
+        glue::glue("{benchmark_scope}_by_{grouping_var}"),
+        ext = "png"
       ),
       plot = p,
       create.dir = TRUE
