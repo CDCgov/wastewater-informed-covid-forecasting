@@ -186,43 +186,9 @@ get_input_hosp_data <- function(
   load_from_epidatr = FALSE,
   population_data_path = NA
 ) {
-  fp <- file.path(hosp_data_dir, paste0(forecast_date_i, ".csv"))
+  fp <- fs::path(hosp_data_dir, forecast_date_i, ext = "csv")
 
-  # Load in the appropriate time-stamped hospital admissions dataset
-  if (isTRUE(load_from_epidatr)) {
-    # These codechunk depends on the epidatr package
-    check_package_is_installed("epidatr")
-    options(covidcast.auth = get_secret("covidcast_api_key"))
-
-    hosp_raw <- quiet(epidatr::pub_covidcast(
-      source = "hhs",
-      signals = "confirmed_admissions_covid_1d",
-      geo_type = "state",
-      time_type = "day",
-      geo_values = "*",
-      time_values = "*",
-      as_of = forecast_date_i
-    ))
-
-    state_population_table <- readr::read_csv(population_data_path) |>
-      dplyr::mutate(population = as.numeric(.data$population))
-
-    hosp <- hosp_raw |>
-      tibble::as_tibble() |>
-      dplyr::mutate(abbreviation = toupper(.data$geo_value)) |>
-      dplyr::left_join(state_population_table, by = "abbreviation") |>
-      dplyr::select(
-        date = "time_value",
-        ABBR = "abbreviation",
-        daily_hosp_admits = "value",
-        pop = "population"
-      )
-    message("Writing full time stamped dataset to local storage")
-
-    readr::write_csv(hosp, fp)
-  } else {
-    hosp <- readr::read_csv(fp)
-  }
+  hosp <- readr::read_csv(fp)
   last_hosp_data_date <- max(hosp$date, na.rm = TRUE)
   input_hosp <- hosp |>
     dplyr::rename(location = "ABBR") |>
