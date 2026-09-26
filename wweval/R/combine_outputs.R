@@ -94,7 +94,7 @@ combine_outputs <- function(
     dplyr::select(-"success")
 
   failed_output <- combined |>
-    dplyr::filter(!.data$success) |>
+    dplyr::filter_out(.data$success) |>
     dplyr::select(tidyselect::any_of(c(
       "forecast_date",
       "scenario",

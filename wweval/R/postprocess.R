@@ -460,7 +460,7 @@ postprocess_successful_fit <- function(
       NULL
     } else {
       full_hosp_quantiles |>
-        dplyr::filter(period != "calibration")
+        dplyr::filter(.data$period != "calibration")
     }
   }
   save_object(hosp_quantiles)
@@ -482,7 +482,7 @@ postprocess_successful_fit <- function(
         ww_draws = ww_draws
       )
       ww_quantiles <- full_ww_quantiles |>
-        dplyr::filter(period != "calibration")
+        dplyr::filter(.data$period != "calibration")
       message("Done.")
     } else {
       message(paste0(

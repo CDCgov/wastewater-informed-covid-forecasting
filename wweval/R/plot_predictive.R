@@ -24,37 +24,36 @@ plot_spaghetti_hosp_draws <- function(
   sampled_draws <- sample(1:max(draws_w_data$draw), n_draws)
   draws_w_data_subsetted <- draws_w_data |>
     dplyr::filter(
-      draw %in% !!sampled_draws,
-      name == "pred_hosp"
+      .data$draw %in% !!sampled_draws,
+      .data$name == "pred_hosp"
     )
 
   plot_color <- ifelse(model_type == "ww", "cornflowerblue", "purple4")
 
   p <- ggplot(draws_w_data_subsetted) +
     geom_line(
-      aes(x = date, y = value, group = draw),
+      aes(x = .data$date, y = .data$value, group = .data$draw),
       color = plot_color,
       linewidth = 0.2,
       alpha = 0.4,
       show.legend = FALSE
     ) +
     geom_point(
-      aes(x = date, y = eval_data),
+      aes(x = .data$date, y = .data$eval_data),
       fill = "white",
       size = 1,
       shape = 21,
       show.legend = FALSE
     ) +
     geom_point(
-      aes(x = date, y = calib_data),
+      aes(x = .data$date, y = .data$calib_data),
       color = "black",
       show.legend = FALSE
     ) +
     geom_vline(
-      aes(xintercept = lubridate::ymd(forecast_date)),
+      aes(xintercept = lubridate::ymd(.data$forecast_date)),
       linetype = "dashed"
     ) +
-    # scale_y_continuous(trans = "log10") +
     xlab("Date") +
     ylab("Admissions") +
     ggtitle(glue::glue(
@@ -107,8 +106,8 @@ plot_spaghetti_ww_draws <- function(
   sampled_draws <- sample(1:max(draws_w_data$draw), n_draws)
   draws_w_data_subsetted <- draws_w_data |>
     dplyr::filter(
-      draw %in% !!sampled_draws,
-      name == "pred_ww"
+      .data$draw %in% !!sampled_draws,
+      .data$name == "pred_ww"
     )
 
   p <- ggplot(draws_w_data_subsetted) +
@@ -142,14 +141,14 @@ plot_spaghetti_ww_draws <- function(
     scale_y_continuous(trans = "log10") +
     facet_wrap(~site_lab_name, scales = "free_y") +
     geom_point(
-      data = draws_w_data_subsetted |> filter(.data$below_LOD == 1),
+      data = draws_w_data_subsetted |> dplyr::filter(.data$below_LOD == 1),
       aes(x = .data$date, y = .data$calib_data),
       color = "red",
       size = 1.1
     ) +
     geom_point(
       data = draws_w_data_subsetted |>
-        filter(.data$flag_as_ww_outlier == 1),
+        dplyr::filter(.data$flag_as_ww_outlier == 1),
       aes(x = .data$date, y = .data$calib_data),
       color = "blue",
       size = 1.1
@@ -322,18 +321,18 @@ plot_ribbon_ww_quantiles <- function(
 ) {
   if (!is.null(site_lab_names_to_show)) {
     ww_quantiles <- ww_quantiles |>
-      dplyr::filter(site_lab_name %in% c(site_lab_names_to_show))
+      dplyr::filter(.data$site_lab_name %in% !!site_lab_names_to_show)
   } else {
     ww_quantiles <- ww_quantiles |>
-      dplyr::filter(lab_site_index <= !!max_n_site_labs_to_show)
+      dplyr::filter(.data$lab_site_index <= !!max_n_site_labs_to_show)
   }
 
   ww <- ww_quantiles |>
-    dplyr::filter(location == !!loc_to_plot) |>
-    dplyr::filter(forecast_date == !!date_to_plot) |>
+    dplyr::filter(.data$location == !!loc_to_plot) |>
+    dplyr::filter(.data$forecast_date == !!date_to_plot) |>
     dplyr::filter(
-      date <= forecast_date + lubridate::days(!!n_forecast_days),
-      date >= forecast_date - lubridate::days(!!n_calib_days)
+      .data$date <= .data$forecast_date + lubridate::days(!!n_forecast_days),
+      .data$date >= .data$forecast_date - lubridate::days(!!n_calib_days)
     )
 
   stopifnot(

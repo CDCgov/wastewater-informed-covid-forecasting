@@ -39,7 +39,7 @@ plot_score_t <- function(
           "model"
         )
       ) |>
-      dplyr::filter(horizon_weeks == !!horizon_time_in_weeks)
+      dplyr::filter(.data$horizon_weeks == !!horizon_time_in_weeks)
   } else {
     by_date <- scores |>
       scoringutils::summarise_scores(

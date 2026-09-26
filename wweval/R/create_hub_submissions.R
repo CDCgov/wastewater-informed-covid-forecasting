@@ -44,7 +44,7 @@ create_hub_submissions <- function(
   save_files = TRUE
 ) {
   hosp_quantiles_ww <- hosp_quantiles_ww |>
-    dplyr::filter(scenario == !!scenario)
+    dplyr::filter(.data$scenario == !!scenario)
   metadata_df <- data.frame()
   for (i in seq_along(forecast_dates)) {
     forecast_date <- forecast_dates[i]
@@ -69,11 +69,11 @@ create_hub_submissions <- function(
     for (j in seq_along(all_locs)) {
       if (all_locs[j] %in% c(unique(ww_quantiles$location))) {
         this_loc_quantiles <- ww_quantiles |>
-          dplyr::filter(location == all_locs[j])
+          dplyr::filter(.data$location == !!all_locs[j])
       } else {
         # get from the hosp quantiles
         this_loc_quantiles <- hosp_quantiles |>
-          dplyr::filter(location == all_locs[j])
+          dplyr::filter(.data$location == !!all_locs[j])
       }
       full_quantiles <- dplyr::bind_rows(full_quantiles, this_loc_quantiles)
     }
@@ -85,7 +85,7 @@ create_hub_submissions <- function(
     n_models_ww <- full_quantiles |>
       dplyr::select(location, model_type) |>
       unique() |>
-      dplyr::filter(model_type == "ww") |>
+      dplyr::filter(.data$model_type == "ww") |>
       nrow()
     message("Number of locations submitting wastewater model:", n_models_ww)
     n_locs <- full_quantiles |>
@@ -154,10 +154,10 @@ format_for_hub <- function(
     ) |>
     dplyr::mutate(
       location = forecasttools::us_loc_abbr_to_code(.data$location),
-      quantile = round(quantile, 4),
+      quantile = round(.data$quantile, 4),
     ) |>
     dplyr::filter(
-      target_end_date >=
+      .data$target_end_date >=
         lubridate::ymd(.data$forecast_date) + lubridate::days(1)
     ) |>
     dplyr::mutate(days_ahead = as.numeric(target_end_date - forecast_date)) |>
@@ -166,13 +166,13 @@ format_for_hub <- function(
       type = "quantile"
     ) |>
     dplyr::select(
-      target,
-      location,
-      forecast_date,
-      target_end_date,
-      quantile,
-      value,
-      type
+      "target",
+      "location",
+      "forecast_date",
+      "target_end_date",
+      "quantile",
+      "value",
+      "type"
     )
 
   return(formatted_quantiles)
