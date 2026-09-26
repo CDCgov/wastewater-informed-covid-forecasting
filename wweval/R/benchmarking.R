@@ -46,8 +46,8 @@ benchmark_performance <- function(
     ) |>
     dplyr::mutate(
       location = "all",
-      wweval_commit_hash = as.character(wweval_commit_hash),
-      wwinference_version = as.character(wwinference_version),
+      wweval_commit_hash = as.character(!!wweval_commit_hash),
+      wwinference_version = as.character(!!wwinference_version),
       time_stamp = as.POSIXct(format(Sys.time(), "%Y-%m-%d %H:%M:%S"))
     )
 
@@ -55,21 +55,21 @@ benchmark_performance <- function(
     ww_scores,
     hosp_scores
   ) |>
-    dplyr::group_by(model, forecast_date) |>
+    dplyr::group_by(.data$model, .data$forecast_date) |>
     dplyr::summarize(
-      crps = mean(crps),
-      bias = mean(bias),
-      ae = mean(ae_median)
+      crps = mean(.data$crps),
+      bias = mean(.data$bias),
+      ae = mean(.data$ae_median)
     ) |>
     tidyr::pivot_wider(
-      id_cols = forecast_date,
+      id_cols = "forecast_date",
       values_from = c("crps", "bias", "ae"),
       names_from = "model"
     ) |>
     dplyr::mutate(
-      wweval_commit_hash = as.character(wweval_commit_hash),
-      forecast_date = lubridate::ymd(forecast_date),
-      wwinference_version = as.character(wwinference_version),
+      wweval_commit_hash = as.character(!!wweval_commit_hash),
+      forecast_date = lubridate::ymd(.data$forecast_date),
+      wwinference_version = as.character(!!wwinference_version),
       time_stamp = as.POSIXct(format(Sys.time(), "%Y-%m-%d %H:%M:%S"))
     )
 
@@ -79,18 +79,18 @@ benchmark_performance <- function(
   ) |>
     dplyr::group_by(model, location) |>
     dplyr::summarize(
-      crps = mean(crps),
-      bias = mean(bias),
-      ae = mean(ae_median)
+      crps = mean(.data$crps),
+      bias = mean(.data$bias),
+      ae = mean(.data$ae_median)
     ) |>
     tidyr::pivot_wider(
-      id_cols = location,
+      id_cols = "location",
       values_from = c("crps", "bias", "ae"),
       names_from = "model"
     ) |>
     dplyr::mutate(
-      wweval_commit_hash = as.character(wweval_commit_hash),
-      wwinference_version = as.character(wwinference_version),
+      wweval_commit_hash = as.character(!!wweval_commit_hash),
+      wwinference_version = as.character(!!wwinference_version),
       time_stamp = as.POSIXct(format(Sys.time(), "%Y-%m-%d %H:%M:%S"))
     ) |>
     dplyr::select(colnames(overall_scores)) |>
@@ -275,14 +275,14 @@ plot_benchmarks <- function(
     df_all <- df_long |>
       dplyr::filter(location == "all")
     df_long <- df_long |>
-      dplyr::filter(location != "all")
+      dplyr::filter_out(location == "all")
 
     p_all <- ggplot(df_all) +
       geom_bar(
         aes(
-          x = model,
-          y = score,
-          fill = wwinference_version
+          x = .data$model,
+          y = .data$score,
+          fill = .data$wwinference_version
         ),
         stat = "identity",
         position = "dodge"
@@ -316,9 +316,9 @@ plot_benchmarks <- function(
   ) +
     geom_bar(
       aes(
-        x = model,
-        y = score,
-        fill = wwinference_version
+        x = .data$model,
+        y = .data$score,
+        fill = .data$wwinference_version
       ),
       stat = "identity",
       position = "dodge"

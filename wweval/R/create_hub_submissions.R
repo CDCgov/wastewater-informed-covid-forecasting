@@ -160,9 +160,11 @@ format_for_hub <- function(
       .data$target_end_date >=
         lubridate::ymd(.data$forecast_date) + lubridate::days(1)
     ) |>
-    dplyr::mutate(days_ahead = as.numeric(target_end_date - forecast_date)) |>
     dplyr::mutate(
-      target = glue::glue("{days_ahead} day ahead inc hosp"),
+      days_ahead = as.numeric(.data$target_end_date - .data$forecast_date)
+    ) |>
+    dplyr::mutate(
+      target = glue::glue("{.data$days_ahead} day ahead inc hosp"),
       type = "quantile"
     ) |>
     dplyr::select(

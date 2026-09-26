@@ -29,7 +29,7 @@ order_horizons <- function(df) {
 
   horizon_names <- df |>
     dplyr::distinct(horizon) |>
-    dplyr::filter(!is.na(horizon)) |>
+    dplyr::filter_out(is.na(horizon)) |>
     dplyr::pull()
 
   if (!all(horizon_names %in% horizon_order)) {
@@ -43,7 +43,7 @@ order_horizons <- function(df) {
 
   df_w_order <- df |>
     dplyr::mutate(
-      horizon = factor(horizon, ordered = TRUE, levels = horizon_order)
+      horizon = factor(.data$horizon, ordered = TRUE, levels = !!horizon_order)
     )
 
   return(df_w_order)
@@ -74,7 +74,7 @@ order_periods <- function(df) {
 
   period_names <- df |>
     dplyr::distinct(period) |>
-    dplyr::filter(!is.na(period)) |>
+    dplyr::filter_out(is.na(period)) |>
     dplyr::pull()
 
   if (!all(period_names %in% period_order)) {
@@ -88,7 +88,7 @@ order_periods <- function(df) {
 
   df_w_order <- df |>
     dplyr::mutate(
-      period = factor(period, ordered = TRUE, levels = period_order)
+      period = factor(.data$period, ordered = TRUE, levels = !!period_order)
     )
   return(df_w_order)
 }
