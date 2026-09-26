@@ -139,6 +139,7 @@ importFrom(readr,
 )
 importFrom(rlang,
   "%||%",
+  ":=",
   .data,
   arg_match,
   sym
