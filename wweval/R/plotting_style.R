@@ -74,9 +74,19 @@ get_plot_theme <- function(
   return(ww_theme)
 }
 
-pal_horizons <- RColorBrewer::brewer.pal(12, "Paired")
-pal_model <- RColorBrewer::brewer.pal(8, "Dark2")
-pastel_model <- RColorBrewer::brewer.pal(8, "Pastel2")
+#' Get an R Color Brewer palette by number of entries and name
+#'
+#' Wrapper to avoid R CMD check complaint about unused
+#' RColorBrewer import
+#'
+#' @noRd
+.get_brewer_palette <- function(n, name) {
+  RColorBrewer::brewer.pal(n, name)
+}
+
+pal_horizons <- .get_brewer_palette(12, "Paired")
+pal_model <- .get_brewer_palette(8, "Dark2")
+pastel_model <- .get_brewer_palette(8, "Pastel2")
 
 
 ## somewhat arbitrary, we can play with these later

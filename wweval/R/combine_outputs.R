@@ -9,7 +9,7 @@
 #' all of the outputs row binded
 #'
 #'
-#' @param output_type the type of output that is saved, one of `"quantiles"`, `"scores"`,
+#' @param output_type the type of output that is saved, one of `"scores"`,
 #' `"ww_quantiles"`, `"scores_quantiles"`, `"hosp_quantiles"`,`"errors"`,
 #'  `"ww_data_flags"` or `"flags"`.
 #' @param scenarios The vector of character strings of all the scenarios
@@ -106,7 +106,7 @@ combine_outputs <- function(
     dplyr::select(-"success")
 
   failed_output <- combined |>
-    dplyr::filter(!.data$success) |>
+    dplyr::filter_out(.data$success) |>
     dplyr::select(tidyselect::any_of(c(
       "forecast_date",
       "scenario",

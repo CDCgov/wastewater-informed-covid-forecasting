@@ -12,8 +12,7 @@ pull_hub_forecasts(
   locations = NULL,
   hub_subdir = NA,
   pull_from_github = TRUE,
-  submissions_path =
-    "https://raw.githubusercontent.com/reichlab/covid19-forecast-hub/master/data-processed/"
+  submissions_path = NULL
 )
 }
 \arguments{
@@ -36,7 +35,8 @@ locally since these are not on COVIDHub github}
 from github}
 
 \item{submissions_path}{url pointing to the "data-processed" folder on
-the COVIDhub github, which is where team's submissions are located}
+the COVIDhub github, which is where team's submissions are located.
+If not provided, use the original COVIDHub on github.}
 }
 \value{
 a dataframe containing all of the scores for all models,

@@ -64,7 +64,7 @@ plot_rel_crps_by_horizon <- function(
     dplyr::mutate(horizon = "overall")
 
   scores_comb <- dplyr::bind_rows(scores_by_horizon, scores_overall) |>
-    dplyr::filter(horizon %in% !!horizons_to_show)
+    dplyr::filter(.data$horizon %in% !!horizons_to_show)
 
   relative_crps <- scores_comb |>
     forecasttools::summarise_scores_with_baseline(
@@ -137,10 +137,10 @@ plot_forecast_comparison_t <- function(
   )
   needed_quantiles <- c(0.025, 0.25, 0.5, 0.75, 0.975)
   hosp_quants_horizons <- hosp_quantiles |>
-    dplyr::filter(location == !!loc_to_plot) |>
+    dplyr::filter(.data$location == !!loc_to_plot) |>
     dplyr::filter(
-      date >=
-        min(forecast_date) -
+      .data$date >=
+        min(.data$forecast_date) -
           lubridate::days(
             !!days_to_show_prev_data
           )
@@ -148,7 +148,7 @@ plot_forecast_comparison_t <- function(
 
   hosp <- hosp_quants_horizons |>
     dplyr::filter(
-      horizon == !!horizon_to_plot,
+      .data$horizon == !!horizon_to_plot,
       .data$quantile_level %in% !!needed_quantiles
     ) |>
     dplyr::select(
@@ -272,10 +272,10 @@ plot_crps_underlay <- function(
     )
 
   scores_by_horizon <- scores_filtered |>
-    dplyr::filter(horizon == !!horizon_to_plot) |>
+    dplyr::filter(.data$horizon == !!horizon_to_plot) |>
     dplyr::mutate(
-      forecast_date_shifted = lubridate::ymd(forecast_date) +
-        lubridate::days(days_to_shift)
+      forecast_date_shifted = lubridate::ymd(.data$forecast_date) +
+        lubridate::days(!!days_to_shift)
     )
 
   date_lims <- c(

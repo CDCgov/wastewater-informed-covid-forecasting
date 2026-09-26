@@ -260,13 +260,13 @@ save_table <- function(
       forecast_date,
       model_type,
       location,
-      glue::glue("{type_of_output}"),
+      type_of_output,
       "tsv"
     )
 
     fs::dir_create(fs::path_dir(fp))
 
-    readr::write_tsv(as_tibble(data_to_save), file = fp)
+    readr::write_tsv(tibble::as_tibble(data_to_save), file = fp)
   }
 
   invisible()
@@ -460,7 +460,7 @@ postprocess_successful_fit <- function(
       NULL
     } else {
       full_hosp_quantiles |>
-        dplyr::filter(period != "calibration")
+        dplyr::filter_out(.data$period == "calibration")
     }
   }
   save_object(hosp_quantiles)
@@ -482,7 +482,7 @@ postprocess_successful_fit <- function(
         ww_draws = ww_draws
       )
       ww_quantiles <- full_ww_quantiles |>
-        dplyr::filter(period != "calibration")
+        dplyr::filter_out(.data$period == "calibration")
       message("Done.")
     } else {
       message(paste0(
