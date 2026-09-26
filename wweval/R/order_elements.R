@@ -135,7 +135,7 @@ order_phases <- function(df) {
 
   df_w_order <- df |>
     dplyr::mutate(
-      phase = factor(phase, ordered = TRUE, levels = phase_order)
+      phase = factor(.data$phase, ordered = TRUE, levels = phase_order)
     )
   return(df_w_order)
 }
@@ -153,7 +153,7 @@ order_phases <- function(df) {
 #' @export
 order_locations <- function(df, score_name) {
   loc_order <- df |>
-    dplyr::group_by(location) |>
+    dplyr::group_by(.data$location) |>
     dplyr::summarize(
       mean_log_rel_score = mean(log(.data[[score_name]]))
     ) |>
