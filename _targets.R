@@ -178,7 +178,10 @@ configuration_targets <- list(
       column = "model",
       values = cfa_model_names_retro
     )
-  ),
+  )
+)
+
+data_targets <- list(
   tar_target(
     name = eval_hosp_data,
     command = get_input_hosp_data(
@@ -188,30 +191,6 @@ configuration_targets <- list(
       calibration_time = 365, # Grab sufficient data for eval
       for_eval = TRUE # So we don't run wwinference::preprocess
     )
-  )
-)
-
-data_targets <- list(
-  tar_target(
-    name = eval_ww_data,
-    command = get_input_ww_data(
-      forecast_date_i = eval_config$eval_date,
-      location_i = unique(eval_config$location_ww),
-      scenario_i = "status_quo",
-      scenario_dir = eval_config$scenario_dir,
-      ww_data_dir = eval_config$ww_data_dir,
-      calibration_time = 365, # Grab sufficient data for eval
-      last_hosp_data_date = eval_config$eval_date,
-      ww_data_mapping = "most recent",
-      for_eval = TRUE
-    )
-  ),
-  tar_target(
-    name = grouped_eval_ww_data,
-    command = eval_ww_data |>
-      dplyr::group_by(.data$location) |>
-      targets::tar_group(),
-    iteration = "group"
   )
 )
 
@@ -324,52 +303,6 @@ collated_output_targets <- list(
     )
   ),
   tar_target(
-    name = all_ww_scores_quantiles,
-    command = combine_outputs(
-      output_type = "scores_quantiles",
-      scenarios = eval_config$scenario,
-      forecast_dates = eval_config$forecast_date_ww,
-      locations = eval_config$location_ww,
-      eval_output_subdir = eval_config$output_dir,
-      model_type = "ww"
-    ) |>
-      dplyr::mutate(
-        model = dplyr::case_match(
-          .data$model,
-          "ww" ~ "cfa-wwrenewal(retro)",
-          "hosp" ~ "cfa-hosponlyrenewal(retro)",
-          .default = .data$model
-        )
-      ) |>
-      # jarl-ignore internal_function: workaround for non-scoringutils table save
-      scoringutils:::as_scores(
-        metrics = names(wweval::quantile_metrics)
-      )
-  ),
-  tar_target(
-    name = all_hosp_scores_quantiles,
-    command = combine_outputs(
-      output_type = "scores_quantiles",
-      scenarios = "no_wastewater",
-      forecast_dates = eval_config$forecast_date_hosp,
-      locations = eval_config$location_hosp,
-      eval_output_subdir = eval_config$output_dir,
-      model_type = "hosp"
-    ) |>
-      dplyr::mutate(
-        model = dplyr::case_match(
-          .data$model,
-          "ww" ~ "cfa-wwrenewal(retro)",
-          "hosp" ~ "cfa-hosponlyrenewal(retro)",
-          .default = .data$model
-        )
-      ) |>
-      # jarl-ignore internal_function: workaround for non-scoringutils table save
-      scoringutils:::as_scores(
-        metrics = names(wweval::quantile_metrics)
-      )
-  ),
-  tar_target(
     name = quantile_fcsts_ww_retro,
     command = combine_outputs(
       output_type = "hosp_quantiles",
@@ -383,7 +316,7 @@ collated_output_targets <- list(
   tar_target(
     name = quantile_fcsts_hosp_retro,
     command = combine_outputs(
-      output_type = "quantiles",
+      output_type = "hosp_quantiles",
       scenarios = "no_wastewater",
       forecast_dates = eval_config$forecast_date_hosp,
       locations = eval_config$location_hosp,
@@ -504,9 +437,9 @@ collated_output_targets <- list(
   ),
   tar_target(
     name = date_locs_hosp_converged_retro,
-    command = dplyr::filter(
+    command = dplyr::filter_out(
       convergence_df_hosp,
-      !.data$any_flags_hosp
+      .data$any_flags_hosp
     ) |>
       dplyr::select("forecast_date", "location")
   ),
@@ -1531,7 +1464,8 @@ composite_figure_targets <- list(
       forecast_dates = forecast_date_to_plot,
       locations = locs_to_plot,
       eval_output_subdir = eval_config$output_dir,
-      model_type = "ww"
+      model_type = "ww",
+      strict = TRUE
     )
   ),
   tar_target(
@@ -2131,7 +2065,8 @@ additional_figure_targets <- list(
       forecast_dates = c("2024-02-12"),
       locations = c("OH", "IL"),
       eval_output_subdir = eval_config$output_dir,
-      model_type = "ww"
+      model_type = "ww",
+      strict = TRUE
     )
   ),
   tar_map(
