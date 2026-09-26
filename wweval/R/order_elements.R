@@ -135,7 +135,7 @@ order_phases <- function(df) {
 
   df_w_order <- df |>
     dplyr::mutate(
-      phase = factor(.data$phase, ordered = TRUE, levels = phase_order)
+      phase = factor(.data$phase, ordered = TRUE, levels = !!phase_order)
     )
   return(df_w_order)
 }
@@ -170,7 +170,7 @@ order_locations <- function(df, score_name) {
 
   df_w_order <- df |>
     dplyr::mutate(
-      location = factor(.data$location, ordered = TRUE, levels = loc_order)
+      location = factor(.data$location, ordered = TRUE, levels = !!loc_order)
     )
   return(df_w_order)
 }
