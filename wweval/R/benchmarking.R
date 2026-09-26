@@ -315,7 +315,7 @@ plot_benchmarks <- function(
   p <- ggplot(
     df_long |>
       dplyr::filter(
-        score_type == !!score_to_plot
+        .data$score_type == !!score_to_plot
       )
   ) +
     geom_bar(
