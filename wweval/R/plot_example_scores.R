@@ -64,7 +64,7 @@ plot_rel_crps_by_horizon <- function(
     dplyr::mutate(horizon = "overall")
 
   scores_comb <- dplyr::bind_rows(scores_by_horizon, scores_overall) |>
-    dplyr::filter(horizon %in% !!horizons_to_show)
+    dplyr::filter(.data$horizon %in% !!horizons_to_show)
 
   relative_crps <- scores_comb |>
     forecasttools::summarise_scores_with_baseline(

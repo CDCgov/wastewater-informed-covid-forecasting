@@ -26,7 +26,8 @@ plot_score_t <- function(
   if (is.null(model_z_order)) {
     model_z_order <- scores |>
       scoringutils::summarise_scores(by = "model") |>
-      dplyr::arrange(desc(.data[[metric]])) |> # want lowest (best) overall score plotted on top
+      dplyr::arrange(dplyr::desc(.data[[metric]])) |>
+      # want lowest (best) overall score plotted on top
       dplyr::pull("model")
   }
 

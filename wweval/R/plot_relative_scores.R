@@ -93,7 +93,7 @@ plot_rel_score_t <- function(
   if (is.null(model_z_order)) {
     model_z_order <- scores |>
       scoringutils::summarise_scores(by = "model") |>
-      dplyr::arrange(desc(.data[[metric_to_compare]])) |>
+      dplyr::arrange(dplyr::desc(.data[[metric_to_compare]])) |>
       # want lowest (best) overall score plotted on top
       dplyr::pull("model")
   }
@@ -340,7 +340,7 @@ plot_rel_score_dists_by_horizon <- function(
 
   scores <- dplyr::bind_rows(scores, scores_overall) |>
     dplyr::filter(
-      horizon %in% !!horizons_to_show
+      .data$horizon %in% !!horizons_to_show
     )
   relative_scores <- .target_model_relative_scores(
     scores = scores,

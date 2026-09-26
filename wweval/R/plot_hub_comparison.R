@@ -327,7 +327,7 @@ plot_std_rank_distribution <- function(
   models_to_show
 ) {
   ranks <- .compute_standardized_ranks(scores) |>
-    dplyr::filter(model %in% !!models_to_show)
+    dplyr::filter(.data$model %in% !!models_to_show)
 
   p <- ggplot(
     ranks,
