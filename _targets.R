@@ -383,7 +383,7 @@ collated_output_targets <- list(
   tar_target(
     name = quantile_fcsts_hosp_retro,
     command = combine_outputs(
-      output_type = "quantiles",
+      output_type = "hosp_quantiles",
       scenarios = "no_wastewater",
       forecast_dates = eval_config$forecast_date_hosp,
       locations = eval_config$location_hosp,
