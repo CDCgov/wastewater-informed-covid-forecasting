@@ -1,42 +1,3 @@
-#' Get a summary table of the number of forecasts excluded for each reason
-#'
-#' @param metadata a tibble containing metadata for each forecast date location
-#'
-#' @return a 1 row tibble with the number of forecasts for each category
-#' @export
-get_summary_metadata <- function(metadata) {
-  metadata_summarized <- metadata |>
-    dplyr::select(
-      forecast_date,
-      location,
-      ww_data_present,
-      ww_sufficient,
-      any_flags_hosp,
-      any_flags_ww
-    )
-
-  metadata_remove_insuff_ww <- metadata_summarized |>
-    dplyr::filter(ww_data_present == 1, ww_sufficient)
-
-  n_insuff_ww <- nrow(metadata_summarized) -
-    nrow(metadata_remove_insuff_ww)
-
-  metadata_remove_conv_issues <- metadata_remove_insuff_ww |>
-    dplyr::filter(!any_flags_hosp, !any_flags_ww)
-
-  n_conv_issues <- nrow(metadata_remove_insuff_ww) -
-    nrow(metadata_remove_conv_issues)
-
-  summary_table <- tibble::tibble(
-    n_insuff_ww,
-    n_conv_issues,
-    n_forecasts = nrow(metadata_remove_conv_issues)
-  )
-
-  return(summary_table)
-}
-
-
 #' Plot a heatmap of the metadata of reasons for excluding
 #' forecasts from analysis
 #'
@@ -46,12 +7,12 @@ get_summary_metadata <- function(metadata) {
 plot_heatmap_metadata_retro <- function(metadata) {
   metadata_summarized <- metadata |>
     dplyr::select(
-      forecast_date,
-      location,
-      ww_data_present,
-      ww_sufficient,
-      any_flags_hosp,
-      any_flags_ww
+      "forecast_date",
+      "location",
+      "ww_data_present",
+      "ww_sufficient",
+      "any_flags_hosp",
+      "any_flags_ww"
     ) |>
     dplyr::ungroup()
 
