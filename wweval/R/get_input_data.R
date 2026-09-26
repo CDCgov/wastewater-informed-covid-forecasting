@@ -52,7 +52,7 @@ get_input_ww_data <- function(
     lubridate::days(calibration_time) +
     lubridate::days(1))
 
-  ww_data_path <- file.path(ww_data_dir, paste0(date_to_pull, ".csv"))
+  ww_data_path <- fs::path(ww_data_dir, date_to_pull, ext = "csv")
   raw_nwss_data <- readr::read_csv(ww_data_path, show_col_types = FALSE)
 
   ## Use wweval functions to subset NWSS data and
@@ -82,8 +82,8 @@ get_input_ww_data <- function(
       .data$date,
       .data$location
     ) |>
-    summarize(
-      across(
+    dplyr::summarise(
+      dplyr::across(
         c(
           "log_genome_copies_per_ml",
           "log_lod",
@@ -100,7 +100,7 @@ get_input_ww_data <- function(
       lod_col_name = "log_lod"
     )
 
-    if (!isTRUE(for_eval)) {
+    if (!for_eval) {
       ww_data_to_fit <- wwinference::indicate_ww_exclusions(
         ww_data_preprocessed,
         outlier_col_name = "flag_as_ww_outlier",
@@ -186,7 +186,7 @@ get_input_hosp_data <- function(
   load_from_epidatr = FALSE,
   population_data_path = NA
 ) {
-  fp <- file.path(hosp_data_dir, paste0(forecast_date_i, ".csv"))
+  fp <- fs::path(hosp_data_dir, forecast_date_i, ext = "csv")
 
   # Load in the appropriate time-stamped hospital admissions dataset
   if (load_from_epidatr) {
