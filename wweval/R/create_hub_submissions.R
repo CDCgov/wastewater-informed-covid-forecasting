@@ -83,30 +83,27 @@ create_hub_submissions <- function(
 
     # A few quality checks
     n_models_ww <- full_quantiles |>
-      dplyr::select(location, model_type) |>
-      unique() |>
       dplyr::filter(.data$model_type == "ww") |>
-      nrow()
+      dplyr::select("location") |>
+      dplyr::n_distinct()
     message("Number of locations submitting wastewater model:", n_models_ww)
-    n_locs <- full_quantiles |>
-      dplyr::select(location) |>
-      unique() |>
-      nrow()
+    n_locs <- dplyr::n_distinct(full_quantiles$location)
     message("Number of locations in submission:", n_locs)
     metadata_df <- dplyr::bind_rows(
       metadata_df,
       data.frame(forecast_date, n_models_ww, n_locs)
     )
 
-    if (isTRUE(save_files)) {
+    if (save_files) {
       wwinference::create_dir(file.path(hub_subdir, model_name))
 
       readr::write_csv(
         submission_df,
-        file.path(
+        fs::path(
           hub_subdir,
           model_name,
-          glue::glue("{forecast_date}-{model_name}.csv")
+          glue::glue("{forecast_date}-{model_name}"),
+          ext = "csv"
         )
       )
     }
