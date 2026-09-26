@@ -189,10 +189,9 @@ get_input_hosp_data <- function(
   fp <- file.path(hosp_data_dir, paste0(forecast_date_i, ".csv"))
 
   # Load in the appropriate time-stamped hospital admissions dataset
-  if (isTRUE(load_from_epidatr)) {
-    # These codechunk depends on the epidatr package
-    check_package_is_installed("epidatr")
-    options(covidcast.auth = get_secret("covidcast_api_key"))
+  if (load_from_epidatr) {
+    assert_needed_env_vars("COVIDCAST_API_KEY")
+    options(covidcast.auth = Sys.getenv("COVIDCAST_API_KEY"))
 
     hosp_raw <- quiet(epidatr::pub_covidcast(
       source = "hhs",
