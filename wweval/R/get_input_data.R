@@ -66,7 +66,7 @@ get_input_ww_data <- function(
     scenario_dir
   )
   subsetted_ww_data <- all_ww_data |>
-    dplyr::filter(wwtp_name %in% !!list_of_site_ids) |>
+    dplyr::filter(.data$wwtp_name %in% !!list_of_site_ids) |>
     clean_ww_data() |>
     dplyr::filter(
       .data$location == !!location_i,
