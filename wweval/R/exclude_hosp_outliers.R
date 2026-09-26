@@ -23,7 +23,7 @@ exclude_hosp_outliers <- function(
   # Filter table of exclusions to the relevant forecast date and location
 
   loc <- raw_input_hosp_data |>
-    dplyr::pull(location) |>
+    dplyr::pull(.data$location) |>
     unique()
 
   stopifnot("Only one location passed in" = length(loc) == 1)
