@@ -48,19 +48,19 @@ create_mock_submission_scores <- function(
     for (j in seq_along(scenarios)) {
       scores_from_model <- all_scores |>
         dplyr::filter(
-          scenario == scenarios[j],
-          forecast_date == forecast_dates[i]
+          .data$scenario == !!scenarios[j],
+          .data$forecast_date == !!forecast_dates[i]
         )
       locs_present <- unique(scores_from_model$location)
       needed_locs <- locations[locations %notin% locs_present]
 
       replacement_scores <- all_scores |>
         dplyr::filter(
-          scenario == {{ name_of_replacement_model }},
-          forecast_date == forecast_dates[i],
-          location %in% needed_locs
+          .data$scenario == {{ name_of_replacement_model }},
+          .data$forecast_date == !!forecast_dates[i],
+          .data$location %in% !!needed_locs
         ) |>
-        dplyr::mutate(scenario = scenarios[j])
+        dplyr::mutate(scenario = !!scenarios[j])
 
       if (length(needed_locs) > 0 && nrow(replacement_scores) == 0) {
         cli::cli_abort(paste0(
@@ -79,8 +79,7 @@ create_mock_submission_scores <- function(
   }
 
   n_combos <- all_submission_scores |>
-    dplyr::select(forecast_date, location, scenario) |>
-    unique() |>
+    dplyr::distinct(.data$forecast_date, .data$location, .data$scenario) |>
     nrow()
   n_expected_combos <- length(forecast_dates) *
     length(locations) *
@@ -95,10 +94,10 @@ create_mock_submission_scores <- function(
   # forecast date bc we can't compare across scenarios.
 
   exclusions <- all_submission_scores |>
-    dplyr::distinct(location, forecast_date, scenario) |>
-    dplyr::count(location, forecast_date) |>
-    arrange(n) |>
-    dplyr::filter(n < length(unique(all_submission_scores$scenario)))
+    dplyr::distinct(.data$location, .data$forecast_date, .data$scenario) |>
+    dplyr::count(.data$location, .data$forecast_date) |>
+    dplyr::arrange(.data$n) |>
+    dplyr::filter(.data$n < length(unique(all_submission_scores$scenario)))
 
   # Function that excludes rows based on one combination of exclusions
   exclude_combination <- function(df, exclusion) {
@@ -118,9 +117,9 @@ create_mock_submission_scores <- function(
 
   # check that all ns are n_unique combos
   test <- filtered_scores |>
-    dplyr::distinct(location, forecast_date, scenario) |>
-    dplyr::count(location, forecast_date) |>
-    arrange(n)
+    dplyr::distinct(.data$location, .data$forecast_date, .data$scenario) |>
+    dplyr::count(.data$location, .data$forecast_date) |>
+    dplyr::arrange(.data$n)
 
   stopifnot(
     "Check that all locations forecast dates have full set of scenarios" = min(

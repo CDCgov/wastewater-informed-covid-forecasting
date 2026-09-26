@@ -467,11 +467,7 @@ postprocess_successful_fit <- function(
 
   save_table(
     data_to_save = full_hosp_quantiles,
-    type_of_output = ifelse(
-      ww_model,
-      "hosp_quantiles",
-      "quantiles"
-    ),
+    type_of_output = "hosp_quantiles",
     output_dir = output_dir,
     scenario = scenario,
     forecast_date = forecast_date,
