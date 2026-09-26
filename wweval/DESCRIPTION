@@ -105,4 +105,4 @@ Remotes:
     forecasttools=CDCgov/forecasttools@v0.1.7
 LazyData: true
 Config/testthat/edition: 3
-Config/roxygen2/version: 8.0.0
+Config/roxygen2/version: 8.1.0

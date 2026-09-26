@@ -122,55 +122,57 @@ export(summarize_std_rank)
 export(summarize_ww_data_quality)
 export(with_dependencies)
 import(ggplot2)
-importFrom(arrow,read_ipc_stream)
-importFrom(arrow,read_parquet)
-importFrom(arrow,write_parquet)
+importFrom(arrow,
+  read_ipc_stream,
+  read_parquet,
+  write_parquet
+)
 importFrom(cmdstanr,cmdstan_model)
 importFrom(colorspace,scale_fill_continuous_diverging)
 importFrom(data.table,as.data.table)
-importFrom(dplyr,arrange)
-importFrom(dplyr,as_tibble)
-importFrom(dplyr,case_when)
-importFrom(dplyr,distinct)
-importFrom(dplyr,filter)
-importFrom(dplyr,group_by)
-importFrom(dplyr,left_join)
-importFrom(dplyr,mutate)
-importFrom(dplyr,n)
-importFrom(dplyr,pull)
-importFrom(dplyr,rename)
-importFrom(dplyr,row_number)
-importFrom(dplyr,select)
-importFrom(dplyr,summarize)
-importFrom(dplyr,ungroup)
+importFrom(dplyr,
+  as_tibble,
+  distinct,
+  filter,
+  left_join,
+  mutate,
+  pull,
+  select
+)
 importFrom(glue,glue)
 importFrom(grDevices,colors)
 importFrom(jsonlite,fromJSON)
 importFrom(lubridate,ymd)
-importFrom(readr,read_csv)
-importFrom(readr,write_csv)
-importFrom(rlang,"%||%")
-importFrom(rlang,.data)
-importFrom(rlang,arg_match)
-importFrom(rlang,sym)
-importFrom(stats,density)
-importFrom(stats,dgamma)
-importFrom(stats,dlnorm)
-importFrom(stats,dnbinom)
-importFrom(stats,dweibull)
-importFrom(stats,ecdf)
-importFrom(stats,lag)
-importFrom(stats,median)
-importFrom(stats,quantile)
-importFrom(stats,sd)
-importFrom(stats,time)
+importFrom(readr,
+  read_csv,
+  write_csv
+)
+importFrom(rlang,
+  "%||%",
+  .data,
+  arg_match,
+  sym
+)
+importFrom(stats,
+  density,
+  lag,
+  median,
+  quantile,
+  sd
+)
 importFrom(tibble,tibble)
-importFrom(tidybayes,spread_draws)
-importFrom(tidybayes,stat_halfeye)
-importFrom(tidybayes,stat_slab)
-importFrom(tidyr,pivot_longer)
-importFrom(tidyr,pivot_wider)
-importFrom(utils,read.table)
-importFrom(utils,write.csv)
-importFrom(utils,write.table)
+importFrom(tidybayes,
+  spread_draws,
+  stat_halfeye,
+  stat_slab
+)
+importFrom(tidyr,
+  pivot_longer,
+  pivot_wider
+)
+importFrom(utils,
+  read.table,
+  write.csv,
+  write.table
+)
 importFrom(yaml,read_yaml)
