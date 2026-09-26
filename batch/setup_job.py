@@ -375,7 +375,7 @@ if __name__ == "__main__":
         "--dates-only",
         type=str,
         help=(
-            "Forecast dates to include in the Wob, as "
+            "Forecast dates to include in the job, as "
             "a whitespace-separated string with dates in "
             "YYYY-MM-DD format. Useful for "
             "troubleshooting or for rerunning. "
