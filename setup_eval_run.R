@@ -79,7 +79,7 @@ write_eval_config <- function(
         dplyr::filter(
           wwtp_jurisdiction %in% !!locations
         ) |>
-        dplyr::pull(wwtp_jurisdiction) |>
+        dplyr::pull("wwtp_jurisdiction") |>
         unique()
     }
 

@@ -102,9 +102,9 @@ create_mock_submission_scores <- function(
   # Function that excludes rows based on one combination of exclusions
   exclude_combination <- function(df, exclusion) {
     filtered_df <- df |>
-      dplyr::filter(
-        !(location == exclusion$location &
-          forecast_date == exclusion$forecast_date)
+      dplyr::filter_out(
+        .data$location == exclusion$location &
+          .data$forecast_date == exclusion$forecast_date
       )
     return(filtered_df)
   }

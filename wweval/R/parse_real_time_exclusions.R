@@ -37,7 +37,7 @@ parse_real_time_exclusions <- function(dir) {
       dplyr::bind_rows() |>
       dplyr::filter(!.data$location == "None") |>
       order_col("exclusion", levels = exclusion_hierarchy) |>
-      dplyr::arrange(exclusion) |>
+      dplyr::arrange(.data$exclusion) |>
       dplyr::distinct(.data$forecast_date, .data$location, .keep_all = TRUE)
     ## max one exclusion reason per location-date pair, with the reported
     ## exclusion based on the exclusion_hierarchy when there are multiple
@@ -71,7 +71,7 @@ compute_retro_exclusions <- function(
       .data$exclusion %in% c("manual_exclude_ww", "manual_exclude_both")
     )
   data_quality_exclusions <- ww_data_quality_table |>
-    dplyr::filter(!.data$ww_sufficient) |>
+    dplyr::filter_out(.data$ww_sufficient) |>
     dplyr::select("forecast_date", "location", exclusion = "status")
 
   convergence_exclusions <- convergence_table |>
@@ -91,7 +91,7 @@ compute_retro_exclusions <- function(
     convergence_exclusions
   ) |>
     order_col("exclusion", levels = exclusion_hierarchy) |>
-    dplyr::arrange(exclusion) |>
+    dplyr::arrange(.data$exclusion) |>
     dplyr::distinct(.data$forecast_date, .data$location, .keep_all = TRUE)
 
   return(result)

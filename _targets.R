@@ -1441,12 +1441,6 @@ composite_figure_targets <- list(
     )
   ),
   tar_target(
-    name = summary_metadata,
-    command = get_summary_metadata(
-      granular_ww_metadata_used
-    )
-  ),
-  tar_target(
     name = fig_heatmap_metadata_retro,
     command = plot_heatmap_metadata_retro(
       granular_ww_metadata_used

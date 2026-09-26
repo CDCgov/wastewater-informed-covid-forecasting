@@ -73,9 +73,9 @@ compute_ww_data_quality_table <- function(
     dplyr::summarize(
       location = !!location,
       forecast_date = lubridate::ymd(!!forecast_date),
-      last_date = max(date),
+      last_date = max(.data$date),
       n_dps = dplyr::n(),
-      prop_below_lod = sum(below_lod == 1) / dplyr::n(),
+      prop_below_lod = sum(.data$below_lod == 1) / dplyr::n(),
       sd = sd(exp(.data$log_genome_copies_per_ml)),
       mean_log_ww = mean(.data$log_genome_copies_per_ml)
     ) |>

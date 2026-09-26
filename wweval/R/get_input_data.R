@@ -52,7 +52,7 @@ get_input_ww_data <- function(
     lubridate::days(calibration_time) +
     lubridate::days(1))
 
-  ww_data_path <- file.path(ww_data_dir, paste0(date_to_pull, ".csv"))
+  ww_data_path <- fs::path(ww_data_dir, date_to_pull, ext = "csv")
   raw_nwss_data <- readr::read_csv(ww_data_path, show_col_types = FALSE)
 
   ## Use wweval functions to subset NWSS data and
@@ -66,13 +66,15 @@ get_input_ww_data <- function(
     scenario_dir
   )
   subsetted_ww_data <- all_ww_data |>
-    dplyr::filter(wwtp_name %in% !!list_of_site_ids) |>
+    dplyr::filter(.data$wwtp_name %in% !!list_of_site_ids) |>
     clean_ww_data() |>
-    filter(
+    dplyr::filter(
       .data$location == !!location_i,
-      .data$date >= !!first_calibration_date,
-      !is.na(.data$lab),
-      !is.na(.data$site)
+      .data$date >= !!first_calibration_date
+    ) |>
+    dplyr::filter_out(
+      is.na(.data$lab),
+      is.na(.data$site)
     ) |>
     dplyr::group_by(
       .data$lab,
@@ -80,8 +82,8 @@ get_input_ww_data <- function(
       .data$date,
       .data$location
     ) |>
-    summarize(
-      across(
+    dplyr::summarise(
+      dplyr::across(
         c(
           "log_genome_copies_per_ml",
           "log_lod",
@@ -98,7 +100,7 @@ get_input_ww_data <- function(
       lod_col_name = "log_lod"
     )
 
-    if (!isTRUE(for_eval)) {
+    if (!for_eval) {
       ww_data_to_fit <- wwinference::indicate_ww_exclusions(
         ww_data_preprocessed,
         outlier_col_name = "flag_as_ww_outlier",
@@ -137,14 +139,14 @@ get_scenario_site_ids <- function(
 ) {
   list_of_wwtp_ids <- unique(init_subset_nwss_data$wwtp_name)
   if (scenario != "status_quo") {
-    list_of_wwtp_ids <- read.table(
-      file.path(
+    list_of_wwtp_ids <- readr::read_tsv(
+      fs::path(
         scenario_dir,
-        glue::glue("{scenario}.tsv")
-      ),
-      header = TRUE
+        scenario,
+        ext = "tsv"
+      )
     ) |>
-      pull(wwtp_name) |>
+      dplyr::pull("wwtp_name") |>
       unique() # There could be duplicates here if multiple site ids
     # had the same WWTP name (e.g. labs switched but represents same pop)
   }
@@ -184,13 +186,12 @@ get_input_hosp_data <- function(
   load_from_epidatr = FALSE,
   population_data_path = NA
 ) {
-  fp <- file.path(hosp_data_dir, paste0(forecast_date_i, ".csv"))
+  fp <- fs::path(hosp_data_dir, forecast_date_i, ext = "csv")
 
   # Load in the appropriate time-stamped hospital admissions dataset
-  if (isTRUE(load_from_epidatr)) {
-    # These codechunk depends on the epidatr package
-    check_package_is_installed("epidatr")
-    options(covidcast.auth = get_secret("covidcast_api_key"))
+  if (load_from_epidatr) {
+    assert_needed_env_vars("COVIDCAST_API_KEY")
+    options(covidcast.auth = Sys.getenv("COVIDCAST_API_KEY"))
 
     hosp_raw <- quiet(epidatr::pub_covidcast(
       source = "hhs",
@@ -203,18 +204,18 @@ get_input_hosp_data <- function(
     ))
 
     state_population_table <- readr::read_csv(population_data_path) |>
-      dplyr::mutate(population = as.numeric(population))
+      dplyr::mutate(population = as.numeric(.data$population))
 
     hosp <- hosp_raw |>
-      as_tibble() |>
-      mutate(abbreviation = toupper(geo_value)) |>
-      left_join(state_population_table, by = "abbreviation") |>
-      rename(
-        date = time_value,
-        daily_hosp_admits = value,
-        pop = population
-      ) |>
-      select(date, ABBR = abbreviation, daily_hosp_admits, pop)
+      tibble::as_tibble() |>
+      dplyr::mutate(abbreviation = toupper(.data$geo_value)) |>
+      dplyr::left_join(state_population_table, by = "abbreviation") |>
+      dplyr::select(
+        date = "time_value",
+        ABBR = "abbreviation",
+        daily_hosp_admits = "value",
+        pop = "population"
+      )
     message("Writing full time stamped dataset to local storage")
 
     readr::write_csv(hosp, fp)
@@ -223,12 +224,12 @@ get_input_hosp_data <- function(
   }
   last_hosp_data_date <- max(hosp$date, na.rm = TRUE)
   input_hosp <- hosp |>
-    rename(location = ABBR) |>
-    mutate(date = lubridate::ymd(date)) |>
-    filter(
-      location %in% c(!!location_i),
-      date >=
-        (ymd(!!last_hosp_data_date) -
+    dplyr::rename(location = "ABBR") |>
+    dplyr::mutate(date = lubridate::ymd(.data$date)) |>
+    dplyr::filter(
+      .data$location %in% !!location_i,
+      .data$date >=
+        (lubridate::ymd(!!last_hosp_data_date) -
           lubridate::days(!!calibration_time) +
           lubridate::days(1))
     )
@@ -342,9 +343,7 @@ clean_and_filter_nwss_data <- function(raw_nwss_data) {
       .data$pcr_target_units != "copies/g dry sludge",
       .data$pcr_target == "sars-cov-2"
     ) |>
-    #* Note, we need to figure out how to convert copies/g dry sludge to a WW concentration,
-    #* but now now we're just going to exclude
-    select(
+    dplyr::select(
       "lab_id",
       "sample_collect_date",
       "wwtp_name",
@@ -358,21 +357,22 @@ clean_and_filter_nwss_data <- function(raw_nwss_data) {
       "lod_sewage",
       "quality_flag"
     ) |>
-    mutate(
+    dplyr::mutate(
       pcr_target_avg_conc = dplyr::case_when(
-        pcr_target_units == "copies/l wastewater" ~
+        .data$pcr_target_units == "copies/l wastewater" ~
           .data$pcr_target_avg_conc / 1000,
-        pcr_target_units == "log10 copies/l wastewater" ~
+        .data$pcr_target_units == "log10 copies/l wastewater" ~
           (10^(.data$pcr_target_avg_conc)) / 1000
       ),
       lod_sewage = dplyr::case_when(
-        pcr_target_units == "copies/l wastewater" ~ .data$lod_sewage / 1000,
-        pcr_target_units == "log10 copies/l wastewater" ~
+        .data$pcr_target_units == "copies/l wastewater" ~ .data$lod_sewage /
+          1000,
+        .data$pcr_target_units == "log10 copies/l wastewater" ~
           (10^(.data$lod_sewage)) / 1000
       ),
     ) |>
-    dplyr::filter(
-      .data$quality_flag %notin%
+    dplyr::filter_out(
+      .data$quality_flag %in%
         c(
           "yes",
           "y",
@@ -387,24 +387,24 @@ clean_and_filter_nwss_data <- function(raw_nwss_data) {
     quantile(nwss_subset_raw$lod_sewage, 0.95, na.rm = TRUE)
   )
   nwss_subset <- nwss_subset_raw |>
-    mutate(
+    dplyr::mutate(
       lod_sewage = tidyr::replace_na(.data$lod_sewage, !!conservative_lod),
       sample_collect_date = lubridate::ymd(.data$sample_collect_date)
     )
 
   # If there are multiple values per lab-site-day, replace with the mean
   nwss_subset_clean <- nwss_subset |>
-    group_by(.data$wwtp_name, .data$lab_id, .data$sample_collect_date) |>
-    mutate(
+    dplyr::group_by(.data$wwtp_name, .data$lab_id, .data$sample_collect_date) |>
+    dplyr::mutate(
       pcr_target_avg_conc = mean(.data$pcr_target_avg_conc, na.rm = TRUE),
       pcr_target_flowpop_lin = mean(.data$pcr_target_flowpop_lin, na.rm = TRUE)
     ) |>
-    ungroup() |>
-    distinct() |>
+    dplyr::ungroup() |>
+    dplyr::distinct() |>
     # If there are multiple population sizes in a site, replace with the mean
     # and round to the nearest whole number
-    group_by(.data$wwtp_name) |>
-    mutate(
+    dplyr::group_by(.data$wwtp_name) |>
+    dplyr::mutate(
       population_served = round(mean(.data$population_served, na.rm = TRUE), 0),
     ) |>
     dplyr::select(
