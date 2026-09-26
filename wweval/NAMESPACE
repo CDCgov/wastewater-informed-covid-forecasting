@@ -130,15 +130,6 @@ importFrom(arrow,
 importFrom(cmdstanr,cmdstan_model)
 importFrom(colorspace,scale_fill_continuous_diverging)
 importFrom(data.table,as.data.table)
-importFrom(dplyr,
-  as_tibble,
-  distinct,
-  filter,
-  left_join,
-  mutate,
-  pull,
-  select
-)
 importFrom(glue,glue)
 importFrom(grDevices,colors)
 importFrom(jsonlite,fromJSON)
@@ -155,10 +146,16 @@ importFrom(rlang,
 )
 importFrom(stats,
   density,
+  dgamma,
+  dlnorm,
+  dnbinom,
+  dweibull,
+  ecdf,
   lag,
   median,
   quantile,
-  sd
+  sd,
+  time
 )
 importFrom(tibble,tibble)
 importFrom(tidybayes,
@@ -171,6 +168,7 @@ importFrom(tidyr,
   pivot_wider
 )
 importFrom(utils,
+  head,
   read.table,
   write.csv,
   write.table
