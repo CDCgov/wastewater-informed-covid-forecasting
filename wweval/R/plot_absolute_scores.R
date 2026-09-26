@@ -26,7 +26,8 @@ plot_score_t <- function(
   if (is.null(model_z_order)) {
     model_z_order <- scores |>
       scoringutils::summarise_scores(by = "model") |>
-      dplyr::arrange(desc(.data[[metric]])) |> # want lowest (best) overall score plotted on top
+      dplyr::arrange(dplyr::desc(.data[[metric]])) |>
+      # want lowest (best) overall score plotted on top
       dplyr::pull("model")
   }
 
@@ -39,7 +40,7 @@ plot_score_t <- function(
           "model"
         )
       ) |>
-      dplyr::filter(horizon_weeks == !!horizon_time_in_weeks)
+      dplyr::filter(.data$horizon_weeks == !!horizon_time_in_weeks)
   } else {
     by_date <- scores |>
       scoringutils::summarise_scores(
@@ -59,7 +60,7 @@ plot_score_t <- function(
       y = .data[[metric]],
       color = .data$model,
       shape = .data$model,
-      fill = .data$model,
+      fill = .data$model
     )
   ) +
     forecasttools::geom_line_point(
@@ -244,7 +245,7 @@ heatmap_scores_by_loc_date <- function(scores, metric, models_to_plot) {
   checkmate::assert_names(metric, subset.of = c("wis", "crps"))
   scores_summary <- scores |>
     dplyr::filter(
-      model %in% !!models_to_plot
+      .data$model %in% !!models_to_plot
     ) |>
     scoringutils::summarise_scores(
       by = c(

@@ -4,7 +4,7 @@ library(tarchetypes) # tar_render() calls
 controller <- crew::crew_controller_local(
   workers = 8,
   seconds_idle = 600,
-  seconds_timeout = 120,
+  seconds_timeout = 120
 )
 
 # Set target options:
@@ -56,18 +56,13 @@ configuration_targets <- list(
     command = yaml::read_yaml(fs::path(
       "input",
       "config",
-      "eval",
-      "eval_config",
+      "main_analysis",
       ext = "yaml"
     ))
   ),
   tar_target(
     name = params,
-    command = wwinference::get_params(fs::path(
-      "input",
-      "params",
-      ext = "toml"
-    )) |>
+    command = wwinference::get_params(eval_config$param_file) |>
       tibble::as_tibble()
   ),
   tar_target(
@@ -119,6 +114,10 @@ configuration_targets <- list(
   tar_target(
     name = fig_supp_dir,
     command = fs::dir_create(fs::path(fig_output_dir, "supp"))
+  ),
+  tar_target(
+    name = score_subdir,
+    command = fs::dir_create(eval_config$score_subdir)
   ),
   tar_target(
     name = save_fig_main,
@@ -384,7 +383,7 @@ collated_output_targets <- list(
   tar_target(
     name = quantile_fcsts_hosp_retro,
     command = combine_outputs(
-      output_type = "quantiles",
+      output_type = "hosp_quantiles",
       scenarios = "no_wastewater",
       forecast_dates = eval_config$forecast_date_hosp,
       locations = eval_config$location_hosp,
@@ -706,7 +705,7 @@ collated_output_targets <- list(
     name = save_table_crps_cfa_models_retro,
     command = {
       fp <- fs::path(
-        eval_config$score_subdir,
+        score_subdir,
         "crps_cfa_models_retro",
         ext = "parquet"
       )
@@ -979,7 +978,7 @@ hub_comparison_targets <- list(
     name = save_hub_scores,
     command = {
       fp <- fs::path(
-        eval_config$score_subdir,
+        score_subdir,
         "hub_scores_all_time",
         ext = "parquet"
       )
@@ -996,7 +995,7 @@ hub_comparison_targets <- list(
     name = save_scores_real_time,
     command = {
       fp <- fs::path(
-        eval_config$score_subdir,
+        score_subdir,
         "hub_scores_real_time",
         ext = "parquet"
       )
@@ -1423,7 +1422,7 @@ trend_analysis_targets <- list(
       dplyr::group_by(
         .data$forecast_date,
         .data$location,
-        .data$scenario,
+        .data$scenario
       ) |>
       ggdist::mean_qi(.exclude = "draw")
   ),
@@ -1504,12 +1503,6 @@ composite_figure_targets <- list(
       convergence_df,
       ww_sufficiency_table,
       include_manual_exclusions = TRUE
-    )
-  ),
-  tar_target(
-    name = summary_metadata,
-    command = get_summary_metadata(
-      granular_ww_metadata_used
     )
   ),
   tar_target(
@@ -1851,7 +1844,7 @@ composite_figure_targets <- list(
     name = save_table_rel_crps_cfa_models_by_t_loc,
     command = {
       fp <- fs::path(
-        eval_config$score_subdir,
+        score_subdir,
         "rel_crps_cfa_models_by_t_loc",
         ext = "parquet"
       )
@@ -2350,7 +2343,7 @@ reported_quantities_targets <- list(
     command = wis_cfa_models_real_time |>
       forecasttools::summarise_scores_with_baseline(
         compare = "model",
-        baseline = "cfa-hosponlyrenewal(real-time*)",
+        baseline = "cfa-hosponlyrenewal(real-time*)"
       ) |>
       dplyr::rename(rel_wis = "mean_scores_ratio")
   ),
@@ -2383,7 +2376,7 @@ reported_quantities_targets <- list(
     command = crps_cfa_models_retro |>
       forecasttools::summarise_scores_with_baseline(
         compare = "model",
-        baseline = "cfa-hosponlyrenewal(retro)",
+        baseline = "cfa-hosponlyrenewal(retro)"
       ) |>
       dplyr::rename(rel_crps = "mean_scores_ratio")
   ),

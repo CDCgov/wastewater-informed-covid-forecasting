@@ -44,7 +44,7 @@ create_hub_submissions <- function(
   save_files = TRUE
 ) {
   hosp_quantiles_ww <- hosp_quantiles_ww |>
-    dplyr::filter(scenario == !!scenario)
+    dplyr::filter(.data$scenario == !!scenario)
   metadata_df <- data.frame()
   for (i in seq_along(forecast_dates)) {
     forecast_date <- forecast_dates[i]
@@ -69,11 +69,11 @@ create_hub_submissions <- function(
     for (j in seq_along(all_locs)) {
       if (all_locs[j] %in% c(unique(ww_quantiles$location))) {
         this_loc_quantiles <- ww_quantiles |>
-          dplyr::filter(location == all_locs[j])
+          dplyr::filter(.data$location == !!all_locs[j])
       } else {
         # get from the hosp quantiles
         this_loc_quantiles <- hosp_quantiles |>
-          dplyr::filter(location == all_locs[j])
+          dplyr::filter(.data$location == !!all_locs[j])
       }
       full_quantiles <- dplyr::bind_rows(full_quantiles, this_loc_quantiles)
     }
@@ -83,30 +83,27 @@ create_hub_submissions <- function(
 
     # A few quality checks
     n_models_ww <- full_quantiles |>
-      dplyr::select(location, model_type) |>
-      unique() |>
-      dplyr::filter(model_type == "ww") |>
-      nrow()
+      dplyr::filter(.data$model_type == "ww") |>
+      dplyr::select("location") |>
+      dplyr::n_distinct()
     message("Number of locations submitting wastewater model:", n_models_ww)
-    n_locs <- full_quantiles |>
-      dplyr::select(location) |>
-      unique() |>
-      nrow()
+    n_locs <- dplyr::n_distinct(full_quantiles$location)
     message("Number of locations in submission:", n_locs)
     metadata_df <- dplyr::bind_rows(
       metadata_df,
       data.frame(forecast_date, n_models_ww, n_locs)
     )
 
-    if (isTRUE(save_files)) {
+    if (save_files) {
       wwinference::create_dir(file.path(hub_subdir, model_name))
 
       readr::write_csv(
         submission_df,
-        file.path(
+        fs::path(
           hub_subdir,
           model_name,
-          glue::glue("{forecast_date}-{model_name}.csv")
+          glue::glue("{forecast_date}-{model_name}"),
+          ext = "csv"
         )
       )
     }
@@ -154,25 +151,27 @@ format_for_hub <- function(
     ) |>
     dplyr::mutate(
       location = forecasttools::us_loc_abbr_to_code(.data$location),
-      quantile = round(quantile, 4),
+      quantile = round(.data$quantile, 4),
     ) |>
     dplyr::filter(
-      target_end_date >=
+      .data$target_end_date >=
         lubridate::ymd(.data$forecast_date) + lubridate::days(1)
     ) |>
-    dplyr::mutate(days_ahead = as.numeric(target_end_date - forecast_date)) |>
     dplyr::mutate(
-      target = glue::glue("{days_ahead} day ahead inc hosp"),
+      days_ahead = as.numeric(.data$target_end_date - .data$forecast_date)
+    ) |>
+    dplyr::mutate(
+      target = glue::glue("{.data$days_ahead} day ahead inc hosp"),
       type = "quantile"
     ) |>
     dplyr::select(
-      target,
-      location,
-      forecast_date,
-      target_end_date,
-      quantile,
-      value,
-      type
+      "target",
+      "location",
+      "forecast_date",
+      "target_end_date",
+      "quantile",
+      "value",
+      "type"
     )
 
   return(formatted_quantiles)

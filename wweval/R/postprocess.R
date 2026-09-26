@@ -266,7 +266,7 @@ save_table <- function(
 
     fs::dir_create(fs::path_dir(fp))
 
-    readr::write_tsv(as_tibble(data_to_save), file = fp)
+    readr::write_tsv(tibble::as_tibble(data_to_save), file = fp)
   }
 
   invisible()
@@ -491,18 +491,19 @@ postprocess_successful_fit <- function(
       NULL
     } else {
       full_hosp_quantiles |>
-        dplyr::filter(period != "calibration")
+        dplyr::filter_out(.data$period == "calibration")
     }
   }
   save_object(hosp_quantiles)
 
   save_fit_table(
     data_to_save = full_hosp_quantiles,
-    type_of_output = ifelse(
-      ww_model,
-      "hosp_quantiles",
-      "quantiles"
-    )
+    type_of_output = "hosp_quantiles",
+    output_dir = output_dir,
+    scenario = scenario,
+    forecast_date = forecast_date,
+    model_type = model,
+    location = location
   )
 
   if (ww_model) {
@@ -512,7 +513,7 @@ postprocess_successful_fit <- function(
         ww_draws = ww_draws
       )
       ww_quantiles <- full_ww_quantiles |>
-        dplyr::filter(period != "calibration")
+        dplyr::filter_out(.data$period == "calibration")
       message("Done.")
     } else {
       message(paste0(

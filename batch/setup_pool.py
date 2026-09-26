@@ -1,6 +1,7 @@
 #!/usr/bin/env python3
 
 import argparse
+
 import cfa.cloudops
 
 
@@ -28,8 +29,8 @@ def main(pool_name: str, vm_size: str) -> None:
         pool_name=pool_name,
         vm_size=vm_size,
         mounts=[
-            dict(source="wastewater-input", target="input"),
-            dict(source="wastewater-ms-output", target="output"),
+            {"source": "wastewater-input", "target": "input"},
+            {"source": "wastewater-ms-output", "target": "output"},
         ],
         container_image_name="ghcr.io/cdcgov/renewalww:latest",
         max_autoscale_nodes=400,

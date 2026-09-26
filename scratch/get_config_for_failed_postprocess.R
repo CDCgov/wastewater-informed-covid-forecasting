@@ -37,6 +37,6 @@ yaml::write_yaml(
   new_eval_config,
   file = file.path(
     config_dir,
-    glue::glue("eval_config.yaml")
+    "eval_config.yaml"
   )
 )
