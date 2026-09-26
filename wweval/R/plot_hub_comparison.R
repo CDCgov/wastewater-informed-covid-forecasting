@@ -83,13 +83,10 @@ plot_hub_performance_by_period <- function(
     scoringutils::summarise_scores(
       by = c("model", "period")
     ) |>
-    dplyr::rename(
-      mean_score = "wis"
-    ) |>
     dplyr::select(
       "model",
       "period",
-      "mean_score"
+      mean_score = "wis"
     )
 
   baseline_scores <- scores |>
