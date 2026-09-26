@@ -432,26 +432,26 @@ clean_and_filter_nwss_data <- function(raw_nwss_data) {
 #' @export
 clean_ww_data <- function(nwss_subset, log_offset = 1e-20) {
   ww_data <- nwss_subset |>
-    ungroup() |>
-    rename(
-      date = sample_collect_date,
-      site_pop = population_served
+    dplyr::ungroup() |>
+    dplyr::rename(
+      date = "sample_collect_date",
+      site_pop = "population_served"
     ) |>
-    mutate(
-      location = toupper(wwtp_jurisdiction),
-      site = wwtp_name,
-      lab = lab_id,
-      log_genome_copies_per_ml = log(pcr_target_avg_conc + log_offset),
-      log_lod = log(lod_sewage)
+    dplyr::mutate(
+      location = toupper(.data$wwtp_jurisdiction),
+      site = .data$wwtp_name,
+      lab = .data$lab_id,
+      log_genome_copies_per_ml = log(.data$pcr_target_avg_conc + !!log_offset),
+      log_lod = log(.data$lod_sewage)
     ) |>
-    select(
-      date,
-      site,
-      lab,
-      log_genome_copies_per_ml,
-      log_lod,
-      site_pop,
-      location
+    dplyr::select(
+      "date",
+      "site",
+      "lab",
+      "log_genome_copies_per_ml",
+      "log_lod",
+      "site_pop",
+      "location"
     )
 
   return(ww_data)

@@ -14,7 +14,7 @@ combine_outputs(
 )
 }
 \arguments{
-\item{output_type}{the type of output that is saved, one of \code{"quantiles"}, \code{"scores"},
+\item{output_type}{the type of output that is saved, one of \code{"scores"},
 \code{"ww_quantiles"}, \code{"scores_quantiles"}, \code{"hosp_quantiles"},\code{"errors"},
 \code{"ww_data_flags"} or \code{"flags"}.}
 
