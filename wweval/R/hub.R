@@ -76,7 +76,7 @@ select_hub_models <- function(
     dplyr::group_by(.data$model) |>
     dplyr::summarize(n_submissions = dplyr::n(), .groups = "drop") |>
     dplyr::filter(.data$n_submissions >= !!min_submissions_per_model) |>
-    dplyr::filter(!.data$model %in% !!excluded_models)
+    dplyr::filter(.data$model %notin% !!excluded_models)
 
   return(qualifying_models$model)
 }
@@ -97,7 +97,8 @@ select_hub_models <- function(
 #' @param pull_from_github boolean indicating whether or not to pull
 #' from github
 #' @param submissions_path url pointing to the "data-processed" folder on
-#' the COVIDhub github, which is where team's submissions are located
+#' the COVIDhub github, which is where team's submissions are located.
+#' If not provided, use the original COVIDHub on github.
 #'
 #' @return a dataframe containing all of the scores for all models,
 #' forecast dates (indicated by dates), locations, target end dates, and
@@ -111,8 +112,10 @@ pull_hub_forecasts <- function(
   locations = NULL,
   hub_subdir = NA,
   pull_from_github = TRUE,
-  submissions_path = "https://raw.githubusercontent.com/reichlab/covid19-forecast-hub/master/data-processed/" # nolint
+  submissions_path = NULL
 ) {
+  submissions_path <- submissions_path %||%
+    "https://raw.githubusercontent.com/reichlab/covid19-forecast-hub/master/data-processed/" # nolint
   to_pull <- tidyr::crossing(
     model_name = model_name,
     forecast_date = dates
@@ -129,7 +132,7 @@ pull_hub_forecasts <- function(
           gh_path,
           show_col_types = FALSE
         ) |>
-          dplyr::filter(type == "quantile"),
+          dplyr::filter(.data$type == "quantile"),
         error = function(e) {
           NULL
         }

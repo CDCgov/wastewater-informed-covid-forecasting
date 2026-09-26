@@ -72,7 +72,7 @@ forecast_qq_plot <- function(
       aes(
         x = .data$x,
         y = .data$y,
-        group = .data$g,
+        group = .data$g
       ),
       alpha = 0.15,
       colour = "olivedrab3",

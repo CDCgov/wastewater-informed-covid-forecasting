@@ -36,9 +36,9 @@ summarize_ww_data_quality <- function(ww_quality_table) {
     ) |>
     dplyr::mutate(
       status = dplyr::case_when(
-        ww_sufficient ~ "sufficient_ww",
-        !ww_sufficient & ww_present ~ "insufficient_ww",
-        !ww_present ~ "absent_ww",
+        .data$ww_sufficient ~ "sufficient_ww",
+        !.data$ww_sufficient & .data$ww_present ~ "insufficient_ww",
+        !.data$ww_present ~ "absent_ww",
         TRUE ~ NA
       )
     )
