@@ -637,11 +637,6 @@ collated_output_targets <- list(
       )
   ),
   tar_target(
-    name = score_subdir,
-    command = fs::dir_create(eval_config$score_subdir),
-    format = "file"
-  ),
-  tar_target(
     name = save_table_crps_cfa_models_retro,
     command = {
       fp <- fs::path(
