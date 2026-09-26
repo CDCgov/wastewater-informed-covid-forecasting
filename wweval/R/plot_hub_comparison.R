@@ -50,9 +50,8 @@ plot_hub_performance_by_period <- function(
 
     scores_by_model_real_time <- subset_scores |>
       dplyr::filter(
-        forecast_date >= lubridate::ymd("2024-02-05")
+        .data$forecast_date >= lubridate::ymd("2024-02-05")
       ) |>
-      data.table::as.data.table() |>
       scoringutils::summarise_scores(
         by = c("model", "forecast_date", "location")
       ) |>
@@ -61,14 +60,12 @@ plot_hub_performance_by_period <- function(
       )
   } else {
     scores_by_model_all_time <- subset_scores |>
-      data.table::as.data.table() |>
       dplyr::mutate(
         period = {{ all_time_period }}
       )
     scores_by_model_real_time <- subset_scores |>
-      data.table::as.data.table() |>
       dplyr::filter(
-        forecast_date >= lubridate::ymd("2024-02-05")
+        .data$forecast_date >= lubridate::ymd("2024-02-05")
       ) |>
       dplyr::mutate(
         period = {{ real_time_period }}
@@ -86,19 +83,20 @@ plot_hub_performance_by_period <- function(
     scoringutils::summarise_scores(
       by = c("model", "period")
     ) |>
-    dplyr::rename(
-      mean_score = .data$wis
-    ) |>
     dplyr::select(
-      model,
-      period,
-      mean_score
+      "model",
+      "period",
+      mean_score = "wis"
     )
 
   baseline_scores <- scores |>
-    dplyr::filter(model == {{ baseline_model }}) |>
-    dplyr::select(location, forecast_date, horizon, .data$wis) |>
-    dplyr::rename(baseline_score = .data$wis)
+    dplyr::filter(.data$model == {{ baseline_model }}) |>
+    dplyr::select(
+      "location",
+      "forecast_date",
+      "horizon",
+      baseline_score = "wis"
+    )
 
   scores_final <- scores |>
     dplyr::left_join(mean_scores, by = c("model", "period")) |>
@@ -113,7 +111,7 @@ plot_hub_performance_by_period <- function(
     dplyr::mutate(
       relative_wis = .data$wis / .data$baseline_score
     ) |>
-    dplyr::filter(model != {{ baseline_model }}) |>
+    dplyr::filter_out(.data$model == {{ baseline_model }}) |>
     order_periods()
 
   colors <- plot_components()
@@ -121,9 +119,9 @@ plot_hub_performance_by_period <- function(
   p <- ggplot(scores_final) +
     tidybayes::stat_halfeye(
       aes(
-        x = period,
-        y = relative_wis + 1e-8,
-        fill = model
+        x = .data$period,
+        y = .data$relative_wis + 1e-8,
+        fill = .data$model
       ),
       point_interval = "mean_qi",
       alpha = 0.5,
@@ -170,7 +168,7 @@ relative_wis_histogram <- function(
         "location"
       )
     ) |>
-    dplyr::filter(.data$model != !!baseline_model) |>
+    dplyr::filter_out(.data$model == !!baseline_model) |>
     dplyr::rename(relative_wis = "mean_scores_ratio")
 
   colors <- plot_components()
@@ -180,7 +178,7 @@ relative_wis_histogram <- function(
       aes(
         x = .data$model,
         y = .data$relative_wis,
-        fill = model
+        fill = .data$model
       ),
       point_interval = "mean_qi",
       alpha = 0.5,
@@ -239,8 +237,10 @@ plot_hub_heatmap_relative_wis <- function(
         c(
           !!baseline_model,
           !!models_to_show
-        ),
-      .data$location != "US"
+        )
+    ) |>
+    dplyr::filter_out(
+      .data$location == "US"
     ) |>
     forecasttools::summarise_scores_with_baseline(
       baseline = baseline_model,
@@ -248,10 +248,7 @@ plot_hub_heatmap_relative_wis <- function(
       metric_to_compare = "wis",
       by = "location"
     ) |>
-    dplyr::filter(
-      .data$model != !!baseline_model,
-      .data$location != "US"
-    ) |>
+    dplyr::filter_out(.data$model == !!baseline_model) |>
     dplyr::mutate(
       display_score = format(
         .data$mean_scores_ratio,
@@ -301,7 +298,9 @@ plot_hub_heatmap_relative_wis <- function(
     dplyr::mutate(std_rank = dplyr::percent_rank(dplyr::desc(.data$wis))) |>
     dplyr::ungroup() |>
     dplyr::group_by(.data$model) |>
-    dplyr::mutate(q25_rank = quantile(std_rank, probs = 0.25, na.rm = TRUE)) |>
+    dplyr::mutate(
+      q25_rank = quantile(.data$std_rank, probs = 0.25, na.rm = TRUE)
+    ) |>
     dplyr::ungroup() |>
     dplyr::arrange(.data$q25_rank) |>
     order_col("model") |>
@@ -334,8 +333,8 @@ plot_std_rank_distribution <- function(
   p <- ggplot(
     ranks,
     aes(
-      x = std_rank,
-      y = model,
+      x = .data$std_rank,
+      y = .data$model,
       fill = factor(stat(quantile)),
       height = after_stat(density)
     )

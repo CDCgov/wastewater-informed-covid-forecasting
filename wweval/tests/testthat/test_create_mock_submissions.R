@@ -48,7 +48,7 @@ test_that("Missing locations are filled with scores from replacement model", {
     suppressMessages()
 
   # Check if all missing locations have been filled with 'no_wastewater' scenario scores
-  no_wastewater_data <- filter(result, scenario == "no_wastewater")
+  no_wastewater_data <- dplyr::filter(result, .data$scenario == "no_wastewater")
 
   for (date in unique(no_wastewater_data$forecast_date)) {
     for (loc in unique(no_wastewater_data$location)) {
@@ -65,16 +65,16 @@ test_that("Missing locations are filled with scores from replacement model", {
         ) {
           # nolint
           # If data was missing, check that it has been replaced correctly
-          replaced_score <- filter(
+          replaced_score <- dplyr::filter(
             result,
-            forecast_date == date,
-            location == loc,
-            scenario == scen
+            .data$forecast_date == !!date,
+            .data$location == !!loc,
+            .data$scenario == !!scen
           )
-          original_score <- filter(
+          original_score <- dplyr::filter(
             no_wastewater_data,
-            forecast_date == date,
-            location == loc
+            .data$forecast_date == !!date,
+            .data$location == !!loc
           )
 
           expect_equal(nrow(replaced_score), 1) # Ensure a replacement exists
@@ -108,7 +108,7 @@ test_that("Correct model_type labels are added", {
   unique_scenarios <- unique(mock_all_scores_full$scenario)
 
   for (scen in unique_scenarios) {
-    scenario_data <- filter(result, scenario == scen)
+    scenario_data <- dplyr::filter(result, .data$scenario == !!scen)
 
     if (scen != "no_wastewater") {
       expect_true(all(scenario_data$model_type != "no_wastewater"))

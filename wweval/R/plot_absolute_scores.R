@@ -39,7 +39,7 @@ plot_score_t <- function(
           "model"
         )
       ) |>
-      dplyr::filter(horizon_weeks == !!horizon_time_in_weeks)
+      dplyr::filter(.data$horizon_weeks == !!horizon_time_in_weeks)
   } else {
     by_date <- scores |>
       scoringutils::summarise_scores(
@@ -244,7 +244,7 @@ heatmap_scores_by_loc_date <- function(scores, metric, models_to_plot) {
   checkmate::assert_names(metric, subset.of = c("wis", "crps"))
   scores_summary <- scores |>
     dplyr::filter(
-      model %in% !!models_to_plot
+      .data$model %in% !!models_to_plot
     ) |>
     scoringutils::summarise_scores(
       by = c(

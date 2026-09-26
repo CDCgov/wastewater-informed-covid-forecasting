@@ -66,7 +66,7 @@ add_horizons <- function(
 get_last_hosp_data_date_map <- function(df) {
   map <- df |>
     dplyr::group_by(.data$forecast_date, .data$location) |>
-    dplyr::filter(!is.na(.data$calib_data)) |>
+    dplyr::filter_out(is.na(.data$calib_data)) |>
     dplyr::summarise(
       last_hosp_data_date = max(.data$date)
     ) |>

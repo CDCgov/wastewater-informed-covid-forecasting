@@ -179,13 +179,13 @@ make_baseline_score_table <- function(
 ) {
   # Get metadata
   locations <- all_ww_scores |>
-    dplyr::pull(location) |>
+    dplyr::pull("location") |>
     unique()
   forecast_dates <- all_ww_scores |>
-    dplyr::pull(forecast_date) |>
+    dplyr::pull("forecast_date") |>
     unique()
   scenario <- all_ww_scores |>
-    dplyr::pull(scenario) |>
+    dplyr::pull("scenario") |>
     unique()
 
   # Score forecasts
@@ -197,10 +197,10 @@ make_baseline_score_table <- function(
     )
   ) |>
     dplyr::mutate(
-      locations = paste(locations, collapse = ",")
+      locations = paste(!!locations, collapse = ",")
     )
 
-  if (isTRUE(overwrite_table)) {
+  if (overwrite_table) {
     model_type <- if (scenario == "status_quo") "ww" else "hosp"
     # Check that is only one scenario
     stopifnot(
@@ -221,9 +221,10 @@ make_baseline_score_table <- function(
 
     write.table(
       scores,
-      file.path(
+      fs::path(
         baseline_score_table_dir,
-        glue::glue("baseline_scores_{model_type}.tsv")
+        glue::glue("baseline_scores_{model_type}"),
+        ext = "tsv"
       )
     )
   }
@@ -517,44 +518,6 @@ score_real_time_outputs <- function(
   )
 
   return(purrr::pmap_df(to_score, score_problem))
-}
-
-#' Format the hosp only real time scores for comparison to the other real
-#' time models
-#'
-#' @param real_time_scores the set of real time scores gathered from local
-#' pull
-#' @return a tibble formatted as the other real time scores for the real
-#' time hosp only model
-#' @export
-format_scores_for_comparison <- function(real_time_scores) {
-  formatted_scores <- real_time_scores |>
-    dplyr::filter(
-      model == "hosp",
-      scale == "log"
-    ) |>
-    dplyr::mutate(
-      location = forecasttools::us_location_recode(
-        .data$location,
-        "abbr",
-        "code"
-      ),
-      model = "cfa-hosponlyrenewal(real-time*)",
-      type = "quantile",
-      days_ahead = as.numeric(date - forecast_date),
-      target = glue::glue("{days_ahead} day ahead inc hosp"),
-      horizon_days = as.integer(
-        lubridate::ymd(date) -
-          lubridate::ymd(forecast_date)
-      ),
-      horizon_weeks = ceiling(horizon_days / 7),
-      horizon = glue::glue("{horizon_weeks} week ahead")
-    ) |>
-    dplyr::rename(
-      target_end_date = date
-    )
-
-  return(formatted_scores)
 }
 
 

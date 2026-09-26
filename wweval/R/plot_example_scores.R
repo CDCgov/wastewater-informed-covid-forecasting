@@ -272,10 +272,10 @@ plot_crps_underlay <- function(
     )
 
   scores_by_horizon <- scores_filtered |>
-    dplyr::filter(horizon == !!horizon_to_plot) |>
+    dplyr::filter(.data$horizon == !!horizon_to_plot) |>
     dplyr::mutate(
-      forecast_date_shifted = lubridate::ymd(forecast_date) +
-        lubridate::days(days_to_shift)
+      forecast_date_shifted = lubridate::ymd(.data$forecast_date) +
+        lubridate::days(!!days_to_shift)
     )
 
   date_lims <- c(

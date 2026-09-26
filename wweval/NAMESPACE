@@ -29,7 +29,6 @@ export(forecast_interval_coverage_plot)
 export(forecast_output_path)
 export(forecast_qq_plot)
 export(format_for_hub)
-export(format_scores_for_comparison)
 export(geom_decomposed_scores)
 export(get_convergence_df)
 export(get_diagnostic_flags)
@@ -50,7 +49,6 @@ export(get_score_summary_tables)
 export(get_state_level_quantiles)
 export(get_state_level_ww_quantiles)
 export(get_stats_improved_forecasts)
-export(get_summary_metadata)
 export(get_summary_ww_table)
 export(heatmap_scores_by_loc_date)
 export(load_data_and_summarize)
@@ -130,15 +128,6 @@ importFrom(arrow,
 importFrom(cmdstanr,cmdstan_model)
 importFrom(colorspace,scale_fill_continuous_diverging)
 importFrom(data.table,as.data.table)
-importFrom(dplyr,
-  as_tibble,
-  distinct,
-  filter,
-  left_join,
-  mutate,
-  pull,
-  select
-)
 importFrom(glue,glue)
 importFrom(grDevices,colors)
 importFrom(jsonlite,fromJSON)
@@ -149,16 +138,23 @@ importFrom(readr,
 )
 importFrom(rlang,
   "%||%",
+  ":=",
   .data,
   arg_match,
   sym
 )
 importFrom(stats,
   density,
+  dgamma,
+  dlnorm,
+  dnbinom,
+  dweibull,
+  ecdf,
   lag,
   median,
   quantile,
-  sd
+  sd,
+  time
 )
 importFrom(tibble,tibble)
 importFrom(tidybayes,
@@ -171,6 +167,7 @@ importFrom(tidyr,
   pivot_wider
 )
 importFrom(utils,
+  head,
   read.table,
   write.csv,
   write.table

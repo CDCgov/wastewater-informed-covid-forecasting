@@ -69,9 +69,7 @@ Imports:
     scales,
     soql,
     tibble,
-    zoo,
     cmdstanr (>= 0.9.0),
-    forcats,
     ggridges,
     cowplot,
     patchwork,
@@ -85,11 +83,7 @@ Imports:
     forecasttools,
     brms,
     ggdist,
-    RColorBrewer,
     rstan,
-    tarchetypes,
-    crew,
-    svglite
 Suggests:
     httr,
     sessioninfo,

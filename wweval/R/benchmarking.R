@@ -34,11 +34,11 @@ benchmark_performance <- function(
     ww_scores,
     hosp_scores
   ) |>
-    dplyr::group_by(model) |>
+    dplyr::group_by(.data$model) |>
     dplyr::summarize(
-      crps = mean(crps),
-      bias = mean(bias),
-      ae = mean(ae_median)
+      crps = mean(.data$crps),
+      bias = mean(.data$bias),
+      ae = mean(.data$ae_median)
     ) |>
     tidyr::pivot_wider(
       values_from = c("crps", "bias", "ae"),
@@ -46,8 +46,8 @@ benchmark_performance <- function(
     ) |>
     dplyr::mutate(
       location = "all",
-      wweval_commit_hash = as.character(wweval_commit_hash),
-      wwinference_version = as.character(wwinference_version),
+      wweval_commit_hash = as.character(!!wweval_commit_hash),
+      wwinference_version = as.character(!!wwinference_version),
       time_stamp = as.POSIXct(format(Sys.time(), "%Y-%m-%d %H:%M:%S"))
     )
 
@@ -55,21 +55,21 @@ benchmark_performance <- function(
     ww_scores,
     hosp_scores
   ) |>
-    dplyr::group_by(model, forecast_date) |>
+    dplyr::group_by(.data$model, .data$forecast_date) |>
     dplyr::summarize(
-      crps = mean(crps),
-      bias = mean(bias),
-      ae = mean(ae_median)
+      crps = mean(.data$crps),
+      bias = mean(.data$bias),
+      ae = mean(.data$ae_median)
     ) |>
     tidyr::pivot_wider(
-      id_cols = forecast_date,
+      id_cols = "forecast_date",
       values_from = c("crps", "bias", "ae"),
       names_from = "model"
     ) |>
     dplyr::mutate(
-      wweval_commit_hash = as.character(wweval_commit_hash),
-      forecast_date = lubridate::ymd(forecast_date),
-      wwinference_version = as.character(wwinference_version),
+      wweval_commit_hash = as.character(!!wweval_commit_hash),
+      forecast_date = lubridate::ymd(.data$forecast_date),
+      wwinference_version = as.character(!!wwinference_version),
       time_stamp = as.POSIXct(format(Sys.time(), "%Y-%m-%d %H:%M:%S"))
     )
 
@@ -77,20 +77,20 @@ benchmark_performance <- function(
     ww_scores,
     hosp_scores
   ) |>
-    dplyr::group_by(model, location) |>
+    dplyr::group_by(.data$model, .data$location) |>
     dplyr::summarize(
-      crps = mean(crps),
-      bias = mean(bias),
-      ae = mean(ae_median)
+      crps = mean(.data$crps),
+      bias = mean(.data$bias),
+      ae = mean(.data$ae_median)
     ) |>
     tidyr::pivot_wider(
-      id_cols = location,
+      id_cols = "location",
       values_from = c("crps", "bias", "ae"),
       names_from = "model"
     ) |>
     dplyr::mutate(
-      wweval_commit_hash = as.character(wweval_commit_hash),
-      wwinference_version = as.character(wwinference_version),
+      wweval_commit_hash = as.character(!!wweval_commit_hash),
+      wwinference_version = as.character(!!wwinference_version),
       time_stamp = as.POSIXct(format(Sys.time(), "%Y-%m-%d %H:%M:%S"))
     ) |>
     dplyr::select(colnames(overall_scores)) |>
@@ -259,13 +259,17 @@ plot_benchmarks <- function(
   write_files = TRUE
 ) {
   # Load in table
-  fp <- glue::glue("{benchmark_dir}/{benchmark_scope}_by_{grouping_var}.tsv")
+  fp <- fs::path(
+    benchmark_dir,
+    glue::glue("{benchmark_scope}_by_{grouping_var}"),
+    ext = "tsv"
+  )
   df <- readr::read_tsv(fp)
 
   # pivot_longer for plotting
   df_long <- df |>
     tidyr::pivot_longer(
-      cols = crps_hosp:ae_ww,
+      cols = c("crps_hosp", "ae_ww"),
       names_to = c("score_type", "model"),
       names_pattern = "(.*)_(.*)",
       values_to = "score"
@@ -273,31 +277,34 @@ plot_benchmarks <- function(
 
   if (grouping_var == "location") {
     df_all <- df_long |>
-      dplyr::filter(location == "all")
+      dplyr::filter(.data$location == "all")
     df_long <- df_long |>
-      dplyr::filter(location != "all")
+      dplyr::filter_out(.data$location == "all")
 
     p_all <- ggplot(df_all) +
       geom_bar(
         aes(
-          x = model,
-          y = score,
-          fill = wwinference_version
+          x = .data$model,
+          y = .data$score,
+          fill = .data$wwinference_version
         ),
         stat = "identity",
         position = "dodge"
       ) +
-      facet_wrap(~score_type, scales = "free_y") +
+      facet_wrap(~ .data$score_type, scales = "free_y") +
       guides(fill = guide_legend(nrow = 2, byrow = TRUE)) +
       theme(
         legend.position = "bottom",
         panel.background = element_rect(fill = "white")
       ) +
       ggtitle("Overall performance benchmarking")
-    if (isTRUE(write_files)) {
+    if (write_files) {
       ggsave(
-        filename = glue::glue(
-          "{benchmark_dir}/plots/{benchmark_scope}_overall.png"
+        filename = fs::path(
+          benchmark_dir,
+          "plots",
+          glue::glue("{benchmark_scope}_overall"),
+          ext = "png"
         ),
         plot = p_all,
         create.dir = TRUE
@@ -308,17 +315,14 @@ plot_benchmarks <- function(
   p <- ggplot(
     df_long |>
       dplyr::filter(
-        score_type ==
-          {
-            score_to_plot
-          }
+        .data$score_type == !!score_to_plot
       )
   ) +
     geom_bar(
       aes(
-        x = model,
-        y = score,
-        fill = wwinference_version
+        x = .data$model,
+        y = .data$score,
+        fill = .data$wwinference_version
       ),
       stat = "identity",
       position = "dodge"
@@ -335,10 +339,13 @@ plot_benchmarks <- function(
     ) +
     ylab("CRPS")
 
-  if (isTRUE(write_files)) {
+  if (write_files) {
     ggsave(
-      filename = glue::glue(
-        "{benchmark_dir}/plots/{benchmark_scope}_by_{grouping_var}.png"
+      filename = fs::path(
+        benchmark_dir,
+        "plots",
+        glue::glue("{benchmark_scope}_by_{grouping_var}"),
+        ext = "png"
       ),
       plot = p,
       create.dir = TRUE
