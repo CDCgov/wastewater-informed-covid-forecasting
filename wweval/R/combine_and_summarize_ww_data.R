@@ -277,11 +277,11 @@ combine_ww_and_run_metadata <- function(
       by = c("location", "forecast_date")
     )
 
-  if (isTRUE(include_manual_exclusions)) {
+  if (include_manual_exclusions) {
     granular_ww_metadata_used <- granular_ww_metadata_used |>
       dplyr::left_join(
         ww_forecast_date_locs_to_excl |>
-          mutate(
+          dplyr::mutate(
             ww_exclude_manual = TRUE,
             forecast_date = lubridate::ymd(.data$forecast_date)
           ),
