@@ -18,7 +18,7 @@ plot_heatmap_metadata_retro <- function(metadata) {
 
   metadata_final <- metadata_summarized |>
     dplyr::mutate(
-      metadata_cat = case_when(
+      metadata_cat = dplyr::case_when(
         ww_data_present != 1 ~ "Wastewater data absent",
         !ww_sufficient ~ "Wastewater data present but insufficient",
         any_flags_ww ~ "Wastewater model had convergence issues",
@@ -126,12 +126,12 @@ plot_hub_submit_info_real_time <- function(
 plot_hub_submit_info_retro <- function(metadata) {
   metadata_summarized <- metadata |>
     dplyr::select(
-      forecast_date,
-      location,
-      ww_data_present,
-      ww_sufficient,
-      any_flags_hosp,
-      any_flags_ww
+      "forecast_date",
+      "location",
+      "ww_data_present",
+      "ww_sufficient",
+      "any_flags_hosp",
+      "any_flags_ww"
     ) |>
     dplyr::ungroup() |>
     dplyr::mutate(

@@ -31,11 +31,10 @@ plot_hub_performance_by_period <- function(
   baseline_model = "COVIDhub-4_week_ensemble"
 ) {
   subset_scores <- scores |>
-    dplyr::filter(model %in% !!models_to_show)
+    dplyr::filter(.data$model %in% !!models_to_show)
 
-  if (isTRUE(summarize_across_horizon)) {
+  if (summarize_across_horizon) {
     scores_by_model_all_time <- subset_scores |>
-      data.table::as.data.table() |>
       scoringutils::summarise_scores(
         by = c(
           "model",
