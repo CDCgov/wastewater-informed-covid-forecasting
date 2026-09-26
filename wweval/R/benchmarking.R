@@ -34,11 +34,11 @@ benchmark_performance <- function(
     ww_scores,
     hosp_scores
   ) |>
-    dplyr::group_by(model) |>
+    dplyr::group_by(.data$model) |>
     dplyr::summarize(
-      crps = mean(crps),
-      bias = mean(bias),
-      ae = mean(ae_median)
+      crps = mean(.data$crps),
+      bias = mean(.data$bias),
+      ae = mean(.data$ae_median)
     ) |>
     tidyr::pivot_wider(
       values_from = c("crps", "bias", "ae"),
@@ -77,7 +77,7 @@ benchmark_performance <- function(
     ww_scores,
     hosp_scores
   ) |>
-    dplyr::group_by(model, location) |>
+    dplyr::group_by(.data$model, .data$location) |>
     dplyr::summarize(
       crps = mean(.data$crps),
       bias = mean(.data$bias),
@@ -273,9 +273,9 @@ plot_benchmarks <- function(
 
   if (grouping_var == "location") {
     df_all <- df_long |>
-      dplyr::filter(location == "all")
+      dplyr::filter(.data$location == "all")
     df_long <- df_long |>
-      dplyr::filter_out(location == "all")
+      dplyr::filter_out(.data$location == "all")
 
     p_all <- ggplot(df_all) +
       geom_bar(
