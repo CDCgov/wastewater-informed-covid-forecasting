@@ -11,7 +11,7 @@ extract_diagnostic_extrema(stanfit, variables = NULL)
 \item{stanfit}{CmdStanR fit object}
 
 \item{variables}{parameter(s) to consider. Passed as the
-\code{variables} argument to \link[cmdstanr:CmdStanFit$summary]{cmdstanr::CmdStanFit$summary}.
+\code{variables} argument to \code{cmdstanr::CmdStanFit$summary()}.
 Default NULL (consider all).}
 }
 \value{

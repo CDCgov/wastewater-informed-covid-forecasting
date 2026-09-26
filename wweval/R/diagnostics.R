@@ -62,7 +62,7 @@ get_diagnostic_flags <- function(
 #'
 #' @param stanfit CmdStanR fit object
 #' @param variables parameter(s) to consider. Passed as the
-#' `variables` argument to [cmdstanr::CmdStanFit$summary].
+#' `variables` argument to `cmdstanr::CmdStanFit$summary()`.
 #' Default NULL (consider all).
 #' @return tibble with the summary
 #' @export
