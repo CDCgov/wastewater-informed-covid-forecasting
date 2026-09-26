@@ -6,6 +6,7 @@
 \usage{
 plot_bootstrapped_score_ratios(
   replicates,
+  point_estimates,
   by = NULL,
   connect_points = FALSE,
   order_by_point_estimate = FALSE
@@ -15,8 +16,12 @@ plot_bootstrapped_score_ratios(
 \item{replicates}{Data frame of bootstrapped replicates,
 as the output of \code{\link[=bootstrap_crps_values]{bootstrap_crps_values()}}.}
 
+\item{point_estimates}{Data frame of point estimate ratios,
+with columns \code{"model"}, \code{"rel_crps"}, and a column with
+name equal to the \code{by} argument.}
+
 \item{by}{Stratification variable. Will become the x-axis
-of the plot. Default \code{NULL} (plot a single point-interval.}
+of the plot. Default \code{NULL} (plot a single point-interval).}
 
 \item{connect_points}{Connect the points in the point intervals with lines?
 Boolean, default \code{FALSE}.}

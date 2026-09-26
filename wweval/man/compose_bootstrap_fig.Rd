@@ -14,7 +14,7 @@ compose_bootstrap_fig(
 }
 \arguments{
 \item{abs_score_overall}{plot of overall absolute scores
-with boostrapped uncertainty intervals.}
+with bootstrapped uncertainty intervals.}
 
 \item{rel_score_overall}{plot of overall relative score
 with bootstrapped uncertainty intervals.}

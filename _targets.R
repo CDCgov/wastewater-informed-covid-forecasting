@@ -2000,16 +2000,23 @@ bootstrap_targets <- list(
   ),
   tar_target(
     name = fig_bstrap_abs_crps_overall,
-    command = plot_bootstrapped_score_values(table_bstrap_crps_overall)
+    command = plot_bootstrapped_score_values(
+      table_bstrap_crps_overall,
+      paired_crps_retro
+    )
   ),
   tar_target(
     name = fig_bstrap_rel_crps_overall,
-    command = plot_bootstrapped_score_ratios(table_bstrap_crps_overall)
+    command = plot_bootstrapped_score_ratios(
+      table_bstrap_crps_overall,
+      paired_crps_retro
+    )
   ),
   tar_target(
     name = fig_bstrap_rel_crps_by_loc,
     command = plot_bootstrapped_score_ratios(
       table_bstrap_crps_by_loc,
+      paired_crps_by_location_retro,
       by = "location",
       order_by_point_estimate = TRUE
     )
@@ -2018,6 +2025,7 @@ bootstrap_targets <- list(
     name = fig_bstrap_rel_crps_by_t,
     command = plot_bootstrapped_score_ratios(
       table_bstrap_crps_by_t,
+      paired_crps_by_date_retro,
       by = "forecast_date",
       connect_points = TRUE
     )
