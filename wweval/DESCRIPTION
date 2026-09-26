@@ -85,11 +85,7 @@ Imports:
     forecasttools,
     brms,
     ggdist,
-    RColorBrewer,
     rstan,
-    tarchetypes,
-    crew,
-    svglite
 Suggests:
     httr,
     sessioninfo,
