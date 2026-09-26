@@ -167,12 +167,6 @@ get_scenario_site_ids <- function(
 #' is for evaluation. Default is FALSE which means it will be used to fit
 #' a single model, TRUE means we will combine with multiple locations and a
 #' longer time span than we would fit to.
-#' @param load_from_epidatr boolean indicating whether or not the hospital
-#' admissions datasets should be loaded directly from epidatr.
-#' `default = FALSE` because we are assuming that we have already created a
-#' folder with time stamped datasets
-#' @param population_data_path path to a table of state populations, default is
-#' `NULL`, only needed if pulling from epidatr
 #'
 #' @return a tibble containing the preprocessed hospital admissions data ready
 #' to be passed into the wwinference function
@@ -182,9 +176,7 @@ get_input_hosp_data <- function(
   location_i,
   hosp_data_dir,
   calibration_time,
-  for_eval = FALSE,
-  load_from_epidatr = FALSE,
-  population_data_path = NA
+  for_eval = FALSE
 ) {
   fp <- fs::path(hosp_data_dir, forecast_date_i, ext = "csv")
 
