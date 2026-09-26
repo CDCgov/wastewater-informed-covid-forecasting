@@ -269,7 +269,14 @@ plot_benchmarks <- function(
   # pivot_longer for plotting
   df_long <- df |>
     tidyr::pivot_longer(
-      cols = c("crps_hosp", "ae_ww"),
+      cols = c(
+        "crps_hosp",
+        "crps_ww",
+        "bias_hosp",
+        "bias_ww",
+        "ae_hosp",
+        "ae_ww"
+      ),
       names_to = c("score_type", "model"),
       names_pattern = "(.*)_(.*)",
       values_to = "score"
