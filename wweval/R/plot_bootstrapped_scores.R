@@ -90,7 +90,22 @@ plot_bootstrapped_score_ratios <- function(
     dplyr::select(
       !!by,
       value = "rel_crps"
+    ) |>
+    dplyr::arrange(.data$value)
+
+  if (order_by_point_estimate) {
+    replicates[[by]] <- factor(
+      replicates[[by]],
+      ordered = TRUE,
+      levels = point_estimates[[by]]
     )
+    point_estimates[[by]] <- factor(
+      point_estimates[[by]],
+      ordered = TRUE,
+      levels = point_estimates[[by]]
+    )
+  }
+
   dat_plot <- replicates |>
     dplyr::select(tidyselect::all_of(c("id", !!by, "bstrap_rel_crps"))) |>
     tidyr::pivot_longer("bstrap_rel_crps")
