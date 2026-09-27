@@ -7,11 +7,11 @@
 save_table(
   data_to_save,
   type_of_output,
-  output_dir = NULL,
-  scenario = NULL,
-  forecast_date = NULL,
-  model_type = c("ww", "hosp"),
-  location = NULL
+  output_dir,
+  scenario,
+  forecast_date,
+  model_type,
+  location
 )
 }
 \arguments{

@@ -18,6 +18,5 @@ Default NULL (consider all).}
 tibble with the summary
 }
 \description{
-Compute the maximum rhat and minimum bulk and tail ESS for
-all or a subset of parameters in a stan fit object.
+Ignores NA values.
 }
