@@ -355,3 +355,44 @@ DDDFF
 
   return(fig)
 }
+
+
+#' Make a multi-panel figure summarizing relative
+#' performance with bootstrapping
+#'
+#' @param abs_score_overall plot of overall absolute scores
+#' with bootstrapped uncertainty intervals.
+#' @param rel_score_overall plot of overall relative score
+#' with bootstrapped uncertainty intervals.
+#' @param rel_score_by_time timeseries plot of relative score
+#' by forecast date with bootstrapped uncertainty intervals.
+#' @param rel_score_by_location plot of (date-specific) score values by location with bootstrapped uncertainty intervals.
+#' @return patchwork object with all the elements combined
+#' @export
+compose_bootstrap_fig <- function(
+  abs_score_overall,
+  rel_score_overall,
+  rel_score_by_time,
+  rel_score_by_location
+) {
+  design <- "
+AABB
+CCCC
+DDDD
+"
+
+  fig <- patchwork::wrap_plots(
+    A = abs_score_overall,
+    B = rel_score_overall,
+    C = rel_score_by_time,
+    D = rel_score_by_location,
+    design = design,
+    guides = "collect"
+  ) +
+    patchwork::plot_annotation(tag_levels = "A") &
+    theme(
+      legend.position = "none"
+    )
+
+  return(fig)
+}
