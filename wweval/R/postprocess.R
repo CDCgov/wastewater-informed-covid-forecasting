@@ -246,13 +246,25 @@ get_state_level_ww_quantiles <- function(ww_draws) {
 save_table <- function(
   data_to_save,
   type_of_output,
-  output_dir = NULL,
-  scenario = NULL,
-  forecast_date = NULL,
-  model_type = c("ww", "hosp"),
-  location = NULL
+  output_dir,
+  scenario,
+  forecast_date,
+  model_type,
+  location
 ) {
-  model_type <- arg_match(model_type)
+  checkmate::assert_names(model_type, subset.of = c("ww", "hosp"))
+  purrr::walk(
+    list(
+      type_of_output,
+      output_dir,
+      scenario,
+      forecast_date,
+      model_type,
+      location
+    ),
+    checkmate::assert_string
+  )
+
   if (!is.null(data_to_save)) {
     fp <- get_filepath(
       output_dir,
@@ -389,6 +401,7 @@ postprocess_successful_fit <- function(
 
   purrr::iwalk(diagnostic_param_groups, \(param, name) {
     extract_diagnostic_extrema(stan_fit_obj, variables = param) |>
+      with_run_columns() |>
       save_fit_table(type_of_output = glue::glue("diagnostic_extrema_{name}"))
   })
 
@@ -498,12 +511,7 @@ postprocess_successful_fit <- function(
 
   save_fit_table(
     data_to_save = full_hosp_quantiles,
-    type_of_output = "hosp_quantiles",
-    output_dir = output_dir,
-    scenario = scenario,
-    forecast_date = forecast_date,
-    model_type = model,
-    location = location
+    type_of_output = "hosp_quantiles"
   )
 
   if (ww_model) {
