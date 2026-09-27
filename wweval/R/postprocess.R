@@ -246,11 +246,11 @@ get_state_level_ww_quantiles <- function(ww_draws) {
 save_table <- function(
   data_to_save,
   type_of_output,
-  output_dir = NULL,
-  scenario = NULL,
-  forecast_date = NULL,
+  output_dir,
+  scenario,
+  forecast_date,
   model_type = c("ww", "hosp"),
-  location = NULL
+  location
 ) {
   model_type <- arg_match(model_type)
   if (!is.null(data_to_save)) {
