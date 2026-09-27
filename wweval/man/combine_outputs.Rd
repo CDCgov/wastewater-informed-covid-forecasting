@@ -10,7 +10,8 @@ combine_outputs(
   forecast_dates,
   locations,
   eval_output_subdir,
-  model_type
+  model_type,
+  strict = FALSE
 )
 }
 \arguments{
@@ -27,10 +28,14 @@ combine_outputs(
 \item{eval_output_subdir}{The outer subdirectory of the nested file structure}
 
 \item{model_type}{The type of model, either \code{"ww"} or \code{"hosp"}}
+
+\item{strict}{Error if any of the expected outputs to combine are missing?
+Boolean, default \code{FALSE}.}
 }
 \value{
 combined_output: a tibble with output types for all combinations of
-forecast_dates, locations, and scenarios
+forecast_dates, locations, and scenarios, or \code{NULL} if no outputs found
+and \code{strict} is \code{FALSE}
 }
 \description{
 This function is a helper function specific to the current nested file
