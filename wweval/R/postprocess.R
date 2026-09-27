@@ -249,10 +249,22 @@ save_table <- function(
   output_dir,
   scenario,
   forecast_date,
-  model_type = c("ww", "hosp"),
+  model_type,
   location
 ) {
-  model_type <- arg_match(model_type)
+  checkmate::assert_names(model_type, subset.of = c("ww", "hosp"))
+  purrr::walk(
+    list(
+      type_of_output,
+      output_dir,
+      scenario,
+      forecast_date,
+      model_type,
+      location
+    ),
+    checkmate::assert_string
+  )
+
   if (!is.null(data_to_save)) {
     fp <- get_filepath(
       output_dir,
