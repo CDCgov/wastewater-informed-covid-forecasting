@@ -46,8 +46,8 @@
 #' the mean CRPS for the admissions-only and wastewater-informed
 #' models.
 #'
-#' Produces bootstrapped values  mean CRPS
-#' for each value of the provided grouping variable. Each
+#' Produces bootstrapped mean CRPS values
+#' for each value of the provided grouping variable.
 #'
 #' @param scores data frame of relative scores for the wastewater
 #' model with the admissions-only model as a baseline.

@@ -1931,16 +1931,21 @@ composite_figure_targets <- list(
 
 bootstrap_targets <- list(
   tar_target(
+    name = bootstrap_input_crps,
+    command = paired_crps_by_date_location_retro |>
+      dplyr::filter(.data$model == "cfa-wwrenewal(retro)")
+  ),
+  tar_target(
     name = table_bstrap_crps_overall,
     command = bootstrap_crps_values(
-      paired_crps_by_date_location_retro,
+      bootstrap_input_crps,
       n_replicates = eval_config$n_crps_bootstrap_replicates
     )
   ),
   tar_target(
     name = table_bstrap_crps_by_loc,
     command = bootstrap_crps_values(
-      paired_crps_by_date_location_retro,
+      bootstrap_input_crps,
       n_replicates = eval_config$n_crps_bootstrap_replicates,
       by = "location"
     )
@@ -1948,7 +1953,7 @@ bootstrap_targets <- list(
   tar_target(
     name = table_bstrap_crps_by_t,
     command = bootstrap_crps_values(
-      paired_crps_by_date_location_retro,
+      bootstrap_input_crps,
       n_replicates = eval_config$n_crps_bootstrap_replicates,
       by = "forecast_date"
     )
