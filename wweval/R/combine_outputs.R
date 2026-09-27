@@ -9,9 +9,21 @@
 #' all of the outputs row binded
 #'
 #'
-#' @param output_type the type of output that is saved, one of `"scores"`,
-#' `"ww_quantiles"`, `"scores_quantiles"`, `"hosp_quantiles"`,`"errors"`,
-#'  `"ww_data_flags"` or `"flags"`.
+#' @param output_type Type of output to collate. Supported types:
+#'    `"scores"`,
+#'    `"hosp_quantiles"`,
+#'    `"ww_quantiles"`,
+#'    `"scores_quantiles"`,
+#'    `"flags"`,
+#'    `"errors"`,
+#'    `"ww_data_flags"`,
+#'    `"trend_draws"`,
+#'    `"chain_run_time"`,
+#'    `"diagnostic_extrema_all"`,
+#'    `"diagnostic_extrema_lp"`,
+#'    `"diagnostic_extrema_preds_all"`,
+#'    `"diagnostic_extrema_preds_scored"`
+#'
 #' @param scenarios The vector of character strings of all the scenarios
 #' @param forecast_dates The vector of character strings of all the forecast dates
 #' @param locations The vector of character strings of all the locations
@@ -41,7 +53,12 @@ combine_outputs <- function(
       "flags",
       "errors",
       "ww_data_flags",
-      "trend_draws"
+      "trend_draws",
+      "chain_run_time",
+      "diagnostic_extrema_all",
+      "diagnostic_extrema_lp",
+      "diagnostic_extrema_preds_all",
+      "diagnostic_extrema_preds_scored"
     )
   )
   to_combine <- tibble::tibble(
