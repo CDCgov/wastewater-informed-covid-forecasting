@@ -14,9 +14,20 @@ combine_outputs(
 )
 }
 \arguments{
-\item{output_type}{the type of output that is saved, one of \code{"scores"},
-\code{"ww_quantiles"}, \code{"scores_quantiles"}, \code{"hosp_quantiles"},\code{"errors"},
-\code{"ww_data_flags"} or \code{"flags"}.}
+\item{output_type}{Type of output to collate. Supported types:
+\code{"scores"},
+\code{"hosp_quantiles"},
+\code{"ww_quantiles"},
+\code{"scores_quantiles"},
+\code{"flags"},
+\code{"errors"},
+\code{"ww_data_flags"},
+\code{"trend_draws"},
+\code{"chain_run_time"},
+\code{"diagnostic_extrema_all"},
+\code{"diagnostic_extrema_lp"},
+\code{"diagnostic_extrema_preds_all"},
+\code{"diagnostic_extrema_preds_scored"}}
 
 \item{scenarios}{The vector of character strings of all the scenarios}
 
