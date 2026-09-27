@@ -372,6 +372,18 @@ if __name__ == "__main__":
         ),
     )
     parser.add_argument(
+        "--dates-only",
+        type=str,
+        help=(
+            "Forecast dates to include in the job, as "
+            "a whitespace-separated string with dates in "
+            "YYYY-MM-DD format. Useful for "
+            "troubleshooting or for rerunning. "
+            "If not provided, use all dates specified "
+            "in the config."
+        ),
+    )
+    parser.add_argument(
         "--models-only",
         type=str,
         help=(
@@ -401,4 +413,6 @@ if __name__ == "__main__":
         parsed.locations_only = parsed.locations_only.split()
     if parsed.models_only is not None:
         parsed.models_only = parsed.models_only.split()
+    if parsed.dates_only is not None:
+        parsed.dates_only = parsed.dates_only.split()
     main(**vars(parsed))
