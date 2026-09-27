@@ -30,6 +30,6 @@ in that replicate dataset.
 }
 }
 \description{
-Produces bootstrapped values  mean CRPS
-for each value of the provided grouping variable. Each
+Produces bootstrapped mean CRPS values for each value of the provided
+grouping variable.
 }

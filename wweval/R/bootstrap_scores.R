@@ -10,9 +10,7 @@
 .process_bstrap_samples <- function(df) {
   df |>
     dplyr::mutate(splits = purrr::map(.data$splits, as.data.frame)) |>
-    tidyr::unnest(splits) |>
-    dplyr::rename(crps_ww = "crps") |>
-    dplyr::mutate(crps_hosp = .data$crps_ww / .data$mean_scores_ratio)
+    tidyr::unnest(splits)
 }
 
 
@@ -41,13 +39,32 @@
   ))
 }
 
+#' Prepare bootstrap input from a table of paired absolute and relative retro
+#' CPRS for the wastewater-informed and hospital-admissions only model.
+#'
+#' @param df table of paired CRPS values, with columns `model`, `crps`,
+#' and `rel_crps`. Model column must include the retro wastewater-informed
+#' model (`cfa-wwrenewal(retro)`).
+#'
+#' @return A table that can be passed to [bootstrap_crps_values()].
+#'
+#' @export
+convert_to_boostrap_input <- function(df) {
+  checkmate::assert_names(df$model, must.include = "cfa-wwrenewal(retro)")
+  return(
+    df |>
+      dplyr::filter(.data$model == "cfa-wwrenewal(retro)") |>
+      dplyr::rename(crps_ww = "crps") |>
+      dplyr::mutate(crps_hosp = .data$crps_ww / .data$rel_crps)
+  )
+}
 
 #' Create bootstrapped replicates to estimate uncertainty in
 #' the mean CRPS for the admissions-only and wastewater-informed
 #' models.
 #'
-#' Produces bootstrapped mean CRPS values
-#' for each value of the provided grouping variable.
+#' Produces bootstrapped mean CRPS values for each value of the provided
+#' grouping variable.
 #'
 #' @param scores data frame of relative scores for the wastewater
 #' model with the admissions-only model as a baseline.

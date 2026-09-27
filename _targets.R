@@ -1932,8 +1932,7 @@ composite_figure_targets <- list(
 bootstrap_targets <- list(
   tar_target(
     name = bootstrap_input_crps,
-    command = paired_crps_by_date_location_retro |>
-      dplyr::filter(.data$model == "cfa-wwrenewal(retro)")
+    command = convert_to_boostrap_input(paired_crps_by_date_location_retro)
   ),
   tar_target(
     name = table_bstrap_crps_overall,
