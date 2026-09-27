@@ -650,16 +650,6 @@ collated_output_targets <- list(
     format = "file"
   ),
   tar_target(
-    name = crps_cfa_models_retro_grouped,
-    command = crps_cfa_models_retro |>
-      dplyr::group_by(
-        .data$forecast_date,
-        .data$location
-      ) |>
-      targets::tar_group(),
-    iteration = "group"
-  ),
-  tar_target(
     name = first_eval_date_retro,
     command = min(crps_cfa_models_retro$date)
   ),
@@ -1757,37 +1747,7 @@ composite_figure_targets <- list(
       crps_cfa_models_retro
     )
   ),
-  tar_target(
-    name = rel_crps_cfa_models_by_loc,
-    command = forecasttools::summarise_scores_with_baseline(
-      crps_cfa_models_retro,
-      compare = "model",
-      baseline = "cfa-hosponlyrenewal(retro)",
-      by = "location"
-    )
-  ),
-  tar_target(
-    name = table_rel_crps_cfa_models_by_t_loc,
-    command = forecasttools::summarise_scores_with_baseline(
-      crps_cfa_models_retro,
-      compare = "model",
-      baseline = "cfa-hosponlyrenewal(retro)",
-      by = c("forecast_date", "location")
-    )
-  ),
-  tar_target(
-    name = save_table_rel_crps_cfa_models_by_t_loc,
-    command = {
-      fp <- fs::path(
-        score_subdir,
-        "rel_crps_cfa_models_by_t_loc",
-        ext = "parquet"
-      )
-      forecasttools::write_tabular(table_rel_crps_cfa_models_by_t_loc, fp)
-      fp
-    },
-    format = "file"
-  ),
+
   tar_target(
     rel_crps_heatmap_cfa_models,
     command = plot_rel_score_heatmap(
@@ -1973,14 +1933,14 @@ bootstrap_targets <- list(
   tar_target(
     name = table_bstrap_crps_overall,
     command = bootstrap_crps_values(
-      table_rel_crps_cfa_models_by_t_loc,
+      paired_crps_by_date_location_retro,
       n_replicates = eval_config$n_crps_bootstrap_replicates
     )
   ),
   tar_target(
     name = table_bstrap_crps_by_loc,
     command = bootstrap_crps_values(
-      table_rel_crps_cfa_models_by_t_loc,
+      paired_crps_by_date_location_retro,
       n_replicates = eval_config$n_crps_bootstrap_replicates,
       by = "location"
     )
@@ -1988,7 +1948,7 @@ bootstrap_targets <- list(
   tar_target(
     name = table_bstrap_crps_by_t,
     command = bootstrap_crps_values(
-      table_rel_crps_cfa_models_by_t_loc,
+      paired_crps_by_date_location_retro,
       n_replicates = eval_config$n_crps_bootstrap_replicates,
       by = "forecast_date"
     )
@@ -2414,14 +2374,27 @@ reported_quantities_targets <- list(
   ),
   tar_target(
     name = paired_crps_by_date_location_retro,
-    command = crps_cfa_models_retro |>
-      forecasttools::summarise_scores_with_baseline(
-        compare = "model",
-        baseline = "cfa-hosponlyrenewal(retro)",
-        by = c("forecast_date", "location")
-      ) |>
+    command = forecasttools::summarise_scores_with_baseline(
+      crps_cfa_models_retro,
+      compare = "model",
+      baseline = "cfa-hosponlyrenewal(retro)",
+      by = c("forecast_date", "location")
+    ) |>
       dplyr::rename(rel_crps = "mean_scores_ratio") |>
       dplyr::arrange(.data$model, .data$rel_crps)
+  ),
+  tar_target(
+    name = save_paired_crps_by_date_location_retro,
+    command = {
+      fp <- fs::path(
+        score_subdir,
+        "paired_crps_by_date_location_retro",
+        ext = "parquet"
+      )
+      forecasttools::write_tabular(paired_crps_by_date_location_retro, fp)
+      fp
+    },
+    format = "file"
   ),
   tar_target(
     name = hub_wis_rel_ensemble_real_time,
