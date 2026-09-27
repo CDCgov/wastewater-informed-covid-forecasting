@@ -389,6 +389,7 @@ postprocess_successful_fit <- function(
 
   purrr::iwalk(diagnostic_param_groups, \(param, name) {
     extract_diagnostic_extrema(stan_fit_obj, variables = param) |>
+      with_run_columns() |>
       save_fit_table(type_of_output = glue::glue("diagnostic_extrema_{name}"))
   })
 
@@ -498,12 +499,7 @@ postprocess_successful_fit <- function(
 
   save_fit_table(
     data_to_save = full_hosp_quantiles,
-    type_of_output = "hosp_quantiles",
-    output_dir = output_dir,
-    scenario = scenario,
-    forecast_date = forecast_date,
-    model_type = model,
-    location = location
+    type_of_output = "hosp_quantiles"
   )
 
   if (ww_model) {
