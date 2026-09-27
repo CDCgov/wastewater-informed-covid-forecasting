@@ -84,7 +84,8 @@ Imports:
     brms,
     ggdist,
     rstan,
-    RColorBrewer
+    RColorBrewer,
+    rsample
 Suggests:
     httr,
     sessioninfo,
