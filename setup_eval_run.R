@@ -120,6 +120,8 @@ write_eval_config <- function(
   trend_lookback_days <- 14 + 9
   # two weeks from the last admission date
 
+  n_crps_bootstrap_replicates <- 10000
+
   scoring_offset <- 1
   forecast_log_diff_offset <- scoring_offset
 
@@ -240,7 +242,8 @@ write_eval_config <- function(
     trend_hosp_lookback_days = trend_lookback_days,
     trend_ww_lookback_days = trend_lookback_days,
     scoring_offset = scoring_offset,
-    forecast_log_diff_offset = forecast_log_diff_offset
+    forecast_log_diff_offset = forecast_log_diff_offset,
+    n_crps_bootstrap_replicates = n_crps_bootstrap_replicates
   )
 
   config_path |>
