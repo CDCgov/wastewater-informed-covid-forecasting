@@ -47,6 +47,9 @@ plot_bootstrapped_score_values <- function(replicates, point_estimates) {
       fill = "darkblue"
     ) +
     ggplot2::scale_y_continuous(transform = "log10") +
+    ggplot2::labs(
+      y = "Absolute CRPS"
+    ) +
     scale_fill_model() +
     get_plot_theme()
 
@@ -119,7 +122,10 @@ plot_bootstrapped_score_ratios <- function(
   plot <- dat_plot |>
     ggplot2::ggplot(ggplot2::aes(x = .data[[by]], y = .data$value)) +
     ggplot2::geom_hline(yintercept = 1, linetype = "dashed", linewidth = 2) +
-    ggdist::stat_pointinterval(show_point = FALSE) +
+    ggdist::stat_pointinterval(
+      show_point = FALSE,
+      interval_size_range = c(3, 5)
+    ) +
     point_estimate_geom(
       data = point_estimates,
       shape = 21,
@@ -129,6 +135,9 @@ plot_bootstrapped_score_ratios <- function(
     ggplot2::scale_y_continuous(transform = "log10") +
     ggplot2::coord_cartesian(
       ylim = forecasttools::sym_limits(dat_plot$value, transform = "log10")
+    ) +
+    ggplot2::labs(
+      y = "Relative CRPS"
     ) +
     get_plot_theme()
 
