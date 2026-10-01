@@ -111,7 +111,7 @@ plot_bootstrapped_score_ratios <- function(
     tidyr::pivot_longer("bstrap_rel_crps")
 
   point_estimate_geom <- if (connect_points) {
-    forecasttools::geom_line_point
+    purrr::partial(forecasttools::geom_line_point, linewidth = 2)
   } else {
     ggplot2::geom_point
   }
