@@ -39,19 +39,24 @@ plot_bootstrapped_score_values <- function(replicates, point_estimates) {
       y = .data$value,
       fill = .data$name
     )) +
-    ggdist::stat_pointinterval(show_point = FALSE) +
+    ggdist::stat_pointinterval(
+      show_point = FALSE,
+      interval_size_range = c(1, 3)
+    ) +
     ggplot2::geom_point(
       data = point_estimates,
       shape = 21,
-      size = 5,
-      fill = "darkblue"
+      size = 5
     ) +
     ggplot2::scale_y_continuous(transform = "log10") +
     ggplot2::labs(
       y = "Absolute CRPS"
     ) +
     scale_fill_model() +
-    get_plot_theme()
+    get_plot_theme() +
+    ggplot2::theme(
+      axis.title.x = ggplot2::element_blank()
+    )
 
   return(plot)
 }
@@ -88,8 +93,10 @@ plot_bootstrapped_score_ratios <- function(
     point_estimates <- point_estimates |> dplyr::mutate(!!by := by)
   }
 
+  ww_model <- "cfa-wwrenewal(retro)"
+  ww_model_color <- plot_components()$model_colors[[ww_model]]
   point_estimates <- point_estimates |>
-    dplyr::filter(.data$model == "cfa-wwrenewal(retro)") |>
+    dplyr::filter(.data$model == !!ww_model) |>
     dplyr::select(
       !!by,
       value = "rel_crps"
@@ -121,16 +128,24 @@ plot_bootstrapped_score_ratios <- function(
 
   plot <- dat_plot |>
     ggplot2::ggplot(ggplot2::aes(x = .data[[by]], y = .data$value)) +
-    ggplot2::geom_hline(yintercept = 1, linetype = "dashed", linewidth = 2) +
+    ggplot2::geom_hline(
+      yintercept = 1,
+      linetype = "dashed",
+      linewidth = 2,
+      color = "gray"
+    ) +
     ggdist::stat_pointinterval(
       show_point = FALSE,
-      interval_size_range = c(3, 5)
+      interval_size_range = c(1.5, 3),
+      color = "black"
     ) +
     point_estimate_geom(
       data = point_estimates,
+      size = 4,
       shape = 21,
-      size = 5,
-      fill = "darkblue"
+      stroke = 0.75,
+      color = "black",
+      fill = ww_model_color
     ) +
     ggplot2::scale_y_continuous(transform = "log10") +
     ggplot2::coord_cartesian(

@@ -384,13 +384,21 @@ DDDD
   fig <- patchwork::wrap_plots(
     A = abs_score_overall,
     B = rel_score_overall,
-    C = rel_score_by_time,
-    D = rel_score_by_location,
+    C = rel_score_by_time + ggplot2::xlab("Forecast date"),
+    D = rel_score_by_location +
+      ggplot2::xlab("Location") +
+      ggplot2::theme(
+        axis.text.x = ggplot2::element_text(
+          vjust = 1,
+          hjust = 1,
+          angle = 45
+        )
+      ),
     design = design,
     guides = "collect"
   ) +
     patchwork::plot_annotation(tag_levels = "A") &
-    theme(
+    ggplot2::theme(
       legend.position = "none"
     )
 
