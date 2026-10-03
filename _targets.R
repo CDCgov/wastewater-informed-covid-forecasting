@@ -488,6 +488,35 @@ collated_output_targets <- list(
     )
   ),
   tar_target(
+    name = diagnostic_extrema_all_hosp,
+    command = combine_outputs(
+      output_type = "diagnostic_extrema_all",
+      scenarios = "no_wastewater",
+      forecast_dates = eval_config$forecast_date_hosp,
+      locations = eval_config$location_hosp,
+      eval_output_subdir = eval_config$output_dir,
+      model_type = "hosp"
+    )
+  ),
+  tar_target(
+    name = diagnostic_extrema_all_ww,
+    command = combine_outputs(
+      output_type = "diagnostic_extrema_all",
+      scenarios = eval_config$scenario,
+      forecast_dates = eval_config$forecast_date_ww,
+      locations = eval_config$location_ww,
+      eval_output_subdir = eval_config$output_dir,
+      model_type = "ww"
+    )
+  ),
+  tar_target(
+    name = diagnostic_extrema_all,
+    command = dplyr::bind_rows(
+      diagnostic_extrema_all_hosp,
+      diagnostic_extrema_all_ww
+    )
+  ),
+  tar_target(
     name = all_ww_errors,
     command = combine_outputs(
       output_type = "errors",
@@ -2073,6 +2102,43 @@ bootstrap_targets <- list(
   )
 )
 
+diagnostic_figure_targets <- list(
+  tar_target(
+    name = slowest_chain_run_time_used,
+    command = dplyr::inner_join(
+      slowest_chain_run_time,
+      date_locs_to_compare_retro,
+      by = c("location", "forecast_date")
+    )
+  ),
+  tar_target(
+    name = fig_slowest_chain_run_time_dist_all,
+    command = plot_fitting_clock_time(slowest_chain_run_time)
+  ),
+  tar_target(
+    name = fig_slowest_chain_run_time_dist_used,
+    command = plot_fitting_clock_time(slowest_chain_run_time_used)
+  ),
+  tar_target(
+    name = fig_chain_run_time_versus_sites_all,
+    command = plot_fitting_clock_time_versus_sites(
+      slowest_chain_run_time,
+      granular_ww_metadata_used
+    )
+  ),
+  tar_target(
+    name = fig_chain_run_time_versus_sites_used,
+    command = plot_fitting_clock_time_versus_sites(
+      slowest_chain_run_time_used,
+      granular_ww_metadata_used
+    )
+  ),
+  tar_target(
+    name = fig_rhat_dist_all,
+    command = plot_max_rhat_distribution(diagnostic_extrema_all)
+  )
+)
+
 additional_figure_targets <- list(
   tar_target(
     name = plot_heatmap_hub_wis_retro,
@@ -2546,6 +2612,7 @@ list(
   hub_comparison_targets,
   trend_analysis_targets,
   composite_figure_targets,
+  diagnostic_figure_targets,
   additional_figure_targets,
   bootstrap_targets,
   reported_quantities_targets
