@@ -1,0 +1,82 @@
+#' Plot a distribution of R-hat values.
+#'
+#' @param diagnostic_extrema data frame of diagnostic extrema,
+#' as the output of [extract_diagnostic_extrema()], collated via
+#' [combine_outputs()].
+#' @return The plot.
+#' @export
+plot_rhat_distribution <- function(diagnostic_extrema) {
+  p <- model_type_eyeplot(diagnostic_extrema, "max_rhat") +
+    scale_y_continuous(transform = "log10")
+
+  return(p)
+}
+
+#' Plot model fitting clock time.
+#'
+#' @param chain_run_time Data frame of chain run times, extracted
+#' from a CmdStanR fit object and collated via [combine_outputs()].
+#'
+#' @return The plot
+#' @export
+plot_fitting_clock_time <- function(chain_run_time) {
+  p <- chain_run_time |>
+    dplyr::mutate(slowest_chain_time_m = .data$slowest_total_s / 60) |>
+    model_type_eyeplot("slowest_chain_time_m") +
+    scale_y_continuous(transform = "log10") +
+    get_plot_theme() +
+    scale_fill_model() +
+    ylab("Slowest chain run time (m)")
+
+  return(p)
+}
+
+#' Plot model fitting clock time as a function of number
+#' of wastewater sampling sites.
+#'
+#' @param chain_run_time Data frame of chain run times, extracted
+#' from a CmdStanR fit object and collated via [combine_outputs()].
+#'
+#' @return The plot
+#' @export
+plot_fitting_clock_time_versus_sites <- function(clock_time, metadata) {
+  data <- metadata |>
+    dplyr::select(
+      "location",
+      "forecast_date",
+      "n_sites"
+    ) |>
+    dplyr::inner_join(clock_time, by = c("location", "forecast_date")) |>
+    dplyr::mutate(time_m = .data$slowest_total_s / 60) |>
+    dplyr::summarize(
+      xmin = quantile(.data$n_sites, 0.025),
+      x = median(.data$n_sites),
+      xmax = quantile(.data$n_sites, 0.975),
+      ymin = quantile(.data$time_m, 0.025),
+      y = median(.data$time_m),
+      ymax = quantile(.data$time_m, 0.975),
+      .by = c("location", "model_type")
+    )
+
+  p <- data |>
+    ggplot(aes(
+      x = .data$x,
+      y = .data$y,
+      xmin = .data$xmin,
+      xmax = .data$xmax,
+      ymin = .data$ymin,
+      ymax = .data$ymax,
+      label = .data$location,
+      fill = .data$model_type,
+      group = .data$location
+    )) +
+    geom_errorbar(orientation = "horizontal") +
+    geom_errorbar(orientation = "vertical") +
+    geom_label() +
+    facet_wrap(~ .data$model_type) +
+    scale_y_continuous(transform = "log10") +
+    scale_fill_model() +
+    get_plot_theme()
+
+  return(p)
+}

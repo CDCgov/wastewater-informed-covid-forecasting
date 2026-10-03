@@ -2073,6 +2073,39 @@ bootstrap_targets <- list(
   )
 )
 
+diagnostic_figure_targets <- list(
+  tar_target(
+    name = slowest_chain_run_time_used,
+    commad = dplyr::inner_join(
+      slowest_chain_run_time,
+      date_locs_to_compare_retro,
+      by = c("location", "forecast_date")
+    )
+  ),
+  tar_target(
+    name = fig_slowest_chain_run_time_dist_all,
+    command = plot_fitting_clock_time(slowest_chain_run_time)
+  ),
+  tar_target(
+    name = fig_slowest_chain_run_time_dist_used,
+    command = plot_fitting_clock_time(slowest_chain_run_time_used)
+  ),
+  tar_target(
+    name = fig_chain_run_time_versus_sites_all,
+    command = plot_fitting_clock_time_versus_sites(
+      slowest_chain_run_time,
+      granular_ww_metadata_used
+    )
+  ),
+  tar_target(
+    name = fig_chain_run_time_versus_sites_used,
+    command = plot_fitting_clock_time_versus_sites(
+      slowest_chain_run_time_used,
+      granular_ww_metadata_used
+    )
+  )
+)
+
 additional_figure_targets <- list(
   tar_target(
     name = plot_heatmap_hub_wis_retro,
