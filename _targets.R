@@ -2076,7 +2076,7 @@ bootstrap_targets <- list(
 diagnostic_figure_targets <- list(
   tar_target(
     name = slowest_chain_run_time_used,
-    commad = dplyr::inner_join(
+    command = dplyr::inner_join(
       slowest_chain_run_time,
       date_locs_to_compare_retro,
       by = c("location", "forecast_date")
