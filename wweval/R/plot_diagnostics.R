@@ -72,7 +72,7 @@ plot_fitting_clock_time_versus_sites <- function(clock_time, metadata) {
     )) +
     geom_errorbar(orientation = "horizontal") +
     geom_errorbar(orientation = "vertical") +
-    geom_label() +
+    geom_label(alpha = 0.65, size = 3) +
     facet_wrap(~ .data$model_type) +
     scale_y_continuous(transform = "log10") +
     scale_fill_model() +
