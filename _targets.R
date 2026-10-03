@@ -488,6 +488,35 @@ collated_output_targets <- list(
     )
   ),
   tar_target(
+    name = diagnostic_extrema_all_hosp,
+    command = combine_outputs(
+      output_type = "diagnostic_extrema_all",
+      scenarios = "no_wastewater",
+      forecast_dates = eval_config$forecast_date_hosp,
+      locations = eval_config$location_hosp,
+      eval_output_subdir = eval_config$output_dir,
+      model_type = "hosp"
+    )
+  ),
+  tar_target(
+    name = diagnostic_extrema_all_ww,
+    command = combine_outputs(
+      output_type = "diagnostic_extrema_all",
+      scenarios = eval_config$scenario,
+      forecast_dates = eval_config$forecast_date_ww,
+      locations = eval_config$location_ww,
+      eval_output_subdir = eval_config$output_dir,
+      model_type = "ww"
+    )
+  ),
+  tar_target(
+    name = diagnostic_extrema_all,
+    command = dplyr::bind_rows(
+      diagnostic_extrema_all_hosp,
+      diagnostic_extrema_all_ww
+    )
+  ),
+  tar_target(
     name = all_ww_errors,
     command = combine_outputs(
       output_type = "errors",
@@ -2103,6 +2132,10 @@ diagnostic_figure_targets <- list(
       slowest_chain_run_time_used,
       granular_ww_metadata_used
     )
+  ),
+  tar_target(
+    name = fig_rhat_dist_all,
+    command = plot_max_rhat_distribution(diagnostic_extrema_all)
   )
 )
 

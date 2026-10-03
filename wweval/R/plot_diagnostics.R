@@ -1,16 +1,18 @@
-#' Plot a distribution of R-hat values.
+#' Plot a distribution of maximimum R-hat values.
 #'
 #' @param diagnostic_extrema data frame of diagnostic extrema,
 #' as the output of [extract_diagnostic_extrema()], collated via
 #' [combine_outputs()].
 #' @return The plot.
 #' @export
-plot_rhat_distribution <- function(diagnostic_extrema) {
+plot_max_rhat_distribution <- function(diagnostic_extrema) {
   p <- model_type_eyeplot(diagnostic_extrema, "max_rhat") +
-    scale_y_continuous(transform = "log10")
+    scale_y_continuous(transform = "log10") +
+    labs(y = "Maximum R-hat value")
 
   return(p)
 }
+
 
 #' Plot model fitting clock time.
 #'
