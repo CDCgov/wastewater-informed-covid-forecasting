@@ -2579,6 +2579,7 @@ list(
   hub_comparison_targets,
   trend_analysis_targets,
   composite_figure_targets,
+  diagnostic_figure_targets,
   additional_figure_targets,
   bootstrap_targets,
   reported_quantities_targets
