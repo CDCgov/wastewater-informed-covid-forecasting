@@ -2112,7 +2112,15 @@ diagnostic_figure_targets <- list(
     )
   ),
   tar_target(
-    name = fig_slowest_chain_run_time_dist_all,
+    name = diagnostic_extrema_all_used,
+    command = dplyr::inner_join(
+      diagnostic_extrema_all,
+      date_locs_to_compare_retro,
+      by = c("location", "forecast_date")
+    )
+  ),
+  tar_target(
+    name = fig_slowest_chain_run_time_dist_full,
     command = plot_fitting_clock_time(slowest_chain_run_time)
   ),
   tar_target(
@@ -2120,7 +2128,7 @@ diagnostic_figure_targets <- list(
     command = plot_fitting_clock_time(slowest_chain_run_time_used)
   ),
   tar_target(
-    name = fig_chain_run_time_versus_sites_all,
+    name = fig_chain_run_time_versus_sites_full,
     command = plot_fitting_clock_time_versus_sites(
       slowest_chain_run_time,
       granular_ww_metadata_used
@@ -2134,8 +2142,28 @@ diagnostic_figure_targets <- list(
     )
   ),
   tar_target(
-    name = fig_rhat_dist_all,
+    name = fig_max_rhat_dist_full,
     command = plot_max_rhat_distribution(diagnostic_extrema_all)
+  ),
+  tar_target(
+    name = fig_max_rhat_dist_used,
+    command = plot_max_rhat_distribution(diagnostic_extrema_all_used)
+  ),
+  tar_target(
+    name = fig_min_ess_bulk_dist_full,
+    command = plot_min_ess_distribution(diagnostic_extrema_all, "bulk")
+  ),
+  tar_target(
+    name = fig_min_ess_bulk_dist_used,
+    command = plot_min_ess_distribution(diagnostic_extrema_all_used, "bulk")
+  ),
+  tar_target(
+    name = fig_min_ess_tail_dist_full,
+    command = plot_min_ess_distribution(diagnostic_extrema_all, "tail")
+  ),
+  tar_target(
+    name = fig_min_ess_tail_dist_used,
+    command = plot_min_ess_distribution(diagnostic_extrema_all_used, "tail")
   )
 )
 

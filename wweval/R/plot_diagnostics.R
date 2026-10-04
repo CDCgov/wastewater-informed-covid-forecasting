@@ -13,6 +13,24 @@ plot_max_rhat_distribution <- function(diagnostic_extrema) {
   return(p)
 }
 
+#' Plot a distribution of minimum ESS values.
+#'
+#' @param diagnostic_extrema data frame of diagnostic extrema,
+#' as the output of [extract_diagnostic_extrema()], collated via
+#' [combine_outputs()].
+#' @param which Plot bulk ESS or tail ESS? Must be one of `"bulk"`
+#' or `"tail"`.
+#' @return The plot.
+#' @export
+plot_min_ess_distribution <- function(diagnostic_extrema, which) {
+  checkmate::assert_choice(which, c("bulk", "tail"))
+
+  p <- model_type_eyeplot(diagnostic_extrema, glue::glue("min_ess_{which}")) +
+    labs(y = glue::glue("Minimum {stringr::str_to_title(which)} ESS value"))
+
+  return(p)
+}
+
 
 #' Plot model fitting clock time.
 #'
