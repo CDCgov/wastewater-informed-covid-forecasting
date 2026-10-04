@@ -2139,7 +2139,13 @@ diagnostic_figure_targets <- list(
         .join_fn = list(dplyr::inner_join, dplyr::anti_join)
       ),
       tibble::tibble(
-        to_filter = list(
+        dataset_name = c(
+          "chain_time",
+          "extrema_forecasts",
+          "extrema_preds",
+          "extrema_all"
+        ),
+        dataset = list(
           slowest_chain_run_time,
           diagnostic_extrema_preds_scored,
           diagnostic_extrema_preds_all,
@@ -2147,10 +2153,11 @@ diagnostic_figure_targets <- list(
         )
       )
     ),
-    names = c("to_filter", "included"),
+    names = c("dataset_name", "included"),
     tar_target(
+      name = extrema,
       command = .join_fn(
-        slowest_chain_run_time,
+        dataset,
         date_locs_to_compare_retro,
         by = c("location", "forecast_date")
       )
