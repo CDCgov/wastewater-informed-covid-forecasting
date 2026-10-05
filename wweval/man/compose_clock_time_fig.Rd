@@ -2,8 +2,7 @@
 % Please edit documentation in R/composite_figures.R
 \name{compose_clock_time_fig}
 \alias{compose_clock_time_fig}
-\title{Make a multi-panel figure summarizing diagnostics
-and wall clock runtime.}
+\title{Make a multi-panel figure summarizing wall clock runtime.}
 \usage{
 compose_clock_time_fig(
   clock_time_dist_full,
@@ -29,6 +28,5 @@ for convergent fits.}
 patchwork object with all the elements combined
 }
 \description{
-Make a multi-panel figure summarizing diagnostics
-and wall clock runtime.
+Make a multi-panel figure summarizing wall clock runtime.
 }
