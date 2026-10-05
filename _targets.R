@@ -56,7 +56,7 @@ configuration_targets <- list(
     command = yaml::read_yaml(fs::path(
       "input",
       "config",
-      "prior_sens_slower_time_to_peak",
+      "prior_sens_increased_rt_stepsize",
       ext = "yaml"
     ))
   ),
@@ -383,7 +383,7 @@ collated_output_targets <- list(
   tar_target(
     name = quantile_fcsts_hosp_retro,
     command = combine_outputs(
-      output_type = "quantiles",
+      output_type = "hosp_quantiles",
       scenarios = "no_wastewater",
       forecast_dates = eval_config$forecast_date_hosp,
       locations = eval_config$location_hosp,
@@ -420,6 +420,71 @@ collated_output_targets <- list(
       locations = eval_config$location_ww,
       eval_output_subdir = eval_config$output_dir,
       model_type = "ww"
+    )
+  ),
+  tar_target(
+    name = chain_run_time_hosp,
+    command = combine_outputs(
+      output_type = "chain_run_time",
+      scenarios = "no_wastewater",
+      forecast_dates = eval_config$forecast_date_hosp,
+      locations = eval_config$location_hosp,
+      eval_output_subdir = eval_config$output_dir,
+      model_type = "hosp"
+    )
+  ),
+  tar_target(
+    name = chain_run_time_ww,
+    command = combine_outputs(
+      output_type = "chain_run_time",
+      scenarios = eval_config$scenario,
+      forecast_dates = eval_config$forecast_date_ww,
+      locations = eval_config$location_ww,
+      eval_output_subdir = eval_config$output_dir,
+      model_type = "ww"
+    )
+  ),
+  tar_target(
+    name = chain_run_time,
+    command = dplyr::bind_rows(chain_run_time_hosp, chain_run_time_ww)
+  ),
+  tar_target(
+    name = slowest_chain_run_time,
+    command = dplyr::summarise(
+      chain_run_time,
+      slowest_warmup_s = max(.data$warmup),
+      slowest_sample_s = max(.data$sampling),
+      slowest_total_s = max(.data$total),
+      .by = c("forecast_date", "location", "model_type", "scenario")
+    )
+  ),
+  tar_target(
+    name = diagnostic_extrema_preds_scored_hosp,
+    command = combine_outputs(
+      output_type = "diagnostic_extrema_preds_scored",
+      scenarios = "no_wastewater",
+      forecast_dates = eval_config$forecast_date_hosp,
+      locations = eval_config$location_hosp,
+      eval_output_subdir = eval_config$output_dir,
+      model_type = "hosp"
+    )
+  ),
+  tar_target(
+    name = diagnostic_extrema_preds_scored_ww,
+    command = combine_outputs(
+      output_type = "diagnostic_extrema_preds_scored",
+      scenarios = eval_config$scenario,
+      forecast_dates = eval_config$forecast_date_ww,
+      locations = eval_config$location_ww,
+      eval_output_subdir = eval_config$output_dir,
+      model_type = "ww"
+    )
+  ),
+  tar_target(
+    name = diagnostic_extrema_preds_scored,
+    command = dplyr::bind_rows(
+      diagnostic_extrema_preds_scored_hosp,
+      diagnostic_extrema_preds_scored_ww
     )
   ),
   tar_target(
@@ -648,16 +713,6 @@ collated_output_targets <- list(
       fp
     },
     format = "file"
-  ),
-  tar_target(
-    name = crps_cfa_models_retro_grouped,
-    command = crps_cfa_models_retro |>
-      dplyr::group_by(
-        .data$forecast_date,
-        .data$location
-      ) |>
-      targets::tar_group(),
-    iteration = "group"
   ),
   tar_target(
     name = first_eval_date_retro,
@@ -1441,12 +1496,6 @@ composite_figure_targets <- list(
     )
   ),
   tar_target(
-    name = summary_metadata,
-    command = get_summary_metadata(
-      granular_ww_metadata_used
-    )
-  ),
-  tar_target(
     name = fig_heatmap_metadata_retro,
     command = plot_heatmap_metadata_retro(
       granular_ww_metadata_used
@@ -1763,37 +1812,7 @@ composite_figure_targets <- list(
       crps_cfa_models_retro
     )
   ),
-  tar_target(
-    name = rel_crps_cfa_models_by_loc,
-    command = forecasttools::summarise_scores_with_baseline(
-      crps_cfa_models_retro,
-      compare = "model",
-      baseline = "cfa-hosponlyrenewal(retro)",
-      by = "location"
-    )
-  ),
-  tar_target(
-    name = table_rel_crps_cfa_models_by_t_loc,
-    command = forecasttools::summarise_scores_with_baseline(
-      crps_cfa_models_retro,
-      compare = "model",
-      baseline = "cfa-hosponlyrenewal(retro)",
-      by = c("forecast_date", "location")
-    )
-  ),
-  tar_target(
-    name = save_table_rel_crps_cfa_models_by_t_loc,
-    command = {
-      fp <- fs::path(
-        score_subdir,
-        "rel_crps_cfa_models_by_t_loc",
-        ext = "parquet"
-      )
-      forecasttools::write_tabular(table_rel_crps_cfa_models_by_t_loc, fp)
-      fp
-    },
-    format = "file"
-  ),
+
   tar_target(
     rel_crps_heatmap_cfa_models,
     command = plot_rel_score_heatmap(
@@ -1971,6 +1990,85 @@ composite_figure_targets <- list(
       figure_rel_performance_all_time,
       base_width = 12,
       base_height = 12
+    )
+  )
+)
+
+bootstrap_targets <- list(
+  tar_target(
+    name = bootstrap_input_crps,
+    command = convert_to_boostrap_input(paired_crps_by_date_location_retro)
+  ),
+  tar_target(
+    name = table_bstrap_crps_overall,
+    command = bootstrap_crps_values(
+      bootstrap_input_crps,
+      n_replicates = eval_config$n_crps_bootstrap_replicates
+    )
+  ),
+  tar_target(
+    name = table_bstrap_crps_by_loc,
+    command = bootstrap_crps_values(
+      bootstrap_input_crps,
+      n_replicates = eval_config$n_crps_bootstrap_replicates,
+      by = "location"
+    )
+  ),
+  tar_target(
+    name = table_bstrap_crps_by_t,
+    command = bootstrap_crps_values(
+      bootstrap_input_crps,
+      n_replicates = eval_config$n_crps_bootstrap_replicates,
+      by = "forecast_date"
+    )
+  ),
+  tar_target(
+    name = fig_bstrap_abs_crps_overall,
+    command = plot_bootstrapped_score_values(
+      table_bstrap_crps_overall,
+      paired_crps_retro
+    )
+  ),
+  tar_target(
+    name = fig_bstrap_rel_crps_overall,
+    command = plot_bootstrapped_score_ratios(
+      table_bstrap_crps_overall,
+      paired_crps_retro
+    )
+  ),
+  tar_target(
+    name = fig_bstrap_rel_crps_by_loc,
+    command = plot_bootstrapped_score_ratios(
+      table_bstrap_crps_by_loc,
+      paired_crps_by_location_retro,
+      by = "location",
+      order_by_point_estimate = TRUE
+    )
+  ),
+  tar_target(
+    name = fig_bstrap_rel_crps_by_t,
+    command = plot_bootstrapped_score_ratios(
+      table_bstrap_crps_by_t,
+      paired_crps_by_date_retro,
+      by = "forecast_date",
+      connect_points = TRUE
+    )
+  ),
+  tar_target(
+    name = fig_bootstrap,
+    command = compose_bootstrap_fig(
+      fig_bstrap_abs_crps_overall,
+      fig_bstrap_rel_crps_overall,
+      fig_bstrap_rel_crps_by_t,
+      fig_bstrap_rel_crps_by_loc
+    )
+  ),
+  tar_target(
+    name = save_fig_bootstrap,
+    command = save_fig_supp(
+      fig_bootstrap,
+      base_width = 9,
+      base_height = 10
     )
   )
 )
@@ -2345,14 +2443,27 @@ reported_quantities_targets <- list(
   ),
   tar_target(
     name = paired_crps_by_date_location_retro,
-    command = crps_cfa_models_retro |>
-      forecasttools::summarise_scores_with_baseline(
-        compare = "model",
-        baseline = "cfa-hosponlyrenewal(retro)",
-        by = c("forecast_date", "location")
-      ) |>
+    command = forecasttools::summarise_scores_with_baseline(
+      crps_cfa_models_retro,
+      compare = "model",
+      baseline = "cfa-hosponlyrenewal(retro)",
+      by = c("forecast_date", "location")
+    ) |>
       dplyr::rename(rel_crps = "mean_scores_ratio") |>
       dplyr::arrange(.data$model, .data$rel_crps)
+  ),
+  tar_target(
+    name = save_paired_crps_by_date_location_retro,
+    command = {
+      fp <- fs::path(
+        score_subdir,
+        "paired_crps_by_date_location_retro",
+        ext = "parquet"
+      )
+      forecasttools::write_tabular(paired_crps_by_date_location_retro, fp)
+      fp
+    },
+    format = "file"
   ),
   tar_target(
     name = hub_wis_rel_ensemble_real_time,
@@ -2436,5 +2547,6 @@ list(
   trend_analysis_targets,
   composite_figure_targets,
   additional_figure_targets,
+  bootstrap_targets,
   reported_quantities_targets
 )
