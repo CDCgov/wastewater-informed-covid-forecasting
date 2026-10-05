@@ -1,4 +1,4 @@
-#' Plot a distribution of maximimum R-hat values.
+#' Plot a distribution of maximum R-hat values.
 #'
 #' @param diagnostic_extrema data frame of diagnostic extrema,
 #' as the output of [extract_diagnostic_extrema()], collated via
@@ -43,8 +43,6 @@ plot_fitting_clock_time <- function(chain_run_time) {
     dplyr::mutate(slowest_chain_time_m = .data$slowest_total_s / 60) |>
     model_type_eyeplot("slowest_chain_time_m") +
     scale_y_continuous(transform = "log10") +
-    get_plot_theme() +
-    scale_fill_model() +
     ylab("Slowest chain run time (m)")
 
   return(p)
