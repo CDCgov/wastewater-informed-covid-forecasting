@@ -7,8 +7,8 @@
 plot_fitting_clock_time(chain_run_time)
 }
 \arguments{
-\item{chain_run_time}{Data frame of chain run times, extracted
-from a CmdStanR fit object and collated via \code{\link[=combine_outputs]{combine_outputs()}}.}
+\item{chain_run_time}{Data frame of chain run times summarized to
+show only the slowest values per fit.}
 }
 \value{
 The plot

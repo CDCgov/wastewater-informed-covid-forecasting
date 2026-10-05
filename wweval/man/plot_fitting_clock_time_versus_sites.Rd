@@ -8,8 +8,8 @@ of wastewater sampling sites.}
 plot_fitting_clock_time_versus_sites(clock_time, metadata)
 }
 \arguments{
-\item{clock_time}{Data frame of chain run times, extracted
-from a CmdStanR fit object and collated via \code{\link[=combine_outputs]{combine_outputs()}}.}
+\item{clock_time}{Data frame of chain run times, summarized to
+show only the slowest values per fit.}
 
 \item{metadata}{Data frame of wastewater metadata that gives the
 number of sampling sites (\code{n_sites}) by \code{location} and \code{forecast_date}.}

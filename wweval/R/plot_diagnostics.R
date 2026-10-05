@@ -34,9 +34,8 @@ plot_min_ess_distribution <- function(diagnostic_extrema, which) {
 
 #' Plot model fitting clock time.
 #'
-#' @param chain_run_time Data frame of chain run times, extracted
-#' from a CmdStanR fit object and collated via [combine_outputs()].
-#'
+#' @param chain_run_time Data frame of chain run times summarized to
+#' show only the slowest values per fit.
 #' @return The plot
 #' @export
 plot_fitting_clock_time <- function(chain_run_time) {
@@ -54,8 +53,8 @@ plot_fitting_clock_time <- function(chain_run_time) {
 #' Plot model fitting clock time as a function of number
 #' of wastewater sampling sites.
 #'
-#' @param clock_time Data frame of chain run times, extracted
-#' from a CmdStanR fit object and collated via [combine_outputs()].
+#' @param clock_time Data frame of chain run times, summarized to
+#' show only the slowest values per fit.
 #' @param metadata Data frame of wastewater metadata that gives the
 #' number of sampling sites (`n_sites`) by `location` and `forecast_date`.
 #'
@@ -81,7 +80,7 @@ plot_fitting_clock_time_versus_sites <- function(clock_time, metadata) {
     )
 
   p <- data |>
-    ggplot(aes(
+    ggplot2::ggplot(ggplot2::aes(
       x = .data$x,
       y = .data$y,
       xmin = .data$xmin,
@@ -92,13 +91,17 @@ plot_fitting_clock_time_versus_sites <- function(clock_time, metadata) {
       fill = .data$model_type,
       group = .data$location
     )) +
-    geom_errorbar(orientation = "horizontal") +
-    geom_errorbar(orientation = "vertical") +
-    geom_label(alpha = 0.65, size = 3) +
-    facet_wrap(~ .data$model_type) +
-    scale_y_continuous(transform = "log10") +
+    ggplot2::geom_errorbar(orientation = "horizontal") +
+    ggplot2::geom_errorbar(orientation = "vertical") +
+    ggplot2::geom_label(alpha = 0.65, size = 3) +
+    ggplot2::facet_wrap(~ .data$model_type) +
+    ggplot2::scale_y_continuous(transform = "log10") +
     scale_fill_model() +
-    get_plot_theme()
+    get_plot_theme() +
+    ggplot2::labs(
+      x = "Number of wastewater sampling sites",
+      y = "Slowest chain run time (m)"
+    )
 
   return(p)
 }
