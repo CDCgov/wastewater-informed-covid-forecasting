@@ -2081,7 +2081,7 @@ bootstrap_targets <- list(
     name = save_fig_bootstrap,
     command = save_fig_supp(
       fig_bootstrap,
-      base_width = 8,
+      base_width = 9,
       base_height = 10
     )
   )
