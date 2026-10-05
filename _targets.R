@@ -2201,6 +2201,25 @@ diagnostic_figure_targets <- list(
       base_height = 10,
       base_width = 8
     )
+  ),
+  tar_target(
+    name = fig_diagnostics,
+    command = compose_diagnostic_fig(
+      fig_max_rhat_used,
+      fig_max_rhat_not_used,
+      fig_min_ess_bulk_used,
+      fig_min_ess_bulk_not_used,
+      fig_min_ess_tail_used,
+      fig_min_ess_tail_not_used
+    )
+  ),
+  tar_target(
+    name = save_fig_diagnostics,
+    command = save_fig_supp(
+      fig_diagnostics,
+      base_height = 10,
+      base_width = 8
+    )
   )
 )
 
