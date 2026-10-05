@@ -324,52 +324,6 @@ collated_output_targets <- list(
     )
   ),
   tar_target(
-    name = all_ww_scores_quantiles,
-    command = combine_outputs(
-      output_type = "scores_quantiles",
-      scenarios = eval_config$scenario,
-      forecast_dates = eval_config$forecast_date_ww,
-      locations = eval_config$location_ww,
-      eval_output_subdir = eval_config$output_dir,
-      model_type = "ww"
-    ) |>
-      dplyr::mutate(
-        model = dplyr::case_match(
-          .data$model,
-          "ww" ~ "cfa-wwrenewal(retro)",
-          "hosp" ~ "cfa-hosponlyrenewal(retro)",
-          .default = .data$model
-        )
-      ) |>
-      # jarl-ignore internal_function: workaround for non-scoringutils table save
-      scoringutils:::as_scores(
-        metrics = names(wweval::quantile_metrics)
-      )
-  ),
-  tar_target(
-    name = all_hosp_scores_quantiles,
-    command = combine_outputs(
-      output_type = "scores_quantiles",
-      scenarios = "no_wastewater",
-      forecast_dates = eval_config$forecast_date_hosp,
-      locations = eval_config$location_hosp,
-      eval_output_subdir = eval_config$output_dir,
-      model_type = "hosp"
-    ) |>
-      dplyr::mutate(
-        model = dplyr::case_match(
-          .data$model,
-          "ww" ~ "cfa-wwrenewal(retro)",
-          "hosp" ~ "cfa-hosponlyrenewal(retro)",
-          .default = .data$model
-        )
-      ) |>
-      # jarl-ignore internal_function: workaround for non-scoringutils table save
-      scoringutils:::as_scores(
-        metrics = names(wweval::quantile_metrics)
-      )
-  ),
-  tar_target(
     name = quantile_fcsts_ww_retro,
     command = combine_outputs(
       output_type = "hosp_quantiles",
@@ -570,13 +524,6 @@ collated_output_targets <- list(
   tar_target(
     name = all_raw_scores,
     command = dplyr::bind_rows(all_hosp_scores, all_ww_scores)
-  ),
-  tar_target(
-    name = all_raw_scores_quantiles,
-    command = dplyr::bind_rows(
-      all_hosp_scores_quantiles,
-      all_ww_scores_quantiles
-    )
   ),
   tar_target(
     name = all_errors,

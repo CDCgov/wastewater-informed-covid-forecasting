@@ -26,7 +26,7 @@ plot_min_ess_distribution <- function(diagnostic_extrema, which) {
   checkmate::assert_choice(which, c("bulk", "tail"))
 
   p <- model_type_eyeplot(diagnostic_extrema, glue::glue("min_ess_{which}")) +
-    labs(y = glue::glue("Minimum {stringr::str_to_title(which)} ESS value"))
+    labs(y = glue::glue("Minimum {which} ESS value"))
 
   return(p)
 }
