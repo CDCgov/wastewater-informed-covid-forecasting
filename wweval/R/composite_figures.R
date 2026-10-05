@@ -396,3 +396,44 @@ DDDD
 
   return(fig)
 }
+
+
+#' Make a multi-panel figure summarizing diagnostics
+#' and wall clock runtime.
+#'
+#' @param clock_time_dist_full Distribution of clock time values for all
+#' fits, including non-convergent fits.
+#' @param clock_time_dist_used Distribution of clock time values for just
+#' convergent fits.
+#' @param clock_time_versus_sites_full Plot of clock time versus sites for all
+#' fits, including non-convergent fits.
+#' @param clock_time_versus_sites_used Plot of clock time versus sites just
+#' for convergent fits.
+#' @return patchwork object with all the elements combined
+#' @export
+compose_clock_time_fig <- function(
+  clock_time_dist_full,
+  clock_time_dist_used,
+  clock_time_versus_sites_full,
+  clock_time_versus_sites_used
+) {
+  design <- "
+ABBB
+CDDD
+"
+
+  fig <- patchwork::wrap_plots(
+    A = clock_time_dist_full,
+    B = clock_time_versus_sites_full,
+    C = clock_time_dist_used,
+    D = clock_time_versus_sites_used,
+    design = design,
+    guides = "collect"
+  ) +
+    patchwork::plot_annotation(tag_levels = "A") &
+    theme(
+      legend.position = "none"
+    )
+
+  return(fig)
+}
