@@ -54,8 +54,10 @@ plot_fitting_clock_time <- function(chain_run_time) {
 #' Plot model fitting clock time as a function of number
 #' of wastewater sampling sites.
 #'
-#' @param chain_run_time Data frame of chain run times, extracted
+#' @param clock_time Data frame of chain run times, extracted
 #' from a CmdStanR fit object and collated via [combine_outputs()].
+#' @param metadata Data frame of wastewater metadata that gives the
+#' number of sampling sites (`n_sites`) by `location` and `forecast_date`.
 #'
 #' @return The plot
 #' @export
