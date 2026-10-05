@@ -2184,6 +2184,23 @@ diagnostic_figure_targets <- list(
       diagnostic_extrema_preds_scored_not_used,
       "tail"
     )
+  ),
+  tar_target(
+    name = fig_clock_time,
+    command = compose_clock_time_fig(
+      fig_slowest_chain_run_time_dist_full,
+      fig_slowest_chain_run_time_dist_used,
+      fig_chain_run_time_versus_sites_full,
+      fig_chain_run_time_versus_sites_used
+    )
+  ),
+  tar_target(
+    name = save_fig_clock_time,
+    command = save_fig_supp(
+      fig_clock_time,
+      base_height = 10,
+      base_width = 8
+    )
   )
 )
 
