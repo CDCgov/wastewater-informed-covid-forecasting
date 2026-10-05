@@ -61,6 +61,13 @@ plot_fitting_clock_time <- function(chain_run_time) {
 #' @return The plot
 #' @export
 plot_fitting_clock_time_versus_sites <- function(clock_time, metadata) {
+  checkmate::assert_integer(
+    metadata$n_sites,
+    lower = 0,
+    any.missing = FALSE,
+    all.missing = FALSE
+  )
+  # all n_sites values must be non-negative integers, with no missing
   data <- metadata |>
     dplyr::select(
       "location",
