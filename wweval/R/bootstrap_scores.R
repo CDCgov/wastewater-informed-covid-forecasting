@@ -10,7 +10,7 @@
 .process_bstrap_samples <- function(df) {
   df |>
     dplyr::mutate(splits = purrr::map(.data$splits, as.data.frame)) |>
-    tidyr::unnest(splits)
+    tidyr::unnest("splits")
 }
 
 
