@@ -1,7 +1,7 @@
 #' Side by side eyeplots by model type.
 #'
 #' @param data Data frame to plot, with a `model_type` column.
-#' @param y Column in `df` to plot on the y axis.
+#' @param y Column in `data` to plot on the y axis.
 #'
 #' @return The plot.
 #' @export

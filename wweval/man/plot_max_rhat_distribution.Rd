@@ -2,7 +2,7 @@
 % Please edit documentation in R/plot_diagnostics.R
 \name{plot_max_rhat_distribution}
 \alias{plot_max_rhat_distribution}
-\title{Plot a distribution of maximimum R-hat values.}
+\title{Plot a distribution of maximum R-hat values.}
 \usage{
 plot_max_rhat_distribution(diagnostic_extrema)
 }
@@ -15,5 +15,5 @@ as the output of \code{\link[=extract_diagnostic_extrema]{extract_diagnostic_ext
 The plot.
 }
 \description{
-Plot a distribution of maximimum R-hat values.
+Plot a distribution of maximum R-hat values.
 }

@@ -9,7 +9,7 @@ model_type_eyeplot(data, y)
 \arguments{
 \item{data}{Data frame to plot, with a \code{model_type} column.}
 
-\item{y}{Column in \code{df} to plot on the y axis.}
+\item{y}{Column in \code{data} to plot on the y axis.}
 }
 \value{
 The plot.
