@@ -1,33 +1,26 @@
-#' Generic plotting helper functions
-
-#' Scatterplot of pointintervals, with both x and y intervals.
+#' Side by side eyeplots by model type.
 #'
-#' @param data Dataframe to plot, as the output of [ggdist::mean_qi()]
-#' or a related function.
-#' @param x Name of the x axis variable.
-#' @param y Name of the y axis variable.
-#' @param ... keyword arguments passed to [ggdist::geom_pointinterval()].
-#' @return The plot as a [ggplot2::ggplot()] object.
+#' @param data Data frame to plot, with a `model_type` column.
+#' @param y Column in `data` to plot on the y axis.
+#'
+#' @return The plot.
 #' @export
-plot_pointinterval_scatter <- function(data, x, y, ...) {
-  p <- ggplot(
+model_type_eyeplot <- function(data, y) {
+  p <- ggplot2::ggplot(
     data = data,
-    mapping = aes(x = .data[[x]], y = .data[[y]])
+    mapping = ggplot2::aes(
+      x = .data$model_type,
+      y = .data[[y]],
+      fill = .data$model_type
+    )
   ) +
-    ggdist::geom_pointinterval(
-      aes(
-        xmin = .data[[glue::glue("{x}.lower")]],
-        xmax = .data[[glue::glue("{x}.upper")]]
-      ),
-      ...
+    ggdist::stat_halfeye(
+      shape = 21,
+      point_size = 10,
+      interval_size_range = c(2, 5)
     ) +
-    ggdist::geom_pointinterval(
-      aes(
-        ymin = .data[[glue::glue("{y}.lower")]],
-        ymax = .data[[glue::glue("{y}.upper")]]
-      ),
-      ...
-    ) +
+    scale_fill_model() +
     get_plot_theme()
+
   return(p)
 }

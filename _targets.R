@@ -324,52 +324,6 @@ collated_output_targets <- list(
     )
   ),
   tar_target(
-    name = all_ww_scores_quantiles,
-    command = combine_outputs(
-      output_type = "scores_quantiles",
-      scenarios = eval_config$scenario,
-      forecast_dates = eval_config$forecast_date_ww,
-      locations = eval_config$location_ww,
-      eval_output_subdir = eval_config$output_dir,
-      model_type = "ww"
-    ) |>
-      dplyr::mutate(
-        model = dplyr::case_match(
-          .data$model,
-          "ww" ~ "cfa-wwrenewal(retro)",
-          "hosp" ~ "cfa-hosponlyrenewal(retro)",
-          .default = .data$model
-        )
-      ) |>
-      # jarl-ignore internal_function: workaround for non-scoringutils table save
-      scoringutils:::as_scores(
-        metrics = names(wweval::quantile_metrics)
-      )
-  ),
-  tar_target(
-    name = all_hosp_scores_quantiles,
-    command = combine_outputs(
-      output_type = "scores_quantiles",
-      scenarios = "no_wastewater",
-      forecast_dates = eval_config$forecast_date_hosp,
-      locations = eval_config$location_hosp,
-      eval_output_subdir = eval_config$output_dir,
-      model_type = "hosp"
-    ) |>
-      dplyr::mutate(
-        model = dplyr::case_match(
-          .data$model,
-          "ww" ~ "cfa-wwrenewal(retro)",
-          "hosp" ~ "cfa-hosponlyrenewal(retro)",
-          .default = .data$model
-        )
-      ) |>
-      # jarl-ignore internal_function: workaround for non-scoringutils table save
-      scoringutils:::as_scores(
-        metrics = names(wweval::quantile_metrics)
-      )
-  ),
-  tar_target(
     name = quantile_fcsts_ww_retro,
     command = combine_outputs(
       output_type = "hosp_quantiles",
@@ -488,6 +442,64 @@ collated_output_targets <- list(
     )
   ),
   tar_target(
+    name = diagnostic_extrema_preds_all_hosp,
+    command = combine_outputs(
+      output_type = "diagnostic_extrema_preds_all",
+      scenarios = "no_wastewater",
+      forecast_dates = eval_config$forecast_date_hosp,
+      locations = eval_config$location_hosp,
+      eval_output_subdir = eval_config$output_dir,
+      model_type = "hosp"
+    )
+  ),
+  tar_target(
+    name = diagnostic_extrema_preds_all_ww,
+    command = combine_outputs(
+      output_type = "diagnostic_extrema_preds_all",
+      scenarios = eval_config$scenario,
+      forecast_dates = eval_config$forecast_date_ww,
+      locations = eval_config$location_ww,
+      eval_output_subdir = eval_config$output_dir,
+      model_type = "ww"
+    )
+  ),
+  tar_target(
+    name = diagnostic_extrema_preds_all,
+    command = dplyr::bind_rows(
+      diagnostic_extrema_preds_all_hosp,
+      diagnostic_extrema_preds_all_ww
+    )
+  ),
+  tar_target(
+    name = diagnostic_extrema_all_hosp,
+    command = combine_outputs(
+      output_type = "diagnostic_extrema_all",
+      scenarios = "no_wastewater",
+      forecast_dates = eval_config$forecast_date_hosp,
+      locations = eval_config$location_hosp,
+      eval_output_subdir = eval_config$output_dir,
+      model_type = "hosp"
+    )
+  ),
+  tar_target(
+    name = diagnostic_extrema_all_ww,
+    command = combine_outputs(
+      output_type = "diagnostic_extrema_all",
+      scenarios = eval_config$scenario,
+      forecast_dates = eval_config$forecast_date_ww,
+      locations = eval_config$location_ww,
+      eval_output_subdir = eval_config$output_dir,
+      model_type = "ww"
+    )
+  ),
+  tar_target(
+    name = diagnostic_extrema_all,
+    command = dplyr::bind_rows(
+      diagnostic_extrema_all_hosp,
+      diagnostic_extrema_all_ww
+    )
+  ),
+  tar_target(
     name = all_ww_errors,
     command = combine_outputs(
       output_type = "errors",
@@ -512,13 +524,6 @@ collated_output_targets <- list(
   tar_target(
     name = all_raw_scores,
     command = dplyr::bind_rows(all_hosp_scores, all_ww_scores)
-  ),
-  tar_target(
-    name = all_raw_scores_quantiles,
-    command = dplyr::bind_rows(
-      all_hosp_scores_quantiles,
-      all_ww_scores_quantiles
-    )
   ),
   tar_target(
     name = all_errors,
@@ -574,6 +579,15 @@ collated_output_targets <- list(
       !.data$any_flags_hosp
     ) |>
       dplyr::select("forecast_date", "location")
+  ),
+  tar_target(
+    name = date_locs_converged_retro_by_model_type,
+    command = dplyr::bind_rows(
+      date_locs_hosp_converged_retro |>
+        dplyr::mutate(model_type = "hosp"),
+      date_locs_ww_converged_retro |>
+        dplyr::mutate(model_type = "ww")
+    )
   ),
   tar_target(
     name = date_locs_both_converged_retro,
@@ -2073,6 +2087,143 @@ bootstrap_targets <- list(
   )
 )
 
+diagnostic_figure_targets <- list(
+  tar_target(
+    name = slowest_chain_run_time_used,
+    command = dplyr::inner_join(
+      slowest_chain_run_time,
+      date_locs_to_compare_retro,
+      by = c("location", "forecast_date")
+    )
+  ),
+  tar_target(
+    name = diagnostic_extrema_preds_scored_used,
+    command = dplyr::inner_join(
+      diagnostic_extrema_preds_scored,
+      date_locs_to_compare_retro,
+      by = c("location", "forecast_date")
+    )
+  ),
+  tar_target(
+    name = diagnostic_extrema_preds_scored_non_convergent,
+    command = dplyr::anti_join(
+      diagnostic_extrema_preds_scored,
+      date_locs_converged_retro_by_model_type,
+      by = c("location", "forecast_date", "model_type")
+    )
+  ),
+  tar_target(
+    name = diagnostic_extrema_all_used,
+    command = dplyr::inner_join(
+      diagnostic_extrema_all,
+      date_locs_to_compare_retro,
+      by = c("location", "forecast_date")
+    )
+  ),
+  tar_target(
+    name = diagnostic_extrema_all_non_convergent,
+    command = dplyr::anti_join(
+      diagnostic_extrema_all,
+      date_locs_converged_retro_by_model_type,
+      by = c("location", "forecast_date", "model_type")
+    )
+  ),
+  tar_target(
+    name = fig_slowest_chain_run_time_dist_full,
+    command = plot_fitting_clock_time(slowest_chain_run_time)
+  ),
+  tar_target(
+    name = fig_slowest_chain_run_time_dist_used,
+    command = plot_fitting_clock_time(slowest_chain_run_time_used)
+  ),
+  tar_target(
+    name = fig_chain_run_time_versus_sites_full,
+    command = plot_fitting_clock_time_versus_sites(
+      slowest_chain_run_time,
+      granular_ww_metadata_used
+    )
+  ),
+  tar_target(
+    name = fig_chain_run_time_versus_sites_used,
+    command = plot_fitting_clock_time_versus_sites(
+      slowest_chain_run_time_used,
+      granular_ww_metadata_used
+    )
+  ),
+  tar_target(
+    name = fig_max_rhat_non_convergent,
+    command = plot_max_rhat_distribution(diagnostic_extrema_all_non_convergent)
+  ),
+  tar_target(
+    name = fig_max_rhat_used,
+    command = plot_max_rhat_distribution(diagnostic_extrema_all_used)
+  ),
+  tar_target(
+    name = fig_min_ess_bulk_used,
+    command = plot_min_ess_distribution(
+      diagnostic_extrema_preds_scored_used,
+      "bulk"
+    )
+  ),
+  tar_target(
+    name = fig_min_ess_bulk_non_convergent,
+    command = plot_min_ess_distribution(
+      diagnostic_extrema_preds_scored_non_convergent,
+      "bulk"
+    )
+  ),
+  tar_target(
+    name = fig_min_ess_tail_used,
+    command = plot_min_ess_distribution(
+      diagnostic_extrema_preds_scored_used,
+      "tail"
+    )
+  ),
+  tar_target(
+    name = fig_min_ess_tail_non_convergent,
+    command = plot_min_ess_distribution(
+      diagnostic_extrema_preds_scored_non_convergent,
+      "tail"
+    )
+  ),
+  tar_target(
+    name = fig_clock_time,
+    command = compose_clock_time_fig(
+      fig_slowest_chain_run_time_dist_full,
+      fig_slowest_chain_run_time_dist_used,
+      fig_chain_run_time_versus_sites_full,
+      fig_chain_run_time_versus_sites_used
+    )
+  ),
+  tar_target(
+    name = save_fig_clock_time,
+    command = save_fig_supp(
+      fig_clock_time,
+      base_height = 10,
+      base_width = 8
+    )
+  ),
+  tar_target(
+    name = fig_diagnostics,
+    command = compose_diagnostic_fig(
+      fig_max_rhat_used,
+      fig_max_rhat_non_convergent,
+      fig_min_ess_bulk_used,
+      fig_min_ess_bulk_non_convergent,
+      fig_min_ess_tail_used,
+      fig_min_ess_tail_non_convergent
+    )
+  ),
+  tar_target(
+    name = save_fig_diagnostics,
+    command = save_fig_supp(
+      fig_diagnostics,
+      base_height = 10,
+      base_width = 8
+    )
+  )
+)
+
 additional_figure_targets <- list(
   tar_target(
     name = plot_heatmap_hub_wis_retro,
@@ -2546,6 +2697,7 @@ list(
   hub_comparison_targets,
   trend_analysis_targets,
   composite_figure_targets,
+  diagnostic_figure_targets,
   additional_figure_targets,
   bootstrap_targets,
   reported_quantities_targets
