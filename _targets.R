@@ -74,7 +74,7 @@ configuration_targets <- list(
   tar_target(
     name = date_locs_manual_exclude_ww_real_time,
     command = dplyr::filter(
-      exclusions_real_tisme,
+      exclusions_real_time,
       .data$exclusion == "manual_exclude_ww"
     ) |>
       dplyr::select("forecast_date", "location")
