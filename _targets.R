@@ -2141,8 +2141,40 @@ diagnostic_figure_targets <- list(
     )
   ),
   tar_target(
+    name = slowest_chain_run_time_not_used,
+    command = dplyr::anti_join(
+      slowest_chain_run_time,
+      date_locs_to_compare_retro,
+      by = c("location", "forecast_date")
+    )
+  ),
+  tar_target(
+    name = diagnostic_extrema_preds_scored_used,
+    command = dplyr::inner_join(
+      diagnostic_extrema_preds_scored,
+      date_locs_to_compare_retro,
+      by = c("location", "forecast_date")
+    )
+  ),
+  tar_target(
+    name = diagnostic_extrema_preds_scored_not_used,
+    command = dplyr::anti_join(
+      diagnostic_extrema_preds_scored,
+      date_locs_to_compare_retro,
+      by = c("location", "forecast_date")
+    )
+  ),
+  tar_target(
     name = diagnostic_extrema_all_used,
     command = dplyr::inner_join(
+      diagnostic_extrema_all,
+      date_locs_to_compare_retro,
+      by = c("location", "forecast_date")
+    )
+  ),
+  tar_target(
+    name = diagnostic_extrema_all_not_used,
+    command = dplyr::anti_join(
       diagnostic_extrema_all,
       date_locs_to_compare_retro,
       by = c("location", "forecast_date")
@@ -2171,28 +2203,40 @@ diagnostic_figure_targets <- list(
     )
   ),
   tar_target(
-    name = fig_max_rhat_dist_full,
-    command = plot_max_rhat_distribution(diagnostic_extrema_all)
+    name = fig_max_rhat_not_used,
+    command = plot_max_rhat_distribution(diagnostic_extrema_all_not_used)
   ),
   tar_target(
-    name = fig_max_rhat_dist_used,
+    name = fig_max_rhat_used,
     command = plot_max_rhat_distribution(diagnostic_extrema_all_used)
   ),
   tar_target(
-    name = fig_min_ess_bulk_dist_full,
-    command = plot_min_ess_distribution(diagnostic_extrema_all, "bulk")
+    name = fig_min_ess_bulk_used,
+    command = plot_min_ess_distribution(
+      diagnostic_extrema_preds_scored_used,
+      "bulk"
+    )
   ),
   tar_target(
-    name = fig_min_ess_bulk_dist_used,
-    command = plot_min_ess_distribution(diagnostic_extrema_all_used, "bulk")
+    name = fig_min_ess_bulk_not_used,
+    command = plot_min_ess_distribution(
+      diagnostic_extrema_preds_scored_not_used,
+      "bulk"
+    )
   ),
   tar_target(
-    name = fig_min_ess_tail_dist_full,
-    command = plot_min_ess_distribution(diagnostic_extrema_all, "tail")
+    name = fig_min_ess_tail_used,
+    command = plot_min_ess_distribution(
+      diagnostic_extrema_preds_scored_used,
+      "tail"
+    )
   ),
   tar_target(
-    name = fig_min_ess_tail_dist_used,
-    command = plot_min_ess_distribution(diagnostic_extrema_all_used, "tail")
+    name = fig_min_ess_tail_not_used,
+    command = plot_min_ess_distribution(
+      diagnostic_extrema_preds_scored_not_used,
+      "tail"
+    )
   )
 )
 
