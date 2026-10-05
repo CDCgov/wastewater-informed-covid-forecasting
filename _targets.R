@@ -74,7 +74,7 @@ configuration_targets <- list(
   tar_target(
     name = date_locs_manual_exclude_ww_real_time,
     command = dplyr::filter(
-      exclusions_real_time,
+      exclusions_real_tisme,
       .data$exclusion == "manual_exclude_ww"
     ) |>
       dplyr::select("forecast_date", "location")
@@ -579,6 +579,15 @@ collated_output_targets <- list(
       !.data$any_flags_hosp
     ) |>
       dplyr::select("forecast_date", "location")
+  ),
+  tar_target(
+    name = date_locs_converged_retro_by_model_type,
+    command = dplyr::bind_rows(
+      date_locs_hosp_converged_retro |>
+        dplyr::mutate(model_type = "hosp"),
+      date_locs_ww_converged_retro |>
+        dplyr::mutate(model_type = "ww")
+    )
   ),
   tar_target(
     name = date_locs_both_converged_retro,
@@ -2088,14 +2097,6 @@ diagnostic_figure_targets <- list(
     )
   ),
   tar_target(
-    name = slowest_chain_run_time_not_used,
-    command = dplyr::anti_join(
-      slowest_chain_run_time,
-      date_locs_to_compare_retro,
-      by = c("location", "forecast_date")
-    )
-  ),
-  tar_target(
     name = diagnostic_extrema_preds_scored_used,
     command = dplyr::inner_join(
       diagnostic_extrema_preds_scored,
@@ -2104,11 +2105,11 @@ diagnostic_figure_targets <- list(
     )
   ),
   tar_target(
-    name = diagnostic_extrema_preds_scored_not_used,
+    name = diagnostic_extrema_preds_scored_non_convergent,
     command = dplyr::anti_join(
       diagnostic_extrema_preds_scored,
-      date_locs_to_compare_retro,
-      by = c("location", "forecast_date")
+      date_locs_converged_retro_by_model_type,
+      by = c("location", "forecast_date", "model_type")
     )
   ),
   tar_target(
@@ -2120,11 +2121,11 @@ diagnostic_figure_targets <- list(
     )
   ),
   tar_target(
-    name = diagnostic_extrema_all_not_used,
+    name = diagnostic_extrema_all_non_convergent,
     command = dplyr::anti_join(
       diagnostic_extrema_all,
-      date_locs_to_compare_retro,
-      by = c("location", "forecast_date")
+      date_locs_converged_retro_by_model_type,
+      by = c("location", "forecast_date", "model_type")
     )
   ),
   tar_target(
@@ -2150,8 +2151,8 @@ diagnostic_figure_targets <- list(
     )
   ),
   tar_target(
-    name = fig_max_rhat_not_used,
-    command = plot_max_rhat_distribution(diagnostic_extrema_all_not_used)
+    name = fig_max_rhat_non_convergent,
+    command = plot_max_rhat_distribution(diagnostic_extrema_all_non_convergent)
   ),
   tar_target(
     name = fig_max_rhat_used,
@@ -2165,9 +2166,9 @@ diagnostic_figure_targets <- list(
     )
   ),
   tar_target(
-    name = fig_min_ess_bulk_not_used,
+    name = fig_min_ess_bulk_non_convergent,
     command = plot_min_ess_distribution(
-      diagnostic_extrema_preds_scored_not_used,
+      diagnostic_extrema_preds_scored_non_convergent,
       "bulk"
     )
   ),
@@ -2179,9 +2180,9 @@ diagnostic_figure_targets <- list(
     )
   ),
   tar_target(
-    name = fig_min_ess_tail_not_used,
+    name = fig_min_ess_tail_non_convergent,
     command = plot_min_ess_distribution(
-      diagnostic_extrema_preds_scored_not_used,
+      diagnostic_extrema_preds_scored_non_convergent,
       "tail"
     )
   ),
@@ -2206,11 +2207,11 @@ diagnostic_figure_targets <- list(
     name = fig_diagnostics,
     command = compose_diagnostic_fig(
       fig_max_rhat_used,
-      fig_max_rhat_not_used,
+      fig_max_rhat_non_convergent,
       fig_min_ess_bulk_used,
-      fig_min_ess_bulk_not_used,
+      fig_min_ess_bulk_non_convergent,
       fig_min_ess_tail_used,
-      fig_min_ess_tail_not_used
+      fig_min_ess_tail_non_convergent
     )
   ),
   tar_target(
