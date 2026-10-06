@@ -1,3 +1,73 @@
+#' Get a properly parameterized prior distribution
+#' for selected model parameters.
+#'
+#' @param parameter_name Name of the parameter in the wwinference Stan model
+#' @param prior_params Named list of prior hyperparameter values, as the
+#' output of [wwinference::get_params()]
+#'
+#' @return `A distributional` distribution object parameterized by the priors,
+#' e.g. a [distributional::dist_normal()] object. Errors if the user requests
+#' an unknown parameter.
+#'
+#' @export
+get_parameterized_prior_dist <- function(parameter_name, prior_params) {
+  pos_normal <- \(...) {
+    distributional::dist_normal(...) |>
+      distributional::dist_truncated(lower = 0)
+  }
+
+  dists_and_hyper_names <- list(
+    "log10_g" = list(
+      fn = distributional::dist_normal,
+      params = list(
+        mean = "log10_g_prior_mean",
+        sd = "log10_g_prior_sd"
+      )
+    ),
+    "infection_feedback" = list(
+      fn = distributional::dist_lognormal,
+      params = list(
+        mu = "infection_feedback_prior_logmean",
+        sigma = "infection_feedback_prior_logsd"
+      )
+    ),
+    "sd_log_sigma_ww_site" = list(
+      fn = pos_normal,
+      params = list(
+        mean = "sd_log_sigma_ww_site_prior_mode",
+        sd = "sd_log_sigma_ww_site_prior_sd"
+      )
+    ),
+    "ww_site_mod_sd" = list(
+      fn = purrr::partial(pos_normal, mean = 0),
+      ## mean = 0 hard-coded in wwinference Stan model
+      params = list(
+        sd = "ww_site_mod_sd_sd"
+      )
+    ),
+    "eta_sd" = list(
+      fn = pos_normal,
+      params = list(
+        mean = "eta_sd_mean",
+        sd = "eta_sd_sd"
+      )
+    )
+  )
+
+  checkmate::assert_choice(parameter_name, names(dists_and_hyper_names))
+
+  to_build <- dists_and_hyper_names[[parameter_name]]
+  checkmate::assert_names(
+    names(prior_params),
+    must.include = as.character(to_build$params)
+  )
+  named_list_of_constructor_params <- purrr::map(to_build$params, \(x) {
+    prior_params[[x]]
+  })
+
+  return(do.call(to_build$fn, named_list_of_constructor_params))
+}
+
 #' Plot posterior draws for a given parameter against
 #' a known marginal prior distribution.
 #'
