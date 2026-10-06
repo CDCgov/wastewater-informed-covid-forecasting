@@ -66,6 +66,10 @@ configuration_targets <- list(
       tibble::as_tibble()
   ),
   tar_target(
+    name = example_locations,
+    command = c("CA", "VA", "WA")
+  ),
+  tar_target(
     name = exclusions_real_time,
     command = parse_real_time_exclusions(
       eval_config$real_time_metadata_dir
@@ -212,6 +216,29 @@ data_targets <- list(
       dplyr::group_by(.data$location) |>
       targets::tar_group(),
     iteration = "group"
+  ),
+  tar_target(
+    name = table_of_runs_ww,
+    command = tibble::tibble(
+      scenario = eval_config$scenario,
+      forecast_date = eval_config$forecast_date_ww,
+      location = eval_config$location_ww
+    )
+  ),
+  tar_target(
+    name = table_of_runs_hosp,
+    command = tibble::tibble(
+      scenario = "no_wastewater",
+      forecast_date = eval_config$forecast_date_hosp,
+      location = eval_config$location_hosp
+    )
+  ),
+  tar_target(
+    name = table_of_runs,
+    command = dplyr::bind_rows(
+      table_of_runs_ww,
+      table_of_runs_hosp
+    )
   )
 )
 
@@ -500,6 +527,45 @@ collated_output_targets <- list(
     )
   ),
   tar_target(
+    name = example_runs_hosp,
+    command = table_of_runs_hosp |>
+      dplyr::filter(.data$location %in% example_locations)
+  ),
+  tar_target(
+    name = example_runs_ww,
+    command = table_of_runs_ww |>
+      dplyr::filter(.data$location %in% example_locations)
+  ),
+  tar_target(
+    name = parameter_draws_hosp,
+    command = combine_outputs(
+      output_type = "parameter_draws",
+      scenarios = example_runs_hosp$scenario,
+      forecast_dates = example_runs_hosp$forecast_date,
+      locations = example_runs_hosp$location,
+      eval_output_subdir = eval_config$output_dir,
+      model_type = "hosp"
+    )
+  ),
+  tar_target(
+    name = parameter_draws_ww,
+    command = combine_outputs(
+      output_type = "parameter_draws",
+      scenarios = example_runs_ww$scenario,
+      forecast_dates = example_runs_ww$forecast_date,
+      locations = example_runs_ww$location,
+      eval_output_subdir = eval_config$output_dir,
+      model_type = "ww"
+    )
+  ),
+  tar_target(
+    name = parameter_draws,
+    command = dplyr::bind_rows(
+      parameter_draws_hosp,
+      parameter_draws_ww
+    )
+  ),
+  tar_target(
     name = all_ww_errors,
     command = combine_outputs(
       output_type = "errors",
@@ -529,7 +595,6 @@ collated_output_targets <- list(
     name = all_errors,
     command = dplyr::bind_rows(all_hosp_errors, all_ww_errors)
   ),
-
   tar_target(
     name = convergence_df,
     command = dplyr::left_join(
@@ -1562,10 +1627,6 @@ composite_figure_targets <- list(
     )
   ),
   tar_target(
-    name = locs_to_plot,
-    command = c("CA", "VA", "WA")
-  ),
-  tar_target(
     name = forecast_date_to_plot,
     command = "2024-01-15"
   ),
@@ -1578,7 +1639,7 @@ composite_figure_targets <- list(
     command = submitted_fcsts_cfa_retro |>
       dplyr::filter(
         quantile_level %in% quantile_levels_to_plot,
-        location %in% locs_to_plot
+        location %in% example_locations
       ) |>
       dplyr::rename(
         quantile = "quantile_level",
@@ -1592,7 +1653,7 @@ composite_figure_targets <- list(
       output_type = "ww_quantiles",
       scenarios = "status_quo",
       forecast_dates = forecast_date_to_plot,
-      locations = locs_to_plot,
+      locations = example_locations,
       eval_output_subdir = eval_config$output_dir,
       model_type = "ww"
     )
@@ -1601,7 +1662,7 @@ composite_figure_targets <- list(
     name = example_hosp_t_1,
     command = plot_ribbon_hosp_quantiles(
       hosp_quants_plot,
-      loc_to_plot = locs_to_plot[1],
+      loc_to_plot = example_locations[1],
       date_to_plot = forecast_date_to_plot
     )
   ),
@@ -1609,7 +1670,7 @@ composite_figure_targets <- list(
     name = example_hosp_t_2,
     command = plot_ribbon_hosp_quantiles(
       hosp_quants_plot,
-      loc_to_plot = locs_to_plot[2],
+      loc_to_plot = example_locations[2],
       date_to_plot = forecast_date_to_plot
     )
   ),
@@ -1617,7 +1678,7 @@ composite_figure_targets <- list(
     name = example_hosp_t_3,
     command = plot_ribbon_hosp_quantiles(
       hosp_quants_plot,
-      loc_to_plot = locs_to_plot[3],
+      loc_to_plot = example_locations[3],
       date_to_plot = forecast_date_to_plot
     )
   ),
@@ -1625,7 +1686,7 @@ composite_figure_targets <- list(
     name = example_ww_conc_1,
     command = plot_ribbon_ww_quantiles(
       ww_quants_plot,
-      loc_to_plot = locs_to_plot[1],
+      loc_to_plot = example_locations[1],
       date_to_plot = forecast_date_to_plot,
       site_lab_names_to_show = c(
         "Site: 2590, Lab: 34",
@@ -1638,7 +1699,7 @@ composite_figure_targets <- list(
     name = example_ww_conc_2,
     command = plot_ribbon_ww_quantiles(
       ww_quants_plot,
-      loc_to_plot = locs_to_plot[2],
+      loc_to_plot = example_locations[2],
       date_to_plot = forecast_date_to_plot
     )
   ),
@@ -1646,7 +1707,7 @@ composite_figure_targets <- list(
     name = example_ww_conc_3,
     command = plot_ribbon_ww_quantiles(
       ww_quants_plot,
-      loc_to_plot = locs_to_plot[3],
+      loc_to_plot = example_locations[3],
       date_to_plot = forecast_date_to_plot
     )
   ),
@@ -1673,7 +1734,7 @@ composite_figure_targets <- list(
     name = fig_crps_three_example_locs,
     command = plot_score_model_loc(
       crps_cfa_models_retro,
-      locs_to_plot
+      example_locations
     )
   ),
   tar_target(

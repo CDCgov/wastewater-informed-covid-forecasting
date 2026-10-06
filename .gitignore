@@ -13,11 +13,13 @@ targets.log
 secrets.yaml
 
 
-# rendered documents ignored by default
+# rendered documents and figures ignored by default
 *.html
 *.pdf
 *.docx
-
+*.jpg
+*.tiff
+*.eps
 # Don't track compiled model executables
 bin
 

@@ -42,14 +42,14 @@ combine_outputs <- function(
   eval_output_subdir,
   model_type
 ) {
-  checkmate::assert_scalar(output_type)
-  checkmate::assert_names(
+  checkmate::assert_choice(
     output_type,
-    subset.of = c(
+    c(
       "scores",
       "hosp_quantiles",
       "ww_quantiles",
       "scores_quantiles",
+      "parameter_draws",
       "flags",
       "errors",
       "ww_data_flags",
