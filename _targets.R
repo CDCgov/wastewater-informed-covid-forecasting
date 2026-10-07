@@ -62,8 +62,7 @@ configuration_targets <- list(
   ),
   tar_target(
     name = params,
-    command = wwinference::get_params(eval_config$param_file) |>
-      tibble::as_tibble()
+    command = wwinference::get_params(eval_config$param_file)
   ),
   tar_target(
     name = example_locations,
@@ -2281,6 +2280,35 @@ diagnostic_figure_targets <- list(
       fig_diagnostics,
       base_height = 10,
       base_width = 8
+    )
+  )
+)
+
+prior_posterior_targets <- list(
+  tar_target(
+    name = parameter_draws_ww_used,
+    command = parameter_draws_ww |>
+      dplyr::inner_join(
+        date_locs_to_compare_retro,
+        by = c("location", "forecast_date")
+      )
+  ),
+  tar_target(
+    name = parameter_draws_hosp_used,
+    command = parameter_draws_hosp |>
+      dplyr::inner_join(
+        date_locs_to_compare_retro,
+        by = c("location", "forecast_date")
+      )
+  ),
+  tar_target(
+    name = param_names_to_plot_prior_posterior,
+    command = c(
+      "log10_g",
+      "infection_feedback",
+      "sd_log_sigma_ww_site",
+      "ww_site_mod_sd",
+      "eta_sd"
     )
   )
 )

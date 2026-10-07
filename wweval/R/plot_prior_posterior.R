@@ -4,7 +4,6 @@
 #' @param parameter_name Name of the parameter in the wwinference Stan model
 #' @param prior_params Named list of prior hyperparameter values, as the
 #' output of [wwinference::get_params()]
-#'
 #' @return `A distributional` distribution object parameterized by the priors,
 #' e.g. a [distributional::dist_normal()] object. Errors if the user requests
 #' an unknown parameter.
@@ -73,8 +72,8 @@ get_parameterized_prior_dist <- function(parameter_name, prior_params) {
 #'
 #' @param draws_long long-format posterior draws, as the
 #' output of [tidybayes::gather_draws()].
-#' @param priors data frame of priors, with the same
-#' faceting columns as `draws_long`.
+#' @param prior_params Named list of prior hyperparameter values, as the
+#' output of [wwinference::get_params()]
 #' @param fit_id_col Name of a column in `draws_long` that uniquely
 #' identifies individual model fits within a facet. Default `"forecast_date"`.
 #' @param variable_name Name for the variable column.
@@ -84,39 +83,53 @@ get_parameterized_prior_dist <- function(parameter_name, prior_params) {
 #' @param prior_pdf_name Column containing prior pdfs. Default
 #' `"pdf"`.
 #' @param row_facet Column to facet rows by. Default `"location"`.
+#' @param custom_x_transform Optional named list mapping parameter names
+#' to custom x transforms to use for that parameter's panels in the plot.
+#' If a parameter name is not matched, the identity transform will be used.
+#' Default `list()`, which implies using the identity transform for all
+#' panels.
+#' @param custom_xlim Optional named list mapping parameter names
+#' to vectors specificing custom x limits to use for that parameter's
+#' panels in the plot. If a parameter name is not matched, x limits will
+#' be deferred to ggplot. Default `list()`, which implies deferring limits
+#' for all parameters.
 #' @return The plot.
 #' @export
 plot_prior_posterior <- function(
   draws_long,
-  priors,
+  prior_params,
   fit_id_col = "forecast_date",
   variable_name = ".variable",
   value_name = ".value",
-  prior_pdf_name = "prior_pdf",
-  row_facet = "location"
+  row_facet = "location",
+  custom_x_transform = list(),
+  custom_xlim = list()
 ) {
   ## manually handle row and column faceting to
   ## ensure density scales are correct
-  plot_col <- function(
-    variable_value,
+  plot_panel <- function(
+    col_value,
     row_value,
-    x_transform,
-    display_name,
-    xlim,
     is_last_in_row
   ) {
-    prior_data <- priors |>
-      dplyr::filter(.data[[variable_name]] == !!variable_value)
     posterior_data <- draws_long |>
       dplyr::filter(
-        .data[[variable_name]] == !!variable_value,
+        .data[[variable_name]] == !!col_value,
         .data[[row_facet]] == !!row_value
       )
 
+    xlim <- custom_xlim[[col_value]]
+    x_transform <- custom_x_transform[[col_value]] %||% "identity"
+
     p <- ggplot2::ggplot() +
       ggdist::stat_slab(
-        mapping = ggplot2::aes(xdist = .data[[prior_pdf_name]]),
-        data = prior_data,
+        mapping = ggplot2::aes(
+          xdist = get_parameterized_prior_dist(
+            col_value,
+            prior_params
+          )
+        ),
+        data = NULL,
         color = "gray",
         alpha = 0.75,
         linetype = "dashed",
@@ -137,7 +150,10 @@ plot_prior_posterior <- function(
       scale_color_model() +
       ggdist::scale_thickness_shared() +
       ggplot2::scale_x_continuous(transform = x_transform) +
-      ggplot2::labs(x = display_name, y = "Relative density") +
+      ggplot2::labs(
+        x = get_parameter_display_name(col_value),
+        y = "Relative density"
+      ) +
       ggplot2::coord_cartesian(xlim = xlim, clip = "off")
 
     if (is_last_in_row) {
@@ -154,20 +170,15 @@ plot_prior_posterior <- function(
 
     return(p)
   }
+  col_values <- unique(draws_long[[variable_name]])
   row_values <- unique(draws_long[[row_facet]])
 
   n_rows <- length(row_values)
   to_plot <- tidyr::crossing(
-    priors |>
-      dplyr::select(
-        variable_value = ".variable",
-        "x_transform",
-        "display_name",
-        "xlim"
-      ),
+    col_value = col_values,
     row_value = row_values
   ) |>
-    dplyr::arrange(.data$row_value, .data$variable_value) |>
+    dplyr::arrange(.data$row_value, .data$col_value) |>
     dplyr::mutate(
       is_last_in_row = dplyr::lead(
         .data$row_value,
@@ -178,7 +189,7 @@ plot_prior_posterior <- function(
     )
 
   return(
-    purrr::pmap(to_plot, plot_col) |>
+    purrr::pmap(to_plot, plot_panel) |>
       patchwork::wrap_plots(
         nrow = n_rows,
         guides = "collect",

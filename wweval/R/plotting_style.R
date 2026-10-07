@@ -172,6 +172,27 @@ score_component_alphas <- c(
   "overprediction" = 0.95
 )
 
+#' Convert parameter names from the wwinference Stan model
+#' to display names.
+#'
+#' @param parameter_name Name of the parameter in the wwinference Stan model,
+#' as a string.
+#' @return The display name, as a string. Returns the raw parameter name
+#' if no display name is found.
+#' @export
+get_parameter_display_name <- function(parameter_name) {
+  checkmate::assert_string(parameter_name)
+  name_mapping <- list(
+    "log10_g" = "log10 genomes shed per\ninfected individual",
+    "infection_feedback" = "infection feedback strength",
+    "sd_log_sigma_ww_site" = "Observation noise s.d.\nvariability by site",
+    "ww_site_mod_sd" = "s.d. of log site-lab\nmultipliers",
+    "eta_sd" = "s.d. of the AR(1) process\non the R(t) differences"
+  )
+
+  return(name_mapping[[parameter_name]] %||% parameter_name)
+}
+
 #' ggplot discrete scales for forecast models
 #'
 #' @param ... Keyword arguments passed to
