@@ -384,8 +384,104 @@ DDDD
   fig <- patchwork::wrap_plots(
     A = abs_score_overall,
     B = rel_score_overall,
-    C = rel_score_by_time,
-    D = rel_score_by_location,
+    C = rel_score_by_time + ggplot2::xlab("Forecast date"),
+    D = rel_score_by_location +
+      ggplot2::xlab("Location") +
+      ggplot2::theme(
+        axis.text.x = ggplot2::element_text(
+          vjust = 1,
+          hjust = 1,
+          angle = 45
+        )
+      ),
+    design = design,
+    guides = "collect"
+  ) +
+    patchwork::plot_annotation(tag_levels = "A") &
+    ggplot2::theme(
+      legend.position = "none"
+    )
+
+  return(fig)
+}
+
+
+#' Make a multi-panel figure summarizing wall clock runtime.
+#'
+#' @param clock_time_dist_full Distribution of clock time values for all
+#' fits, including non-convergent fits.
+#' @param clock_time_dist_used Distribution of clock time values for just
+#' convergent fits.
+#' @param clock_time_versus_sites_full Plot of clock time versus sites for all
+#' fits, including non-convergent fits.
+#' @param clock_time_versus_sites_used Plot of clock time versus sites just
+#' for convergent fits.
+#' @return patchwork object with all the elements combined
+#' @export
+compose_clock_time_fig <- function(
+  clock_time_dist_full,
+  clock_time_dist_used,
+  clock_time_versus_sites_full,
+  clock_time_versus_sites_used
+) {
+  design <- "
+ABBB
+CDDD
+"
+
+  fig <- patchwork::wrap_plots(
+    A = clock_time_dist_full,
+    B = clock_time_versus_sites_full,
+    C = clock_time_dist_used,
+    D = clock_time_versus_sites_used,
+    design = design,
+    guides = "collect"
+  ) +
+    patchwork::plot_annotation(tag_levels = "A") &
+    theme(
+      legend.position = "none"
+    )
+
+  return(fig)
+}
+
+#' Make a multi-panel summarizing diagnostics.
+#'
+#' @param max_rhat_used Distribution of max R-hat values for
+#' fits that were used in the analysis.
+#' @param max_rhat_not_used Distribution of max R-hat values for fits
+#' that were not used (often due to non-convergence)
+#' @param ess_bulk_forecast_used Distribution of worst bulk ESS for
+#' a scored prediction for fits used in the analysis.
+#' @param ess_bulk_forecast_not_used Distribution of worst bulk ESS for
+#' a scored prediction for fits not used in the analysis
+#' @param ess_tail_forecast_used Distribution of worst tail ESS for
+#' a scored prediction for fits used in the analysis.
+#' @param ess_tail_forecast_not_used Distribution of worst tail ESS for
+#' a scored prediction for fits not used in the analysis.
+#' @return patchwork object with all the elements combined
+#' @export
+compose_diagnostic_fig <- function(
+  max_rhat_used,
+  max_rhat_not_used,
+  ess_bulk_forecast_used,
+  ess_bulk_forecast_not_used,
+  ess_tail_forecast_used,
+  ess_tail_forecast_not_used
+) {
+  design <- "
+AB
+CD
+EF
+"
+
+  fig <- patchwork::wrap_plots(
+    A = max_rhat_used,
+    B = max_rhat_not_used,
+    C = ess_bulk_forecast_used,
+    D = ess_bulk_forecast_not_used,
+    E = ess_tail_forecast_used,
+    F = ess_tail_forecast_not_used,
     design = design,
     guides = "collect"
   ) +

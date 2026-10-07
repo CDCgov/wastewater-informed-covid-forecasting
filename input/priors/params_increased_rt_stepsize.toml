@@ -4,7 +4,7 @@ uot = 50
 [infection_process]
 r_prior_mean = 1
 r_prior_sd = 1
-sigma_rt_prior = 0.3
+sigma_rt_prior = 0.1
 dur_inf = 7
 
 sigma_i_first_obs_prior_mode = 0
@@ -43,8 +43,8 @@ autoreg_p_hosp_a = 1 # shape1 parameter of autoreg term on IHR(t) trend
 autoreg_p_hosp_b = 100 # shape2 parameter of autoreg term on IHR(t) trend
 
 # priors on the noise sd for AR process on R(t)
-eta_sd_sd = 0.0097
-eta_sd_mean = 0.0278
+eta_sd_sd = 0.05
+eta_sd_mean = 0.1
 infection_feedback_prior_logmean = 4.498 # mode=100 log(mode) + q^2 mode = 100, q = 1
 infection_feedback_prior_logsd = 0.636 # roughly 16 to 600 in 95% ci
 

@@ -62,8 +62,11 @@ configuration_targets <- list(
   ),
   tar_target(
     name = params,
-    command = wwinference::get_params(eval_config$param_file) |>
-      tibble::as_tibble()
+    command = wwinference::get_params(eval_config$param_file)
+  ),
+  tar_target(
+    name = example_locations,
+    command = c("CA", "VA", "WA")
   ),
   tar_target(
     name = exclusions_real_time,
@@ -190,6 +193,53 @@ data_targets <- list(
       hosp_data_dir = eval_config$hosp_data_dir,
       calibration_time = 365, # Grab sufficient data for eval
       for_eval = TRUE # So we don't run wwinference::preprocess
+    )
+  )
+)
+
+data_targets <- list(
+  tar_target(
+    name = eval_ww_data,
+    command = get_input_ww_data(
+      forecast_date_i = eval_config$eval_date,
+      location_i = unique(eval_config$location_ww),
+      scenario_i = "status_quo",
+      scenario_dir = eval_config$scenario_dir,
+      ww_data_dir = eval_config$ww_data_dir,
+      calibration_time = 365, # Grab sufficient data for eval
+      last_hosp_data_date = eval_config$eval_date,
+      ww_data_mapping = "most recent",
+      for_eval = TRUE
+    )
+  ),
+  tar_target(
+    name = grouped_eval_ww_data,
+    command = eval_ww_data |>
+      dplyr::group_by(.data$location) |>
+      targets::tar_group(),
+    iteration = "group"
+  ),
+  tar_target(
+    name = table_of_runs_ww,
+    command = tibble::tibble(
+      scenario = eval_config$scenario,
+      forecast_date = eval_config$forecast_date_ww,
+      location = eval_config$location_ww
+    )
+  ),
+  tar_target(
+    name = table_of_runs_hosp,
+    command = tibble::tibble(
+      scenario = "no_wastewater",
+      forecast_date = eval_config$forecast_date_hosp,
+      location = eval_config$location_hosp
+    )
+  ),
+  tar_target(
+    name = table_of_runs,
+    command = dplyr::bind_rows(
+      table_of_runs_ww,
+      table_of_runs_hosp
     )
   )
 )
@@ -356,6 +406,168 @@ collated_output_targets <- list(
     )
   ),
   tar_target(
+    name = chain_run_time_hosp,
+    command = combine_outputs(
+      output_type = "chain_run_time",
+      scenarios = "no_wastewater",
+      forecast_dates = eval_config$forecast_date_hosp,
+      locations = eval_config$location_hosp,
+      eval_output_subdir = eval_config$output_dir,
+      model_type = "hosp"
+    )
+  ),
+  tar_target(
+    name = chain_run_time_ww,
+    command = combine_outputs(
+      output_type = "chain_run_time",
+      scenarios = eval_config$scenario,
+      forecast_dates = eval_config$forecast_date_ww,
+      locations = eval_config$location_ww,
+      eval_output_subdir = eval_config$output_dir,
+      model_type = "ww"
+    )
+  ),
+  tar_target(
+    name = chain_run_time,
+    command = dplyr::bind_rows(chain_run_time_hosp, chain_run_time_ww)
+  ),
+  tar_target(
+    name = slowest_chain_run_time,
+    command = dplyr::summarise(
+      chain_run_time,
+      slowest_warmup_s = max(.data$warmup),
+      slowest_sample_s = max(.data$sampling),
+      slowest_total_s = max(.data$total),
+      .by = c("forecast_date", "location", "model_type", "scenario")
+    )
+  ),
+  tar_target(
+    name = diagnostic_extrema_preds_scored_hosp,
+    command = combine_outputs(
+      output_type = "diagnostic_extrema_preds_scored",
+      scenarios = "no_wastewater",
+      forecast_dates = eval_config$forecast_date_hosp,
+      locations = eval_config$location_hosp,
+      eval_output_subdir = eval_config$output_dir,
+      model_type = "hosp"
+    )
+  ),
+  tar_target(
+    name = diagnostic_extrema_preds_scored_ww,
+    command = combine_outputs(
+      output_type = "diagnostic_extrema_preds_scored",
+      scenarios = eval_config$scenario,
+      forecast_dates = eval_config$forecast_date_ww,
+      locations = eval_config$location_ww,
+      eval_output_subdir = eval_config$output_dir,
+      model_type = "ww"
+    )
+  ),
+  tar_target(
+    name = diagnostic_extrema_preds_scored,
+    command = dplyr::bind_rows(
+      diagnostic_extrema_preds_scored_hosp,
+      diagnostic_extrema_preds_scored_ww
+    )
+  ),
+  tar_target(
+    name = diagnostic_extrema_preds_all_hosp,
+    command = combine_outputs(
+      output_type = "diagnostic_extrema_preds_all",
+      scenarios = "no_wastewater",
+      forecast_dates = eval_config$forecast_date_hosp,
+      locations = eval_config$location_hosp,
+      eval_output_subdir = eval_config$output_dir,
+      model_type = "hosp"
+    )
+  ),
+  tar_target(
+    name = diagnostic_extrema_preds_all_ww,
+    command = combine_outputs(
+      output_type = "diagnostic_extrema_preds_all",
+      scenarios = eval_config$scenario,
+      forecast_dates = eval_config$forecast_date_ww,
+      locations = eval_config$location_ww,
+      eval_output_subdir = eval_config$output_dir,
+      model_type = "ww"
+    )
+  ),
+  tar_target(
+    name = diagnostic_extrema_preds_all,
+    command = dplyr::bind_rows(
+      diagnostic_extrema_preds_all_hosp,
+      diagnostic_extrema_preds_all_ww
+    )
+  ),
+  tar_target(
+    name = diagnostic_extrema_all_hosp,
+    command = combine_outputs(
+      output_type = "diagnostic_extrema_all",
+      scenarios = "no_wastewater",
+      forecast_dates = eval_config$forecast_date_hosp,
+      locations = eval_config$location_hosp,
+      eval_output_subdir = eval_config$output_dir,
+      model_type = "hosp"
+    )
+  ),
+  tar_target(
+    name = diagnostic_extrema_all_ww,
+    command = combine_outputs(
+      output_type = "diagnostic_extrema_all",
+      scenarios = eval_config$scenario,
+      forecast_dates = eval_config$forecast_date_ww,
+      locations = eval_config$location_ww,
+      eval_output_subdir = eval_config$output_dir,
+      model_type = "ww"
+    )
+  ),
+  tar_target(
+    name = diagnostic_extrema_all,
+    command = dplyr::bind_rows(
+      diagnostic_extrema_all_hosp,
+      diagnostic_extrema_all_ww
+    )
+  ),
+  tar_target(
+    name = example_runs_hosp,
+    command = table_of_runs_hosp |>
+      dplyr::filter(.data$location %in% example_locations)
+  ),
+  tar_target(
+    name = example_runs_ww,
+    command = table_of_runs_ww |>
+      dplyr::filter(.data$location %in% example_locations)
+  ),
+  tar_target(
+    name = parameter_draws_hosp,
+    command = combine_outputs(
+      output_type = "parameter_draws",
+      scenarios = example_runs_hosp$scenario,
+      forecast_dates = example_runs_hosp$forecast_date,
+      locations = example_runs_hosp$location,
+      eval_output_subdir = eval_config$output_dir,
+      model_type = "hosp"
+    )
+  ),
+  tar_target(
+    name = parameter_draws_ww,
+    command = combine_outputs(
+      output_type = "parameter_draws",
+      scenarios = example_runs_ww$scenario,
+      forecast_dates = example_runs_ww$forecast_date,
+      locations = example_runs_ww$location,
+      eval_output_subdir = eval_config$output_dir,
+      model_type = "ww"
+    )
+  ),
+  tar_target(
+    name = parameter_draws,
+    command = dplyr::bind_rows(
+      parameter_draws_hosp,
+      parameter_draws_ww
+    )
+  ),
+  tar_target(
     name = all_ww_errors,
     command = combine_outputs(
       output_type = "errors",
@@ -382,17 +594,9 @@ collated_output_targets <- list(
     command = dplyr::bind_rows(all_hosp_scores, all_ww_scores)
   ),
   tar_target(
-    name = all_raw_scores_quantiles,
-    command = dplyr::bind_rows(
-      all_hosp_scores_quantiles,
-      all_ww_scores_quantiles
-    )
-  ),
-  tar_target(
     name = all_errors,
     command = dplyr::bind_rows(all_hosp_errors, all_ww_errors)
   ),
-
   tar_target(
     name = convergence_df,
     command = dplyr::left_join(
@@ -442,6 +646,15 @@ collated_output_targets <- list(
       .data$any_flags_hosp
     ) |>
       dplyr::select("forecast_date", "location")
+  ),
+  tar_target(
+    name = date_locs_converged_retro_by_model_type,
+    command = dplyr::bind_rows(
+      date_locs_hosp_converged_retro |>
+        dplyr::mutate(model_type = "hosp"),
+      date_locs_ww_converged_retro |>
+        dplyr::mutate(model_type = "ww")
+    )
   ),
   tar_target(
     name = date_locs_both_converged_retro,
@@ -1416,10 +1629,6 @@ composite_figure_targets <- list(
     )
   ),
   tar_target(
-    name = locs_to_plot,
-    command = c("CA", "VA", "WA")
-  ),
-  tar_target(
     name = forecast_date_to_plot,
     command = "2024-01-15"
   ),
@@ -1432,7 +1641,7 @@ composite_figure_targets <- list(
     command = submitted_fcsts_cfa_retro |>
       dplyr::filter(
         quantile_level %in% quantile_levels_to_plot,
-        location %in% locs_to_plot
+        location %in% example_locations
       ) |>
       dplyr::rename(
         quantile = "quantile_level",
@@ -1446,7 +1655,7 @@ composite_figure_targets <- list(
       output_type = "ww_quantiles",
       scenarios = "status_quo",
       forecast_dates = forecast_date_to_plot,
-      locations = locs_to_plot,
+      locations = example_locations,
       eval_output_subdir = eval_config$output_dir,
       model_type = "ww",
       strict = TRUE
@@ -1456,7 +1665,7 @@ composite_figure_targets <- list(
     name = example_hosp_t_1,
     command = plot_ribbon_hosp_quantiles(
       hosp_quants_plot,
-      loc_to_plot = locs_to_plot[1],
+      loc_to_plot = example_locations[1],
       date_to_plot = forecast_date_to_plot
     )
   ),
@@ -1464,7 +1673,7 @@ composite_figure_targets <- list(
     name = example_hosp_t_2,
     command = plot_ribbon_hosp_quantiles(
       hosp_quants_plot,
-      loc_to_plot = locs_to_plot[2],
+      loc_to_plot = example_locations[2],
       date_to_plot = forecast_date_to_plot
     )
   ),
@@ -1472,7 +1681,7 @@ composite_figure_targets <- list(
     name = example_hosp_t_3,
     command = plot_ribbon_hosp_quantiles(
       hosp_quants_plot,
-      loc_to_plot = locs_to_plot[3],
+      loc_to_plot = example_locations[3],
       date_to_plot = forecast_date_to_plot
     )
   ),
@@ -1480,7 +1689,7 @@ composite_figure_targets <- list(
     name = example_ww_conc_1,
     command = plot_ribbon_ww_quantiles(
       ww_quants_plot,
-      loc_to_plot = locs_to_plot[1],
+      loc_to_plot = example_locations[1],
       date_to_plot = forecast_date_to_plot,
       site_lab_names_to_show = c(
         "Site: 2590, Lab: 34",
@@ -1493,7 +1702,7 @@ composite_figure_targets <- list(
     name = example_ww_conc_2,
     command = plot_ribbon_ww_quantiles(
       ww_quants_plot,
-      loc_to_plot = locs_to_plot[2],
+      loc_to_plot = example_locations[2],
       date_to_plot = forecast_date_to_plot
     )
   ),
@@ -1501,7 +1710,7 @@ composite_figure_targets <- list(
     name = example_ww_conc_3,
     command = plot_ribbon_ww_quantiles(
       ww_quants_plot,
-      loc_to_plot = locs_to_plot[3],
+      loc_to_plot = example_locations[3],
       date_to_plot = forecast_date_to_plot
     )
   ),
@@ -1528,7 +1737,7 @@ composite_figure_targets <- list(
     name = fig_crps_three_example_locs,
     command = plot_score_model_loc(
       crps_cfa_models_retro,
-      locs_to_plot
+      example_locations
     )
   ),
   tar_target(
@@ -1936,8 +2145,218 @@ bootstrap_targets <- list(
     name = save_fig_bootstrap,
     command = save_fig_supp(
       fig_bootstrap,
-      base_width = 8,
+      base_width = 9,
       base_height = 10
+    )
+  )
+)
+
+diagnostic_figure_targets <- list(
+  tar_target(
+    name = slowest_chain_run_time_used,
+    command = dplyr::inner_join(
+      slowest_chain_run_time,
+      date_locs_to_compare_retro,
+      by = c("location", "forecast_date")
+    )
+  ),
+  tar_target(
+    name = diagnostic_extrema_preds_scored_used,
+    command = dplyr::inner_join(
+      diagnostic_extrema_preds_scored,
+      date_locs_to_compare_retro,
+      by = c("location", "forecast_date")
+    )
+  ),
+  tar_target(
+    name = diagnostic_extrema_preds_scored_non_convergent,
+    command = dplyr::anti_join(
+      diagnostic_extrema_preds_scored,
+      date_locs_converged_retro_by_model_type,
+      by = c("location", "forecast_date", "model_type")
+    )
+  ),
+  tar_target(
+    name = diagnostic_extrema_all_used,
+    command = dplyr::inner_join(
+      diagnostic_extrema_all,
+      date_locs_to_compare_retro,
+      by = c("location", "forecast_date")
+    )
+  ),
+  tar_target(
+    name = diagnostic_extrema_all_non_convergent,
+    command = dplyr::anti_join(
+      diagnostic_extrema_all,
+      date_locs_converged_retro_by_model_type,
+      by = c("location", "forecast_date", "model_type")
+    )
+  ),
+  tar_target(
+    name = fig_slowest_chain_run_time_dist_full,
+    command = plot_fitting_clock_time(slowest_chain_run_time)
+  ),
+  tar_target(
+    name = fig_slowest_chain_run_time_dist_used,
+    command = plot_fitting_clock_time(slowest_chain_run_time_used)
+  ),
+  tar_target(
+    name = fig_chain_run_time_versus_sites_full,
+    command = plot_fitting_clock_time_versus_sites(
+      slowest_chain_run_time,
+      granular_ww_metadata_used
+    )
+  ),
+  tar_target(
+    name = fig_chain_run_time_versus_sites_used,
+    command = plot_fitting_clock_time_versus_sites(
+      slowest_chain_run_time_used,
+      granular_ww_metadata_used
+    )
+  ),
+  tar_target(
+    name = fig_max_rhat_non_convergent,
+    command = plot_max_rhat_distribution(diagnostic_extrema_all_non_convergent)
+  ),
+  tar_target(
+    name = fig_max_rhat_used,
+    command = plot_max_rhat_distribution(diagnostic_extrema_all_used)
+  ),
+  tar_target(
+    name = fig_min_ess_bulk_used,
+    command = plot_min_ess_distribution(
+      diagnostic_extrema_preds_scored_used,
+      "bulk"
+    )
+  ),
+  tar_target(
+    name = fig_min_ess_bulk_non_convergent,
+    command = plot_min_ess_distribution(
+      diagnostic_extrema_preds_scored_non_convergent,
+      "bulk"
+    )
+  ),
+  tar_target(
+    name = fig_min_ess_tail_used,
+    command = plot_min_ess_distribution(
+      diagnostic_extrema_preds_scored_used,
+      "tail"
+    )
+  ),
+  tar_target(
+    name = fig_min_ess_tail_non_convergent,
+    command = plot_min_ess_distribution(
+      diagnostic_extrema_preds_scored_non_convergent,
+      "tail"
+    )
+  ),
+  tar_target(
+    name = fig_clock_time,
+    command = compose_clock_time_fig(
+      fig_slowest_chain_run_time_dist_full,
+      fig_slowest_chain_run_time_dist_used,
+      fig_chain_run_time_versus_sites_full,
+      fig_chain_run_time_versus_sites_used
+    )
+  ),
+  tar_target(
+    name = save_fig_clock_time,
+    command = save_fig_supp(
+      fig_clock_time,
+      base_height = 10,
+      base_width = 8
+    )
+  ),
+  tar_target(
+    name = fig_diagnostics,
+    command = compose_diagnostic_fig(
+      fig_max_rhat_used,
+      fig_max_rhat_non_convergent,
+      fig_min_ess_bulk_used,
+      fig_min_ess_bulk_non_convergent,
+      fig_min_ess_tail_used,
+      fig_min_ess_tail_non_convergent
+    )
+  ),
+  tar_target(
+    name = save_fig_diagnostics,
+    command = save_fig_supp(
+      fig_diagnostics,
+      base_height = 10,
+      base_width = 8
+    )
+  )
+)
+
+prior_posterior_targets <- list(
+  tar_target(
+    name = parameter_draws_ww_used,
+    command = parameter_draws_ww |>
+      dplyr::inner_join(
+        date_locs_to_compare_retro,
+        by = c("location", "forecast_date")
+      )
+  ),
+  tar_target(
+    name = parameter_draws_hosp_used,
+    command = parameter_draws_hosp |>
+      dplyr::inner_join(
+        date_locs_to_compare_retro,
+        by = c("location", "forecast_date")
+      )
+  ),
+  tar_target(
+    name = param_names_to_plot_prior_posterior,
+    command = c(
+      "log10_g",
+      "infection_feedback",
+      "sd_log_sigma_ww_site",
+      "ww_site_mod_sd",
+      "eta_sd"
+    )
+  ),
+  tar_target(
+    name = prior_posterior_x_transform,
+    command = list(infection_feedback = "log10")
+  ),
+  tar_target(
+    name = prior_posterior_xlim,
+    command = list(ww_site_mod_sd = c(0, 1.5), eta_sd = c(0, 0.09))
+  ),
+  tar_target(
+    name = fig_prior_posterior_ww,
+    command = parameter_draws_ww_used |>
+      dplyr::filter(.variable %in% param_names_to_plot_prior_posterior) |>
+      plot_prior_posterior(
+        params,
+        custom_x_transform = prior_posterior_x_transform,
+        custom_xlim = prior_posterior_xlim
+      )
+  ),
+  tar_target(
+    name = save_fig_prior_posterior_ww,
+    command = save_fig_supp(
+      fig_prior_posterior_ww,
+      base_width = 15,
+      base_aspect_ratio = 2
+    )
+  ),
+  tar_target(
+    name = fig_prior_posterior_hosp,
+    command = parameter_draws_hosp_used |>
+      dplyr::filter(.variable %in% param_names_to_plot_prior_posterior) |>
+      plot_prior_posterior(
+        params,
+        custom_x_transform = prior_posterior_x_transform,
+        custom_xlim = prior_posterior_xlim
+      )
+  ),
+  tar_target(
+    name = save_fig_prior_posterior_hosp,
+    command = save_fig_supp(
+      fig_prior_posterior_hosp,
+      base_width = 15,
+      base_aspect_ratio = 2
     )
   )
 )
@@ -2416,6 +2835,8 @@ list(
   hub_comparison_targets,
   trend_analysis_targets,
   composite_figure_targets,
+  diagnostic_figure_targets,
+  prior_posterior_targets,
   additional_figure_targets,
   bootstrap_targets,
   reported_quantities_targets

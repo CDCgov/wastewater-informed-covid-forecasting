@@ -5,7 +5,7 @@ import argparse
 import cfa.cloudops
 
 
-def main(pool_name: str) -> None:
+def main(pool_name: str, vm_size: str) -> None:
     """
     Set up a pool with a given name
     and default configuration.
@@ -15,6 +15,10 @@ def main(pool_name: str) -> None:
     pool_name
        name for the pool
 
+    vm_size
+       cfa-cloudops VM 't-shirt size' or Azure Batch
+       VM name for the pool nodes.
+
     Returns
     -------
     None
@@ -23,7 +27,7 @@ def main(pool_name: str) -> None:
     client = cfa.cloudops.CloudClient(keyvault="cfa-predict")
     client.create_pool(
         pool_name=pool_name,
-        vm_size="small",
+        vm_size=vm_size,
         mounts=[
             {"source": "wastewater-input", "target": "input"},
             {"source": "wastewater-ms-output", "target": "output"},
@@ -48,6 +52,16 @@ if __name__ == "__main__":
         help="A name for the pool",
     )
 
+    parser.add_argument(
+        "--vm-size",
+        type=str,
+        help=(
+            "cfa-cloudops VM 't-shirt size' or Azure VM "
+            "name for the pool nodes"
+        ),
+        default="small",
+    )
+
     parsed = vars(parser.parse_args())
 
-    main(parsed["pool_name"])
+    main(parsed["pool_name"], parsed["vm_size"])

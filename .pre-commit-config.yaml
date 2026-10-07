@@ -15,14 +15,14 @@ repos:
   #####
   # Python
   - repo: https://github.com/astral-sh/ruff-pre-commit
-    rev: v0.16.8
+    rev: v0.16.10
     hooks:
         # Run the linter
       - id: ruff-check
         # Run the formatter
       - id: ruff-format
   - repo: https://github.com/astral-sh/uv-pre-commit
-    rev: 0.12.17
+    rev: 0.12.23
     hooks:
       - id: uv-lock
   #####
@@ -44,7 +44,7 @@ repos:
 # R
 
   - repo: https://github.com/posit-dev/air-pre-commit
-    rev: 0.11.0
+    rev: 0.12.0
     hooks:
       - id: air-format
   - repo: https://github.com/etiennebacher/jarl-pre-commit
