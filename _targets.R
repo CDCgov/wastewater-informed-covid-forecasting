@@ -181,7 +181,10 @@ configuration_targets <- list(
       column = "model",
       values = cfa_model_names_retro
     )
-  ),
+  )
+)
+
+data_targets <- list(
   tar_target(
     name = eval_hosp_data,
     command = get_input_hosp_data(
@@ -638,9 +641,9 @@ collated_output_targets <- list(
   ),
   tar_target(
     name = date_locs_hosp_converged_retro,
-    command = dplyr::filter(
+    command = dplyr::filter_out(
       convergence_df_hosp,
-      !.data$any_flags_hosp
+      .data$any_flags_hosp
     ) |>
       dplyr::select("forecast_date", "location")
   ),
@@ -1654,7 +1657,8 @@ composite_figure_targets <- list(
       forecast_dates = forecast_date_to_plot,
       locations = example_locations,
       eval_output_subdir = eval_config$output_dir,
-      model_type = "ww"
+      model_type = "ww",
+      strict = TRUE
     )
   ),
   tar_target(
@@ -2513,7 +2517,8 @@ additional_figure_targets <- list(
       forecast_dates = c("2024-02-12"),
       locations = c("OH", "IL"),
       eval_output_subdir = eval_config$output_dir,
-      model_type = "ww"
+      model_type = "ww",
+      strict = TRUE
     )
   ),
   tar_map(
