@@ -80,8 +80,6 @@ get_parameterized_prior_dist <- function(parameter_name, prior_params) {
 #' Default `".variable"`, matching  [tidybayes::gather_draws()].
 #' @param value_name Name for the value column.
 #' Default `".value"`, matching  [tidybayes::gather_draws()].
-#' @param prior_pdf_name Column containing prior pdfs. Default
-#' `"pdf"`.
 #' @param row_facet Column to facet rows by. Default `"location"`.
 #' @param custom_x_transform Optional named list mapping parameter names
 #' to custom x transforms to use for that parameter's panels in the plot.

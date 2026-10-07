@@ -7,20 +7,21 @@ a known marginal prior distribution.}
 \usage{
 plot_prior_posterior(
   draws_long,
-  priors,
+  prior_params,
   fit_id_col = "forecast_date",
   variable_name = ".variable",
   value_name = ".value",
-  prior_pdf_name = "prior_pdf",
-  row_facet = "location"
+  row_facet = "location",
+  custom_x_transform = list(),
+  custom_xlim = list()
 )
 }
 \arguments{
 \item{draws_long}{long-format posterior draws, as the
 output of \code{\link[tidybayes:gather_draws]{tidybayes::gather_draws()}}.}
 
-\item{priors}{data frame of priors, with the same
-faceting columns as \code{draws_long}.}
+\item{prior_params}{Named list of prior hyperparameter values, as the
+output of \code{\link[wwinference:get_params]{wwinference::get_params()}}}
 
 \item{fit_id_col}{Name of a column in \code{draws_long} that uniquely
 identifies individual model fits within a facet. Default \code{"forecast_date"}.}
@@ -31,10 +32,19 @@ Default \code{".variable"}, matching  \code{\link[tidybayes:gather_draws]{tidyba
 \item{value_name}{Name for the value column.
 Default \code{".value"}, matching  \code{\link[tidybayes:gather_draws]{tidybayes::gather_draws()}}.}
 
-\item{prior_pdf_name}{Column containing prior pdfs. Default
-\code{"pdf"}.}
-
 \item{row_facet}{Column to facet rows by. Default \code{"location"}.}
+
+\item{custom_x_transform}{Optional named list mapping parameter names
+to custom x transforms to use for that parameter's panels in the plot.
+If a parameter name is not matched, the identity transform will be used.
+Default \code{list()}, which implies using the identity transform for all
+panels.}
+
+\item{custom_xlim}{Optional named list mapping parameter names
+to vectors specificing custom x limits to use for that parameter's
+panels in the plot. If a parameter name is not matched, x limits will
+be deferred to ggplot. Default \code{list()}, which implies deferring limits
+for all parameters.}
 }
 \value{
 The plot.
