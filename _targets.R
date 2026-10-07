@@ -2310,6 +2310,26 @@ prior_posterior_targets <- list(
       "ww_site_mod_sd",
       "eta_sd"
     )
+  ),
+  tar_target(
+    name = fig_prior_posterior_ww,
+    command = parameter_draws_ww_used |>
+      dplyr::filter(.variable %in% param_names_to_plot_prior_posterior) |>
+      plot_prior_posterior(params)
+  ),
+  tar_target(
+    name = save_fig_prior_posterior_ww,
+    command = save_fig_supp(fig_prior_posterior_ww)
+  ),
+  tar_target(
+    name = fig_prior_posterior_hosp,
+    command = parameter_draws_hosp_used |>
+      dplyr::filter(.variable %in% param_names_to_plot_prior_posterior) |>
+      plot_prior_posterior(params)
+  ),
+  tar_target(
+    name = save_fig_prior_posterior_hosp,
+    command = save_fig_supp(fig_prior_posterior_hosp)
   )
 )
 
@@ -2787,6 +2807,7 @@ list(
   trend_analysis_targets,
   composite_figure_targets,
   diagnostic_figure_targets,
+  prior_posterior_targets,
   additional_figure_targets,
   bootstrap_targets,
   reported_quantities_targets
