@@ -450,7 +450,7 @@ postprocess_successful_fit <- function(
     with_run_columns()
   ## this is not much less efficient than a single
   ## gather_draws call, since they iterate by variable under
-  ## the hood, and it allows use to use strings.
+  ## the hood, and it allows us to use strings.
 
   save_fit_table(
     data_to_save = param_draws,

@@ -5,7 +5,7 @@ test_that("get_parameter_display_name returns the expected display name for a kn
   )
 })
 
-test_that("get_parameter_display_name returns the raw parameter name for an known unknown parameter", {
+test_that("get_parameter_display_name returns the raw parameter name for an unknown parameter", {
   expect_equal(get_parameter_display_name("log10_gg"), "log10_gg")
 })
 

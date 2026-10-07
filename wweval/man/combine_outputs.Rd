@@ -19,6 +19,7 @@ combine_outputs(
 \code{"hosp_quantiles"},
 \code{"ww_quantiles"},
 \code{"scores_quantiles"},
+\code{"parameter_draws"},
 \code{"flags"},
 \code{"errors"},
 \code{"ww_data_flags"},

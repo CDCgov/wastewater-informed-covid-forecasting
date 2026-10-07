@@ -4,7 +4,7 @@
 #' @param parameter_name Name of the parameter in the wwinference Stan model
 #' @param prior_params Named list of prior hyperparameter values, as the
 #' output of [wwinference::get_params()]
-#' @return `A distributional` distribution object parameterized by the priors,
+#' @return A `distributional` distribution object parameterized by the priors,
 #' e.g. a [distributional::dist_normal()] object. Errors if the user requests
 #' an unknown parameter.
 #'
@@ -91,7 +91,7 @@ get_parameterized_prior_dist <- function(parameter_name, prior_params) {
 #' Default `list()`, which implies using the identity transform for all
 #' panels.
 #' @param custom_xlim Optional named list mapping parameter names
-#' to vectors specificing custom x limits to use for that parameter's
+#' to vectors specifying custom x limits to use for that parameter's
 #' panels in the plot. If a parameter name is not matched, x limits will
 #' be deferred to ggplot. Default `list()`, which implies deferring limits
 #' for all parameters.
