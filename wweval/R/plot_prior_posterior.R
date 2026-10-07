@@ -71,11 +71,15 @@ get_parameterized_prior_dist <- function(parameter_name, prior_params) {
 #' a known marginal prior distribution.
 #'
 #' @param draws_long long-format posterior draws, as the
-#' output of [tidybayes::gather_draws()].
+#' output of [tidybayes::gather_draws()] with auxiliary metadata
+#' columns as below.
 #' @param prior_params Named list of prior hyperparameter values, as the
 #' output of [wwinference::get_params()]
 #' @param fit_id_col Name of a column in `draws_long` that uniquely
 #' identifies individual model fits within a facet. Default `"forecast_date"`.
+#' @param model_type_col Name of a column in `draws_long` that
+#' identifies model types, so that [scale_fill_model()] can be applied.
+#' Default `"model_type"`.
 #' @param variable_name Name for the variable column.
 #' Default `".variable"`, matching  [tidybayes::gather_draws()].
 #' @param value_name Name for the value column.
@@ -97,6 +101,7 @@ plot_prior_posterior <- function(
   draws_long,
   prior_params,
   fit_id_col = "forecast_date",
+  model_type_col = "model_type",
   variable_name = ".variable",
   value_name = ".value",
   row_facet = "location",
@@ -137,7 +142,7 @@ plot_prior_posterior <- function(
         mapping = ggplot2::aes(
           x = .data[[value_name]],
           group = .data[[fit_id_col]],
-          color = .data$model_type
+          color = .data[[model_type_col]]
         ),
         data = posterior_data,
         fill = NA,

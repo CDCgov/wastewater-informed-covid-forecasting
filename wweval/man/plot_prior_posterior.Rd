@@ -9,6 +9,7 @@ plot_prior_posterior(
   draws_long,
   prior_params,
   fit_id_col = "forecast_date",
+  model_type_col = "model_type",
   variable_name = ".variable",
   value_name = ".value",
   row_facet = "location",
@@ -18,13 +19,18 @@ plot_prior_posterior(
 }
 \arguments{
 \item{draws_long}{long-format posterior draws, as the
-output of \code{\link[tidybayes:gather_draws]{tidybayes::gather_draws()}}.}
+output of \code{\link[tidybayes:gather_draws]{tidybayes::gather_draws()}} with auxiliary metadata
+columns as below.}
 
 \item{prior_params}{Named list of prior hyperparameter values, as the
 output of \code{\link[wwinference:get_params]{wwinference::get_params()}}}
 
 \item{fit_id_col}{Name of a column in \code{draws_long} that uniquely
 identifies individual model fits within a facet. Default \code{"forecast_date"}.}
+
+\item{model_type_col}{Name of a column in \code{draws_long} that
+identifies model types, so that \code{\link[=scale_fill_model]{scale_fill_model()}} can be applied.
+Default \code{"model_type"}.}
 
 \item{variable_name}{Name for the variable column.
 Default \code{".variable"}, matching  \code{\link[tidybayes:gather_draws]{tidybayes::gather_draws()}}.}
