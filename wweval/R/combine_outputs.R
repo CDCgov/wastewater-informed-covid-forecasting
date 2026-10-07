@@ -14,6 +14,7 @@
 #'    `"hosp_quantiles"`,
 #'    `"ww_quantiles"`,
 #'    `"scores_quantiles"`,
+#'    `"parameter_draws"`,
 #'    `"flags"`,
 #'    `"errors"`,
 #'    `"ww_data_flags"`,
@@ -23,6 +24,7 @@
 #'    `"diagnostic_extrema_lp"`,
 #'    `"diagnostic_extrema_preds_all"`,
 #'    `"diagnostic_extrema_preds_scored"`
+#'
 #'
 #' @param scenarios The vector of character strings of all the scenarios
 #' @param forecast_dates The vector of character strings of all the forecast dates
@@ -42,14 +44,14 @@ combine_outputs <- function(
   eval_output_subdir,
   model_type
 ) {
-  checkmate::assert_scalar(output_type)
-  checkmate::assert_names(
+  checkmate::assert_choice(
     output_type,
-    subset.of = c(
+    c(
       "scores",
       "hosp_quantiles",
       "ww_quantiles",
       "scores_quantiles",
+      "parameter_draws",
       "flags",
       "errors",
       "ww_data_flags",

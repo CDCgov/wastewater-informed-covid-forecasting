@@ -426,34 +426,46 @@ postprocess_successful_fit <- function(
     type_of_output = "flags"
   )
 
-  message("Plotting histograms of marginal posteriors...")
+  message(
+    "Extracting posterior draws for selected parameters and plotting histograms..."
+  )
 
   raw_draws <- stan_fit_obj$draws()
 
-  hist_table_params <- c(
-    "inf_feedback" = "infection_feedback",
-    "sigma_rt" = "sigma_rt",
-    "eta_sd" = "eta_sd"
+  params_to_extract <- c(
+    "infection_feedback",
+    "sigma_rt",
+    "eta_sd",
+    "log10_g",
+    "sd_log_sigma_ww_site",
+    "ww_site_mod_sd"
   )
 
-  plot_and_save_param <- function(param_name, save_name) {
-    param_draws <- raw_draws |>
-      tidybayes::spread_draws(!!str2lang(param_name)) |>
-      dplyr::mutate(
-        draw = .data$`.draw`
-      ) |>
-      dplyr::select(!!param_name, "draw")
-    param_plot <- param_draws |>
-      ggplot(aes(x = .data[[param_name]])) +
-      geom_histogram()
-    ggsave_plot(param_plot, basename = save_name)
-    save_fit_table(
-      data_to_save = param_draws,
-      type_of_output = save_name
+  param_draws <- purrr::map_df(params_to_extract, \(param) {
+    tidybayes::gather_draws(
+      raw_draws,
+      !!str2lang(param)
     )
+  }) |>
+    with_run_columns()
+  ## this is not much less efficient than a single
+  ## gather_draws call, since they iterate by variable under
+  ## the hood, and it allows us to use strings.
+
+  save_fit_table(
+    data_to_save = param_draws,
+    type_of_output = "parameter_draws"
+  )
+
+  plot_and_save_param <- function(param_name) {
+    param_plot <- param_draws |>
+      dplyr::filter(.data$.variable == !!param_name) |>
+      ggplot(aes(x = .data$.value)) +
+      geom_histogram()
+    ggsave_plot(param_plot, basename = param_name)
   }
 
-  purrr::iwalk(hist_table_params, plot_and_save_param)
+  purrr::walk(params_to_extract, plot_and_save_param)
   message("Done plotting histograms.")
 
   hosp_draws <- NULL
