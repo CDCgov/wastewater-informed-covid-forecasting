@@ -2312,24 +2312,48 @@ prior_posterior_targets <- list(
     )
   ),
   tar_target(
+    name = prior_posterior_x_transform,
+    command = list(infection_feedback = "log10")
+  ),
+  tar_target(
+    name = prior_posterior_xlim,
+    command = list(ww_site_mod_sd = c(0, 1.5), eta_sd = c(0, 0.09))
+  ),
+  tar_target(
     name = fig_prior_posterior_ww,
     command = parameter_draws_ww_used |>
       dplyr::filter(.variable %in% param_names_to_plot_prior_posterior) |>
-      plot_prior_posterior(params)
+      plot_prior_posterior(
+        params,
+        custom_x_transform = prior_posterior_x_transform,
+        custom_xlim = prior_posterior_xlim
+      )
   ),
   tar_target(
     name = save_fig_prior_posterior_ww,
-    command = save_fig_supp(fig_prior_posterior_ww)
+    command = save_fig_supp(
+      fig_prior_posterior_ww,
+      base_width = 15,
+      base_aspect_ratio = 2
+    )
   ),
   tar_target(
     name = fig_prior_posterior_hosp,
     command = parameter_draws_hosp_used |>
       dplyr::filter(.variable %in% param_names_to_plot_prior_posterior) |>
-      plot_prior_posterior(params)
+      plot_prior_posterior(
+        params,
+        custom_x_transform = prior_posterior_x_transform,
+        custom_xlim = prior_posterior_xlim
+      )
   ),
   tar_target(
     name = save_fig_prior_posterior_hosp,
-    command = save_fig_supp(fig_prior_posterior_hosp)
+    command = save_fig_supp(
+      fig_prior_posterior_hosp,
+      base_width = 15,
+      base_aspect_ratio = 2
+    )
   )
 )
 
