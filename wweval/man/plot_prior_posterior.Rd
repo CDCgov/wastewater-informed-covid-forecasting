@@ -47,7 +47,7 @@ Default \code{list()}, which implies using the identity transform for all
 panels.}
 
 \item{custom_xlim}{Optional named list mapping parameter names
-to vectors specificing custom x limits to use for that parameter's
+to vectors specifying custom x limits to use for that parameter's
 panels in the plot. If a parameter name is not matched, x limits will
 be deferred to ggplot. Default \code{list()}, which implies deferring limits
 for all parameters.}

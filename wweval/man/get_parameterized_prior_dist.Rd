@@ -14,7 +14,7 @@ get_parameterized_prior_dist(parameter_name, prior_params)
 output of \code{\link[wwinference:get_params]{wwinference::get_params()}}}
 }
 \value{
-\verb{A distributional} distribution object parameterized by the priors,
+A \code{distributional} distribution object parameterized by the priors,
 e.g. a \code{\link[distributional:dist_normal]{distributional::dist_normal()}} object. Errors if the user requests
 an unknown parameter.
 }
