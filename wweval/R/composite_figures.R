@@ -425,21 +425,24 @@ compose_clock_time_fig <- function(
   clock_time_versus_sites_used
 ) {
   design <- "
-ABBB
-CDDD
+ABBBB
+CDDDD
 "
-
+  left_plot_theme <- ggplot2::theme(plot.tag.position = c(0.1, 1))
+  right_plot_theme <- ggplot2::theme(plot.tag.position = c(0, 1))
   fig <- patchwork::wrap_plots(
-    A = clock_time_dist_full,
+    A = clock_time_dist_full + left_plot_theme,
     B = clock_time_versus_sites_full,
-    C = clock_time_dist_used,
+    C = clock_time_dist_used + left_plot_theme,
     D = clock_time_versus_sites_used,
     design = design,
-    guides = "collect"
+    guides = "collect",
+    axes = "collect"
   ) +
     patchwork::plot_annotation(tag_levels = "A") &
-    theme(
-      legend.position = "none"
+    ggplot2::theme(
+      legend.position = "none",
+      axis.title.y = ggplot2::element_text(margin = ggplot2::margin(r = 30))
     )
 
   return(fig)

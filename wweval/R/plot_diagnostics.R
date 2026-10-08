@@ -43,7 +43,7 @@ plot_fitting_clock_time <- function(chain_run_time) {
     dplyr::mutate(slowest_chain_time_m = .data$slowest_total_s / 60) |>
     model_type_eyeplot("slowest_chain_time_m") +
     scale_y_continuous(transform = "log10") +
-    ylab("Slowest chain run time (m)")
+    labs(x = "Model", y = "Slowest chain run time (m)")
 
   return(p)
 }

@@ -2259,8 +2259,8 @@ diagnostic_figure_targets <- list(
     name = save_fig_clock_time,
     command = save_fig_supp(
       fig_clock_time,
-      base_height = 10,
-      base_width = 8
+      base_height = 8,
+      base_width = 12
     )
   ),
   tar_target(
