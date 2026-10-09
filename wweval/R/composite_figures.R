@@ -478,19 +478,23 @@ CD
 EF
 "
 
+  left_plot_theme <- ggplot2::theme(plot.tag.position = c(0.1, 1))
+  right_plot_theme <- ggplot2::theme(plot.tag.position = c(-0.025, 1))
   fig <- patchwork::wrap_plots(
-    A = max_rhat_used,
-    B = max_rhat_not_used,
-    C = ess_bulk_forecast_used,
-    D = ess_bulk_forecast_not_used,
-    E = ess_tail_forecast_used,
-    F = ess_tail_forecast_not_used,
+    A = max_rhat_used + left_plot_theme,
+    B = max_rhat_not_used + right_plot_theme,
+    C = ess_bulk_forecast_used + left_plot_theme,
+    D = ess_bulk_forecast_not_used + right_plot_theme,
+    E = ess_tail_forecast_used + left_plot_theme,
+    F = ess_tail_forecast_not_used + right_plot_theme,
     design = design,
-    guides = "collect"
+    guides = "collect",
+    axes = "collect"
   ) +
     patchwork::plot_annotation(tag_levels = "A") &
     theme(
-      legend.position = "none"
+      legend.position = "none",
+      axis.title.y = ggplot2::element_text(margin = ggplot2::margin(r = 30))
     )
 
   return(fig)

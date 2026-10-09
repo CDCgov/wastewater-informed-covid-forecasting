@@ -6,9 +6,15 @@
 #' @return The plot.
 #' @export
 plot_max_rhat_distribution <- function(diagnostic_extrema) {
-  p <- model_type_eyeplot(diagnostic_extrema, "max_rhat") +
+  ylim <- c(1, max(diagnostic_extrema$max_rhat))
+  p <- model_type_slabinterval(
+    diagnostic_extrema,
+    "max_rhat",
+    density = "histogram"
+  ) +
     scale_y_continuous(transform = "log10") +
-    labs(y = "Maximum R-hat value")
+    labs(y = "Maximum R-hat value") +
+    coord_cartesian(ylim = ylim)
 
   return(p)
 }
@@ -25,8 +31,13 @@ plot_max_rhat_distribution <- function(diagnostic_extrema) {
 plot_min_ess_distribution <- function(diagnostic_extrema, which) {
   checkmate::assert_choice(which, c("bulk", "tail"))
 
-  p <- model_type_eyeplot(diagnostic_extrema, glue::glue("min_ess_{which}")) +
-    labs(y = glue::glue("Minimum {which} ESS value"))
+  p <- model_type_slabinterval(
+    diagnostic_extrema,
+    glue::glue("min_ess_{which}"),
+    density = "histogram"
+  ) +
+    labs(y = glue::glue("Minimum {which} ESS value")) +
+    ggplot2::coord_cartesian(ylim = c(0, 2500))
 
   return(p)
 }
@@ -41,7 +52,7 @@ plot_min_ess_distribution <- function(diagnostic_extrema, which) {
 plot_fitting_clock_time <- function(chain_run_time) {
   p <- chain_run_time |>
     dplyr::mutate(slowest_chain_time_m = .data$slowest_total_s / 60) |>
-    model_type_eyeplot("slowest_chain_time_m") +
+    model_type_slabinterval("slowest_chain_time_m", density = "histogram") +
     scale_y_continuous(transform = "log10") +
     labs(x = "Model", y = "Slowest chain run time (m)")
 
