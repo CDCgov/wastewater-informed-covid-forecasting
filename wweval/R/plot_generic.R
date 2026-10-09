@@ -10,9 +10,9 @@
 #' @param shape `shape` argument passed to
 #' [ggdist::stat_slabinterval()]. Default `21`.
 #' @param point_size `point_size` argument passed to
-#' [ggdist::stat_slabinterval()]. Default `10`.
+#' [ggdist::stat_slabinterval()]. Default `6`.
 #' @param interval_size_range `interval_size_range` argument
-#' passed to [ggdist::stat_slabinterval()]. Default `c(2, 5)`.
+#' passed to [ggdist::stat_slabinterval()]. Default `c(2, 4)`.
 #' @param ... Additional keyword arguments passed to
 #' [ggdist::stat_slabinterval()] .
 #'
@@ -23,8 +23,8 @@ model_type_slabinterval <- function(
   y,
   geom = "slabinterval",
   shape = 21,
-  point_size = 10,
-  interval_size_range = c(2, 5),
+  point_size = 6,
+  interval_size_range = c(2, 4),
   ...
 ) {
   p <- ggplot2::ggplot(

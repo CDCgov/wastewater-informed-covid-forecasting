@@ -9,8 +9,8 @@ model_type_slabinterval(
   y,
   geom = "slabinterval",
   shape = 21,
-  point_size = 10,
-  interval_size_range = c(2, 5),
+  point_size = 6,
+  interval_size_range = c(2, 4),
   ...
 )
 }
@@ -26,10 +26,10 @@ Default \code{"slabinterval"}.}
 \code{\link[ggdist:stat_slabinterval]{ggdist::stat_slabinterval()}}. Default \code{21}.}
 
 \item{point_size}{\code{point_size} argument passed to
-\code{\link[ggdist:stat_slabinterval]{ggdist::stat_slabinterval()}}. Default \code{10}.}
+\code{\link[ggdist:stat_slabinterval]{ggdist::stat_slabinterval()}}. Default \code{6}.}
 
 \item{interval_size_range}{\code{interval_size_range} argument
-passed to \code{\link[ggdist:stat_slabinterval]{ggdist::stat_slabinterval()}}. Default \code{c(2, 5)}.}
+passed to \code{\link[ggdist:stat_slabinterval]{ggdist::stat_slabinterval()}}. Default \code{c(2, 4)}.}
 
 \item{...}{Additional keyword arguments passed to
 \code{\link[ggdist:stat_slabinterval]{ggdist::stat_slabinterval()}} .}

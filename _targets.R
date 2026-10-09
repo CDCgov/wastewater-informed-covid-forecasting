@@ -2211,12 +2211,26 @@ diagnostic_figure_targets <- list(
     )
   ),
   tar_target(
+    name = fig_max_rhat_full,
+    command = plot_max_rhat_distribution(diagnostic_extrema_all, ymax = 1.6)
+  ),
+  tar_target(
     name = fig_max_rhat_non_convergent,
     command = plot_max_rhat_distribution(diagnostic_extrema_all_non_convergent)
   ),
   tar_target(
     name = fig_max_rhat_used,
-    command = plot_max_rhat_distribution(diagnostic_extrema_all_used)
+    command = plot_max_rhat_distribution(
+      diagnostic_extrema_all_used,
+      ymax = 1.6
+    )
+  ),
+  tar_target(
+    name = fig_min_ess_bulk_full,
+    command = plot_min_ess_distribution(
+      diagnostic_extrema_preds_scored,
+      "bulk"
+    )
   ),
   tar_target(
     name = fig_min_ess_bulk_used,
@@ -2230,6 +2244,13 @@ diagnostic_figure_targets <- list(
     command = plot_min_ess_distribution(
       diagnostic_extrema_preds_scored_non_convergent,
       "bulk"
+    )
+  ),
+  tar_target(
+    name = fig_min_ess_tail_full,
+    command = plot_min_ess_distribution(
+      diagnostic_extrema_preds_scored,
+      "tail"
     )
   ),
   tar_target(
@@ -2267,11 +2288,11 @@ diagnostic_figure_targets <- list(
     name = fig_diagnostics,
     command = compose_diagnostic_fig(
       fig_max_rhat_used,
-      fig_max_rhat_non_convergent,
+      fig_max_rhat_full,
       fig_min_ess_bulk_used,
-      fig_min_ess_bulk_non_convergent,
+      fig_min_ess_bulk_full,
       fig_min_ess_tail_used,
-      fig_min_ess_tail_non_convergent
+      fig_min_ess_tail_full
     )
   ),
   tar_target(

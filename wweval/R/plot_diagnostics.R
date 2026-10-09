@@ -3,16 +3,18 @@
 #' @param diagnostic_extrema data frame of diagnostic extrema,
 #' as the output of [extract_diagnostic_extrema()], collated via
 #' [combine_outputs()].
+#' @param ymax Clip the y axis to this value. If `NULL`,
+#' use the maximum value in the data. Default `NULL`
 #' @return The plot.
 #' @export
-plot_max_rhat_distribution <- function(diagnostic_extrema) {
-  ylim <- c(1, max(diagnostic_extrema$max_rhat))
+plot_max_rhat_distribution <- function(diagnostic_extrema, ymax = NULL) {
+  ylim <- c(1, ymax %||% max(diagnostic_extrema$max_rhat))
   p <- model_type_slabinterval(
     diagnostic_extrema,
     "max_rhat",
     density = "histogram"
   ) +
-    scale_y_continuous(transform = "log10") +
+    scale_y_continuous(breaks = c(1, 1.05, 1.1, 1.2, 1.4, 1.6, 1.8, 2)) +
     labs(y = "Maximum R-hat value") +
     coord_cartesian(ylim = ylim)
 

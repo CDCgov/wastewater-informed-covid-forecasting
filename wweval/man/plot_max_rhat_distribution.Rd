@@ -4,12 +4,15 @@
 \alias{plot_max_rhat_distribution}
 \title{Plot a distribution of maximum R-hat values.}
 \usage{
-plot_max_rhat_distribution(diagnostic_extrema)
+plot_max_rhat_distribution(diagnostic_extrema, ymax = NULL)
 }
 \arguments{
 \item{diagnostic_extrema}{data frame of diagnostic extrema,
 as the output of \code{\link[=extract_diagnostic_extrema]{extract_diagnostic_extrema()}}, collated via
 \code{\link[=combine_outputs]{combine_outputs()}}.}
+
+\item{ymax}{Clip the y axis to this value. If \code{NULL},
+use the maximum value in the data. Default \code{NULL}}
 }
 \value{
 The plot.
