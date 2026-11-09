@@ -260,7 +260,6 @@ collated_output_targets <- list(
           .default = .data$model
         )
       ) |>
-      # jarl-ignore internal_function: workaround for non-scoringutils table save
       scoringutils:::as_scores(
         metrics = names(wweval::sample_metrics)
       )
@@ -283,7 +282,6 @@ collated_output_targets <- list(
           .default = .data$model
         )
       ) |>
-      # jarl-ignore internal_function: workaround for non-scoringutils table save
       scoringutils:::as_scores(
         metrics = names(wweval::sample_metrics)
       )
@@ -774,7 +772,6 @@ collated_output_targets <- list(
       ) |>
       add_horizons(target_end_date_col = "date") |>
       dplyr::select(-"scenario") |>
-      # jarl-ignore internal_function: workaround for non-scoringutils table save
       scoringutils:::as_scores(
         metrics = names(wweval::sample_metrics)
       )
@@ -854,7 +851,6 @@ real_time_rel_targets <- list(
         date_locs_to_compare_real_time,
         by = c("forecast_date", "location")
       ) |>
-      # jarl-ignore internal_function: workaround for non-scoringutils table save
       scoringutils:::as_scores(
         metrics = names(
           wweval::quantile_metrics
